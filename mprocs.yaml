@@ -1,0 +1,9 @@
+procs:
+  Server:
+    shell: watchexec -e hs -- cabal run
+
+  # Tailwind 3 is globally installed
+  Tailwind:
+    shell: tailwindcss --input tailwind.source.css --output public/index.css --watch
+
+
