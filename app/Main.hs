@@ -8,6 +8,7 @@ import Network.Wai.Handler.WebSockets qualified as Wai
 import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
+import Web.ClientSession qualified as Session
 
 import Citadels.Server.State as Global
 import Citadels.Server.State (SessionId(..))
@@ -51,35 +52,17 @@ twain = foldr ($)
   , websocket
   ]
 
-players :: LobbyState -> List Text
-players lobby =  
-  lobby.seatingOrder <&> \id ->
-    let player = lobby.players & HashMap.lookup id & fromJust
-    in player.username
-
-
 -- | set session cookie here
 index :: Middleware
 index = get "/" $ do
   lobby <- readTVarIO Global.lobby
+
   send $ html $ Lucid.renderBS do
     doctypehtml_ do
       templateHead
-      body_ [ class_ "bg-slate-700 h-full text-slate-200 text-xl"] do
-        div_ [ class_ "flex flex-col gap-3 items-center justify-center" ] do
+      lobbyPage  lobby
 
-          h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
-            "Lobby"
 
-          templateRegister ""         
-
-          div_ [ class_ "p-7 rounded border border-slate-500" ] do
-
-            h2_ [ class_ "underline text-2xl font-semibold" ] do
-              "Players"
-
-            ul_ [ id_ "players", class_ "list-disc" ] do
-              players lobby & foldMap (li_ <<< text_)
 
 register :: Middleware
 register = post "/register" $ do

@@ -1,28 +1,39 @@
 module Citadels.Pages.Lobby where
 
 import Citadels.Prelude
+import Citadels.Server.State 
 
-import Network.Wai qualified as Wai
-import Network.Wai.Handler.Warp qualified as Warp
-import Network.Wai.Handler.WebSockets qualified as Wai
-import Network.Wai.Middleware.Static qualified as Wai
-import Network.Wai.Middleware.RequestLogger qualified as Wai
-import Network.WebSockets qualified as WS
-
-import Citadels.Server.State as Global
-import Citadels.Server.State (SessionId(..))
+import Data.HashMap.Strict qualified as HashMap
 
 import Lucid qualified 
---import Optics
 import Lucid.Htmx
 import Lucid.Html5
-import Web.Twain 
-import Data.HashTable (HashTable)
-import Data.HashTable as Table
-import System.IO.Unsafe (unsafePerformIO)
-import Web.Cookie (SetCookie(..), defaultSetCookie)
-import Data.HashMap.Strict qualified  as HashMap
-import Data.Maybe (fromJust)
+import Lucid.Extra
+
+
+lobbyPage :: LobbyState -> Lucid.Html ()
+lobbyPage lobby =
+  body_ [ class_ "bg-slate-700 h-full text-slate-200 text-xl"] do
+    div_ [ class_ "flex flex-col gap-3 items-center justify-center" ] do
+
+      h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
+        "Lobby"
+
+      templateRegister ""         
+
+      div_ [ class_ "p-7 rounded border border-slate-500" ] do
+
+        h2_ [ class_ "underline text-2xl font-semibold" ] do
+          "Players"
+
+        ul_ [ id_ "players", class_ "list-disc" ] do
+          players lobby & foldMap (li_ <<< text_)
+
+    where
+    players :: LobbyState -> List Text
+    players lobby =  
+      lobby.seatingOrder & mapMaybe \id ->
+        lobby.players & HashMap.lookup id <&> (.username)
 
 
 templateRegister :: Text -> Lucid.Html ()
