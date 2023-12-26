@@ -24,7 +24,9 @@ common common
     concurrent-hashtable ^>= 0.1.8,
     stm ^>= 2.5.3.0,
     cookie ^>= 0.4.6,
-    data-default
+    data-default,
+    -- optics >= 0.4,
+    -- optics-core >= 0.4,
 
 
   default-language: 
@@ -32,14 +34,18 @@ common common
   default-extensions:
     NoImplicitPrelude, 
     OverloadedStrings, 
+    OverloadedLabels,
     ImportQualifiedPost, 
     ScopedTypeVariables,
     NumericUnderscores,
     DerivingStrategies,
-    GeneralizedNewtypeDeriving,
     BlockArguments,
     NoFieldSelectors,
-    DuplicateRecordFields
+    DuplicateRecordFields,
+    GeneralizedNewtypeDeriving,
+    DeriveGeneric,
+    NamedFieldPuns,
+    OverloadedRecordDot
 
 
 executable citadels-server
@@ -56,4 +62,5 @@ library citadels-lib
     Citadels.Types,
     Citadels.Server.State,
     Citadels.Pages.Lobby,
+    Citadels.Prelude,
     Lucid.Htmx

@@ -1,6 +1,6 @@
 module Main where
 
-import Relude hiding (id, get)
+import Citadels.Prelude
 
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp qualified as Warp
@@ -13,6 +13,7 @@ import Citadels.Server.State as Global
 import Citadels.Server.State (SessionId(..))
 
 import Lucid qualified 
+--import Optics
 import Lucid.Htmx
 import Lucid.Html5
 import Web.Twain 
@@ -20,6 +21,9 @@ import Data.HashTable (HashTable)
 import Data.HashTable as Table
 import System.IO.Unsafe (unsafePerformIO)
 import Web.Cookie (SetCookie(..),defaultSetCookie)
+import Data.HashMap.Strict qualified  as HashMap
+import Data.Maybe (fromJust)
+
 
 main :: IO ()
 main = do
@@ -52,13 +56,17 @@ text_ :: Text -> Lucid.Html ()
 text_ = Lucid.toHtml
 
 
-players :: [Text]
-players = [ "alice", "bob", "carl"]
+players :: LobbyState -> List Text
+players lobby =  
+  lobby.seatingOrder <&> \id ->
+    let player = lobby.players & HashMap.lookup id & fromJust
+    in player.username
+
 
 -- | set session cookie here
 index :: Middleware
 index = get "/" $ do
-
+  lobby <- readTVarIO Global.lobby
   send $ html $ Lucid.renderBS do
     doctypehtml_ do
       head_ do
@@ -102,16 +110,31 @@ index = get "/" $ do
               "Players"
 
             ul_ [ class_ "list-disc" ] do
-              players & foldMap (li_ . text_)
+              players lobby & foldMap (li_ . text_)
 
 register :: Middleware
 register = post "/register" $ do
-  id <- cookieParam "session"
+  putTextLn "Register"
+  -- id <- SessionId <$> cookieParam "session"
+  let id = SessionId "session"
+  username <- param "username"
   req <- request
-  let app = wsApp id
-  case Wai.websocketsApp WS.defaultConnectionOptions app req of 
-    Just res -> send res
-    Nothing -> missing
+
+  atomically do
+    lobby <- readTVar Global.lobby
+    let player = lobby.players & HashMap.lookup id
+    case player of
+      Just p -> writeTVar Global.lobby $
+        lobby 
+          { players = lobby.players 
+              & HashMap.insert id (p { username = username })
+          }
+      Nothing -> writeTVar Global.lobby $
+        lobby 
+            { players = lobby.players 
+                & HashMap.insert id (Player { sessionId = id, username = username })
+            , seatingOrder = lobby.seatingOrder <> [ id ]
+            }
 
 
 missing :: ResponderM a

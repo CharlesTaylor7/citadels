@@ -1,6 +1,6 @@
 module Citadels.Server.State  where
 
-import Relude hiding (id, get)
+import Citadels.Prelude
 
 import Network.WebSockets qualified as WS
 
@@ -16,14 +16,16 @@ newtype SessionId = SessionId Text
 
 
 data Player = Player 
-  { username :: Text
-  , sessionId :: SessionId
+  { sessionId :: SessionId
+  , username :: Text
   }
+  -- deriving stock (Generic)
 
 data GameState = GameState
   { players :: HashMap SessionId Player
   , seatingOrder :: List SessionId
   }
+  -- deriving stock (Generic)
  
 instance Default GameState where
   def = GameState 
@@ -31,7 +33,6 @@ instance Default GameState where
     , seatingOrder = []
     }
 
-type List a = [a]
 
 data LobbyState = LobbyState 
   { players :: HashMap SessionId Player

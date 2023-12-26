@@ -70,3 +70,6 @@ I will make it so you need a game code to join a room, and to see a running game
 ## Roadblocks
 - [x] Haskell Wai server not showing stacktraces
 - [x] send ws data
+- [ ] post form data
+    - [ ] simplify with a button outside a form, and a simpler route
+    - [ ] use button
