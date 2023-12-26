@@ -11,6 +11,7 @@ import Network.WebSockets qualified as WS
 
 import Citadels.Server.State as Global
 import Citadels.Server.State (SessionId(..))
+import Citadels.Pages.Lobby 
 
 import Lucid qualified 
 --import Optics
@@ -85,40 +86,25 @@ index = get "/" $ do
           h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
             "Lobby"
 
-          form_ [ class_ "p-7 flex flex-col gap-3 items-center rounded border border-slate-500"
-                , hxPost_ "/register"
-                ] do
-            div_ do
-              label_ [ class_ "mr-3" ] "Username"
-
-              -- | TODO: default value based on session
-              input_ 
-                [ class_ "px-3 border rounded border-slate-400 bg-slate-500"
-                , type_ "text"
-                , name_ "username" 
-                ] 
-
-            button_
-              [ class_ "p-2 border rounded border-slate-400 bg-blue-500"
-              , type_ "submit"
-              ]
-              "Submit"
+          templateRegister "initialName"         
 
           div_ [ class_ "p-7 rounded border border-slate-500" ] do
 
             h2_ [ class_ "underline text-2xl font-semibold" ] do
               "Players"
 
-            ul_ [ class_ "list-disc" ] do
+            ul_ [ id_ "players", class_ "list-disc" ] do
               players lobby & foldMap (li_ . text_)
 
 register :: Middleware
 register = post "/register" $ do
-  putTextLn "here 1"
   -- id <- SessionId <$> cookieParam "session"
+  -- username <- param "username"
+  ps <- params
+  putTextLn $ show ps
+
+  let username = "chuck"
   let id = SessionId "session"
-  username <- param "username"
-  putTextLn "here 2"
 
   atomically do
     lobby <- readTVar Global.lobby
@@ -135,6 +121,12 @@ register = post "/register" $ do
                 & HashMap.insert id (Player { sessionId = id, username = username })
             , seatingOrder = lobby.seatingOrder <> [ id ]
             }
+
+  send $ html $ Lucid.renderBS $ do
+    templateRegister username
+    div_ [ id_ "players", hxSwapOob_ "beforeend" ] do
+      li_ do
+        text_ username
 
 
 missing :: ResponderM a
