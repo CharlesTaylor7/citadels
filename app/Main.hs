@@ -22,7 +22,7 @@ main = do
   let port = 8080
   let settings = Warp.setPort port Warp.defaultSettings
   sapp <- scotty
-  Warp.runSettings settings $ WaiWs.websocketsOr WS.defaultConnectionOptions wsapp sapp
+  Warp.runSettings settings sapp
 
 
 
@@ -30,20 +30,24 @@ wsapp :: WS.ServerApp
 wsapp pending = do
   putText "ws connected"
   conn <- WS.acceptRequest pending
-  WS.forkPingThread conn 30
-
-  (msg :: Text) <- WS.receiveData conn
-  WS.sendTextData conn $ ("initial> " :: Text) <> msg
-
-  forever $ do
-    WS.sendTextData conn $ ("loop data" :: Text)
-    threadDelay $ 1 * 1000000
+  WS.withPingThread conn 30 (pure ()) $ do
+    (msg :: Text) <- WS.receiveData conn
+    WS.sendTextData conn $ ("initial> " :: Text) <> msg
+    {-
+    forever $ do
+      WS.sendTextData conn ("loop data" :: Text)
+      threadDelay $ 1 * 1000000
+      -}
 
 
 scotty :: IO Wai.Application
 scotty = Scotty.scottyApp $ do
   Scotty.middleware Wai.static
   Scotty.middleware Wai.logStdout
+
+  Scott.get "/ws" $ do
+    req <- Scotty.request
+    WaiWs.websocketsApp WS.defaultConnectionOptions wsapp req
 
   Scotty.get "/" $ do
     Scotty.redirect "/public/index.html"
