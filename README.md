@@ -21,7 +21,9 @@ See mprocs file
 - Haskell 
     - lucid2
     - twain
-    - unagi chan
+    - unagi-chan
+    - concurrent-hashtable
+    - websockets
 - HTMX
 - Hyperscript (if needed)
 
@@ -31,6 +33,8 @@ Docs:
 - https://hyperscript.org/docs/
 - https://hackage.haskell.org/package/twain-2.1.2.0/docs/Web-Twain.html
 - https://hackage.haskell.org/package/lucid2-0.0.20230706/docs/Lucid-Html5.html
+- https://hackage.haskell.org/package/concurrent-hashtable-0.1.8/docs/Data-HashTable.html
+- https://hackage.haskell.org/package/websockets-0.12.7.3/docs/Network-WebSockets.html#t:Connection
 - https://hackage.haskell.org/package/unagi-chan-0.4.1.4/docs/Control-Concurrent-Chan-Unagi.html
 
 
@@ -52,9 +56,10 @@ I will make it so you need a game code to join a room, and to see a running game
 - [x] Dockerfile
 - [x] Deploy to fly.io
 - [ ] Lobby
-    - [ ] Render a list of rooms
-    - [ ] Render a list of players
-    - [ ] Update players / rooms with websockets
+    - [x] Render static list of players
+    - [ ] Render dynamic list of players
+    - [ ] Render name register form
+    - [ ] Hookup state
 
  - [x] POC for html rendering
  - [x] POC for api htmx swapping

@@ -1,5 +1,6 @@
-module Citadels.Global 
-  ( connections
+module Citadels.Server.State 
+  ( SessionId(..)
+  , connections
   ) where
 
 import Relude hiding (id, get)
@@ -20,8 +21,13 @@ import System.IO.Unsafe (unsafePerformIO)
 import Web.Cookie (SetCookie(..),defaultSetCookie)
 
 
+-- | TODO: separate session module
+   
+newtype SessionId = SessionId Text
+  deriving newtype (Eq, Show, Hashable)
+
 {-# NOINLINE connections #-}
-connections :: IORef (HashTable Text WS.Connection)
+connections :: IORef (HashTable SessionId WS.Connection)
 connections = unsafePerformIO $ do
   let initialSize = 10
   table <- Table.newWithDefaults initialSize

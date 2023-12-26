@@ -27,7 +27,7 @@ common common
 
 
   ghc-options:    
-    -Wall
+    -O0
   default-language: 
     Haskell2010
   default-extensions:
@@ -35,7 +35,10 @@ common common
     OverloadedStrings, 
     ImportQualifiedPost, 
     ScopedTypeVariables,
-    NumericUnderscores
+    NumericUnderscores,
+    DerivingStrategies,
+    GeneralizedNewtypeDeriving,
+    BlockArguments
 
 
 executable citadels-server
@@ -50,5 +53,5 @@ library citadels-lib
   hs-source-dirs:   lib
   exposed-modules:
     Citadels.Types,
-    Citadels.Global,
+    Citadels.Server.State,
     Citadels.Pages.Lobby

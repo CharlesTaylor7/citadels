@@ -1,0 +1,4 @@
+:set -XNoImplicitPrelude -XOverloadedStrings -XImportQualifiedPost -XScopedTypeVariables -XNumericUnderscores -XDerivingStrategies -XGeneralizedNewtypeDeriving -XBlockArguments
+
+
+

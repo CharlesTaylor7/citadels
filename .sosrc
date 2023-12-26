@@ -1,0 +1,7 @@
+- patterns:
+  - ^app/.*\.hs$
+  - ^lib/.*\.hs$
+  - ^citadels.cabal$
+  commands:
+  - tailwindcss --input tailwind.source.css --output public/index.css
+  - cabal run
