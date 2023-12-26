@@ -17,13 +17,14 @@ import Lucid qualified
 --import Optics
 import Lucid.Htmx
 import Lucid.Html5
+import Lucid.Extra
 import Web.Twain 
 import Data.HashTable (HashTable)
-import Data.HashTable as Table
-import System.IO.Unsafe (unsafePerformIO)
-import Web.Cookie (SetCookie(..),defaultSetCookie)
-import Data.HashMap.Strict qualified  as HashMap
+import Data.HashTable qualified as Table
+import Web.Cookie (SetCookie(..), defaultSetCookie, sameSiteStrict) 
+import Data.HashMap.Strict qualified as HashMap
 import Data.Maybe (fromJust)
+import Citadels.Templates (templateHead)
 
 
 main :: IO ()
@@ -39,7 +40,7 @@ main = do
     middleware twain
 
   where
-    middleware = Wai.logStdoutDev . Wai.static
+    middleware = Wai.logStdoutDev <<< Wai.static
     
 
 twain :: Wai.Application
@@ -49,13 +50,6 @@ twain = foldr ($)
   , register
   , websocket
   ]
-
-scriptSrc_ :: Text -> Lucid.Html ()
-scriptSrc_ src = script_ [ src_ src ] ("" :: ByteString)
-
-text_ :: Text -> Lucid.Html ()
-text_ = Lucid.toHtml
-
 
 players :: LobbyState -> List Text
 players lobby =  
@@ -70,23 +64,14 @@ index = get "/" $ do
   lobby <- readTVarIO Global.lobby
   send $ html $ Lucid.renderBS do
     doctypehtml_ do
-      head_ do
-        title_ "Citadels"
-        meta_ [charset_ "utf-8"]
-        link_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
-        link_ [rel_ "shortcut icon", href_ "/public/favicon.ico"]
-        link_ [rel_ "stylesheet", href_ "/public/index.css"]
-        scriptSrc_ "https://unpkg.com/htmx.org@1.9.10"
-        scriptSrc_ "https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" 
-        scriptSrc_ "https://unpkg.com/hyperscript.org@0.9.12"
-
+      templateHead
       body_ [ class_ "bg-slate-700 h-full text-slate-200 text-xl"] do
         div_ [ class_ "flex flex-col gap-3 items-center justify-center" ] do
 
           h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
             "Lobby"
 
-          templateRegister "initialName"         
+          templateRegister ""         
 
           div_ [ class_ "p-7 rounded border border-slate-500" ] do
 
@@ -94,17 +79,12 @@ index = get "/" $ do
               "Players"
 
             ul_ [ id_ "players", class_ "list-disc" ] do
-              players lobby & foldMap (li_ . text_)
+              players lobby & foldMap (li_ <<< text_)
 
 register :: Middleware
 register = post "/register" $ do
-  -- id <- SessionId <$> cookieParam "session"
-  -- username <- param "username"
-  ps <- params
-  putTextLn $ show ps
-
-  let username = "chuck"
-  let id = SessionId "session"
+  id <- SessionId <$> cookieParam "session"
+  username <- param "username"
 
   atomically do
     lobby <- readTVar Global.lobby
@@ -131,8 +111,6 @@ register = post "/register" $ do
 
 missing :: ResponderM a
 missing = do
-  ps <- params
-  putTextLn $ show ps
   send $ html "Not found..."
 
 websocket :: Middleware
@@ -149,6 +127,7 @@ setCookie :: Request -> SetCookie
 setCookie req = defaultSetCookie 
   { setCookieSecure = isSecure req
   , setCookieHttpOnly = True 
+  , setCookieSameSite = Just sameSiteStrict
   }
 
 

@@ -59,7 +59,9 @@ I will make it so you need a game code to join a room, and to see a running game
     - [x] Render static list of players
     - [x] Render dynamic list of players
     - [x] Render name register form
-    - [ ] Hookup state
+    - [x] Hookup state
+    - [ ] Session cookies
+    - [ ] Simultaneous update for all connected players
 
  - [x] POC for html rendering
  - [x] POC for api htmx swapping
@@ -67,9 +69,3 @@ I will make it so you need a game code to join a room, and to see a running game
 
 - [ ] Card Assets
 
-## Roadblocks
-- [x] Haskell Wai server not showing stacktraces
-- [x] send ws data
-- [ ] post form data
-    - [ ] simplify with a button outside a form, and a simpler route
-    - [ ] use button

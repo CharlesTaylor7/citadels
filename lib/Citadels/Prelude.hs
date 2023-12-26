@@ -5,7 +5,7 @@ module Citadels.Prelude
   , List
   ) where
 
-import Relude hiding (get, id)
+import Relude hiding ((.), get, id)
 
 type List a = [a]
 type Unit = ()

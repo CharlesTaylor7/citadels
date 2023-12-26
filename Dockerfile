@@ -1,10 +1,11 @@
 FROM haskell:9.4.8-slim-buster as builder
+RUN cabal update
 RUN mkdir -p /app
 WORKDIR /app
 COPY . .
-RUN cabal update
-RUN cabal build -O2
-RUN cabal install --installdir /app
+RUN cabal build citadels-lib --dependencies-only
+RUN cabal build citadels-server
+RUN cabal install citadels-server --installdir /app
 
 FROM debian:buster-slim as runner
 COPY --from=builder /app/dist-newstyle/sdist/ /app/dist-newstyle/sdist/

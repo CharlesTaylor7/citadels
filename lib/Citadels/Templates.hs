@@ -1,4 +1,4 @@
-module Citadels.Pages.Lobby where
+module Citadels.Templates where
 
 import Citadels.Prelude
 
@@ -16,6 +16,7 @@ import Lucid qualified
 --import Optics
 import Lucid.Htmx
 import Lucid.Html5
+import Lucid.Extra
 import Web.Twain 
 import Data.HashTable (HashTable)
 import Data.HashTable as Table
@@ -25,26 +26,15 @@ import Data.HashMap.Strict qualified  as HashMap
 import Data.Maybe (fromJust)
 
 
-templateRegister :: Text -> Lucid.Html ()
-templateRegister username = 
-  form_ 
-    [ class_ "p-7 flex flex-col gap-3 items-center rounded border border-slate-500"
-    , hxPost_ "/register"
-    , hxSwap_ "outerHTML"
-    ] do
-    div_ do
+templateHead :: Lucid.Html ()
+templateHead = 
+  head_ do
+    title_ "Citadels"
+    meta_ [charset_ "utf-8"]
+    link_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
+    link_ [rel_ "shortcut icon", href_ "/public/favicon.ico"]
+    link_ [rel_ "stylesheet", href_ "/public/index.css"]
+    scriptSrc_ "https://unpkg.com/htmx.org@1.9.10"
+    scriptSrc_ "https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" 
+    scriptSrc_ "https://unpkg.com/hyperscript.org@0.9.12"
 
-      label_ [ class_ "mr-3" ] "Username"
-
-      input_ 
-        [ class_ "px-3 border rounded border-slate-400 bg-slate-500"
-        , type_ "text"
-        , name_ "username" 
-        , value_ username 
-        ] 
-
-    button_
-      [ class_ "p-2 border rounded border-slate-400 bg-blue-500"
-      , type_ "submit"
-      ] do
-      "Set name"
