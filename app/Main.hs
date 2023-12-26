@@ -1,14 +1,12 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ImportQualifiedPost #-}
 module Main where
 
 import Prelude
-import Web.Scotty
+import Data.Foldable (fold)
+import Web.Scotty qualified as Scotty
+import Text.Blaze.Html qualified as Blaze 
+import Text.Blaze.Html.Renderer.Text qualified as Blaze
 
-main = scotty 8080 $ do
-    get "/" $ do
-      html "Hello, World!"
-
-    get "/:word" $ do
-        beam <- pathParam "word"
-        html $ mconcat ["<h1>Scotty, ", beam, " me up!</h1>"]
-
+main = Scotty.scotty 8080 $ do
+    Scotty.get "/" $ do
+      Scotty.html $ Blaze.renderHtml "Hello, World!"
