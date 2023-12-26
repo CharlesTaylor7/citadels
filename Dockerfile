@@ -2,6 +2,7 @@ FROM haskell:9.4.8-slim-buster as builder
 RUN mkdir -p /app
 WORKDIR /app
 COPY . .
+RUN cabal build -O2
 RUN cabal install --installdir /app
 
 FROM debian:buster-slim as runner

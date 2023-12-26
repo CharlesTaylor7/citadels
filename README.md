@@ -1,6 +1,14 @@
 ## Citadels
 This is an online implementation of the multiplayer Citadels game
 
+## Dev commands
+- Deploy: 
+```
+fly deploy --remote-only --strategy=immediate
+```
+
+- mprocs for the rest 
+
 ## Tech Stack / implementation notes
 
 I've considered a few options. Rust, Purescript, Typescrpt. Halogen, React, NExt.js, etc.
