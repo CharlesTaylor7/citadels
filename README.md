@@ -35,10 +35,10 @@ Update:
  Both these libraries seem simpler.
 
 Docs:
-- https://jaspervdj.be/blaze/tutorial.html
-- https://github.com/scotty-web/scotty
 - https://htmx.org/docs/
 - https://hyperscript.org/docs/
+- https://hackage.haskell.org/package/twain-2.1.2.0/docs/Web-Twain.html
+- https://hackage.haskell.org/package/lucid2-0.0.20230706/docs/Lucid-Html5.html
 
 
 ## Initial Features
