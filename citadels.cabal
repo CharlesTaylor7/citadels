@@ -32,4 +32,6 @@ executable citadels
       NoImplicitPrelude, 
       OverloadedStrings, 
       ImportQualifiedPost, 
-      ScopedTypeVariables
+      ScopedTypeVariables,
+      NumericUnderscores
+

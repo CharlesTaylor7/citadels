@@ -70,4 +70,5 @@ I will make it so you need a game code to join a room, and to see a running game
 - [ ] Card Assets
 
 ## Roadblocks
-- [ ] Haskell Wai server not showing stacktraces
+- [x] Haskell Wai server not showing stacktraces
+- [ ] send ws data

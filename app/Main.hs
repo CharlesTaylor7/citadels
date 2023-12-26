@@ -10,10 +10,13 @@ import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
 
+import Lucid.Base qualified as Lucid
+import Lucid.Html5
 import Web.Twain 
+import Control.Concurrent (threadDelay)
 
 main :: IO ()
-main = Wai.withStdoutLogger $ \logger -> do
+main = do
   let
     port = 8080
     settings = 
@@ -61,5 +64,6 @@ wsApp pending = do
   conn <- WS.acceptRequest pending
   putTextLn "WS connected"
   WS.withPingThread conn 30 (pure ()) $ do
-    (msg :: Text) <- WS.receiveData conn
-    WS.sendTextData conn $ ("initial> " :: Text) <> msg
+    forever $ do
+      WS.sendTextData conn $ Lucid.renderBS "hello!" 
+      threadDelay 1_000_000
