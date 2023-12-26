@@ -5,7 +5,6 @@ import Relude hiding (get)
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp qualified as Warp
 import Network.Wai.Handler.WebSockets qualified as Wai
--- import Network.Wai.Logger qualified as Wai
 import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
@@ -13,7 +12,6 @@ import Network.WebSockets qualified as WS
 import Lucid.Base qualified as Lucid
 import Lucid.Html5
 import Web.Twain 
-import Control.Concurrent (threadDelay)
 
 main :: IO ()
 main = do
@@ -22,7 +20,6 @@ main = do
     settings = 
       Warp.defaultSettings
       & Warp.setPort port 
-      -- & Warp.setLogger logger
       & Warp.setOnExceptionResponse Warp.exceptionResponseForDebug 
   putTextLn $ "Listening on port " <> show port 
   Warp.runSettings settings $ 
