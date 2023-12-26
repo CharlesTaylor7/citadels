@@ -5,6 +5,11 @@ This is an online implementation of the multiplayer Citadels game
 
 See mprocs file
 
+## Implementation notes
+
+- The district card data will be in a csv file format, so it can be compiled from a spreadsheet.
+
+
 ## Tech Stack / implementation notes
 
 I've considered a few options. Rust, Purescript, Typescrpt. Halogen, React, NExt.js, etc.

@@ -8,7 +8,16 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
     <link rel="stylesheet" href="/public/index.css" />
   </head>
-  <body class="bg-slate-700 h-full text-white text-xl">
+  <body class="bg-slate-700 h-full text-slate-200 text-xl">
+    <main class="flex flex-row items-center justify-center gap-3">
+      <form class="mt-10" hx-put="/user/1" hx-target="this" hx-swap="outerHTML">
+        <label>Username</label>
+        <input class="border rounded border-slate-400 bg-slate-600 px-3" type="text" name="username" value="Joe">
+        <button class="p-2 m-3 rounded bg-green-600">Submit</button>
+        <button class="p-2 m-3 rounded bg-red-400" hx-get="/user/1">Cancel</button>
+      </form>
+    </main>
+    <!--
     <div class="flex flex-col gap-3 items-center justify-center">
       <div>Assassin</div>
       <div>Thief</div>
@@ -19,5 +28,6 @@
       <div>Architect</div>
       <div>Warlord</div>
     </div>
+    -->
   </body>
 </html>
