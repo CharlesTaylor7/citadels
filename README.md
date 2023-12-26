@@ -9,6 +9,14 @@ See mprocs file
 
 - The district card data will be in a csv file format, so it can be compiled from a spreadsheet.
 
+## Feature Idead
+- Base game
+- Custom Cards 
+- Expansion Characters
+- Optional Timers
+    - Basic
+    - Chess Clock (Pokemon showdown)
+
 
 ## Tech Stack 
 

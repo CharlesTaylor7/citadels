@@ -1,17 +1,47 @@
-{-# LANGUAGE OverloadedStrings, ImportQualifiedPost #-}
+{-# LANGUAGE OverloadedStrings, ImportQualifiedPost, ScopedTypeVariables #-}
 module Main where
 
-import Prelude
-import Data.Foldable (fold)
+import Relude
+
+import Data.Text qualified as T
+import Network.Wai qualified as Wai
+import Network.Wai.Handler.Warp qualified as Warp
+import Network.Wai.Handler.WebSockets qualified as WaiWs
 import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
-import Web.Scotty qualified as Scotty
+import Network.WebSockets qualified as WS
 import Text.Blaze.Html.Renderer.Text qualified as Blaze
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as HA
+import Web.Scotty qualified as Scotty
+import Control.Concurrent (threadDelay)
+
 
 main :: IO ()
-main = Scotty.scotty 8080 $ do
+main = do
+  let port = 8080
+  let settings = Warp.setPort port Warp.defaultSettings
+  sapp <- scotty
+  Warp.runSettings settings $ WaiWs.websocketsOr WS.defaultConnectionOptions wsapp sapp
+
+
+
+wsapp :: WS.ServerApp
+wsapp pending = do
+  putText "ws connected"
+  conn <- WS.acceptRequest pending
+  WS.forkPingThread conn 30
+
+  (msg :: Text) <- WS.receiveData conn
+  WS.sendTextData conn $ ("initial> " :: Text) <> msg
+
+  forever $ do
+    WS.sendTextData conn $ ("loop data" :: Text)
+    threadDelay $ 1 * 1000000
+
+
+scotty :: IO Wai.Application
+scotty = Scotty.scottyApp $ do
   Scotty.middleware Wai.static
   Scotty.middleware Wai.logStdout
 
