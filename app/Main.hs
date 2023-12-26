@@ -1,6 +1,6 @@
 module Main where
 
-import Relude hiding (get)
+import Relude hiding (id, get)
 
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp qualified as Warp
@@ -12,6 +12,10 @@ import Network.WebSockets qualified as WS
 import Lucid.Base qualified as Lucid
 import Lucid.Html5
 import Web.Twain 
+import Data.HashTable (HashTable)
+import Data.HashTable as Table
+import System.IO.Unsafe (unsafePerformIO)
+import Web.Cookie (SetCookie(..),defaultSetCookie)
 
 main :: IO ()
 main = do
@@ -32,34 +36,46 @@ main = do
 twain :: Wai.Application
 twain = foldr ($)
   (notFound missing)
-  [ get "/" index
-  , get "echo/:name" echo
-  , get "/ws" websocket
+  [ index
+  , echo
+  , websocket
   ]
 
-index :: ResponderM a
-index = send $ redirect301 "/public/index.html"
+index :: Middleware
+index = get "/" $ do
+  send $ redirect301 "/public/index.html"
 
-echo :: ResponderM a
-echo = do
-  name <- param "name"
+echo :: Middleware 
+echo = get "/echo/:name" $ do
+  name <- pathParam "name"
   send $ html $ "Hello, " <> name
 
 missing :: ResponderM a
 missing = send $ html "Not found..."
 
-websocket :: ResponderM a 
-websocket = do
+websocket :: Middleware
+websocket = get "/ws/:id" $ do
+  id <- pathParam "id"
   req <- request
-  case Wai.websocketsApp  WS.defaultConnectionOptions wsApp req of 
+  let app = wsApp id
+  case Wai.websocketsApp WS.defaultConnectionOptions app req of 
     Just res -> send res
     Nothing -> missing
 
 
-wsApp :: WS.ServerApp
-wsApp pending = do
+setCookie :: Request -> SetCookie
+setCookie req = defaultSetCookie 
+  { setCookieSecure = isSecure req
+  , setCookieHttpOnly = True 
+  }
+
+
+wsApp :: Text -> WS.ServerApp
+wsApp sessionId pending = do
   conn <- WS.acceptRequest pending
-  putTextLn "WS connected"
+  conns <- readIORef connections
+  _ <- Table.insert conns sessionId conn
+  putTextLn $ "WS connected, session: " <> sessionId
   WS.withPingThread conn 30 (pure ()) $ do
     forever $ do
       msg  <- WS.receiveData conn 
