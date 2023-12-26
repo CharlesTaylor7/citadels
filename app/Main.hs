@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings, ImportQualifiedPost, ScopedTypeVariables #-}
 module Main where
 
-import Relude
+import Relude hiding (get)
 
 import Data.Text qualified as T
 import Network.Wai qualified as Wai
@@ -10,44 +9,77 @@ import Network.Wai.Handler.WebSockets qualified as WaiWs
 import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
-import Text.Blaze.Html.Renderer.Text qualified as Blaze
-import Text.Blaze.Html5 qualified as H
-import Text.Blaze.Html5.Attributes qualified as HA
-import Web.Scotty qualified as Scotty
-import Control.Concurrent (threadDelay)
-
+import Web.Twain -- qualified as Twain
+import Network.Wai.Handler.WebSockets (websocketsApp)
+import Network.WebSockets (defaultConnectionOptions)
 
 main :: IO ()
 main = do
+  Warp.run 8080 $ 
+    Wai.logStdout $
+    Wai.static $ do
+      twain
+
+twain :: Wai.Application
+twain = foldr ($)
+  (notFound missing)
+  [ get "/" index
+  , get "/ws" websocket
+  , get "echo/:name" echo
+  ]
+
+index :: ResponderM a
+index = send $ redirect301 "/public/index.html"
+
+echo :: ResponderM a
+echo = do
+  name <- param "name"
+  send $ html $ "Hello, " <> name
+
+missing :: ResponderM a
+missing = send $ html "Not found..."
+
+websocket :: ResponderM a 
+websocket = do
+  req <- request
+  --let Just res = WaiWs.websocketsApp  WS.defaultConnectionOptions (websocketsApp) req
+
+  send undefined
+
+{-
+mainWS :: IO ()
+mainWS = do
   let port = 8080
   let settings = Warp.setPort port Warp.defaultSettings
-  sapp <- scotty
+  -- sapp <- scotty
   Warp.runSettings settings sapp
+  -}
 
 
 
-wsapp :: WS.ServerApp
-wsapp pending = do
+webSocketApp :: WS.ServerApp
+webSocketApp pending = do
   putText "ws connected"
   conn <- WS.acceptRequest pending
   WS.withPingThread conn 30 (pure ()) $ do
     (msg :: Text) <- WS.receiveData conn
     WS.sendTextData conn $ ("initial> " :: Text) <> msg
+
     {-
     forever $ do
       WS.sendTextData conn ("loop data" :: Text)
       threadDelay $ 1 * 1000000
       -}
 
-
+{-
 scotty :: IO Wai.Application
 scotty = Scotty.scottyApp $ do
-  Scotty.middleware Wai.static
-  Scotty.middleware Wai.logStdout
 
+{-
   Scott.get "/ws" $ do
     req <- Scotty.request
     WaiWs.websocketsApp WS.defaultConnectionOptions wsapp req
+    -}
 
   Scotty.get "/" $ do
     Scotty.redirect "/public/index.html"
@@ -75,3 +107,4 @@ scotty = Scotty.scottyApp $ do
 
 -}
       --Scotty.html $ Blaze.renderHtml "Hello, World!"
+      --}
