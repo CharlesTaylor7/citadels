@@ -9,14 +9,20 @@ import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
 
-import Web.Twain -- qualified as Twain
+import Web.Twain 
 
 main :: IO ()
-main = do
-  Warp.run 8080 $ 
-    Wai.logStdout $
-    Wai.static $ do
-      twain
+main = 
+  Warp.runSettings settings $ 
+    middleware twain
+
+  where
+    middleware = Wai.logStdout . Wai.static
+    
+    settings = 
+      Warp.defaultSettings
+      & Warp.setPort 8080 
+      & Warp.setOnExceptionResponse Warp.exceptionResponseForDebug 
 
 twain :: Wai.Application
 twain = foldr ($)
