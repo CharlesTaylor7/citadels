@@ -10,10 +10,9 @@ See mprocs file
 - The district card data will be in a csv file format, so it can be compiled from a spreadsheet.
 
 
-## Tech Stack / implementation notes
+## Tech Stack 
 
-I've considered a few options. Rust, Purescript, Typescrpt. Halogen, React, NExt.js, etc.
-
+I've considered a few options. Rust, Purescript, Typescrpt. Halogen, React, Next.js, etc.
 
 Going to try:
 - Haskell (blaze + Scotty)
@@ -49,15 +48,15 @@ Build out lobby with this tech stack and then decide whether to proceed or rewri
  
  ## TODO
 - [x] Scaffold haskell project
-- [ ] Dockerfile
-- [ ] Deploy to fly.io
+- [x] Dockerfile
+- [x] Deploy to fly.io
 - [ ] Lobby
     - [ ] Render a list of rooms
     - [ ] Render a list of players
     - [ ] Update players / rooms with websockets
 
- - [ ] POC for html rendering
- - [ ] POC for api htmx swapping
+ - [x] POC for html rendering
+ - [x] POC for api htmx swapping
  - [ ] POC for Web sockets comms
 
  - [ ] Assets

@@ -3,28 +3,32 @@ module Main where
 
 import Prelude
 import Data.Foldable (fold)
+import Network.Wai.Middleware.Static qualified as Wai
+import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Web.Scotty qualified as Scotty
 import Text.Blaze.Html.Renderer.Text qualified as Blaze
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as HA
-import Network.Wai.Middleware.Static qualified as Wai
-import System.IO (stdout, hSetBuffering, BufferMode (LineBuffering))
 
 main :: IO ()
-main = do
-  hSetBuffering stdout LineBuffering
-  Scotty.scotty 8080 $ do
-    Scotty.middleware Wai.static
-    Scotty.get "/" $ do
-      Scotty.liftIO $ putStrLn "root"
-      Scotty.redirect "/public/index.html"
+main = Scotty.scotty 8080 $ do
+  Scotty.middleware Wai.static
+  Scotty.middleware Wai.logStdout
 
-    Scotty.get "/user/:id" $ do
-      Scotty.liftIO $ putStrLn "/user"
-      id <- Scotty.pathParam "id"
-      Scotty.liftIO $ print id
-      Scotty.html $ do
-        Blaze.renderHtml $ H.text $ "Hello, " <> id
+  Scotty.get "/" $ do
+    Scotty.redirect "/public/index.html"
+
+  Scotty.post "/user/:id" $ do
+    id <- Scotty.pathParam "id"
+    -- Scotty.liftIO $ print id
+    Scotty.html $ do
+      Blaze.renderHtml $ H.text $ "Hello, from POST " <> id
+
+  Scotty.get "/user/:id" $ do
+    id <- Scotty.pathParam "id"
+    -- Scotty.liftIO $ print id
+    Scotty.html $ do
+      Blaze.renderHtml $ H.text $ "Hello, from GET " <> id
       {-
       <form class="mt-10" hx-put="/user/1" hx-target="this" hx-swap="outerHTML">
       -swap="outerHTML">
