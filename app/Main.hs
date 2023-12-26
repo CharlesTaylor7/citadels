@@ -114,11 +114,11 @@ index = get "/" $ do
 
 register :: Middleware
 register = post "/register" $ do
-  putTextLn "Register"
+  putTextLn "here 1"
   -- id <- SessionId <$> cookieParam "session"
   let id = SessionId "session"
   username <- param "username"
-  req <- request
+  putTextLn "here 2"
 
   atomically do
     lobby <- readTVar Global.lobby
@@ -138,7 +138,10 @@ register = post "/register" $ do
 
 
 missing :: ResponderM a
-missing = send $ html "Not found..."
+missing = do
+  ps <- params
+  putTextLn $ show ps
+  send $ html "Not found..."
 
 websocket :: Middleware
 websocket = get "/ws" $ do
