@@ -36,9 +36,12 @@ https://gist.github.com/andrevdm/9560b5e31933391694811bf22e25c312#file-scotty_we
 
 
 Build out lobby with this tech stack and then decide whether to proceed or rewrite with a different stack.
+
  
  ## TODO
-- [ ] Scaffold haskell project
+- [x] Scaffold haskell project
+- [ ] Dockerfile
+- [ ] Deploy to fly.io
 - [ ] Lobby
     - [ ] Render a list of rooms
     - [ ] Render a list of players
