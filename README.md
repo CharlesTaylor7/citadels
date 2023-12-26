@@ -2,12 +2,8 @@
 This is an online implementation of the multiplayer Citadels game
 
 ## Dev commands
-- Deploy: 
-```
-fly deploy --remote-only --strategy=immediate
-```
 
-- mprocs for the rest 
+See mprocs file
 
 ## Tech Stack / implementation notes
 
