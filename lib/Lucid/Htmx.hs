@@ -1,8 +1,8 @@
 module Lucid.Htmx where
-module Lucid.Htmx where
+
+import Relude
 
 import Lucid.Base
-import Data.Text (Text)
 
 -- | <https://htmx.org/attributes/hx-boost/>
 hxBoost_ :: Text -> Attributes

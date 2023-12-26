@@ -23,7 +23,8 @@ common common
     websockets ^>= 0.12.7.3,
     concurrent-hashtable ^>= 0.1.8,
     stm ^>= 2.5.3.0,
-    cookie ^>= 0.4.6
+    cookie ^>= 0.4.6,
+    data-default
 
 
   default-language: 
@@ -36,7 +37,9 @@ common common
     NumericUnderscores,
     DerivingStrategies,
     GeneralizedNewtypeDeriving,
-    BlockArguments
+    BlockArguments,
+    NoFieldSelectors,
+    DuplicateRecordFields
 
 
 executable citadels-server
@@ -52,4 +55,5 @@ library citadels-lib
   exposed-modules:
     Citadels.Types,
     Citadels.Server.State,
-    Citadels.Pages.Lobby
+    Citadels.Pages.Lobby,
+    Lucid.Htmx

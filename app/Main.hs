@@ -13,6 +13,7 @@ import Citadels.Server.State as Global
 import Citadels.Server.State (SessionId(..))
 
 import Lucid qualified 
+import Lucid.Htmx
 import Lucid.Html5
 import Web.Twain 
 import Data.HashTable (HashTable)
@@ -40,12 +41,9 @@ twain :: Wai.Application
 twain = foldr ($)
   (notFound missing)
   [ index
-  , echo
+  , register
   , websocket
   ]
-
-none :: ByteString
-none = ""
 
 scriptSrc_ :: Text -> Lucid.Html ()
 scriptSrc_ src = script_ [ src_ src ] ("" :: ByteString)
@@ -60,6 +58,7 @@ players = [ "alice", "bob", "carl"]
 -- | set session cookie here
 index :: Middleware
 index = get "/" $ do
+
   send $ html $ Lucid.renderBS do
     doctypehtml_ do
       head_ do
@@ -71,26 +70,56 @@ index = get "/" $ do
         scriptSrc_ "https://unpkg.com/htmx.org@1.9.10"
         scriptSrc_ "https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" 
         scriptSrc_ "https://unpkg.com/hyperscript.org@0.9.12"
+
       body_ [ class_ "bg-slate-700 h-full text-slate-200 text-xl"] do
-        div_ [ class_ "flex flex-col items-center justify-center" ] do
-          div_ [ class_ "mt-10 p-10 rounded border border-slate-500" ] do
-            h2_ [ class_ "underline text-2xl font-semibold" ] 
-              "players"
+        div_ [ class_ "flex flex-col gap-3 items-center justify-center" ] do
+
+          h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
+            "Lobby"
+
+          form_ [ class_ "p-7 flex flex-col gap-3 items-center rounded border border-slate-500"
+                , hxPost_ "/register"
+                ] do
+            div_ do
+              label_ [ class_ "mr-3" ] "Username"
+
+              -- | TODO: default value based on session
+              input_ 
+                [ class_ "px-3 border rounded border-slate-400 bg-slate-500"
+                , type_ "text"
+                , name_ "username" 
+                ] 
+
+            button_
+              [ class_ "p-2 border rounded border-slate-400 bg-blue-500"
+              , type_ "submit"
+              ]
+              "Submit"
+
+          div_ [ class_ "p-7 rounded border border-slate-500" ] do
+
+            h2_ [ class_ "underline text-2xl font-semibold" ] do
+              "Players"
 
             ul_ [ class_ "list-disc" ] do
               players & foldMap (li_ . text_)
 
-echo :: Middleware 
-echo = get "/echo/:name" $ do
-  name <- pathParam "name"
-  send $ html $ "Hello, " <> name
+register :: Middleware
+register = post "/register" $ do
+  id <- cookieParam "session"
+  req <- request
+  let app = wsApp id
+  case Wai.websocketsApp WS.defaultConnectionOptions app req of 
+    Just res -> send res
+    Nothing -> missing
+
 
 missing :: ResponderM a
 missing = send $ html "Not found..."
 
 websocket :: Middleware
 websocket = get "/ws" $ do
-  id <- cookieParam "id"
+  id <- cookieParam "session"
   req <- request
   let app = wsApp id
   case Wai.websocketsApp WS.defaultConnectionOptions app req of 
@@ -106,11 +135,12 @@ setCookie req = defaultSetCookie
 
 
 wsApp :: Text -> WS.ServerApp
-wsApp sessionId pending = do
+wsApp id pending = do
+  let sessionId = SessionId id
   conn <- WS.acceptRequest pending
   connections <- readIORef Global.connections
-  _ <- Table.insert connections (SessionId sessionId) conn
-  putTextLn $ "WS connected, session: " <> sessionId
+  _ <- Table.insert connections sessionId conn
+  putTextLn $ "WS connected, session: " <> show sessionId
   WS.withPingThread conn 30 (pure ()) $ do
     forever $ do
       msg  <- WS.receiveData conn 

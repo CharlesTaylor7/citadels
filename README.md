@@ -57,13 +57,13 @@ I will make it so you need a game code to join a room, and to see a running game
 - [x] Deploy to fly.io
 - [ ] Lobby
     - [x] Render static list of players
-    - [ ] Render dynamic list of players
-    - [ ] Render name register form
+    - [x] Render dynamic list of players
+    - [x] Render name register form
     - [ ] Hookup state
 
  - [x] POC for html rendering
  - [x] POC for api htmx swapping
- - [ ] POC for Web sockets comms
+ - [x] POC for Web sockets comms
 
 - [ ] Card Assets
 
