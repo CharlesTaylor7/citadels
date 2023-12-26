@@ -4,4 +4,5 @@
   - ^citadels.cabal$
   commands:
   - tailwindcss --input tailwind.source.css --output public/index.css
+  - cabal build -O0
   - cabal run
