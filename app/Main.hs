@@ -10,7 +10,7 @@ import Network.Wai.Middleware.Static qualified as Wai
 
 main :: IO ()
 main = Scotty.scotty 8080 $ do
-    Scotty.middleware $ Wai.static
+    Scotty.middleware Wai.static
     Scotty.get "/" $ do
       Scotty.redirect "/public/index.html"
       --Scotty.html $ Blaze.renderHtml "Hello, World!"

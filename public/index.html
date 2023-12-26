@@ -6,58 +6,8 @@
     <link rel="shortcut icon" href="./favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
-    <style>
-      body {
-        margin: 0;
-        background-color: #282c34;
-        min-height: 100vh;
-        color: white;
-      }
-
-      .doggo {
-        animation: bounce infinite 8s linear;
-        height: 40vh;
-        pointer-events: none;
-      }
-
-      @keyframes bounce {
-        0% {
-          transform: translate(calc((100vw - 40vh) / 2))
-        }
-        25% {
-          transform: translate(calc(100vw - 40vh), 30vh)
-        }
-        50% {
-          transform: translate(calc((100vw - 40vh) / 2), 60vh)
-        }
-        75% {
-          transform: translate(0, 30vh)
-        }
-        100%{
-          transform: translate(calc((100vw - 40vh) / 2))
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="/public/index.css" />
   </head>
   <body>
-    <!-- https://hyperscript.org/docs/ -->
-    <img 
-      class="doggo" 
-      alt="doggo" 
-      _="
-        init
-          fetch https://api.giphy.com/v1/gifs/search?api_key=DmPaOTNJv7KLUao5cqSClP4lZjp1m3n8&q=doggo&limit=100&offset=0&rating=G&lang=en 
-          as json then put the result's data into gifs
-          put gifs's length into gifs_length
-          put 0 into i 
-          repeat forever
-            put (((gifs[i mod gifs_length])'s images)'s original)'s url into my @src
-            put (((gifs[(i+ 1) mod gifs_length])'s images)'s original)'s url into #prefetch's @href 
-            increment i
-            wait 2s
-          end
-    ">
-    </img>
-    <link id="prefetch" rel="prefetch" type="image/gif" />
   </body>
 </html>
