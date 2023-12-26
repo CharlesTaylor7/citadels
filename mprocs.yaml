@@ -1,6 +1,6 @@
 procs:
   Server:
-    shell: watchexec -e hs -- cabal run -O0
+    shell: watchexec -e hs,cabal -- cabal run -O0
 
   # Tailwind 3 is globally installed
   Tailwind:
