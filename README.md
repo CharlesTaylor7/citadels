@@ -67,5 +67,7 @@ I will make it so you need a game code to join a room, and to see a running game
  - [x] POC for api htmx swapping
  - [ ] POC for Web sockets comms
 
- - [ ] Assets
-- [ ] Features
+- [ ] Card Assets
+
+## Roadblocks
+- [ ] Haskell Wai server not showing stacktraces
