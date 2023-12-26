@@ -65,5 +65,6 @@ wsApp pending = do
   putTextLn "WS connected"
   WS.withPingThread conn 30 (pure ()) $ do
     forever $ do
-      WS.sendTextData conn $ Lucid.renderBS "hello!" 
-      threadDelay 1_000_000
+      msg  <- WS.receiveData conn 
+      WS.sendTextData conn $ Lucid.renderBS "hello, " <> msg
+      -- threadDelay 1_000_000
