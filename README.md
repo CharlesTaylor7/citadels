@@ -17,28 +17,21 @@ See mprocs file
     - Basic
     - Chess Clock (Pokemon showdown)
 
-
 ## Tech Stack 
-
-I've considered a few options. Rust, Purescript, Typescrpt. Halogen, React, Next.js, etc.
-
-Going to try:
-- Haskell (blaze + Scotty)
+- Haskell 
+    - lucid2
+    - twain
+    - unagi chan
 - HTMX
 - Hyperscript (if needed)
 
-Build out lobby with this tech stack and then decide whether to proceed or rewrite with a different stack.
-
-Update:
- Scotty -> Twain
- Blaze -> Lucid
- Both these libraries seem simpler.
 
 Docs:
 - https://htmx.org/docs/
 - https://hyperscript.org/docs/
 - https://hackage.haskell.org/package/twain-2.1.2.0/docs/Web-Twain.html
 - https://hackage.haskell.org/package/lucid2-0.0.20230706/docs/Lucid-Html5.html
+- https://hackage.haskell.org/package/unagi-chan-0.4.1.4/docs/Control-Concurrent-Chan-Unagi.html
 
 
 ## Initial Features
@@ -71,4 +64,4 @@ I will make it so you need a game code to join a room, and to see a running game
 
 ## Roadblocks
 - [x] Haskell Wai server not showing stacktraces
-- [ ] send ws data
+- [x] send ws data
