@@ -10,12 +10,10 @@ import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
 
 import Citadels.Server.State as Global
-import Citadels.Server.State (SessionId(..))
+import Citadels.Server.State (PlayerId(..))
 
-import Lucid qualified 
---import Optics
+import Lucid 
 import Lucid.Htmx
-import Lucid.Html5
 import Lucid.Extra
 import Web.Twain 
 import Data.HashTable (HashTable)

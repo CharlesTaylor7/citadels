@@ -11,19 +11,22 @@ import System.IO.Unsafe (unsafePerformIO)
 import Web.Cookie (SetCookie(..),defaultSetCookie)
 import Data.Default
    
-newtype SessionId = SessionId Text
-  deriving newtype (Eq, Show, Hashable)
+newtype PlayerId = PlayerId { text :: Text }
+  deriving newtype (Eq, Hashable)
+
+newtype SessionId = SessionId { text :: Text }
+  deriving newtype (Eq, Hashable)
 
 
 data Player = Player 
-  { sessionId :: SessionId
+  { playerId :: PlayerId
   , username :: Text
   }
   -- deriving stock (Generic)
 
 data GameState = GameState
-  { players :: HashMap SessionId Player
-  , seatingOrder :: List SessionId
+  { players :: HashMap PlayerId Player
+  , seatingOrder :: List PlayerId
   }
   -- deriving stock (Generic)
  
@@ -35,8 +38,8 @@ instance Default GameState where
 
 
 data LobbyState = LobbyState 
-  { players :: HashMap SessionId Player
-  , seatingOrder :: List SessionId
+  { players :: HashMap PlayerId Player
+  , seatingOrder :: List PlayerId
   }
 
 instance Default LobbyState where
@@ -44,6 +47,15 @@ instance Default LobbyState where
     { players = mempty
     , seatingOrder = []
     }
+
+
+{-# NOINLINE playerIds #-}
+playerIds :: IORef (HashTable SessionId PlayerId)
+playerIds = unsafePerformIO do
+  let initialSize = 10
+  table <- Table.newWithDefaults initialSize
+  newIORef table
+
 
 {-# NOINLINE connections #-}
 connections :: IORef (HashTable SessionId WS.Connection)
@@ -58,6 +70,6 @@ lobby = unsafePerformIO $
   newTVarIO def
 
 {-# NOINLINE game #-}
-game :: TVar LobbyState 
+game :: TVar GameState 
 game = unsafePerformIO $
   newTVarIO def

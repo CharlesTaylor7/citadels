@@ -5,15 +5,15 @@ import Citadels.Server.State
 
 import Data.HashMap.Strict qualified as HashMap
 
-import Lucid qualified 
+import Lucid 
 import Lucid.Htmx
-import Lucid.Html5
 import Lucid.Extra
+import Lucid.Base 
 
 
 lobbyPage :: LobbyState -> Lucid.Html ()
 lobbyPage lobby =
-  body_ [ class_ "bg-slate-700 h-full text-slate-200 text-xl"] do
+  body_ [ hxExt_ "ws", wsConnect_ "/ws", class_ "bg-slate-700 h-full text-slate-200 text-xl"] do
     div_ [ class_ "flex flex-col gap-3 items-center justify-center" ] do
 
       h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
@@ -27,13 +27,20 @@ lobbyPage lobby =
           "Players"
 
         ul_ [ id_ "players", class_ "list-disc" ] do
-          players lobby & foldMap (li_ <<< text_)
+          templateLobbyPlayers lobby
+       
 
-    where
-    players :: LobbyState -> List Text
-    players lobby =  
-      lobby.seatingOrder & mapMaybe \id ->
-        lobby.players & HashMap.lookup id <&> (.username)
+templateLobbyPlayers :: LobbyState -> Html ()
+templateLobbyPlayers lobby =  
+    lobby.seatingOrder 
+    & mapMaybe (\id -> lobby.players & HashMap.lookup id)
+    & foldMap \player ->
+        li_ [ playerId player, hxSwapOob_ "true"] do
+          text_ player.username
+
+  where
+    playerId :: Player -> Attributes
+    playerId p = makeAttributesRaw "id" p.playerId.text
 
 
 templateRegister :: Text -> Lucid.Html ()

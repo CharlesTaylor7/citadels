@@ -8,16 +8,13 @@ import Network.Wai.Handler.WebSockets qualified as Wai
 import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
-import Web.ClientSession qualified as Session
 
-import Citadels.Server.State as Global
-import Citadels.Server.State (SessionId(..))
+import Citadels.Server.State qualified as Global
+import Citadels.Server.State 
 import Citadels.Pages.Lobby 
 
-import Lucid qualified 
---import Optics
+import Lucid 
 import Lucid.Htmx
-import Lucid.Html5
 import Lucid.Extra
 import Web.Twain 
 import Data.HashTable (HashTable)
@@ -25,7 +22,11 @@ import Data.HashTable qualified as Table
 import Web.Cookie (SetCookie(..), defaultSetCookie, sameSiteStrict) 
 import Data.HashMap.Strict qualified as HashMap
 import Data.Maybe (fromJust)
+import Data.UUID (UUID)
+import Data.UUID qualified as UUID
+import Data.UUID.V4 qualified as UUID
 import Citadels.Templates (templateHead)
+import qualified Citadels.Server.State as Table
 
 
 main :: IO ()
@@ -55,19 +56,54 @@ twain = foldr ($)
 -- | set session cookie here
 index :: Middleware
 index = get "/" $ do
+  playerId :: _ Text <- cookieParamMaybe "sessionId"
   lobby <- readTVarIO Global.lobby
 
-  send $ html $ Lucid.renderBS do
-    doctypehtml_ do
-      templateHead
-      lobbyPage  lobby
+  let 
+    response = 
+        html $ Lucid.renderBS do
+        doctypehtml_ do
+          templateHead
+          lobbyPage lobby
 
+  case playerId of
+    Just _ -> send response
+    Nothing -> do
+      cookie <- newSessionCookie
+      send $ withCookie' cookie response
+
+
+sendWithCookie :: Maybe SetCookie -> Response -> ResponderM a
+sendWithCookie (Just cookie) = send <<< withCookie' cookie
+sendWithCookie Nothing = send 
+
+
+newSessionCookie :: MonadIO m => m SetCookie
+newSessionCookie = liftIO do
+  sessionId <- UUID.nextRandom
+  playerId <- UUID.nextRandom
+
+  ids <- readIORef Global.playerIds
+  _ <- Table.insert ids (SessionId $ show sessionId ) (PlayerId $ show playerId)
+    
+  pure $ secureCookie
+    { setCookieName = "sessionId"
+    , setCookieValue = show sessionId
+    }
 
 
 register :: Middleware
 register = post "/register" $ do
-  id <- SessionId <$> cookieParam "session"
   username <- param "username"
+  sessionId <- SessionId <$> cookieParam "sessionId"
+
+  putTextLn $ "session: " <> sessionId.text
+  playerIds <- readIORef Global.playerIds
+  id <- liftIO do
+    Just id <- Table.lookup playerIds sessionId 
+    pure id
+
+  putTextLn $ "player: " <> id.text
 
   atomically do
     lobby <- readTVar Global.lobby
@@ -81,14 +117,14 @@ register = post "/register" $ do
       Nothing -> writeTVar Global.lobby $
         lobby 
             { players = lobby.players 
-                & HashMap.insert id (Player { sessionId = id, username = username })
+                & HashMap.insert id (Player { playerId = id, username = username })
             , seatingOrder = lobby.seatingOrder <> [ id ]
             }
 
   send $ html $ Lucid.renderBS $ do
     templateRegister username
     div_ [ id_ "players", hxSwapOob_ "beforeend" ] do
-      li_ do
+      li_ [ id_ id.text, hxSwapOob_ "true"] do
         text_ username
 
 
@@ -98,7 +134,7 @@ missing = do
 
 websocket :: Middleware
 websocket = get "/ws" $ do
-  id <- cookieParam "session"
+  id <- SessionId <$> cookieParam "sessionId"
   req <- request
   let app = wsApp id
   case Wai.websocketsApp WS.defaultConnectionOptions app req of 
@@ -106,23 +142,26 @@ websocket = get "/ws" $ do
     Nothing -> missing
 
 
-setCookie :: Request -> SetCookie
-setCookie req = defaultSetCookie 
-  { setCookieSecure = isSecure req
+secureCookie :: SetCookie
+secureCookie = defaultSetCookie 
+  { setCookieSecure = True
   , setCookieHttpOnly = True 
   , setCookieSameSite = Just sameSiteStrict
   }
 
 
-wsApp :: Text -> WS.ServerApp
-wsApp id pending = do
-  let sessionId = SessionId id
+wsApp :: SessionId -> WS.ServerApp
+wsApp sessionId pending = do
   conn <- WS.acceptRequest pending
   connections <- readIORef Global.connections
   _ <- Table.insert connections sessionId conn
-  putTextLn $ "WS connected, session: " <> show sessionId
+  putTextLn $ "WS connected, session: " <> sessionId.text
+
+  lobby <- readTVarIO Global.lobby
+  WS.sendTextData conn $ Lucid.renderBS $
+    templateLobbyPlayers lobby 
+
   WS.withPingThread conn 30 (pure ()) $ do
     forever $ do
       msg  <- WS.receiveData conn 
       WS.sendTextData conn $ Lucid.renderBS "hello, " <> msg
-      -- threadDelay 1_000_000
