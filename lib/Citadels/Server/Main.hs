@@ -14,9 +14,8 @@ import Citadels.Server.State
 import Citadels.Pages.Lobby 
 import Citadels.Templates
 
-import Lucid 
-import Lucid.Htmx
-import Lucid.Extra
+import Lucid (Html)
+import Lucid qualified
 import Web.Twain (Middleware, Response, ResponderM)
 import Web.Twain qualified as Twain
 import Data.HashTable (HashTable)
@@ -128,8 +127,11 @@ register = Twain.post "/register" $ do
     pure updatedLobby
 
   putTextLn $ show lobby
-  Twain.send $ html do
+
+  broadcast do
     templateLobbyPlayers lobby
+
+  Twain.send $ Twain.text ""
 
 html :: Lucid.Html Unit -> Response
 html = Twain.html <<< Lucid.renderBS
@@ -155,6 +157,19 @@ secureCookie = defaultSetCookie
   , setCookieSameSite = Just sameSiteStrict
   }
 
+broadcast :: MonadIO m => Html () -> m ()
+broadcast html = liftIO do
+  putTextLn "begin broadcast"
+  conns <- readIORef Global.connections
+  let bytes = Lucid.renderBS html
+  pairs <- atomically $ Table.readAssocs conns
+
+  putTextLn $ "connection count: " <> show (length pairs)
+  for_ pairs $ \(_, conn) ->
+    WS.sendTextData conn bytes
+
+  putTextLn "end broadcast"
+
 
 wsApp :: PlayerId -> WS.ServerApp
 wsApp playerId pending = do
@@ -165,7 +180,7 @@ wsApp playerId pending = do
 
   lobby <- readTVarIO Global.lobby
   WS.sendTextData conn $ Lucid.renderBS $
-    lobbyPage playerId lobby 
+    templateLobbyPlayers lobby 
 
   WS.withPingThread conn 30 (pure ()) $ do
     forever $ do
