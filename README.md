@@ -19,11 +19,12 @@ See mprocs file
 
 ## Tech Stack 
 - Haskell 
-    - lucid2
+    - lucid2 
     - twain
-    - unagi-chan
     - concurrent-hashtable
     - websockets
+    - unagi-chan (if needed)
+        - so far sticking to writing to shared state vars instead of message passing.
 - HTMX
 - Hyperscript (if needed)
 
@@ -38,6 +39,19 @@ Docs:
 - https://hackage.haskell.org/package/unagi-chan-0.4.1.4/docs/Control-Concurrent-Chan-Unagi.html
 
 
+### Twain 
+
+I like wai, and Warp, but I dislike Twain. It's simpler than Spock and Scotty, but it has a lot of pitfals that break my intuition on how request routing should work.
+
+I want a framework that produces an error and stack trace when request parsing fails. It shouldn't just keep trying routes and then 404.
+
+I shouldn't be able to forget to `send`. AGain this 404s instead of being a type error. 
+
+### Scotty
+
+Makes it hard to embed Websocket handling. I ended up switching to Twain because Twain atleast made it easy to embed a websocket response handler
+
+
 ## Initial Features
 What to do for authentication
 Static list of players
@@ -49,23 +63,3 @@ I need the ability to kick anyone
 I will not require passwords.
 I will deal with spammers / bots on an as need basis.
 I will make it so you need a game code to join a room, and to see a running game as a spectator.
-
-
- ## TODO
-- [x] Scaffold haskell project
-- [x] Dockerfile
-- [x] Deploy to fly.io
-- [ ] Lobby
-    - [x] Render static list of players
-    - [x] Render dynamic list of players
-    - [x] Render name register form
-    - [x] Hookup state
-    - [ ] Session cookies
-    - [ ] Simultaneous update for all connected players
-
- - [x] POC for html rendering
- - [x] POC for api htmx swapping
- - [x] POC for Web sockets comms
-
-- [ ] Card Assets
-

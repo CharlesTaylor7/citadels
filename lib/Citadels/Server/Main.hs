@@ -8,6 +8,7 @@ import Network.Wai.Handler.WebSockets qualified as Wai
 import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
+import Network.HTTP.Types.URI qualified as Url
 
 import Citadels.Server.State qualified as Global
 import Citadels.Server.State 
@@ -27,6 +28,7 @@ import Data.UUID (UUID)
 import Data.UUID qualified as UUID
 import Data.UUID.V4 qualified as UUID
 import qualified Citadels.Server.State as Table
+
 
 
 main :: IO ()
@@ -61,15 +63,18 @@ tableLookup ref key = liftIO do
 -- | set session cookie here
 index :: Middleware
 index = Twain.get "/" $ do
-  maybeId :: _ Text <- Twain.cookieParamMaybe "playerId" 
+  maybeId <- Twain.cookieParamMaybe "playerId" 
+  maybeName <- Twain.cookieParamMaybe "username" 
+
   playerId <- PlayerId <$> case maybeId of
     Just id -> pure id
     Nothing -> liftIO $ UUID.toText <$> UUID.nextRandom
 
+  let username = maybeName & fromMaybe ""
+
   lobby <- atomically do
     lobby <- readTVar Global.lobby
 
-    let username = lobby.players & HashMap.lookup playerId & maybe "" (.username)
     let player = Player { playerId, username }
     let updatedLobby :: LobbyState 
         updatedLobby = lobby { players = lobby.players & HashMap.insert playerId player }
@@ -77,36 +82,27 @@ index = Twain.get "/" $ do
     writeTVar Global.lobby updatedLobby
     pure updatedLobby
     
-  let cookie = secureCookie { setCookieName = "playerId", setCookieValue = encodeUtf8 playerId.text }
-  Twain.send $ Twain.withCookie' cookie $ html do
-    templatePage do lobbyPage playerId lobby
+  Twain.send $ 
+    Twain.withCookie' secureCookie 
+      { setCookieName = "playerId"
+      , setCookieValue = encodeUtf8 playerId.text 
+      } $
+    Twain.withCookie' secureCookie 
+      { setCookieName = "username"
+      , setCookieValue = encodeUtf8 username 
+      } $
+    html do
+      templatePage do lobbyPage playerId lobby
 
-sendWithCookie :: Maybe SetCookie -> Response -> ResponderM a
-sendWithCookie (Just cookie) = Twain.send <<< Twain.withCookie' cookie
-sendWithCookie Nothing = Twain.send 
-
-
-{-
-newSessionCookie :: MonadIO m => m SetCookie
-newSessionCookie = liftIO do
-  playerId <- UUID.nextRandom
-  playerId <- UUID.nextRandom
-
-  _ <- Table.insert ids (PlayerId $ show playerId ) (PlayerId $ show playerId)
-    
-  pure $ secureCookie
-    { setCookieName = "playerId"
-    , setCookieValue = show playerId
-    }
--}
 
 
 register :: Middleware
 register = Twain.post "/register" $ do
-  username <- Twain.param "username"
+  username <- Twain.params "username"
   id <- PlayerId <$> Twain.cookieParam "playerId"
 
   putTextLn $ "playerId: " <> id.text
+  putTextLn $ "username: " <> username
 
   lobby <- atomically do
     lobby <- readTVar Global.lobby
@@ -131,7 +127,12 @@ register = Twain.post "/register" $ do
   broadcast do
     templateLobbyPlayers lobby
 
-  Twain.send $ Twain.text ""
+  Twain.send $ 
+    Twain.withCookie' secureCookie
+      { setCookieName = "username"
+      , setCookieValue = encodeUtf8 username
+      } $
+    Twain.text ""
 
 html :: Lucid.Html Unit -> Response
 html = Twain.html <<< Lucid.renderBS
@@ -150,11 +151,13 @@ websocket = Twain.get "/ws" $ do
     Nothing -> missing
 
 
+-- | TODO: prod only
 secureCookie :: SetCookie
 secureCookie = defaultSetCookie 
-  { setCookieSecure = True
-  , setCookieHttpOnly = True 
-  , setCookieSameSite = Just sameSiteStrict
+  { 
+  --setCookieSecure = True,
+   -- setCookieHttpOnly = True 
+   setCookieSameSite = Just sameSiteStrict
   }
 
 broadcast :: MonadIO m => Html () -> m ()
