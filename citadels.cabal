@@ -63,6 +63,7 @@ library citadels-lib
   import:           common
   hs-source-dirs:   lib
   exposed-modules:
+    Citadels.Server.Main,
     Citadels.Types,
     Citadels.Server.State,
     Citadels.Pages.Lobby,
