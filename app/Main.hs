@@ -67,7 +67,7 @@ index = Twain.get "/" $ do
     Just id -> pure id
     Nothing -> liftIO $ UUID.toText <$> UUID.nextRandom
 
-  (lobby, player) <- atomically do
+  lobby <- atomically do
     lobby <- readTVar Global.lobby
 
     let username = lobby.players & HashMap.lookup playerId & maybe "" (.username)
@@ -76,11 +76,11 @@ index = Twain.get "/" $ do
         updatedLobby = lobby { players = lobby.players & HashMap.insert playerId player }
 
     writeTVar Global.lobby updatedLobby
-    pure (updatedLobby, player)
+    pure updatedLobby
     
-  let cookie = secureCookie { setCookieName = "playerId", setCookieValue = encodeUtf8 player.playerId.text }
+  let cookie = secureCookie { setCookieName = "playerId", setCookieValue = encodeUtf8 playerId.text }
   Twain.send $ Twain.withCookie' cookie $ html do
-    templatePage do lobbyPage player lobby
+    templatePage do lobbyPage playerId lobby
 
 sendWithCookie :: Maybe SetCookie -> Response -> ResponderM a
 sendWithCookie (Just cookie) = Twain.send <<< Twain.withCookie' cookie
@@ -109,27 +109,27 @@ register = Twain.post "/register" $ do
 
   putTextLn $ "playerId: " <> id.text
 
-  atomically do
+  lobby <- atomically do
     lobby <- readTVar Global.lobby
     let player = lobby.players & HashMap.lookup id
-    case player of
-      Just p -> writeTVar Global.lobby $
-        lobby 
-          { players = lobby.players 
-              & HashMap.insert id (p { username = username })
-          }
-      Nothing -> writeTVar Global.lobby $
-        lobby 
+    let 
+      updatedLobby :: LobbyState
+      updatedLobby = case player of
+        Just p -> lobby 
             { players = lobby.players 
-                & HashMap.insert id (Player { playerId = id, username = username })
-            , seatingOrder = lobby.seatingOrder <> [ id ]
+                & HashMap.insert id (p { username = username })
             }
+        Nothing -> lobby 
+              { players = lobby.players 
+                  & HashMap.insert id (Player { playerId = id, username = username })
+              , seatingOrder = lobby.seatingOrder <> [ id ]
+              }
+    writeTVar Global.lobby updatedLobby
+    pure updatedLobby
 
+  putTextLn $ show lobby
   Twain.send $ html do
-    templateRegister username
-    div_ [ id_ "players", hxSwapOob_ "beforeend" ] do
-      li_ [ id_ id.text, hxSwapOob_ "true"] do
-        text_ username
+    templateLobbyPlayers lobby
 
 html :: Lucid.Html Unit -> Response
 html = Twain.html <<< Lucid.renderBS
@@ -165,7 +165,7 @@ wsApp playerId pending = do
 
   lobby <- readTVarIO Global.lobby
   WS.sendTextData conn $ Lucid.renderBS $
-    templateLobbyPlayers lobby 
+    lobbyPage playerId lobby 
 
   WS.withPingThread conn 30 (pure ()) $ do
     forever $ do

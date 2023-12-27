@@ -11,31 +11,36 @@ import Lucid.Extra
 import Lucid.Base 
 
 
-lobbyPage :: Player -> LobbyState -> Lucid.Html ()
-lobbyPage player lobby =
+lobbyPage :: PlayerId -> LobbyState -> Lucid.Html ()
+lobbyPage playerId lobby =
     div_ [ class_ "flex flex-col gap-3 items-center justify-center" ] do
 
       h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
         "Lobby"
 
-      templateRegister player.username
+      templateRegister username
 
       div_ [ class_ "p-7 rounded border border-slate-500" ] do
 
         h2_ [ class_ "underline text-2xl font-semibold" ] do
           "Players"
 
-        ul_ [ id_ "players", class_ "list-disc" ] do
-          templateLobbyPlayers lobby
+        templateLobbyPlayers lobby
+    where
+      username = 
+        lobby.players 
+        & HashMap.lookup playerId 
+        & maybe "" (.username)
        
 
 templateLobbyPlayers :: LobbyState -> Html ()
-templateLobbyPlayers lobby =  
+templateLobbyPlayers lobby = do
+  ul_ [ id_ "players", class_ "list-disc" ] do
     lobby.seatingOrder 
-    & mapMaybe (\id -> lobby.players & HashMap.lookup id)
-    & foldMap \player ->
-        li_ [ id_ player.playerId.text, hxSwapOob_ "true"] do
-          text_ player.username
+      & mapMaybe (\id -> lobby.players & HashMap.lookup id)
+      & foldMap \player ->
+          li_ [ id_ player.playerId.text] do
+            text_ player.username
 
 
 
@@ -44,6 +49,7 @@ templateRegister username =
   form_ 
     [ class_ "p-7 flex flex-col gap-3 items-center rounded border border-slate-500"
     , hxPost_ "/register"
+    , hxTarget_ "#players"
     ] do
     div_ do
       label_ [ class_ "mr-3" ] "Username"
