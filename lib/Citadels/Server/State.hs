@@ -14,9 +14,6 @@ import Data.Default
 newtype PlayerId = PlayerId { text :: Text }
   deriving newtype (Eq, Hashable)
 
-newtype SessionId = SessionId { text :: Text }
-  deriving newtype (Eq, Hashable)
-
 
 data Player = Player 
   { playerId :: PlayerId
@@ -48,17 +45,8 @@ instance Default LobbyState where
     , seatingOrder = []
     }
 
-
-{-# NOINLINE playerIds #-}
-playerIds :: IORef (HashTable SessionId PlayerId)
-playerIds = unsafePerformIO do
-  let initialSize = 10
-  table <- Table.newWithDefaults initialSize
-  newIORef table
-
-
 {-# NOINLINE connections #-}
-connections :: IORef (HashTable SessionId WS.Connection)
+connections :: IORef (HashTable PlayerId WS.Connection)
 connections = unsafePerformIO do
   let initialSize = 10
   table <- Table.newWithDefaults initialSize

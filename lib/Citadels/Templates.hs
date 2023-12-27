@@ -1,4 +1,4 @@
-module Citadels.Templates where
+module Citadels.Templates (templatePage) where
 
 import Citadels.Prelude
 
@@ -24,15 +24,18 @@ import Data.HashMap.Strict qualified  as HashMap
 import Data.Maybe (fromJust)
 
 
-templateHead :: Lucid.Html ()
-templateHead = 
-  head_ do
-    title_ "Citadels"
-    meta_ [charset_ "utf-8"]
-    link_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
-    link_ [rel_ "shortcut icon", href_ "/public/favicon.ico"]
-    link_ [rel_ "stylesheet", href_ "/public/index.css"]
-    scriptSrc_ "https://unpkg.com/htmx.org@1.9.10"
-    scriptSrc_ "https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" 
-    scriptSrc_ "https://unpkg.com/hyperscript.org@0.9.12"
-
+templatePage :: Lucid.Html Unit -> Lucid.Html Unit
+templatePage contents = 
+  doctypehtml_ do
+    head_ do
+      title_ "Citadels"
+      meta_ [charset_ "utf-8"]
+      link_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
+      link_ [rel_ "shortcut icon", href_ "/public/favicon.ico"]
+      link_ [rel_ "stylesheet", href_ "/public/index.css"]
+      scriptSrc_ "https://unpkg.com/htmx.org@1.9.10"
+      scriptSrc_ "https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" 
+      scriptSrc_ "https://unpkg.com/htmx.org@1.9.10/dist/ext/idiomorph.js" 
+      --scriptSrc_ "https://unpkg.com/hyperscript.org@0.9.12"
+    body_ [ hxExt_ "ws,idiomorph", wsConnect_ "/ws", class_ "bg-slate-700 h-full text-slate-200 text-xl"] do
+      contents
