@@ -11,8 +11,14 @@ import Lucid.Extra
 import Lucid.Base 
 
 
-lobbyPage :: PlayerId -> LobbyState -> Lucid.Html ()
-lobbyPage playerId lobby =
+data LobbyArgs = LobbyArgs
+  { lobby :: LobbyState
+  , playerId :: PlayerId
+  , username :: Maybe Text
+  }
+
+lobbyPage :: LobbyArgs -> Lucid.Html ()
+lobbyPage args@(LobbyArgs { playerId, lobby })=
   main_ [ wsConnect_ "/ws", class_ "bg-slate-700 h-full text-slate-200 text-xl"] do
     div_ [ class_ "flex flex-col gap-3 items-center justify-center" ] do
       h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
@@ -25,11 +31,10 @@ lobbyPage playerId lobby =
           "Players"
 
         templateLobbyPlayers lobby
+
     where
-      username = 
-        lobby.players 
-        & HashMap.lookup playerId 
-        & maybe "" (.username)
+      username = fromMaybe "" do
+        (.username) <$> HashMap.lookup playerId lobby.players <|> args.username
        
 
 templateLobbyPlayers :: LobbyState -> Html ()

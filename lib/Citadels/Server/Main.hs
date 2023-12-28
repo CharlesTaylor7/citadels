@@ -9,6 +9,7 @@ import Network.Wai.Middleware.Static qualified as Wai
 import Network.Wai.Middleware.RequestLogger qualified as Wai
 import Network.WebSockets qualified as WS
 import Network.HTTP.Types.URI qualified as Url
+import Network.Wai.Parse qualified as Wai
 
 import Citadels.Server.State qualified as Global
 import Citadels.Server.State 
@@ -21,13 +22,14 @@ import Web.Twain (Middleware, Response, ResponderM)
 import Web.Twain qualified as Twain
 import Data.HashTable (HashTable)
 import Data.HashTable qualified as Table
-import Web.Cookie (SetCookie(..), defaultSetCookie, sameSiteStrict) 
 import Data.HashMap.Strict qualified as HashMap
+import Web.Cookie (SetCookie(..), defaultSetCookie, sameSiteStrict) 
 import Data.Maybe (fromJust)
 import Data.UUID (UUID)
 import Data.UUID qualified as UUID
 import Data.UUID.V4 qualified as UUID
 import qualified Citadels.Server.State as Table
+import qualified Network.Wai.Parse as Wai
 
 
 
@@ -63,47 +65,43 @@ tableLookup ref key = liftIO do
 -- | set session cookie here
 index :: Middleware
 index = Twain.get "/" $ do
-  maybeId <- Twain.cookieParamMaybe "playerId" 
-  maybeName <- Twain.cookieParamMaybe "username" 
-
-  playerId <- PlayerId <$> case maybeId of
+  playerId <- Twain.cookieParamMaybe "cPlayerId" 
+  playerId <- PlayerId <$> case playerId of
     Just id -> pure id
-    Nothing -> liftIO $ UUID.toText <$> UUID.nextRandom
+    Nothing -> UUID.toText <$> liftIO UUID.nextRandom
 
-  let username = maybeName & fromMaybe ""
+  username <- Twain.cookieParamMaybe "cUsername" 
 
-  lobby <- atomically do
-    lobby <- readTVar Global.lobby
-
-    let player = Player { playerId, username }
-    let updatedLobby :: LobbyState 
-        updatedLobby = lobby { players = lobby.players & HashMap.insert playerId player }
-
-    writeTVar Global.lobby updatedLobby
-    pure updatedLobby
-    
+  lobby <- readTVarIO Global.lobby
+        
   Twain.send $ 
     Twain.withCookie' secureCookie 
-      { setCookieName = "playerId"
+      -- The leading c is to keep the cookie separate from other params
+      { setCookieName = "cPlayerId"
       , setCookieValue = encodeUtf8 playerId.text 
       } $
-    Twain.withCookie' secureCookie 
-      { setCookieName = "username"
-      , setCookieValue = encodeUtf8 username 
-      } $
     html do
-      templatePage do lobbyPage playerId lobby
+      templatePage do 
+        lobbyPage LobbyArgs 
+          { lobby
+          , playerId
+          , username
+          }
 
 
+
+paramLookup :: Text -> [(Text, Text)] -> Maybe Text
+paramLookup key pairs = snd <$> find ((== key) <<< fst) pairs
 
 register :: Middleware
 register = Twain.post "/register" $ do
-  username <- Twain.params "username"
-  id <- PlayerId <$> Twain.cookieParam "playerId"
+  id <- PlayerId <$> Twain.cookieParam "cPlayerId"
+  params  <- Twain.params
+  putTextLn $ "Twain.params: " <> show params
 
-  putTextLn $ "playerId: " <> id.text
-  putTextLn $ "username: " <> username
+  let username = fromJust $ paramLookup "username" params
 
+  readTVarIO Global.lobby >>= \lobby -> putTextLn $ "before: " <> show lobby
   lobby <- atomically do
     lobby <- readTVar Global.lobby
     let player = lobby.players & HashMap.lookup id
@@ -112,7 +110,7 @@ register = Twain.post "/register" $ do
       updatedLobby = case player of
         Just p -> lobby 
             { players = lobby.players 
-                & HashMap.insert id (p { username = username })
+                & HashMap.insert id (p { username = username } :: Player)
             }
         Nothing -> lobby 
               { players = lobby.players 
@@ -122,14 +120,14 @@ register = Twain.post "/register" $ do
     writeTVar Global.lobby updatedLobby
     pure updatedLobby
 
-  putTextLn $ show lobby
+  putTextLn $ "after: " <> show lobby
 
   broadcast do
     templateLobbyPlayers lobby
 
   Twain.send $ 
     Twain.withCookie' secureCookie
-      { setCookieName = "username"
+      { setCookieName = "cUsername"
       , setCookieValue = encodeUtf8 username
       } $
     Twain.text ""
@@ -139,11 +137,11 @@ html = Twain.html <<< Lucid.renderBS
 
 missing :: ResponderM a
 missing = do
-  Twain.send $ html "Not found..."
+  Twain.send $ Twain.text "404"
 
 websocket :: Middleware
 websocket = Twain.get "/ws" $ do
-  id <- PlayerId <$> Twain.cookieParam "playerId"
+  id <- PlayerId <$> Twain.cookieParam "cPlayerId"
   req <- Twain.request
   let app = wsApp id
   case Wai.websocketsApp WS.defaultConnectionOptions app req of 
@@ -189,3 +187,17 @@ wsApp playerId pending = do
     forever $ do
       msg  <- WS.receiveData conn 
       WS.sendTextData conn $ Lucid.renderBS "hello, " <> msg
+
+{-
+ - Doesn't work
+formBodyParams :: ResponderM [(Text, Text)]
+formBodyParams = do
+  request <- Twain.request
+  (params, files) <- liftIO $
+    Wai.parseRequestBody
+      --Wai.defaultParseRequestBodyOptions 
+      Wai.lbsBackEnd 
+      request
+
+  pure $ params <&> bimap decodeUtf8 decodeUtf8
+  -}
