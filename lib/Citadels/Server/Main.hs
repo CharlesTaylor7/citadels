@@ -16,6 +16,7 @@ import Citadels.Server.State
 import Citadels.Pages.Lobby 
 import Citadels.Templates
 
+import Control.Exception (try)
 import Lucid (Html)
 import Lucid qualified
 import Web.Twain (Middleware, Response, ResponderM)
@@ -88,8 +89,6 @@ index = Twain.get "/" $ do
           , username
           }
 
-
-
 paramLookup :: Text -> [(Text, Text)] -> Maybe Text
 paramLookup key pairs = snd <$> find ((== key) <<< fst) pairs
 
@@ -152,10 +151,9 @@ websocket = Twain.get "/ws" $ do
 -- | TODO: prod only
 secureCookie :: SetCookie
 secureCookie = defaultSetCookie 
-  { 
-  --setCookieSecure = True,
-   -- setCookieHttpOnly = True 
-   setCookieSameSite = Just sameSiteStrict
+  { setCookieSecure = True
+  , setCookieHttpOnly = True 
+  , setCookieSameSite = Just sameSiteStrict
   }
 
 broadcast :: MonadIO m => Html () -> m ()
@@ -166,8 +164,14 @@ broadcast html = liftIO do
   pairs <- atomically $ Table.readAssocs conns
 
   putTextLn $ "connection count: " <> show (length pairs)
-  for_ pairs $ \(_, conn) ->
-    WS.sendTextData conn bytes
+  for_ pairs $ \(id, conn) -> do
+    result <- try $ WS.sendTextData conn bytes
+    case result of
+      Left (e :: SomeException) -> do
+        Table.delete conns id
+        putTextLn $ "Dropping connection because: " <> show e
+      Right () -> pure unit
+
 
   putTextLn "end broadcast"
 

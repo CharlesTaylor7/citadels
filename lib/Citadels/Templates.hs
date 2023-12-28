@@ -37,7 +37,7 @@ templatePage contents =
       scriptSrc_ "https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" 
       scriptSrc_ "https://unpkg.com/idiomorph/dist/idiomorph-ext.min.js" 
       -- TODO: dev mode only
-      script_ "htmx.config.wsReconnectDelay = () => 1000"
+      -- script_ "htmx.config.wsReconnectDelay = () => 1000"
       --scriptSrc_ "https://unpkg.com/hyperscript.org@0.9.12"
     body_ [ hxExt_ "ws,idiomorph", class_ "h-screen"]
       contents
