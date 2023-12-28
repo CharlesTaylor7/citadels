@@ -1,18 +1,27 @@
 pub struct District {
-    name: String,
-    cost: usize,
-    suit: CardSuit,
-    set: CardSet,
-    count: usize,
+    pub name: &'static str,
+    pub cost: usize,
+    pub suit: CardSuit,
+    pub set: CardSet,
+    pub count: usize,
 }
 
 pub struct Character {
-    name: String,
-    rank: usize,
-    set: CardSet,
-    description: String,
+    pub name: &'static str,
+    pub rank: usize,
+    pub set: CardSet,
+    pub description: &'static str,
 }
 
+#[derive(Debug)]
+pub enum CardSuit {
+    Red,
+    Green,
+    Blue,
+    Yellow,
+    Purple,
+}
+/*
 #[derive(Debug)]
 pub enum CardSuit {
     Military,  // Red
@@ -21,6 +30,7 @@ pub enum CardSuit {
     Noble,     // Yellow
     Unique,    // Purple
 }
+*/
 
 pub enum CardSet {
     Base,
