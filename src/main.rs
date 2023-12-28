@@ -85,33 +85,16 @@ fn template<'a, S: serde::Serialize>(
 
 mod handlers {
 
-    use axum::{
-        extract::ws::{Message, WebSocket, WebSocketUpgrade},
-        response::IntoResponse,
-    };
-    use axum_extra::{headers::UserAgent, TypedHeader};
-
-    use std::borrow::Cow;
-    use std::ops::ControlFlow;
-    use std::{net::SocketAddr, path::PathBuf};
-    use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-
-    use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-    //allows to extract the IP of connecting user
-    use axum::extract::connect_info::ConnectInfo;
-    use axum::extract::ws::CloseFrame;
-
-    //allows to split the websocket stream into separate TX and RX branches
-    use futures::{sink::SinkExt, stream::StreamExt};
-
-    use std::collections::hash_map::*;
-
     use crate::Context;
-    use axum::{extract::State, response::IntoResponse};
+    use axum::extract::connect_info::ConnectInfo;
+    use axum::extract::State;
+    use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
+    use axum_extra::{headers::UserAgent, TypedHeader};
     use citadels::lobby::*;
     use minijinja::context;
+    use std::collections::hash_map::*;
+    use std::net::SocketAddr;
     use uuid::Uuid;
 
     pub async fn index(
@@ -220,21 +203,14 @@ mod handlers {
 }
 
 pub mod ws {
-    use axum::{
-        extract::ws::{Message, WebSocket, WebSocketUpgrade},
-        response::IntoResponse,
-    };
-    use axum_extra::{headers::UserAgent, TypedHeader};
+    use axum::extract::ws::{Message, WebSocket};
 
     use std::borrow::Cow;
+    use std::net::SocketAddr;
     use std::ops::ControlFlow;
-    use std::{net::SocketAddr, path::PathBuf};
-    use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-
-    use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
     //allows to extract the IP of connecting user
-    use axum::extract::connect_info::ConnectInfo;
+
     use axum::extract::ws::CloseFrame;
 
     //allows to split the websocket stream into separate TX and RX branches
@@ -373,8 +349,8 @@ pub mod ws {
             }
 
             // axum's automatically replies to ping
-            Message::Ping(v) => {}
-            Message::Pong(v) => {}
+            Message::Ping(_) => {}
+            Message::Pong(_) => {}
         }
         ControlFlow::Continue(())
     }
