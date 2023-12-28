@@ -1,6 +1,6 @@
 procs:
   Server:
-    shell: cargo watch -x run
+    shell: cargo watch -c -w src -x run
 
   # Tailwind 3 is globally installed
   Tailwind:

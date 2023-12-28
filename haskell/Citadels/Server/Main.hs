@@ -1,40 +1,5 @@
 module Citadels.Server.Main where
 
-import Citadels.Prelude
-
-import Network.Wai qualified as Wai
-import Network.Wai.Handler.Warp qualified as Warp
-import Network.Wai.Handler.WebSockets qualified as Wai
-import Network.Wai.Middleware.Static qualified as Wai
-import Network.Wai.Middleware.RequestLogger qualified as Wai
-import Network.WebSockets qualified as WS
-import Network.HTTP.Types.URI qualified as Url
-import Network.Wai.Parse qualified as Wai
-
-import Citadels.Server.State qualified as Global
-import Citadels.Server.State 
-import Citadels.Pages.Lobby 
-import Citadels.Templates
-import Citadels.Shuffle qualified as Shuffle
-
-import Lucid (Html)
-import Lucid qualified
-import Web.Twain (Middleware, Response, ResponderM)
-import Web.Twain qualified as Twain
-import Data.HashTable (HashTable)
-import Data.HashTable qualified as Table
-import Data.HashMap.Strict qualified as HashMap
-import Web.Cookie (SetCookie(..), defaultSetCookie, sameSiteStrict) 
-import Data.Maybe (fromJust)
-import Data.UUID (UUID)
-import Data.UUID qualified as UUID
-import Data.UUID.V4 qualified as UUID
-import qualified Citadels.Server.State as Table
-import qualified Network.Wai.Parse as Wai
-import Control.Concurrent.STM (modifyTVar)
-import System.Random (initStdGen)
-
-
 main :: IO ()
 main = do
   let

@@ -13,15 +13,12 @@ import Web.Cookie (SetCookie(..),defaultSetCookie)
 import Data.Default
    
 newtype PlayerId = PlayerId { text :: Text }
-  deriving newtype (Eq, Hashable)
-  deriving stock (Show)
 
 
 data Player = Player 
   { playerId :: PlayerId
   , username :: Text
   }
-  deriving stock (Show)
   -- deriving stock (Generic)
 
 data LobbyState = LobbyState 
@@ -29,12 +26,7 @@ data LobbyState = LobbyState
   , seatingOrder :: List PlayerId
   }
   deriving stock (Show)
-
-instance Default LobbyState where
-  def = LobbyState 
-    { players = mempty
-    , seatingOrder = []
-    }
+   }
 
 {-# NOINLINE connections #-}
 connections :: IORef (HashTable PlayerId WS.Connection)

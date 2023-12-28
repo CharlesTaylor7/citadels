@@ -1,3 +1,4 @@
+# TODO: bind 3000 to 8080 in docker
 FROM haskell:9.4.8-slim-buster as builder
 RUN cabal update
 RUN mkdir -p /app
