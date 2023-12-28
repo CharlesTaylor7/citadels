@@ -1,11 +1,6 @@
 procs:
   Server:
-    # I had to build reserve from source.
-    # I set my ghc version to 8.10.7, and then ran `cabal install reserve`.
-    # shell: reserve app/Main.hs --port=8080 --reserve-port=3000  -- --lib
-    # cabal install steeloverseer
-    shell: sos 
-    # shell: watchexec -e hs,cabal -- cabal run
+    shell: cargo watch -x run
 
   # Tailwind 3 is globally installed
   Tailwind:
