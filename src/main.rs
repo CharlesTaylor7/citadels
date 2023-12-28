@@ -24,7 +24,7 @@ use tower_http::services::ServeDir;
 // - routes
 // - [x] /
 // - [x] /register
-// - [ ] /ws
+// - [x] /ws
 // - [ ] /start
 
 #[derive(Clone)]
@@ -93,15 +93,17 @@ fn template<'a, S: serde::Serialize>(
 mod handlers {
 
     use crate::Context;
-    use axum::extract::connect_info::ConnectInfo;
+
     use axum::extract::State;
+
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-    use axum_extra::{headers::UserAgent, TypedHeader};
+
     use citadels::lobby::*;
+    use http::StatusCode;
     use minijinja::context;
     use std::collections::hash_map::*;
-    use std::net::SocketAddr;
+
     use uuid::Uuid;
 
     pub async fn index(
@@ -190,20 +192,17 @@ mod handlers {
 
     pub async fn ws(
         state: State<Context>,
+        cookies: PrivateCookieJar,
         ws: WebSocketUpgrade,
-        user_agent: Option<TypedHeader<UserAgent>>,
-        ConnectInfo(addr): ConnectInfo<SocketAddr>,
     ) -> impl IntoResponse {
-        println!("ws!");
-        let user_agent = if let Some(TypedHeader(user_agent)) = user_agent {
-            user_agent.to_string()
+        if let Some(cookie) = cookies.get("playerId") {
+            ws.on_upgrade(move |socket| {
+                crate::ws::handle_socket(state, cookie.value().to_owned(), socket)
+            })
+            .into_response()
         } else {
-            String::from("Unknown browser")
-        };
-        println!("`{user_agent}` at {addr} connected.");
-        // finalize the upgrade process by returning upgrade callback.
-        // we can customize the callback by sending additional info such as address.
-        ws.on_upgrade(move |socket| crate::ws::handle_socket(state, socket, addr))
+            (StatusCode::BAD_REQUEST, "bad request").into_response()
+        }
     }
 }
 
@@ -211,41 +210,39 @@ pub mod ws {
     use axum::extract::ws::{Message, WebSocket};
     use axum::extract::State;
     use futures::stream::StreamExt;
-    use std::net::SocketAddr;
+
     use std::ops::ControlFlow;
 
     use crate::Context;
-    pub async fn handle_socket(state: State<Context>, socket: WebSocket, who: SocketAddr) {
+    pub async fn handle_socket(state: State<Context>, player_id: String, socket: WebSocket) {
         let (sender, mut receiver) = socket.split();
         {
             let mut connections = state.connections.lock().unwrap();
-            connections.insert("test".to_owned(), sender);
+            connections.insert(player_id, sender);
         }
         while let Some(Ok(msg)) = receiver.next().await {
-            // print message and break if instructed to do so
-            if process_message(msg, who).is_break() {
+            if process_message(msg).is_break() {
                 break;
             }
         }
     }
 
-    /// helper to print contents of messages to stdout. Has special treatment for Close.
-    fn process_message(msg: Message, who: SocketAddr) -> ControlFlow<(), ()> {
+    fn process_message(msg: Message) -> ControlFlow<(), ()> {
         match msg {
             Message::Text(t) => {
-                println!(">>> {who} sent str: {t:?}");
+                println!(">>> sent str: {t:?}");
             }
             Message::Binary(d) => {
-                println!(">>> {} sent {} bytes: {:?}", who, d.len(), d);
+                println!(">>> sent {} bytes: {:?}", d.len(), d);
             }
             Message::Close(c) => {
                 if let Some(cf) = c {
                     println!(
-                        ">>> {} sent close with code {} and reason `{}`",
-                        who, cf.code, cf.reason
+                        ">>> sent close with code {} and reason `{}`",
+                        cf.code, cf.reason
                     );
                 } else {
-                    println!(">>> {who} somehow sent close message without CloseFrame");
+                    println!(">>> sent close message without CloseFrame");
                 }
                 return ControlFlow::Break(());
             }
