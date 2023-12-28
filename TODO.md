@@ -16,8 +16,8 @@
 
  ## Oxidize  
 - [x] Setup Axum
+- [x] Setup minijinja 
 - [ ] Convert routes to rust server, Axum
-- [ ] Setup minijinja 
 - [ ] setup template fragment
 - [x] Convert Lucid templates to minijinja
 - [ ] Setup WS
