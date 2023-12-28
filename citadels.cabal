@@ -32,6 +32,7 @@ common common
   ghc-options:
     -Wno-ambiguous-fields
     -Wno-partial-type-signatures
+    -Werror=missing-fields
 
   default-language: 
     Haskell2010
@@ -68,6 +69,8 @@ library citadels-lib
     Citadels.Types,
     Citadels.Server.State,
     Citadels.Pages.Lobby,
+    Citadels.Pages.Game,
+    Citadels.Districts,
     Citadels.Prelude,
     Citadels.Templates,
     Lucid.Htmx,

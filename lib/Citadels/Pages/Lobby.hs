@@ -24,26 +24,31 @@ lobbyPage args@(LobbyArgs { playerId, lobby })=
       h2_ [ class_ "mt-3 underline text-2xl font-semibold" ] do
         "Lobby"
 
-    form_ 
-      [ class_ "p-7 flex flex-col gap-3 items-center rounded border border-slate-500"
-      , hxPost_ "/register"
-      , hxTarget_ "#players"
-      ] do
-      div_ do
-        label_ [ class_ "mr-3" ] "Username"
+      form_ 
+        [ class_ "p-7 flex flex-col gap-3 items-start rounded border border-slate-500"
+        ] do
+        div_ [ class_ "flex flex-col gap-3"] do
+          label_ [ class_ "mr-3" ] "Username:"
 
-        input_ 
-          [ class_ "px-3 border rounded border-slate-400 bg-slate-500"
-          , type_ "text"
-          , name_ "username" 
-          , value_ username 
-          ] 
+          input_ 
+            [ class_ "px-3 border rounded border-slate-400 bg-slate-500"
+            , type_ "text"
+            , name_ "username" 
+            , value_ username 
+            ] 
 
-    button_
-      [ class_ "p-2 border rounded border-slate-400 bg-blue-500"
-      , type_ "submit"
-      ] do
-      " name"
+        div_ [ class_ "flex flex-row gap-3" ] do
+          button_
+            [ class_ "p-2 border rounded border-slate-400 bg-blue-500"
+            , hxPost_ "/register"
+            ] do
+            "Join"
+
+          button_
+            [ class_ "p-2 border rounded border-slate-400 bg-green-500"
+            , hxPost_ "/start"
+            ] do
+            "Start"
 
       div_ [ class_ "p-7 rounded border border-slate-500" ] do
         h2_ [ class_ "underline text-2xl font-semibold" ] do

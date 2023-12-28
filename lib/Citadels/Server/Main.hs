@@ -31,7 +31,7 @@ import Data.UUID qualified as UUID
 import Data.UUID.V4 qualified as UUID
 import qualified Citadels.Server.State as Table
 import qualified Network.Wai.Parse as Wai
-
+import Control.Concurrent.STM (modifyTVar)
 
 
 main :: IO ()
@@ -54,8 +54,9 @@ twain :: Wai.Application
 twain = foldr ($)
   (Twain.notFound missing)
   [ index
-  , register
   , websocket
+  , register
+  , start
   ]
 
 tableLookup :: Eq k => MonadIO m => IORef (HashTable k v) -> k -> m (Maybe v)
@@ -121,7 +122,7 @@ register = Twain.post "/register" $ do
 
   putTextLn $ "after: " <> show lobby
 
-  broadcast do
+  broadcast $ const $
     templateLobbyPlayers lobby
 
   Twain.send $ 
@@ -130,6 +131,25 @@ register = Twain.post "/register" $ do
       , setCookieValue = encodeUtf8 username
       } $
     Twain.text ""
+
+start :: Middleware
+start = Twain.post "/start" $ do
+  id <- PlayerId <$> Twain.cookieParam "cPlayerId"
+
+  game <- atomically do
+    lobby <- readTVar Global.lobby
+    game <- readTVar Global.game
+    let updated = game { players = lobby.players, seatingOrder = lobby.seatingOrder } :: GameState
+
+    writeTVar Global.game updated
+    pure updated
+             
+  broadcast do
+    gamePage game
+
+  Twain.send $ Twain.text ""
+
+
 
 html :: Lucid.Html Unit -> Response
 html = Twain.html <<< Lucid.renderBS
@@ -156,15 +176,15 @@ secureCookie = defaultSetCookie
   , setCookieSameSite = Just sameSiteStrict
   }
 
-broadcast :: MonadIO m => Html () -> m ()
+broadcast :: MonadIO m => (PlayerId -> Html ()) -> m ()
 broadcast html = liftIO do
   putTextLn "begin broadcast"
   conns <- readIORef Global.connections
-  let bytes = Lucid.renderBS html
   pairs <- atomically $ Table.readAssocs conns
 
   putTextLn $ "connection count: " <> show (length pairs)
   for_ pairs $ \(id, conn) -> do
+    let bytes = Lucid.renderBS $ html id
     result <- try $ WS.sendTextData conn bytes
     case result of
       Left (e :: SomeException) -> do
