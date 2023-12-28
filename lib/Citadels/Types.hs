@@ -14,6 +14,7 @@ data Character = Character
   { name :: Text
   , rank :: Int
   , set :: CardSet
+  , description :: Text
   }
 
 data Suit = Red | Green | Blue | Yellow | Purple 

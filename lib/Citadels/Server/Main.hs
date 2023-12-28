@@ -14,6 +14,7 @@ import Network.Wai.Parse qualified as Wai
 import Citadels.Server.State qualified as Global
 import Citadels.Server.State 
 import Citadels.Pages.Lobby 
+import Citadels.Pages.Game 
 import Citadels.Templates
 
 import Control.Exception (try)

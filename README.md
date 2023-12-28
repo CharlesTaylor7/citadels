@@ -38,6 +38,19 @@ Docs:
 - https://hackage.haskell.org/package/websockets-0.12.7.3/docs/Network-WebSockets.html#t:Connection
 - https://hackage.haskell.org/package/unagi-chan-0.4.1.4/docs/Control-Concurrent-Chan-Unagi.html
 
+Seriously considering switching to Rust for better performance.
+Considering using jinja templates or something with template fragments. See: https://htmx.org/essays/template-fragments/
+Also a nice benefit to build my pages in a way that is less dependent on the server language.
+
+I wonder if these are compatible enough with jinja to use ?
+Haskell:
+- https://github.com/tdammers/ginger
+- No Fragment support. :(
+
+
+Rust:
+- https://github.com/mitsuhiko/minijinja 
+- https://docs.rs/template-fragments/latest/template_fragments/
 
 ### Twain 
 

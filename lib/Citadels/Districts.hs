@@ -57,3 +57,36 @@ districts =
   , District { count = 1, suit = Purple, set = Citadels2016, name = "Gold Mine", cost = 6 }
   , District { count = 1, suit = Purple, set = Citadels2016, name = "Secret Vault", cost = 1_000_000 }
   ]
+
+descriptions :: HashMap Text Text
+descriptions = fromList
+  [ ("Haunted Quarter", "At the end of the game, the Haunted Quarter counts as any 1 district type of your choice.")
+  , ("Secret Vault", "The Secret Vault cannot be built. At the end of the game, reveal the Secret Vault from your hand to score 3 extra points.")
+  , ("Gold Mine", "If you choose to gain gold when gathering resources, gain 1 extra gold.")
+  , ("Framework", "You can build a district by destroying the Framework instead of paying that district's cost.")
+  , ("Basilica", "At the end of the game, score 1 extra point for each district in your city with an odd-numbered cost.")
+  , ("Ivory Tower", "If the Ivory Tower is the only UNIQUE district in your city at the end of the game, score 5 extra points")
+  , ("Thieves' Den", "Pay some or all of the Thieves' Den cost with cards from your hand instead of gold at a rate of 1 card to 1 gold.")
+  , ("Theater", "At the end of each selection phase, you may exchange your chosen  character card with an opponent's character card.")
+  , ("Monument", "You cannot build the Monument if you have 5 or more districts in your city. Treat the Monument as being 2 districts toward your completed city.")
+  , ("Stables", "Building the Stables does not count toward your building limit for the turn.")
+  , ("Statue", "If you have the crown at the end of the game, score 5 extra points.")
+  , ("Necropolis", "You can build the Necropolis by destroying 1 district in your city instead of paying the Necropolis' cost.")
+  , ("Poor House", "If you have no gold in your stash at the end of your turn, gain 1 gold.")
+  , ("Factory", "You pay 1 fewer gold to build any other UNIQUE district.")
+  , ("Quarry", "You can build districts that are identical to districts in your city.")
+  , ("Map Room", "At the end of the game, score 1 extra point for each card in your hand.")
+  , ("Park", "If there are no cards in your hand at the end of your turn, gain 2 cards.")
+  , ("Imperial Treasury", "At the end of the game, score 1 extra point for each gold in your stash.")
+  , ("Wishing Well", "At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well).")
+  , ("Armory", "During your turn, destroy the Armory to destroy 1 district of your choice.")
+  , ("Museum", "Once per turn, assign 1 card from your hand facedown under the Museum. At the end of the game, score 1 extra point for each card under the Museum.")
+  , ("Observatory", "If you choose to draw cards when gathering resources, draw 3 cards instead of 2.")
+  , ("Great Wall", "The rank 8 character (Warlord/Diplomat/Marshal) must pay 1 more gold to use its ability on any district in your city.")
+  , ("Keep", "The rank 8 character (Warlord/Diplomat/Marshal) cannot use its ability on the Keep.")
+  , ("Dragon Gate", "At the end of the game score 2 extra points.")
+  , ("Library", "If you choose to draw cards when gathering resources, keep all drawn cards.")
+  , ("Smithy", "Once per turn, pay 2 gold to gain 3 cards.")
+  , ("Laboratory", "Once per turn, discard 1 card from your hand to gain 2 gold.")
+  , ("School of Magic", "For abilities that gain resources for your districts, the School of Magic counts as the district type of your choice.")
+  ]

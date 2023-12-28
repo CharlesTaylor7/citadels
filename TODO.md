@@ -5,7 +5,11 @@
     - [ ] Characters
     - [ ] Timer Options 
 - [ ] Game
+    - [ ] Phases
+        - [ ] Setup
+            - [ ]  shuffling
     - [ ] Static page layout
+        - 
     - [ ] Card Assets
     - [ ] Game Engine
         - [ ] Characters
