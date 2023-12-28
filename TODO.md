@@ -15,11 +15,14 @@
 
 
  ## TODO
-- [x] Deployment pipeline
-- [x] Lobby
-- [ ] Game Configuration
-    - [ ] Characters
-
+- [ ] Deployment pipeline
+- [ ] Setup minijinja + template fragment
+- [ ] Convert Lucid templates to minijinja
+- [ ] Convert routes to rust server, Axum
+- [ ] Setup WS
+    - https://blog.logrocket.com/build-websocket-server-with-rust/#registering-clients
+- [ ] Rewrite haskell routes into rust 
+- [ ] Lobby
 - [ ] Game
     - [ ] Phases
         - [ ] Setup
