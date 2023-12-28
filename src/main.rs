@@ -1,17 +1,20 @@
-use citadels::lobby::Lobby;
-use std::sync::{Arc, Mutex};
-
 use axum::{
-    extract::FromRef,
+    extract::{
+        ws::{Message, WebSocket},
+        FromRef,
+    },
     routing::{get, post},
     Router,
 };
+use axum_extra::extract::cookie;
+use citadels::lobby::Lobby;
+use futures::stream::SplitSink;
 use load_dotenv::load_dotenv;
 use minijinja;
+use std::sync::{Arc, Mutex};
+use std::{collections::hash_map::HashMap, sync::RwLock};
 use tokio;
 use tower_http::services::ServeDir;
-
-use axum_extra::extract::cookie;
 
 // TODO:
 // - [x] run on 8080
@@ -28,8 +31,11 @@ use axum_extra::extract::cookie;
 pub struct Context {
     pub cookie_signing_key: cookie::Key,
     pub jinja_env: minijinja::Environment<'static>,
-    pub lobby: Arc<Mutex<Lobby>>,
+    pub lobby: Arc<RwLock<Lobby>>,
+    pub connections: Arc<Mutex<HashMap<String, WebSocketSink>>>,
 }
+
+type WebSocketSink = SplitSink<WebSocket, Message>;
 
 impl FromRef<Context> for cookie::Key {
     fn from_ref(context: &Context) -> Self {
@@ -62,7 +68,8 @@ fn router() -> Router {
     let context = Context {
         cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
         jinja_env: env,
-        lobby: Arc::new(Mutex::new(Lobby::default())),
+        lobby: Arc::new(RwLock::new(Lobby::default())),
+        connections: Arc::new(Mutex::new(HashMap::new())),
     };
 
     Router::new()
@@ -108,7 +115,7 @@ mod handlers {
         let player_id = cookies.get("playerId").map(|c| c.value().to_owned());
 
         let players: Vec<Player> = {
-            let lobby = state.lobby.lock().unwrap();
+            let lobby = state.lobby.read().unwrap();
             lobby
                 .seating
                 .iter()
@@ -144,10 +151,11 @@ mod handlers {
         cookies: PrivateCookieJar,
         args: axum::Form<Register>,
     ) -> impl IntoResponse {
+        println!("register!");
         let cookie = cookies.get("playerId").unwrap();
         let player_id = cookie.value();
         let players: Vec<Player> = {
-            let mut lobby = state.lobby.lock().unwrap();
+            let mut lobby = state.lobby.write().unwrap();
             match lobby.players.entry(player_id.to_owned()) {
                 Entry::Occupied(e) => {
                     e.into_mut().name = args.username.clone();
@@ -180,16 +188,13 @@ mod handlers {
         )
     }
 
-    /// The handler for the HTTP request (this gets called when the HTTP GET lands at the start
-    /// of websocket negotiation). After this completes, the actual switching from HTTP to
-    /// websocket protocol will occur.
-    /// This is the last point where we can extract TCP/IP metadata such as IP address of the client
-    /// as well as things from HTTP headers such as user-agent of the browser etc.
     pub async fn ws(
+        state: State<Context>,
         ws: WebSocketUpgrade,
         user_agent: Option<TypedHeader<UserAgent>>,
         ConnectInfo(addr): ConnectInfo<SocketAddr>,
     ) -> impl IntoResponse {
+        println!("ws!");
         let user_agent = if let Some(TypedHeader(user_agent)) = user_agent {
             user_agent.to_string()
         } else {
@@ -198,80 +203,30 @@ mod handlers {
         println!("`{user_agent}` at {addr} connected.");
         // finalize the upgrade process by returning upgrade callback.
         // we can customize the callback by sending additional info such as address.
-        ws.on_upgrade(move |socket| crate::ws::handle_socket(socket, addr))
+        ws.on_upgrade(move |socket| crate::ws::handle_socket(state, socket, addr))
     }
 }
 
 pub mod ws {
     use axum::extract::ws::{Message, WebSocket};
-
-    use axum::extract::ws::CloseFrame;
-    use futures::{sink::SinkExt, stream::StreamExt};
-    use std::borrow::Cow;
+    use axum::extract::State;
+    use futures::stream::StreamExt;
     use std::net::SocketAddr;
     use std::ops::ControlFlow;
-    pub async fn handle_socket(socket: WebSocket, who: SocketAddr) {
-        let (mut sender, mut receiver) = socket.split();
 
-        let mut send_task = tokio::spawn(async move {
-            let n_msg = 20;
-            for i in 0..n_msg {
-                // In case of any websocket error, we exit.
-                if sender
-                    .send(Message::Text(format!("Server message {i} ...")))
-                    .await
-                    .is_err()
-                {
-                    return i;
-                }
-            }
-
-            println!("Sending close to {who}...");
-            if let Err(e) = sender
-                .send(Message::Close(Some(CloseFrame {
-                    code: axum::extract::ws::close_code::NORMAL,
-                    reason: Cow::from("Goodbye"),
-                })))
-                .await
-            {
-                println!("Could not send Close due to {e}, probably it is ok?");
-            }
-            n_msg
-        });
-
-        // This second task will receive messages from client and print them on server console
-        let mut recv_task = tokio::spawn(async move {
-            let mut cnt = 0;
-            while let Some(Ok(msg)) = receiver.next().await {
-                cnt += 1;
-                // print message and break if instructed to do so
-                if process_message(msg, who).is_break() {
-                    break;
-                }
-            }
-            cnt
-        });
-
-        // If any one of the tasks exit, abort the other.
-        tokio::select! {
-            rv_a = (&mut send_task) => {
-                match rv_a {
-                    Ok(a) => println!("{a} messages sent to {who}"),
-                    Err(a) => println!("Error sending messages {a:?}")
-                }
-                recv_task.abort();
-            },
-            rv_b = (&mut recv_task) => {
-                match rv_b {
-                    Ok(b) => println!("Received {b} messages"),
-                    Err(b) => println!("Error receiving messages {b:?}")
-                }
-                send_task.abort();
+    use crate::Context;
+    pub async fn handle_socket(state: State<Context>, socket: WebSocket, who: SocketAddr) {
+        let (sender, mut receiver) = socket.split();
+        {
+            let mut connections = state.connections.lock().unwrap();
+            connections.insert("test".to_owned(), sender);
+        }
+        while let Some(Ok(msg)) = receiver.next().await {
+            // print message and break if instructed to do so
+            if process_message(msg, who).is_break() {
+                break;
             }
         }
-
-        // returning from the handler closes the websocket connection
-        println!("Websocket context {who} destroyed");
     }
 
     /// helper to print contents of messages to stdout. Has special treatment for Close.
