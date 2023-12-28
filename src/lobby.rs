@@ -1,15 +1,16 @@
 use std::collections::*;
 
-pub struct PlayerId(String);
+type PlayerId = String;
 
+#[derive(serde::Serialize, Clone)]
 pub struct Player {
-    id: PlayerId,
-    name: String,
+    pub id: PlayerId,
+    pub name: String,
 }
 
 pub struct Lobby {
-    players: HashMap<PlayerId, Player>,
-    seating: Vec<PlayerId>,
+    pub players: HashMap<PlayerId, Player>,
+    pub seating: Vec<PlayerId>,
 }
 
 impl Default for Lobby {

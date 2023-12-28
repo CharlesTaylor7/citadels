@@ -1,6 +1,3 @@
 /dist-newstyle/
-
-
-# Added by cargo
-
-/target
+/target/
+/.env

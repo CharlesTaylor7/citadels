@@ -1,10 +1,13 @@
 procs:
   Server:
-    shell: cargo watch -c -w src -x run
+    shell: cargo watch -c -x run
 
   # Tailwind 3 is globally installed
   Tailwind:
     shell: tailwindcss --input tailwind.source.css --output public/index.css --watch
+
+  Docs:
+    shell: cargo doc --offline --lib --open
 
   Deploy:
     shell: fly deploy --remote-only --strategy=immediate

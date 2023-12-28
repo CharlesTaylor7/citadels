@@ -23,15 +23,18 @@
               class="px-3 border rounded border-slate-400 bg-slate-500"
               type="text"
               name="username"
-              value=""
+              value="{{ username }}"
             />
           </div>
           <div class="flex flex-row gap-3">
             <button
               class="p-2 border rounded border-slate-400 bg-blue-500"
               hx-post="/register"
-            ></button
-            ><button
+              hx-swap="none"
+            >
+              Join
+            </button>
+            <button
               class="p-2 border rounded border-slate-400 bg-green-500"
               hx-post="/start"
             >
@@ -41,9 +44,13 @@
         </form>
         <div class="p-7 rounded border border-slate-500">
           <h2 class="underline text-2xl font-semibold">Players</h2>
+          {% fragment players %}
           <ul id="players" class="list-disc" hx-swap-oob="true">
-            <li id="abc85319-7bd6-401f-a9b7-ed4b738671a9">ge</li>
+            {% for player in players %}
+            <li id="{{ player.id }}">{{ player.name }}</li>
+            {% endfor %}
           </ul>
+          {% endfragment %}
         </div>
       </div>
     </main>

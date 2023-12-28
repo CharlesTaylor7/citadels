@@ -560,10 +560,6 @@ video {
   display: flex;
 }
 
-.contents {
-  display: contents;
-}
-
 .h-full {
   height: 100%;
 }
