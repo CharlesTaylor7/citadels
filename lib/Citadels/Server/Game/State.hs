@@ -1,4 +1,4 @@
-module Citadels.Server.State  where
+module Citadels.Server.Game.State  where
 
 import Citadels.Prelude
 
@@ -11,6 +11,7 @@ import Data.HashTable as Table
 import System.IO.Unsafe (unsafePerformIO)
 import Web.Cookie (SetCookie(..),defaultSetCookie)
 import Data.Default
+import Citadels.Types
    
 newtype PlayerId = PlayerId { text :: Text }
   deriving newtype (Eq, Hashable)
@@ -20,30 +21,31 @@ newtype PlayerId = PlayerId { text :: Text }
 data Player = Player 
   { playerId :: PlayerId
   , username :: Text
+  , gold :: Int
+  , hand :: Seq District
+  , city :: Seq District
+  , roles :: Seq Character
   }
-  deriving stock (Show)
+  --deriving stock (Show)
   -- deriving stock (Generic)
 
-data LobbyState = LobbyState 
+data GameState = GameState
   { players :: HashMap PlayerId Player
-  , seatingOrder :: List PlayerId
+  , seatingOrder :: Vector PlayerId
+  , characters :: Vector Character
+  , crowned :: PlayerId
   }
-  deriving stock (Show)
-
-instance Default LobbyState where
-  def = LobbyState 
+  -- deriving stock (Generic)
+ 
+instance Default GameState where
+  def = GameState 
     { players = mempty
-    , seatingOrder = []
+    , seatingOrder = fromList []
+    , characters = fromList []
+    , crowned = PlayerId ""
     }
 
-{-# NOINLINE connections #-}
-connections :: IORef (HashTable PlayerId WS.Connection)
-connections = unsafePerformIO do
-  let initialSize = 10
-  table <- Table.newWithDefaults initialSize
-  newIORef table
-
-{-# NOINLINE lobby #-}
-lobby :: TVar LobbyState 
-lobby = unsafePerformIO $
+{-# NOINLINE game #-}
+game :: TVar GameState 
+game = unsafePerformIO $
   newTVarIO def

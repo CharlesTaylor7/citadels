@@ -3,7 +3,7 @@ This is an online implementation of the multiplayer Citadels game
 
 ## Dev commands
 
-See mprocs file
+Use steeloverseer
 
 ## Implementation notes
 
@@ -21,10 +21,11 @@ See mprocs file
 - Haskell 
     - lucid2 
     - twain
-    - concurrent-hashtable
     - websockets
+    - stm
+    - concurrent-hashtable
     - unagi-chan (if needed)
-        - so far sticking to writing to shared state vars instead of message passing.
+        - so far sticking to writing to stm & iorefs instead of message passing.
 - HTMX
 - Hyperscript (if needed)
 
@@ -52,6 +53,18 @@ Rust:
 - https://github.com/mitsuhiko/minijinja 
 - https://docs.rs/template-fragments/latest/template_fragments/
 
+My progress so far is that I built a prototype lobby. I built a websocket server in Haskell. I'm concerned about development velocity and production performance.
+
+- Slow dev velocity because the combination of steel overseer + GHC + warp/wai is slow to reload my changes
+- Slow dev velocity because haskell prevents use of fine grained natural mutablity.
+    - Immutable persistent data is really a bad fit for this app. Its not like saves me from side effects, it just makes the side effects a lot more expensive in space and time complecity.
+- No template fragments.
+- I'm a prototype the lobby in rust now and see how that does.
+
+
+It's important to not be demoralized and stay positive on a project. 
+
+
 ### Twain 
 
 I like wai, and Warp, but I dislike Twain. It's simpler than Spock and Scotty, but it has a lot of pitfals that break my intuition on how request routing should work.
@@ -64,8 +77,13 @@ I shouldn't be able to forget to `send`. AGain this 404s instead of being a type
 
 Makes it hard to embed Websocket handling. I ended up switching to Twain because Twain atleast made it easy to embed a websocket response handler
 
+### STM
+
+stm is probably overkill. It's probably not great for performance either. I may be able to refactor to using a single IORef, and this utility:
+https://hackage.haskell.org/package/base-4.16.3.0/docs/Data-IORef.html#v:atomicModifyIORef-39-
 
 ## Initial Features
+
 What to do for authentication
 Static list of players
 

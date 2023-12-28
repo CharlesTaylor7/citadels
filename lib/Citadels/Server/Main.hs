@@ -14,10 +14,9 @@ import Network.Wai.Parse qualified as Wai
 import Citadels.Server.State qualified as Global
 import Citadels.Server.State 
 import Citadels.Pages.Lobby 
-import Citadels.Pages.Game 
 import Citadels.Templates
+import Citadels.Shuffle qualified as Shuffle
 
-import Control.Exception (try)
 import Lucid (Html)
 import Lucid qualified
 import Web.Twain (Middleware, Response, ResponderM)
@@ -33,6 +32,7 @@ import Data.UUID.V4 qualified as UUID
 import qualified Citadels.Server.State as Table
 import qualified Network.Wai.Parse as Wai
 import Control.Concurrent.STM (modifyTVar)
+import System.Random (initStdGen)
 
 
 main :: IO ()
@@ -60,12 +60,11 @@ twain = foldr ($)
   , start
   ]
 
-tableLookup :: Eq k => MonadIO m => IORef (HashTable k v) -> k -> m (Maybe v)
-tableLookup ref key = liftIO do
-  table <- readIORef ref 
-  Table.lookup table key
+{------------
+    Routes 
+-------------}
 
--- | set session cookie here
+
 index :: Middleware
 index = Twain.get "/" $ do
   playerId <- Twain.cookieParamMaybe "cPlayerId" 
@@ -91,8 +90,6 @@ index = Twain.get "/" $ do
           , username
           }
 
-paramLookup :: Text -> [(Text, Text)] -> Maybe Text
-paramLookup key pairs = snd <$> find ((== key) <<< fst) pairs
 
 register :: Middleware
 register = Twain.post "/register" $ do
@@ -136,28 +133,24 @@ register = Twain.post "/register" $ do
 start :: Middleware
 start = Twain.post "/start" $ do
   id <- PlayerId <$> Twain.cookieParam "cPlayerId"
-
+  Twain.send $ Twain.text ""
+  {-
+  stdGen <- initStdGen
   game <- atomically do
     lobby <- readTVar Global.lobby
+    let shuffledSeating = evalState (Shuffle.fisherYates (fromList lobby.seatingOrder)) stdGen
+
     game <- readTVar Global.game
-    let updated = game { players = lobby.players, seatingOrder = lobby.seatingOrder } :: GameState
+    let updated = game { players = lobby.players, seatingOrder = shuffledSeating } :: GameState
 
     writeTVar Global.game updated
     pure updated
              
   broadcast do
     gamePage game
-
-  Twain.send $ Twain.text ""
-
+    -}
 
 
-html :: Lucid.Html Unit -> Response
-html = Twain.html <<< Lucid.renderBS
-
-missing :: ResponderM a
-missing = do
-  Twain.send $ Twain.text "404"
 
 websocket :: Middleware
 websocket = Twain.get "/ws" $ do
@@ -168,6 +161,13 @@ websocket = Twain.get "/ws" $ do
     Just res -> Twain.send res
     Nothing -> missing
 
+missing :: ResponderM a
+missing = do
+  Twain.send $ Twain.text "404"
+
+{------------
+    Utils 
+-------------}
 
 -- | TODO: prod only
 secureCookie :: SetCookie
@@ -196,6 +196,8 @@ broadcast html = liftIO do
 
   putTextLn "end broadcast"
 
+html :: Lucid.Html Unit -> Response
+html = Twain.html <<< Lucid.renderBS
 
 wsApp :: PlayerId -> WS.ServerApp
 wsApp playerId pending = do
@@ -212,6 +214,15 @@ wsApp playerId pending = do
     forever $ do
       msg  <- WS.receiveData conn 
       WS.sendTextData conn $ Lucid.renderBS "hello, " <> msg
+
+tableLookup :: Eq k => MonadIO m => IORef (HashTable k v) -> k -> m (Maybe v)
+tableLookup ref key = liftIO do
+  table <- readIORef ref 
+  Table.lookup table key
+
+paramLookup :: Text -> [(Text, Text)] -> Maybe Text
+paramLookup key pairs = snd <$> find ((== key) <<< fst) pairs
+
 
 {-
  - Doesn't work
