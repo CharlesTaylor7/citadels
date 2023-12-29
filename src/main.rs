@@ -178,8 +178,10 @@ mod handlers {
 
     use crate::game::Game;
     impl<'a> GameTemplate<'a> {
-        pub fn from(_game: &'a Game) -> GameTemplate<'a> {
-            todo!()
+        pub fn from(game: &'a Game) -> GameTemplate<'a> {
+            GameTemplate {
+                players: game.seating.iter().map(|id| &game.players[id]).collect(),
+            }
         }
     }
 
