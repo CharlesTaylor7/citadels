@@ -230,6 +230,7 @@ dependencies = [
  "http 1.0.0",
  "load-dotenv",
  "minijinja",
+ "rand",
  "serde",
  "template-fragments",
  "tokio",

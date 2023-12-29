@@ -1,8 +1,9 @@
-use citadels::types::*;
-
+use crate::types::CardSet::*;
+use crate::types::CardSuit::*;
 use crate::types::Character;
+use crate::types::*;
 
-const CHARACTERS : [Character; 8] =
+pub const CHARACTERS : [Character; 8] =
   [ Character 
     { rank : 1 
     , set : Base
@@ -51,4 +52,4 @@ const CHARACTERS : [Character; 8] =
     , name : "Warlord"
     , description : "Destroy 1 district by paying 1 fewer gold than its cost. Gain 1 gold for each of your MILITARY districts."
     }
-  ]
+  ];

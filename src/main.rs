@@ -5,11 +5,11 @@ use axum::{
     Error, Router,
 };
 use axum_extra::extract::cookie;
-use citadels::lobby::Lobby;
+use citadels::{game::Game, lobby::Lobby};
 use load_dotenv::load_dotenv;
 use minijinja;
+use std::collections::hash_map::HashMap;
 use std::sync::{Arc, Mutex};
-use std::{collections::hash_map::HashMap, sync::RwLock};
 use tokio::{self, sync::mpsc};
 use tower_http::services::ServeDir;
 
@@ -22,7 +22,10 @@ type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
 pub struct AppState {
     pub cookie_signing_key: cookie::Key,
     pub jinja_env: minijinja::Environment<'static>,
-    pub lobby: Arc<RwLock<Lobby>>,
+    pub lobby: Arc<Mutex<Lobby>>,
+
+    // TODO: multi game support
+    pub game: Arc<Mutex<Option<Game>>>,
     pub connections: Arc<Mutex<HashMap<String, WebSocketSink>>>,
 }
 
@@ -79,7 +82,8 @@ fn router() -> Router {
     let context = AppState {
         cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
         jinja_env: env,
-        lobby: Arc::new(RwLock::new(Lobby::default())),
+        lobby: Arc::new(Mutex::new(Lobby::default())),
+        game: Arc::new(Mutex::new(Option::None)),
         connections: Arc::new(Mutex::new(HashMap::new())),
     };
 
@@ -95,15 +99,13 @@ fn router() -> Router {
 mod handlers {
 
     use crate::AppState;
-
     use axum::extract::State;
-
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-
     use citadels::lobby::*;
     use http::StatusCode;
     use minijinja::context;
+    use serde::Deserialize;
     use std::collections::hash_map::*;
 
     use uuid::Uuid;
@@ -119,7 +121,7 @@ mod handlers {
         let player_id = cookies.get("playerId").map(|c| c.value().to_owned());
 
         let players: Vec<Player> = {
-            let lobby = app.lobby.read().unwrap();
+            let lobby = app.lobby.lock().unwrap();
             lobby
                 .seating
                 .iter()
@@ -142,7 +144,6 @@ mod handlers {
             ),
         )
     }
-    use serde::Deserialize;
 
     #[derive(Deserialize)]
     pub struct Register {
@@ -158,7 +159,7 @@ mod handlers {
         let cookie = cookies.get("playerId").unwrap();
         let player_id = cookie.value();
         let players: Vec<Player> = {
-            let mut lobby = app.lobby.write().unwrap();
+            let mut lobby = app.lobby.lock().unwrap();
             match lobby.players.entry(player_id.to_owned()) {
                 Entry::Occupied(e) => {
                     e.into_mut().name = args.username.clone();
@@ -192,8 +193,12 @@ mod handlers {
         )
     }
 
-    pub async fn start(_state: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-        (StatusCode::NOT_FOUND, "wip")
+    pub async fn start(state: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+        let lobby = state.lobby.lock().unwrap();
+        let game = state.game.lock().unwrap();
+        *game = Some(crate::Game::init(lobby));
+
+        // (StatusCode::NOT_FOUND, "wip")
     }
 
     pub async fn ws(
