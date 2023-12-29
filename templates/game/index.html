@@ -1,8 +1,6 @@
-{% extends "base.html" %}
-
-<!-- prettier-ignore-start -->
+<!-- prettier-ignore -->
+{% extends "base.html" %} 
 {% block head %}
-<!-- prettier-ignore-end -->
 <style>
   #game-layout {
     display: grid;
@@ -42,9 +40,8 @@
 </style>
 {% endblock %}
 
-<!-- prettier-ignore-start -->
+<!-- prettier-ignore -->
 {% block content %}
-<!-- prettier-ignore-end -->
 <main id="main" data-replace-url="/game">
   <div id="game-layout" class="h-screen gap-5">
     <div
@@ -66,8 +63,11 @@
       <h2 class="underline text-xl font-semibold">Hand</h2>
       {% for card in hand %}
       <div class="rounded">
-        <div>card.display_name</div>
-        <div>card.description</div>
+        <div>{{ card.display_name }}</div>
+
+        {% match card.description %} {% when Some with (d) %}
+        <div>{{ d }}</div>
+        {% when None %} {% endmatch %}
       </div>
       {% endfor %}
     </div>
