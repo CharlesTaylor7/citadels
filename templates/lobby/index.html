@@ -48,15 +48,18 @@
             </button>
           </div>
         </form>
-        <div class="p-7 rounded border border-slate-500">
+        {% include "players.html" %}
+        <div
+          class="p-7 rounded border border-slate-500"
+          id="players"
+          hx-swap-oob="true"
+        >
           <h2 class="underline text-2xl font-semibold">Players</h2>
-          {% fragment players %}
-          <ul id="players" class="list-disc" hx-swap-oob="true">
+          <ul class="list-disc">
             {% for player in players %}
             <li id="{{ player.id }}">{{ player.name }}</li>
             {% endfor %}
           </ul>
-          {% endfragment %}
         </div>
       </div>
     </main>

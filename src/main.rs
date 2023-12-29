@@ -10,7 +10,6 @@ use citadels::{
     lobby::Lobby,
 };
 use load_dotenv::load_dotenv;
-use minijinja;
 use std::collections::hash_map::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::{self, sync::mpsc};
@@ -30,24 +29,11 @@ impl Connections {
 #[derive(Clone)]
 pub struct AppState {
     pub cookie_signing_key: cookie::Key,
-    pub jinja_env: minijinja::Environment<'static>,
     pub lobby: Arc<Mutex<Lobby>>,
 
     // TODO: multi game support
     pub game: Arc<Mutex<Option<Game>>>,
     pub connections: Arc<Mutex<Connections>>,
-}
-
-impl AppState {
-    fn template<'a, S: serde::Serialize>(&self, template: &'a str, ctx: S) -> Html<String> {
-        Html(
-            self.jinja_env
-                .get_template(template)
-                .unwrap()
-                .render(ctx)
-                .unwrap(),
-        )
-    }
 }
 
 impl FromRef<AppState> for cookie::Key {
@@ -67,28 +53,8 @@ async fn main() {
 }
 
 fn router() -> Router {
-    let mut env = minijinja::Environment::new();
-    use template_fragments::*;
-    let template_folder = format!("{}/templates", env!("CARGO_MANIFEST_DIR"));
-    std::fs::read_dir(template_folder)
-        .unwrap()
-        .for_each(|entry| {
-            let entry = entry.unwrap();
-            let path = entry.path();
-            let template = std::fs::read_to_string(path).unwrap();
-            let file_name = entry.file_name();
-            let file_name = file_name.to_string_lossy();
-            split_templates(&template)
-                .unwrap()
-                .into_iter()
-                .for_each(|(name, template)| {
-                    env.add_template_owned(join_path(&file_name, &name), template)
-                        .unwrap();
-                });
-        });
     let context = AppState {
         cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
-        jinja_env: env,
         lobby: Arc::new(Mutex::new(Lobby::default())),
         game: Arc::new(Mutex::new(Option::None)),
         connections: Arc::new(Mutex::new(Connections(HashMap::new()))),
@@ -105,51 +71,59 @@ fn router() -> Router {
 }
 
 mod handlers {
-    use crate::game;
     use crate::AppState;
     use askama::Template;
     use axum::extract::State;
+    use axum::response::Html;
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::lobby::*;
+    use citadels::{game, lobby};
     use http::StatusCode;
-    use minijinja::context;
     use serde::Deserialize;
     use std::collections::hash_map::*;
     use std::mem;
     use uuid::Uuid;
 
-    pub async fn index(
-        app: State<AppState>,
-        cookies: PrivateCookieJar,
-    ) -> impl axum::response::IntoResponse {
+    #[derive(Template)]
+    #[template(path = "lobby/index.html")]
+    struct LobbyTemplate<'a> {
+        username: &'a str,
+        players: Vec<&'a lobby::Player>,
+    }
+
+    #[derive(Template)]
+    #[template(path = "lobby/players.html")]
+    struct LobbyPlayersTemplate<'a> {
+        players: Vec<&'a lobby::Player>,
+    }
+
+    pub async fn index(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
         let username = cookies
             .get("username")
             .map_or("".to_owned(), |c| c.value().to_owned());
 
         let player_id = cookies.get("playerId").map(|c| c.value().to_owned());
 
-        let players: Vec<Player> = {
-            let lobby = app.lobby.lock().unwrap();
-            lobby
-                .seating
-                .iter()
-                .filter_map(|id| lobby.players.get(id))
-                .cloned()
-                .collect()
-        };
+        let lobby = app.lobby.lock().unwrap();
+        let players: Vec<&Player> = lobby
+            .seating
+            .iter()
+            .filter_map(|id| lobby.players.get(id))
+            .collect();
 
         (
             cookies.add(Cookie::new(
                 "playerId",
                 player_id.unwrap_or_else(|| Uuid::new_v4().to_string()),
             )),
-            app.template(
-                "lobby.html",
-                context!(
-                    username => username,
-                    players => players,
-                ),
+            Html(
+                LobbyTemplate {
+                    username: &username,
+                    players,
+                }
+                .render()
+                .unwrap(),
             ),
         )
     }
@@ -167,35 +141,27 @@ mod handlers {
         println!("register!");
         let cookie = cookies.get("playerId").unwrap();
         let player_id = cookie.value();
-        let players: Vec<Player> = {
-            let mut lobby = app.lobby.lock().unwrap();
-            match lobby.players.entry(player_id.to_owned()) {
-                Entry::Occupied(e) => {
-                    e.into_mut().name = args.username.clone();
-                }
-                Entry::Vacant(e) => {
-                    e.insert(Player {
-                        id: player_id.to_owned(),
-                        name: args.username.to_owned(),
-                    });
-                    lobby.seating.push(player_id.to_owned())
-                }
+        let mut lobby = app.lobby.lock().unwrap();
+        match lobby.players.entry(player_id.to_owned()) {
+            Entry::Occupied(e) => {
+                e.into_mut().name = args.username.clone();
             }
-            lobby
-                .seating
-                .iter()
-                .filter_map(|id| lobby.players.get(id))
-                .cloned()
-                .collect()
-        };
+            Entry::Vacant(e) => {
+                e.insert(Player {
+                    id: player_id.to_owned(),
+                    name: args.username.to_owned(),
+                });
+                lobby.seating.push(player_id.to_owned())
+            }
+        }
 
-        let html = app.template(
-            "lobby.html#players",
-            context!(
-                players => players,
-            ),
-        );
+        let players: Vec<&Player> = lobby
+            .seating
+            .iter()
+            .filter_map(|id| lobby.players.get(id))
+            .collect();
 
+        let html = Html(LobbyPlayersTemplate { players }.render().unwrap());
         app.connections.lock().unwrap().broadcast(html);
 
         (
@@ -205,7 +171,7 @@ mod handlers {
     }
 
     #[derive(Template)]
-    #[template(path = "game.html")]
+    #[template(path = "game/index.html")]
     struct GameTemplate<'a> {
         players: Vec<&'a game::Player>,
     }
@@ -246,7 +212,8 @@ mod handlers {
     }
 
     pub async fn game(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-        app.template("game.html", context!())
+        //app.template("game.html", context!())
+        //
     }
 
     pub async fn ws(
