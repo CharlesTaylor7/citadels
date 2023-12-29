@@ -1,33 +1,29 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Citadels</title>
-    <meta charset="utf-8" />
-    <link name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="shortcut icon" href="/public/favicon.ico" />
-    <link rel="stylesheet" href="/public/index.css" />
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
-    <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.min.js"></script>
-  </head>
-  <body class="h-screen" hx-ext="ws,idiomorph">
-    <main
-      id="main"
-      ws-connect="/ws"
-      class="bg-slate-700 h-full text-slate-200 text-xl"
-      hx-swap-oob="morph"
-    >
-      <div class="flex flex-col gap-3 items-center justify-center">
-        <h2 class="mt-3 underline text-2xl font-semibold">Game</h2>
-        <div class="p-7 rounded border border-slate-500">
-          <h2 class="underline text-2xl font-semibold">Players</h2>
-          <ul id="players" class="list-disc" hx-swap-oob="true">
-            {% for player in players %}
-            <li id="{{ player.id }}">{{ player.name }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    </main>
-  </body>
-</html>
+{% extends "base.html" %}
+
+<!-- prettier-ignore-start -->
+{% block head %}
+<!-- prettier-ignore-end -->
+<style>
+  #game-layout {
+    display: grid;
+  }
+</style>
+{% endblock %}
+
+<!-- prettier-ignore-start -->
+{% block content %}
+<!-- prettier-ignore-end -->
+<main id="main" hx-swap-oob="morph">
+  <div class="flex flex-col gap-3 items-center justify-center">
+    <h2 class="mt-3 underline text-2xl font-semibold">Game</h2>
+    <div class="p-7 rounded border border-slate-500">
+      <h2 class="underline text-2xl font-semibold">Players</h2>
+      <ul id="players" class="list-disc" hx-swap-oob="true">
+        {% for player in players %}
+        <li id="{{ player.id }}">{{ player.name }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</main>
+{% endblock %}

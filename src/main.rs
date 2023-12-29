@@ -74,7 +74,7 @@ mod handlers {
     use crate::AppState;
     use askama::Template;
     use axum::extract::State;
-    use axum::response::Html;
+    use axum::response::{Html, Redirect};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::lobby::*;
@@ -188,7 +188,7 @@ mod handlers {
     pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
         {
             let mut game = app.game.lock().unwrap();
-            // can't over write a game in progress
+            // can't overwrite a game in progress
             if game.is_some() {
                 return (StatusCode::BAD_REQUEST, "").into_response();
             }
@@ -202,20 +202,22 @@ mod handlers {
             *game = Some(Game::new(mem::take(&mut lobby)));
         }
 
-        use axum::response::Html;
         if let Some(game) = app.game.lock().unwrap().as_mut() {
             let html = Html(GameTemplate::from(game).render().unwrap());
 
             app.connections.lock().unwrap().broadcast(html.clone());
 
-            return html.into_response();
+            return (StatusCode::OK, "").into_response();
         }
         return (StatusCode::BAD_REQUEST, "").into_response();
     }
 
-    pub async fn game(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-        //app.template("game.html", context!())
-        //
+    pub async fn game(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+        if let Some(game) = app.game.lock().unwrap().as_ref() {
+            Html(GameTemplate::from(game).render().unwrap()).into_response()
+        } else {
+            Redirect::to("/").into_response()
+        }
     }
 
     pub async fn ws(
@@ -235,15 +237,14 @@ mod handlers {
 }
 
 pub mod ws {
+    use crate::AppState;
     use axum::extract::ws::{Message, WebSocket};
     use axum::extract::State;
     use futures::stream::StreamExt;
+    use std::ops::ControlFlow;
     use tokio::sync::mpsc::{self};
     use tokio_stream::wrappers::UnboundedReceiverStream;
 
-    use std::ops::ControlFlow;
-
-    use crate::AppState;
     pub async fn handle_socket(state: State<AppState>, player_id: String, socket: WebSocket) {
         let (ws_sender, mut ws_recv) = socket.split();
         let (chan_sender, chan_recv) = mpsc::unbounded_channel();

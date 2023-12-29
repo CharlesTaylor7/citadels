@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Citadels</title>
+    <meta charset="utf-8" />
+    <link name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="shortcut icon" href="/public/favicon.ico" />
+    <link rel="stylesheet" href="/public/index.css" />
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/multi-swap.js"></script>
+    <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.js"></script>
+    {% block head %} {% endblock %}
+    <script>
+      htmx.logAll();
+    </script>
+  </head>
+  <body
+    class="h-screen bg-slate-700 h-full text-slate-200 text-xl"
+    hx-ext="ws,multi-swap,idiomorph"
+    ws-connect="/ws"
+  >
+    {% block content %} {% endblock %}
+  </body>
+</html>

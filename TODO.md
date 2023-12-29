@@ -14,31 +14,35 @@
  - card assets? I might just put the card titles and descriptions
 
 
- ## Oxidize
-- [x] Setup Axum
-- [x] Setup minijinja 
-- [x] Convert routes to rust server, Axum
-- [x] setup template fragment
-- [x] Convert Lucid templates to minijinja
-- [x] Setup WS
-    - https://blog.logrocket.com/build-websocket-server-with-rust/#registering-clients
-
-- [x] Swap minijinja for askama
-- [x] Fixup Deployments 
+## Done !
+- Simple Lobby
+- 1 active game room, and 1 active game
+- WS setup end 2 end with Rust axum, and htmx
+- Card data entry for mvp
 
 
-## Later
-- [ ] Game
-    - [ ] Phases
-        - [ ] Setup
-            - [x] shuffle seating order
-            - [x] shuffle districts
-            - [x] collect character cards
-            - [x] Deal initial hands and gold
 
-    - [ ] Static page layout
-        - 
-    - [ ] Card Assets
-    - [ ] Game Engine
-        - [ ] Characters
-        - [ ] Districts
+## TODO
+- [x] Game Setup
+    - [x] shuffle seating order
+    - [x] shuffle districts
+    - [x] collect character cards
+    - [x] Deal initial hands and gold
+- [ ] Cookie warning for lobby
+- [ ] Show each player their hand
+- [ ] Static page layout
+- [ ] District Card template
+- [ ] Character Card template
+- [ ] Debug toggle between players
+- [ ] Turn Log
+- [ ] Round Log
+- [ ] Characters (only the basic 8)
+    - [ ] Assassin
+    - [ ] Thief
+    - [ ] Magician
+    - [ ] King
+    - [ ] Bishop
+    - [ ] Merchant
+    - [ ] Architect
+    - [ ] Warlord
+- [ ] Unique Districts (only 14 of the easiest)
