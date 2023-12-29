@@ -34,7 +34,7 @@
             - [x] shuffle seating order
             - [x] shuffle districts
             - [x] collect character cards
-            - [ ] Deal initial hands and gold
+            - [x] Deal initial hands and gold
 
     - [ ] Static page layout
         - 

@@ -42,10 +42,17 @@ pub struct Game {
 
 impl Game {
     pub fn new(lobby: Lobby) -> Game {
-        let Lobby {
-            players,
-            mut seating,
-        } = lobby;
+        let Lobby { players, seating } = lobby;
+
+        // create players from the lobby, and filter players who were kicked
+        let mut players: HashMap<_, _> = seating
+            .into_iter()
+            .filter_map(|id| players.get(&id))
+            .map(|p| (p.id.clone(), Player::new(p.id.clone(), p.name.clone())))
+            .collect();
+
+        // create a random seating order based on the map
+        let mut seating: Vec<_> = players.keys().cloned().collect();
         random::shuffle(&mut seating);
 
         let crowned = seating[0].clone();
@@ -59,14 +66,15 @@ impl Game {
             .chain(unique_districts.into_iter().take(14))
             .collect();
         random::shuffle(&mut deck);
-
-        let players = seating
-            .iter()
-            .filter_map(|id| players.get(id))
-            .map(|p| (p.id.clone(), Player::new(p.id.clone(), p.name.clone())))
-            .collect();
-
         debug_assert!(deck.len() <= 54 + 14);
+
+        // deal starting hands
+        players.values_mut().for_each(|p| {
+            let start = deck.len() - 4;
+            let end = deck.len();
+            deck.drain(start..=end).collect_into(&mut p.hand);
+        });
+
         Game {
             deck,
             players,
