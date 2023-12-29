@@ -98,15 +98,16 @@ fn router() -> Router {
         .route("/ws", get(handlers::ws))
         .route("/game", get(handlers::game))
         .route("/game", post(handlers::start))
+        .route("/game/:path", get(handlers::game_impersonate))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
 }
 
 mod handlers {
-    use crate::AppState;
+    use crate::{AppError, AppState};
     use askama::Template;
-    use axum::extract::State;
-    use axum::response::{Html, Redirect};
+    use axum::extract::{Path, State};
+    use axum::response::{Html, Redirect, Response};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::types::District;
@@ -277,6 +278,15 @@ mod handlers {
         } else {
             StatusCode::BAD_REQUEST.into_response()
         }
+    }
+
+    pub async fn game_impersonate(
+        app: State<AppState>,
+        cookies: PrivateCookieJar,
+        path: Path<String>,
+    ) -> impl IntoResponse {
+        let cookies = cookies.add(Cookie::new("playerId", path.0));
+        game(app, cookies).await
     }
 }
 
