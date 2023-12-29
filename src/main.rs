@@ -115,6 +115,10 @@ mod handlers {
     }
 
     pub async fn index(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
+        if app.game.lock().unwrap().is_some() {
+            return Redirect::to("/game").into_response();
+        }
+
         let username = cookies
             .get("username")
             .map_or("".to_owned(), |c| c.value().to_owned());
@@ -137,6 +141,7 @@ mod handlers {
                 .unwrap(),
             ),
         )
+            .into_response()
     }
 
     #[derive(Deserialize)]
