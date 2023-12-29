@@ -63,9 +63,7 @@ impl Game {
             })
             .collect();
 
-        debug_assert!(
-            deck.len() == 54 + std::cmp::max(data::districts::unique_districts.len(), 14)
-        );
+        debug_assert_eq!(deck.len(), 56);
         Some(Game {
             deck,
             players,

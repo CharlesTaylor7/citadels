@@ -210,10 +210,10 @@ mod handlers {
             *game = crate::Game::new(&lobby);
         };
 
-        let html = app.template("game.html", context!());
-        app.broadcast(html);
+        let html = app.template("game.html#main", context!());
+        app.broadcast(html.clone());
 
-        (StatusCode::OK, "")
+        html
     }
 
     pub async fn game(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {

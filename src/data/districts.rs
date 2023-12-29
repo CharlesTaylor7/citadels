@@ -4,19 +4,22 @@ use crate::types::CardSuit::*;
 use crate::types::District;
 use crate::types::UniqueDistrict;
 
-pub const normal_districts: [(usize, District); 18] = [
+pub const normal_districts: [(usize, District); 17] = [
+    // 12
     (3, District::normal(Base, Yellow, 5, "Palace")),
     (4, District::normal(Base, Yellow, 4, "Castle")),
     (5, District::normal(Base, Yellow, 3, "Manor")),
-    (5, District::normal(Base, Yellow, 3, "Manor")),
+    // 11
     (2, District::normal(Base, Red, 5, "Fortress")),
     (3, District::normal(Base, Red, 3, "Baracks")),
     (3, District::normal(Base, Red, 2, "Prison")),
     (3, District::normal(Base, Red, 1, "Watchtower")),
+    // 11
     (2, District::normal(Base, Blue, 5, "Cathedral")),
     (3, District::normal(Base, Blue, 3, "Monastery")),
     (3, District::normal(Base, Blue, 2, "Church")),
     (3, District::normal(Base, Blue, 1, "Temple")),
+    // 20
     (2, District::normal(Base, Green, 5, "Town Hall")),
     (3, District::normal(Base, Green, 4, "Harbor")),
     (3, District::normal(Base, Green, 3, "Docks")),
@@ -47,7 +50,7 @@ pub const unique_districts: [District; 2] = [
     },
 ];
 /*
-    (District {
+(District {
         count: 1,
         suit: Purple,
         set: Base
