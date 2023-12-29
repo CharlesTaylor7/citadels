@@ -12,9 +12,13 @@
     {% block head %} {% endblock %}
     <script>
       // TODO: debug only
-      htmx.logAll();
+      // htmx.logAll();
       document.addEventListener("htmx:wsAfterMessage", (event) => {
-        console.log("My custom event listener", event.detail);
+        let node = event.detail.elt.querySelector("[data-replace-url]");
+        let url = node.dataset.replaceUrl;
+        if (url) {
+          history.replaceState({}, "", url);
+        }
       });
     </script>
   </head>
