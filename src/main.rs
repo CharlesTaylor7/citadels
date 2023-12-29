@@ -103,11 +103,10 @@ fn router() -> Router {
 }
 
 mod handlers {
-    use crate::AppError;
     use crate::AppState;
     use askama::Template;
     use axum::extract::State;
-    use axum::response::{Html, Redirect, Response};
+    use axum::response::{Html, Redirect};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::types::District;
@@ -117,8 +116,17 @@ mod handlers {
     use std::mem;
     use uuid::Uuid;
 
-    pub async fn index() -> impl IntoResponse {
-        Redirect::to("/")
+    #[cfg(debug_assertions)]
+    pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
+        (
+            cookies.add(Cookie::new("playerId", "Alph")),
+            Redirect::to("/lobby"),
+        )
+    }
+
+    #[cfg(not(debug_assertions))]
+    pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
+        Redirect::to("/lobby")
     }
 
     #[derive(Template)]
@@ -174,7 +182,6 @@ mod handlers {
         cookies: PrivateCookieJar,
         args: axum::Form<Register>,
     ) -> impl IntoResponse {
-        println!("register!");
         let cookie = cookies.get("playerId").unwrap();
         let player_id = cookie.value();
         let mut lobby = app.lobby.lock().unwrap();
