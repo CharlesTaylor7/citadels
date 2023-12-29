@@ -116,7 +116,7 @@ mod handlers {
     use minijinja::context;
     use serde::Deserialize;
     use std::collections::hash_map::*;
-
+    use std::mem;
     use uuid::Uuid;
 
     pub async fn index(
@@ -224,9 +224,14 @@ mod handlers {
             if game.is_some() {
                 return (StatusCode::BAD_REQUEST, "").into_response();
             }
-            let lobby = app.lobby.lock().unwrap();
-            *game = crate::Game::new(&lobby);
-            std::mem::drop(lobby);
+            let mut lobby = app.lobby.lock().unwrap();
+            if lobby.seating.is_empty() {
+                // can't start an empty game
+                return (StatusCode::BAD_REQUEST, "").into_response();
+            }
+
+            // Start the game, and remove all players from the lobby
+            *game = Some(Game::new(mem::take(&mut lobby)));
         }
 
         use axum::response::Html;

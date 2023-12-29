@@ -29,7 +29,7 @@ pub const NORMAL: [(usize, District); 17] = [
 ];
 
 // TODO: implement 14 of these for a full game
-pub const UNIQUE: [District; 2] = [
+pub const UNIQUE: [District; 5] = [
     District {
         suit: Purple,
         set: Citadels2016,
@@ -48,6 +48,35 @@ pub const UNIQUE: [District; 2] = [
         cost: 6,
         description: Some("At the end of the game score 2 extra points.")
     },
+
+    District {
+        suit: Purple,
+        set: DarkCity,
+        display_name: "Park",
+        unique_name: Some(UniqueDistrict::Park),
+        cost: 6,
+        description: Some("If there are no cards in your hand at the end of your turn, gain 2 cards.")
+    },
+    District {
+        suit: Purple,
+        set: DarkCity,
+        display_name: "Imperial Treasury",
+        unique_name: Some(UniqueDistrict::ImperialTreasury), 
+        cost: 5,
+        description:Some("At the end of the game, score 1 extra point for each gold in your stash."),
+    },
+    District {
+        suit: Purple,
+        set: DarkCity,
+        display_name: "Wishing Well",
+        unique_name: Some(UniqueDistrict::WishingWell), 
+        cost: 5,
+        description:
+
+        Some("At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well)."),
+    },
+
+
 ];
 /*
 (District {
@@ -151,27 +180,6 @@ pub const UNIQUE: [District; 2] = [
     District {
         count: 1,
         suit: Purple,
-        set: DarkCity,
-        name: "Park",
-        cost: 6,
-    },
-    District {
-        count: 1,
-        suit: Purple,
-        set: DarkCity,
-        name: "Imperial Treasury",
-        cost: 5,
-    },
-    District {
-        count: 1,
-        suit: Purple,
-        set: DarkCity,
-        name: "Wishing Well",
-        cost: 5,
-    },
-    District {
-        count: 1,
-        suit: Purple,
         set: Citadels2016,
         name: "Necropolis",
         cost: 5,
@@ -267,9 +275,6 @@ pub const UNIQUE: [District; 2] = [
 , ("Factory", "You pay 1 fewer gold to build any other UNIQUE district.")
 , ("Quarry", "You can build districts that are identical to districts in your city.")
 , ("Map Room", "At the end of the game, score 1 extra point for each card in your hand.")
-, ("Park", "If there are no cards in your hand at the end of your turn, gain 2 cards.")
-, ("Imperial Treasury", "At the end of the game, score 1 extra point for each gold in your stash.")
-, ("Wishing Well", "At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well).")
 , ("Armory", "During your turn, destroy the Armory to destroy 1 district of your choice.")
 , ("Museum", "Once per turn, assign 1 card from your hand facedown under the Museum. At the end of the game, score 1 extra point for each card under the Museum.")
 , ("Observatory", "If you choose to draw cards when gathering resources, draw 3 cards instead of 2.")

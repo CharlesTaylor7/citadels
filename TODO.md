@@ -14,27 +14,27 @@
  - card assets? I might just put the card titles and descriptions
 
 
- ## Oxidize  
+ ## Oxidize
 - [x] Setup Axum
 - [x] Setup minijinja 
-- [ ] Convert routes to rust server, Axum
-- [ ] setup template fragment
+- [x] Convert routes to rust server, Axum
+- [x] setup template fragment
 - [x] Convert Lucid templates to minijinja
-- [ ] Setup WS
+- [x] Setup WS
     - https://blog.logrocket.com/build-websocket-server-with-rust/#registering-clients
-- [ ] Deployment pipeline
-- [ ] Rewrite haskell routes into rust 
 
-
+- [ ] Swap minijinja for askama
+- [ ] Fixup Deployments 
 
 
 ## Later
 - [ ] Game
     - [ ] Phases
         - [ ] Setup
-            - [ ] shuffle seating order
-            - [ ] shuffle districts
-            - [ ] collect character cards
+            - [x] shuffle seating order
+            - [x] shuffle districts
+            - [x] collect character cards
+            - [ ] Deal initial hands and gold
 
     - [ ] Static page layout
         - 
