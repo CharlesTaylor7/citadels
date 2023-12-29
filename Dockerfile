@@ -22,5 +22,6 @@ RUN cargo build --release
 FROM debian:buster-slim as runner
 WORKDIR /app
 COPY --from=builder /app/target/release/citadels /app/citadels
+COPY public/ public/
 CMD ["/app/citadels"]
 
