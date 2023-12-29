@@ -164,10 +164,7 @@ mod handlers {
         let html = Html(LobbyPlayersTemplate { players }.render().unwrap());
         app.connections.lock().unwrap().broadcast(html);
 
-        (
-            cookies.add(Cookie::new("username", args.username.clone())),
-            "",
-        )
+        cookies.add(Cookie::new("username", args.username.clone()))
     }
 
     #[derive(Template)]
@@ -188,14 +185,16 @@ mod handlers {
     pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
         {
             let mut game = app.game.lock().unwrap();
-            // can't overwrite a game in progress
             if game.is_some() {
-                return (StatusCode::BAD_REQUEST, "").into_response();
+                return (
+                    StatusCode::BAD_REQUEST,
+                    "can't overwrite a game in progress",
+                )
+                    .into_response();
             }
             let mut lobby = app.lobby.lock().unwrap();
             if lobby.seating.is_empty() {
-                // can't start an empty game
-                return (StatusCode::BAD_REQUEST, "").into_response();
+                return (StatusCode::BAD_REQUEST, "can't start an empty game").into_response();
             }
 
             // Start the game, and remove all players from the lobby
@@ -207,7 +206,7 @@ mod handlers {
 
             app.connections.lock().unwrap().broadcast(html.clone());
 
-            return (StatusCode::OK, "").into_response();
+            return StatusCode::OK.into_response();
         }
         return (StatusCode::BAD_REQUEST, "").into_response();
     }
@@ -231,7 +230,7 @@ mod handlers {
             })
             .into_response()
         } else {
-            (StatusCode::BAD_REQUEST, "bad request").into_response()
+            StatusCode::BAD_REQUEST.into_response()
         }
     }
 }
