@@ -70,15 +70,23 @@ async fn main() {
 fn router() -> Router {
     let mut env = minijinja::Environment::new();
     use template_fragments::*;
-    for (path, template) in [(
-        "lobby.html",
-        std::fs::read_to_string("./templates/lobby.html").unwrap(),
-    )] {
-        for (fragment_name, template_fragment) in split_templates(&template).unwrap() {
-            env.add_template_owned(join_path(path, &fragment_name), template_fragment)
-                .unwrap();
-        }
-    }
+    let template_folder = format!("{}/templates", env!("CARGO_MANIFEST_DIR"));
+    std::fs::read_dir(template_folder)
+        .unwrap()
+        .for_each(|entry| {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            let template = std::fs::read_to_string(path).unwrap();
+            let file_name = entry.file_name();
+            let file_name = file_name.to_string_lossy();
+            split_templates(&template)
+                .unwrap()
+                .into_iter()
+                .for_each(|(name, template)| {
+                    env.add_template_owned(join_path(&file_name, &name), template)
+                        .unwrap();
+                });
+        });
     let context = AppState {
         cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
         jinja_env: env,
@@ -91,7 +99,8 @@ fn router() -> Router {
         .route("/", get(handlers::index))
         .route("/register", post(handlers::register))
         .route("/ws", get(handlers::ws))
-        .route("/start", get(handlers::start))
+        .route("/game", get(handlers::game))
+        .route("/game", post(handlers::start))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
 }
@@ -179,6 +188,7 @@ mod handlers {
                 .cloned()
                 .collect()
         };
+
         let html = app.template(
             "lobby.html#players",
             context!(
@@ -193,12 +203,21 @@ mod handlers {
         )
     }
 
-    pub async fn start(state: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-        let lobby = state.lobby.lock().unwrap();
-        let game = state.game.lock().unwrap();
-        *game = Some(crate::Game::init(lobby));
+    pub async fn start(mut app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+        {
+            let lobby = app.lobby.lock().unwrap();
+            let mut game = app.game.lock().unwrap();
+            *game = crate::Game::new(&lobby);
+        };
 
-        // (StatusCode::NOT_FOUND, "wip")
+        let html = app.template("game.html", context!());
+        app.broadcast(html);
+
+        (StatusCode::OK, "")
+    }
+
+    pub async fn game(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+        app.template("game.html", context!())
     }
 
     pub async fn ws(

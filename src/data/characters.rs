@@ -1,7 +1,6 @@
 use crate::types::CardSet::*;
-use crate::types::CardSuit::*;
+
 use crate::types::Character;
-use crate::types::*;
 
 pub const CHARACTERS : [Character; 8] =
   [ Character 

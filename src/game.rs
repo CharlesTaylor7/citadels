@@ -34,9 +34,14 @@ impl Game {
 
         let crowned = seating.first()?;
 
+        let mut unique_districts: Vec<District> =
+            data::districts::unique_districts.into_iter().collect();
+        random::shuffle(&mut unique_districts);
+
         let mut deck: Vec<District> = data::districts::normal_districts
             .into_iter()
             .flat_map(|(count, district)| std::iter::repeat(district).take(count))
+            .chain(unique_districts.into_iter().take(14))
             .collect();
         random::shuffle(&mut deck);
 
@@ -58,6 +63,9 @@ impl Game {
             })
             .collect();
 
+        debug_assert!(
+            deck.len() == 54 + std::cmp::max(data::districts::unique_districts.len(), 14)
+        );
         Some(Game {
             deck,
             players,
