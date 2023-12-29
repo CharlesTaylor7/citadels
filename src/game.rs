@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use crate::{
     data,
-    lobby::Lobby,
+    lobby::{self, Lobby},
     random,
     types::{Character, District},
 };
@@ -34,28 +32,26 @@ impl Player {
 pub struct Game {
     // the top of the deck is the end of the vector
     pub deck: Vec<District>,
-    pub players: HashMap<PlayerId, Player>,
-    pub seating: Vec<PlayerId>,
+    pub players: Vec<Player>,
     pub characters: Vec<Character>,
     pub crowned: PlayerId,
+    pub active_player: PlayerId,
 }
 
 impl Game {
     pub fn new(lobby: Lobby) -> Game {
-        let Lobby { players, seating } = lobby;
+        let Lobby { mut players } = lobby;
+
+        // randomize the seating order
+        random::shuffle(&mut players);
 
         // create players from the lobby, and filter players who were kicked
-        let mut players: HashMap<_, _> = seating
+        let mut players: Vec<_> = players
             .into_iter()
-            .filter_map(|id| players.get(&id))
-            .map(|p| (p.id.clone(), Player::new(p.id.clone(), p.name.clone())))
+            .map(|lobby::Player { id, name }| Player::new(id, name))
             .collect();
 
-        // create a random seating order based on the map
-        let mut seating: Vec<_> = players.keys().cloned().collect();
-        random::shuffle(&mut seating);
-
-        let crowned = seating[0].clone();
+        let crowned = players[0].id.clone();
 
         let mut unique_districts: Vec<District> = data::districts::UNIQUE.into_iter().collect();
         random::shuffle(&mut unique_districts);
@@ -69,7 +65,7 @@ impl Game {
         debug_assert!(deck.len() <= 54 + 14);
 
         // deal starting hands
-        players.values_mut().for_each(|p| {
+        players.iter_mut().for_each(|p| {
             let start = deck.len() - 4;
             let end = deck.len();
             println!("{} {} {}", start, end, deck.len());
@@ -81,8 +77,8 @@ impl Game {
         Game {
             deck,
             players,
+            active_player: crowned.clone(),
             crowned,
-            seating,
             characters: data::characters::CHARACTERS.into_iter().collect(),
         }
     }

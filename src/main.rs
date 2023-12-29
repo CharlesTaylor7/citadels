@@ -28,12 +28,22 @@ impl Connections {
 
 #[derive(Clone)]
 pub struct AppState {
-    pub cookie_signing_key: cookie::Key,
+    cookie_signing_key: cookie::Key,
     pub lobby: Arc<Mutex<Lobby>>,
-
-    // TODO: multi game support
     pub game: Arc<Mutex<Option<Game>>>,
     pub connections: Arc<Mutex<Connections>>,
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        load_dotenv!();
+        Self {
+            cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
+            lobby: Arc::new(Mutex::new(Lobby::default())),
+            game: Arc::new(Mutex::new(Option::None)),
+            connections: Arc::new(Mutex::new(Connections(HashMap::new()))),
+        }
+    }
 }
 
 impl FromRef<AppState> for cookie::Key {
@@ -44,7 +54,6 @@ impl FromRef<AppState> for cookie::Key {
 
 #[tokio::main]
 async fn main() {
-    load_dotenv!();
     let port = "0.0.0.0:8080";
     let listener = tokio::net::TcpListener::bind(port).await.unwrap();
 
@@ -53,12 +62,7 @@ async fn main() {
 }
 
 fn router() -> Router {
-    let context = AppState {
-        cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
-        lobby: Arc::new(Mutex::new(Lobby::default())),
-        game: Arc::new(Mutex::new(Option::None)),
-        connections: Arc::new(Mutex::new(Connections(HashMap::new()))),
-    };
+    let context = AppState::default();
 
     Router::new()
         .route("/", get(handlers::index))
@@ -77,11 +81,9 @@ mod handlers {
     use axum::response::{Html, Redirect};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-    use citadels::lobby::*;
     use citadels::{game, lobby};
     use http::StatusCode;
     use serde::Deserialize;
-    use std::collections::hash_map::*;
     use std::mem;
     use uuid::Uuid;
 
@@ -89,13 +91,13 @@ mod handlers {
     #[template(path = "lobby/index.html")]
     struct LobbyTemplate<'a> {
         username: &'a str,
-        players: Vec<&'a lobby::Player>,
+        players: &'a [lobby::Player],
     }
 
     #[derive(Template)]
     #[template(path = "lobby/players.html")]
     struct LobbyPlayersTemplate<'a> {
-        players: Vec<&'a lobby::Player>,
+        players: &'a [lobby::Player],
     }
 
     pub async fn index(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
@@ -106,11 +108,6 @@ mod handlers {
         let player_id = cookies.get("playerId").map(|c| c.value().to_owned());
 
         let lobby = app.lobby.lock().unwrap();
-        let players: Vec<&Player> = lobby
-            .seating
-            .iter()
-            .filter_map(|id| lobby.players.get(id))
-            .collect();
 
         (
             cookies.add(Cookie::new(
@@ -120,7 +117,7 @@ mod handlers {
             Html(
                 LobbyTemplate {
                     username: &username,
-                    players,
+                    players: &lobby.players,
                 }
                 .render()
                 .unwrap(),
@@ -142,26 +139,15 @@ mod handlers {
         let cookie = cookies.get("playerId").unwrap();
         let player_id = cookie.value();
         let mut lobby = app.lobby.lock().unwrap();
-        match lobby.players.entry(player_id.to_owned()) {
-            Entry::Occupied(e) => {
-                e.into_mut().name = args.username.clone();
-            }
-            Entry::Vacant(e) => {
-                e.insert(Player {
-                    id: player_id.to_owned(),
-                    name: args.username.to_owned(),
-                });
-                lobby.seating.push(player_id.to_owned())
-            }
-        }
+        lobby.register(player_id, &args.username);
 
-        let players: Vec<&Player> = lobby
-            .seating
-            .iter()
-            .filter_map(|id| lobby.players.get(id))
-            .collect();
-
-        let html = Html(LobbyPlayersTemplate { players }.render().unwrap());
+        let html = Html(
+            LobbyPlayersTemplate {
+                players: &lobby.players,
+            }
+            .render()
+            .unwrap(),
+        );
         app.connections.lock().unwrap().broadcast(html);
 
         cookies.add(Cookie::new("username", args.username.clone()))
@@ -170,14 +156,14 @@ mod handlers {
     #[derive(Template)]
     #[template(path = "game/index.html")]
     struct GameTemplate<'a> {
-        players: Vec<&'a game::Player>,
+        players: &'a [game::Player],
     }
 
     use crate::game::Game;
     impl<'a> GameTemplate<'a> {
         pub fn from(game: &'a Game) -> GameTemplate<'a> {
             GameTemplate {
-                players: game.seating.iter().map(|id| &game.players[id]).collect(),
+                players: &game.players,
             }
         }
     }
@@ -193,7 +179,7 @@ mod handlers {
                     .into_response();
             }
             let mut lobby = app.lobby.lock().unwrap();
-            if lobby.seating.is_empty() {
+            if lobby.players.is_empty() {
                 return (StatusCode::BAD_REQUEST, "can't start an empty game").into_response();
             }
 
