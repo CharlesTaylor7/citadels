@@ -64,6 +64,12 @@
       class="p-7 flex flex-col items-center rounded border border-slate-500"
     >
       <h2 class="underline text-xl font-semibold">Hand</h2>
+      {% for card in hand %}
+      <div class="rounded">
+        <div>card.display_name</div>
+        <div>card.description</div>
+      </div>
+      {% endfor %}
     </div>
 
     <div

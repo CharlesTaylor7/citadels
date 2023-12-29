@@ -20,12 +20,25 @@ pub struct Connections(pub HashMap<String, WebSocketSink>);
 
 impl Connections {
     pub fn broadcast(&mut self, html: Html<String>) {
-        self.0.iter_mut().for_each(|(_key, ws)| {
+        self.0.values_mut().for_each(|ws| {
             let _ = ws.send(Ok(Message::Text(html.0.clone())));
         });
     }
-}
 
+    pub fn broadcast_each<'a, F>(&'a mut self, to_html: F)
+    where
+        F: Fn(&'a str) -> Option<Html<String>>,
+    {
+        self.0.iter_mut().for_each(|(key, ws)| {
+            if let Some(html) = to_html(key) {
+                let _ = ws.send(Ok(Message::Text(html.0.clone())));
+            }
+        });
+    }
+}
+pub enum AppError {
+    Default,
+}
 #[derive(Clone)]
 pub struct AppState {
     cookie_signing_key: cookie::Key,
@@ -80,6 +93,7 @@ fn router() -> Router {
 
     Router::new()
         .route("/", get(handlers::index))
+        .route("/lobby", get(handlers::lobby))
         .route("/register", post(handlers::register))
         .route("/ws", get(handlers::ws))
         .route("/game", get(handlers::game))
@@ -89,17 +103,23 @@ fn router() -> Router {
 }
 
 mod handlers {
+    use crate::AppError;
     use crate::AppState;
     use askama::Template;
     use axum::extract::State;
-    use axum::response::{Html, Redirect};
+    use axum::response::{Html, Redirect, Response};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
+    use citadels::types::District;
     use citadels::{game, lobby};
     use http::StatusCode;
     use serde::Deserialize;
     use std::mem;
     use uuid::Uuid;
+
+    pub async fn index() -> impl IntoResponse {
+        Redirect::to("/")
+    }
 
     #[derive(Template)]
     #[template(path = "lobby/index.html")]
@@ -114,7 +134,7 @@ mod handlers {
         players: &'a [lobby::Player],
     }
 
-    pub async fn index(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
+    pub async fn lobby(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
         if app.game.lock().unwrap().is_some() {
             return Redirect::to("/game").into_response();
         }
@@ -176,14 +196,22 @@ mod handlers {
     #[template(path = "game/index.html")]
     struct GameTemplate<'a> {
         players: &'a [game::Player],
+        hand: &'a [District],
     }
 
     use crate::game::Game;
     impl<'a> GameTemplate<'a> {
-        pub fn from(game: &'a Game) -> GameTemplate<'a> {
-            GameTemplate {
+        pub fn render<'b>(game: &'a Game, player_id: &'b str) -> Option<Html<String>> {
+            let player = game.players.iter().find(|p| p.id == player_id)?;
+
+            let rendered = GameTemplate {
                 players: &game.players,
+                hand: &player.hand,
             }
+            .render()
+            .ok()?;
+
+            Some(Html(rendered))
         }
     }
 
@@ -206,22 +234,27 @@ mod handlers {
             *game = Some(Game::start(mem::take(&mut lobby)));
         }
 
-        if let Some(game) = app.game.lock().unwrap().as_mut() {
-            let html = Html(GameTemplate::from(game).render().unwrap());
-
-            app.connections.lock().unwrap().broadcast(html.clone());
-
-            return StatusCode::OK.into_response();
+        if let Some(game) = app.game.lock().unwrap().as_ref() {
+            app.connections
+                .lock()
+                .unwrap()
+                .broadcast_each(move |id| GameTemplate::render(game, id));
         }
-        return (StatusCode::BAD_REQUEST, "").into_response();
+
+        StatusCode::OK.into_response()
     }
 
-    pub async fn game(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-        if let Some(game) = app.game.lock().unwrap().as_ref() {
-            Html(GameTemplate::from(game).render().unwrap()).into_response()
-        } else {
-            Redirect::to("/").into_response()
-        }
+    fn game_response(app: State<AppState>, cookies: PrivateCookieJar) -> Option<Html<String>> {
+        let id = cookies.get("playerId")?;
+        let game = app.game.lock().unwrap();
+        let game = game.as_ref()?;
+        GameTemplate::render(game, id.value())
+    }
+
+    pub async fn game(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
+        game_response(app, cookies).map_or(Redirect::to("/lobby").into_response(), |html| {
+            html.into_response()
+        })
     }
 
     pub async fn ws(

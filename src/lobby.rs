@@ -1,4 +1,4 @@
-type PlayerId = String;
+pub type PlayerId = String;
 
 #[derive(serde::Serialize, Clone)]
 pub struct Player {
