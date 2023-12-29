@@ -4,7 +4,7 @@ use crate::types::CardSuit::*;
 use crate::types::District;
 use crate::types::UniqueDistrict;
 
-pub const normal_districts: [(usize, District); 17] = [
+pub const NORMAL: [(usize, District); 17] = [
     // 12
     (3, District::normal(Base, Yellow, 5, "Palace")),
     (4, District::normal(Base, Yellow, 4, "Castle")),
@@ -29,7 +29,7 @@ pub const normal_districts: [(usize, District); 17] = [
 ];
 
 // TODO: implement 14 of these for a full game
-pub const unique_districts: [District; 2] = [
+pub const UNIQUE: [District; 2] = [
     District {
         suit: Purple,
         set: Citadels2016,

@@ -5,7 +5,10 @@ use axum::{
     Error, Router,
 };
 use axum_extra::extract::cookie;
-use citadels::{game::Game, lobby::Lobby};
+use citadels::{
+    game::{self, Game},
+    lobby::Lobby,
+};
 use load_dotenv::load_dotenv;
 use minijinja;
 use std::collections::hash_map::HashMap;
@@ -13,10 +16,16 @@ use std::sync::{Arc, Mutex};
 use tokio::{self, sync::mpsc};
 use tower_http::services::ServeDir;
 
-// TODO:
-// - [ ] /start
-
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
+pub struct Connections(pub HashMap<String, WebSocketSink>);
+
+impl Connections {
+    pub fn broadcast(&mut self, html: Html<String>) {
+        self.0.iter_mut().for_each(|(_key, ws)| {
+            let _ = ws.send(Ok(Message::Text(html.0.clone())));
+        });
+    }
+}
 
 #[derive(Clone)]
 pub struct AppState {
@@ -26,7 +35,7 @@ pub struct AppState {
 
     // TODO: multi game support
     pub game: Arc<Mutex<Option<Game>>>,
-    pub connections: Arc<Mutex<HashMap<String, WebSocketSink>>>,
+    pub connections: Arc<Mutex<Connections>>,
 }
 
 impl AppState {
@@ -38,16 +47,6 @@ impl AppState {
                 .render(ctx)
                 .unwrap(),
         )
-    }
-
-    pub fn broadcast(&mut self, html: Html<String>) {
-        self.connections
-            .lock()
-            .unwrap()
-            .iter_mut()
-            .for_each(|(_key, ws)| {
-                let _ = ws.send(Ok(Message::Text(html.0.clone())));
-            });
     }
 }
 
@@ -92,7 +91,7 @@ fn router() -> Router {
         jinja_env: env,
         lobby: Arc::new(Mutex::new(Lobby::default())),
         game: Arc::new(Mutex::new(Option::None)),
-        connections: Arc::new(Mutex::new(HashMap::new())),
+        connections: Arc::new(Mutex::new(Connections(HashMap::new()))),
     };
 
     Router::new()
@@ -106,8 +105,9 @@ fn router() -> Router {
 }
 
 mod handlers {
-
+    use crate::game;
     use crate::AppState;
+    use askama::Template;
     use axum::extract::State;
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
@@ -160,7 +160,7 @@ mod handlers {
     }
 
     pub async fn register(
-        mut app: State<AppState>,
+        app: State<AppState>,
         cookies: PrivateCookieJar,
         args: axum::Form<Register>,
     ) -> impl IntoResponse {
@@ -195,7 +195,8 @@ mod handlers {
                 players => players,
             ),
         );
-        app.broadcast(html);
+
+        app.connections.lock().unwrap().broadcast(html);
 
         (
             cookies.add(Cookie::new("username", args.username.clone())),
@@ -203,17 +204,40 @@ mod handlers {
         )
     }
 
-    pub async fn start(mut app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+    #[derive(Template)]
+    #[template(path = "game.html")]
+    struct GameTemplate<'a> {
+        players: Vec<&'a game::Player>,
+    }
+
+    use crate::game::Game;
+    impl<'a> GameTemplate<'a> {
+        pub fn from(_game: &'a Game) -> GameTemplate<'a> {
+            todo!()
+        }
+    }
+
+    pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
         {
-            let lobby = app.lobby.lock().unwrap();
             let mut game = app.game.lock().unwrap();
+            // can't over write a game in progress
+            if game.is_some() {
+                return (StatusCode::BAD_REQUEST, "").into_response();
+            }
+            let lobby = app.lobby.lock().unwrap();
             *game = crate::Game::new(&lobby);
-        };
+            std::mem::drop(lobby);
+        }
 
-        let html = app.template("game.html#main", context!());
-        app.broadcast(html.clone());
+        use axum::response::Html;
+        if let Some(game) = app.game.lock().unwrap().as_mut() {
+            let html = Html(GameTemplate::from(game).render().unwrap());
 
-        html
+            app.connections.lock().unwrap().broadcast(html.clone());
+
+            return html.into_response();
+        }
+        return (StatusCode::BAD_REQUEST, "").into_response();
     }
 
     pub async fn game(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
@@ -255,6 +279,7 @@ pub mod ws {
             .connections
             .lock()
             .unwrap()
+            .0
             .insert(player_id, chan_sender);
 
         while let Some(Ok(msg)) = ws_recv.next().await {
