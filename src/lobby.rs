@@ -11,6 +11,17 @@ pub struct Lobby {
 }
 
 impl Lobby {
+    pub fn demo(players: Vec<&str>) -> Self {
+        Self {
+            players: players
+                .into_iter()
+                .map(|p| Player {
+                    id: p.to_owned(),
+                    name: p.to_owned(),
+                })
+                .collect(),
+        }
+    }
     pub fn register(&mut self, id: &str, name: &str) {
         match self.players.iter_mut().find(|p| p.id == id) {
             Some(p) => {
@@ -23,10 +34,6 @@ impl Lobby {
                 });
             }
         }
-    }
-
-    pub fn new(players: Vec<Player>) -> Lobby {
-        Lobby { players }
     }
 }
 

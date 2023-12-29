@@ -34,14 +34,28 @@ pub struct AppState {
     pub connections: Arc<Mutex<Connections>>,
 }
 
+impl AppState {
+    #[cfg(debug_assertions)]
+    pub fn default_game() -> Option<Game> {
+        Some(Game::start(Lobby::demo(vec![
+            "Alph", "Brittany", "Charlie",
+        ])))
+    }
+
+    #[cfg(not(debug_assertions))]
+    pub fn default_game() -> Option<Game> {
+        None
+    }
+}
+
 impl Default for AppState {
     fn default() -> Self {
         load_dotenv!();
         Self {
             cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
-            lobby: Arc::new(Mutex::new(Lobby::default())),
-            game: Arc::new(Mutex::new(Option::None)),
             connections: Arc::new(Mutex::new(Connections(HashMap::new()))),
+            lobby: Arc::new(Mutex::new(Lobby::default())),
+            game: Arc::new(Mutex::new(AppState::default_game())),
         }
     }
 }
@@ -184,7 +198,7 @@ mod handlers {
             }
 
             // Start the game, and remove all players from the lobby
-            *game = Some(Game::new(mem::take(&mut lobby)));
+            *game = Some(Game::start(mem::take(&mut lobby)));
         }
 
         if let Some(game) = app.game.lock().unwrap().as_mut() {

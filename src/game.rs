@@ -39,7 +39,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(lobby: Lobby) -> Game {
+    pub fn start(lobby: Lobby) -> Game {
         let Lobby { mut players } = lobby;
 
         // randomize the seating order
@@ -68,7 +68,6 @@ impl Game {
         players.iter_mut().for_each(|p| {
             let start = deck.len() - 4;
             let end = deck.len();
-            println!("{} {} {}", start, end, deck.len());
             for district in deck.drain(start..end) {
                 p.hand.push(district);
             }
