@@ -3,7 +3,13 @@ This is an online implementation of the multiplayer Citadels game
 
 ## Dev commands
 
-Use mprocs
+For most commands: use mprocs.
+
+For deployments:
+```
+cargo vendor # only if dependencies have changed
+fly deploy
+```
 
 ## Implementation notes
 

@@ -211,7 +211,7 @@ mod handlers {
         return (StatusCode::BAD_REQUEST, "").into_response();
     }
 
-    pub async fn game(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+    pub async fn game(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
         //app.template("game.html", context!())
         //
     }

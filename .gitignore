@@ -1,3 +1,4 @@
-/dist-newstyle/
 /target/
 /.env
+/vendor/
+/.cargo/

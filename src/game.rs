@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     data,
-    lobby::{self, Lobby},
+    lobby::Lobby,
     random,
     types::{Character, District},
 };
@@ -72,7 +72,9 @@ impl Game {
         players.values_mut().for_each(|p| {
             let start = deck.len() - 4;
             let end = deck.len();
-            deck.drain(start..=end).collect_into(&mut p.hand);
+            for district in deck.drain(start..=end) {
+                p.hand.push(district);
+            }
         });
 
         Game {

@@ -23,8 +23,8 @@
 - [x] Setup WS
     - https://blog.logrocket.com/build-websocket-server-with-rust/#registering-clients
 
-- [ ] Swap minijinja for askama
-- [ ] Fixup Deployments 
+- [x] Swap minijinja for askama
+- [x] Fixup Deployments 
 
 
 ## Later
