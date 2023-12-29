@@ -280,13 +280,23 @@ mod handlers {
         }
     }
 
+    #[cfg(debug_assertions)]
     pub async fn game_impersonate(
         app: State<AppState>,
         cookies: PrivateCookieJar,
         path: Path<String>,
     ) -> impl IntoResponse {
-        let cookies = cookies.add(Cookie::new("playerId", path.0));
+        let cookies = cookies.add(Cookie::new("playerid", path.0));
         game(app, cookies).await
+    }
+
+    #[cfg(not(debug_assertions))]
+    pub async fn game_impersonate(
+        app: state<appstate>,
+        cookies: privatecookiejar,
+        path: path<string>,
+    ) -> impl IntoResponse {
+        Redirect::to("/game")
     }
 }
 
