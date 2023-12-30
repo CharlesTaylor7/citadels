@@ -6,7 +6,7 @@ use axum::{
 };
 use axum_extra::extract::cookie;
 use citadels::{
-    game::{self, Game},
+    game::{Game},
     lobby::Lobby,
 };
 use load_dotenv::load_dotenv;
@@ -104,16 +104,15 @@ fn router() -> Router {
 }
 
 mod handlers {
-    use crate::{AppError, AppState};
+    use crate::{AppState};
     use askama::Template;
     use axum::extract::{Path, State};
-    use axum::response::{Html, Redirect, Response};
+    use axum::response::{Html, Redirect};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::templates::*;
     use citadels::{
-        game::{self, Game},
-        lobby, templates,
+        game::{Game},
     };
     use http::StatusCode;
     use serde::Deserialize;

@@ -1,10 +1,10 @@
 use crate::types::District;
 use crate::{game, lobby};
 use askama::Template;
-use axum::extract::{Path, State};
-use axum::response::{Html, Redirect, Response};
-use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
-use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
+
+use axum::response::{Html};
+
+
 
 #[derive(Template)]
 #[template(path = "game/index.html")]
