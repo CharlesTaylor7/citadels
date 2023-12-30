@@ -41,7 +41,7 @@
 - [ ] Debug Utilities
     - [x] Impersonation
     - [x] refactor impersonate route
-    - [ ] indicate impersonated character
+    - [x] indicate impersonated character
 
 - [ ] Left Sidebar Roles & Round Log 
     - [x] Tooltip to the right for each

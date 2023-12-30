@@ -58,11 +58,11 @@ mod filters {
 
     pub fn suit_border_color(suit: &CardSuit) -> askama::Result<&'static str> {
         Ok(match suit {
-            CardSuit::Red => "border-red-700",
-            CardSuit::Blue => "border-blue-700",
-            CardSuit::Yellow => "border-yellow-300",
-            CardSuit::Green => "border-green-700",
-            CardSuit::Purple => "border-purple-700",
+            CardSuit::Military => "border-red-700",
+            CardSuit::Religious => "border-blue-700",
+            CardSuit::Royal => "border-yellow-300",
+            CardSuit::Trade => "border-green-700",
+            CardSuit::Unique => "border-purple-700",
         })
     }
 

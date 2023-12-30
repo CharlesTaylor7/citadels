@@ -40,11 +40,11 @@ pub struct Character {
 
 #[derive(Debug, Clone, Copy)]
 pub enum CardSuit {
-    Red,
-    Green,
-    Blue,
-    Yellow,
-    Purple,
+    Military,
+    Trade,
+    Religious,
+    Royal,
+    Unique,
 }
 
 impl fmt::Display for CardSuit {

@@ -31,21 +31,21 @@ pub const CHARACTERS: [Character; 9] =
   , Character 
     { rank: 4 
     , set: Base
-    , suit: Some(Yellow)
+    , suit: Some(Royal)
     , name: "King"
     , description: "Take the crown. Gain 1 gold for each of your NOBLE districts."
     }
   , Character 
     { rank: 5 
     , set: Base
-    , suit: Some(Blue)
+    , suit: Some(Religious)
     , name: "Bishop"
     , description: "The Warlord/Marshall/Diplomat cannot uses its ability on your districts. Gain 1 gold for each of your RELIGIOUS districts."
     }
   , Character 
     { rank: 6 
     , set: Base
-    , suit: Some(Green)
+    , suit: Some(Trade)
     , name: "Merchant"
     , description: "Gain 1 extra gold. Gain 1 gold for each of your TRADE districts."
     }
@@ -59,7 +59,7 @@ pub const CHARACTERS: [Character; 9] =
   , Character 
     { rank: 8 
     , set: Base
-    , suit: Some(Red)
+    , suit: Some(Military)
     , name: "Warlord"
     , description: "Destroy 1 district by paying 1 fewer gold than its cost. Gain 1 gold for each of your MILITARY districts."
     }

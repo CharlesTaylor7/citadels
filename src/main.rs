@@ -59,7 +59,7 @@ impl AppState {
             unique_name: Some(UniqueDistrict::SecretVault),
             cost: 0,
             description: Some("Hey its free"),
-            suit: CardSuit::Purple,
+            suit: CardSuit::Unique,
         });
 
         let mut cs: Vec<_> = citadels::data::characters::CHARACTERS.iter().collect();

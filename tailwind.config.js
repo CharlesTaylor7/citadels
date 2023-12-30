@@ -9,7 +9,7 @@ module.exports = {
   },
   theme: {
       colors: {
-        'suit-royal': oklch(0.807415, 0.052534, 159.095),
+        'suit-royal': "oklch(0.807415% 0.052534 159.095)",
       }
   },
 }

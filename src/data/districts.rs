@@ -6,32 +6,32 @@ use crate::types::UniqueDistrict;
 
 pub const NORMAL: [(usize, District); 17] = [
     // 12
-    (3, District::normal(Base, Yellow, 5, "Palace")),
-    (4, District::normal(Base, Yellow, 4, "Castle")),
-    (5, District::normal(Base, Yellow, 3, "Manor")),
+    (3, District::normal(Base, Royal, 5, "Palace")),
+    (4, District::normal(Base, Royal, 4, "Castle")),
+    (5, District::normal(Base, Royal, 3, "Manor")),
     // 11
-    (2, District::normal(Base, Red, 5, "Fortress")),
-    (3, District::normal(Base, Red, 3, "Baracks")),
-    (3, District::normal(Base, Red, 2, "Prison")),
-    (3, District::normal(Base, Red, 1, "Watchtower")),
+    (2, District::normal(Base, Military, 5, "Fortress")),
+    (3, District::normal(Base, Military, 3, "Baracks")),
+    (3, District::normal(Base, Military, 2, "Prison")),
+    (3, District::normal(Base, Military, 1, "Watchtower")),
     // 11
-    (2, District::normal(Base, Blue, 5, "Cathedral")),
-    (3, District::normal(Base, Blue, 3, "Monastery")),
-    (3, District::normal(Base, Blue, 2, "Church")),
-    (3, District::normal(Base, Blue, 1, "Temple")),
+    (2, District::normal(Base, Religious, 5, "Cathedral")),
+    (3, District::normal(Base, Religious, 3, "Monastery")),
+    (3, District::normal(Base, Religious, 2, "Church")),
+    (3, District::normal(Base, Religious, 1, "Temple")),
     // 20
-    (2, District::normal(Base, Green, 5, "Town Hall")),
-    (3, District::normal(Base, Green, 4, "Harbor")),
-    (3, District::normal(Base, Green, 3, "Docks")),
-    (4, District::normal(Base, Green, 2, "Market")),
-    (3, District::normal(Base, Green, 2, "Trading Post")),
-    (5, District::normal(Base, Green, 1, "Tavern")),
+    (2, District::normal(Base, Trade, 5, "Town Hall")),
+    (3, District::normal(Base, Trade, 4, "Harbor")),
+    (3, District::normal(Base, Trade, 3, "Docks")),
+    (4, District::normal(Base, Trade, 2, "Market")),
+    (3, District::normal(Base, Trade, 2, "Trading Post")),
+    (5, District::normal(Base, Trade, 1, "Tavern")),
 ];
 
 // TODO: implement 14 of these for a full game
 pub const UNIQUE: [District; 5] = [
     District {
-        suit: Purple,
+        suit: Unique,
         set: Citadels2016,
         display_name: "Secret Vault",
         unique_name: Some(UniqueDistrict::SecretVault),
@@ -41,7 +41,7 @@ pub const UNIQUE: [District; 5] = [
     },
 
     District {
-        suit: Purple,
+        suit: Unique,
         set: Base,
         display_name: "Dragon Gate",
         unique_name: Some(UniqueDistrict::DragonGate),
@@ -50,7 +50,7 @@ pub const UNIQUE: [District; 5] = [
     },
 
     District {
-        suit: Purple,
+        suit: Unique,
         set: DarkCity,
         display_name: "Park",
         unique_name: Some(UniqueDistrict::Park),
@@ -58,7 +58,7 @@ pub const UNIQUE: [District; 5] = [
         description: Some("If there are no cards in your hand at the end of your turn, gain 2 cards.")
     },
     District {
-        suit: Purple,
+        suit: Unique,
         set: DarkCity,
         display_name: "Imperial Treasury",
         unique_name: Some(UniqueDistrict::ImperialTreasury), 
@@ -66,7 +66,7 @@ pub const UNIQUE: [District; 5] = [
         description:Some("At the end of the game, score 1 extra point for each gold in your stash."),
     },
     District {
-        suit: Purple,
+        suit: Unique,
         set: DarkCity,
         display_name: "Wishing Well",
         unique_name: Some(UniqueDistrict::WishingWell), 
