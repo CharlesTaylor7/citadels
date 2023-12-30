@@ -2,6 +2,9 @@ use crate::types::CardSet::*;
 
 use crate::types::Character;
 
+// TODO:
+// pub const CHARACTERS : [[Character; 3]; 9] =
+
 pub const CHARACTERS : [Character; 9] =
   [ Character 
     { rank : 1 
@@ -9,6 +12,7 @@ pub const CHARACTERS : [Character; 9] =
     , name : "Assassin"
     , description : "Call a character you wish to kill. The killed character skips their turn."
     }
+
   , Character 
     { rank : 2 
     , set : Base

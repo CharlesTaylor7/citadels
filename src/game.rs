@@ -1,10 +1,10 @@
 use crate::{
-    data::{self, characters},
+    data::{self},
     lobby::{self, Lobby},
     random,
     types::{Character, District, Rank},
 };
-use rand::{distributions::Uniform, prelude::*};
+use rand::prelude::*;
 
 type PlayerId = String;
 
@@ -66,15 +66,20 @@ pub enum Turn {
     Call(Rank),
 }
 
+#[derive(Default)]
+pub struct Draft {
+    pub remaining: Vec<Character>,
+    pub initial_discard: Option<Character>,
+    pub faceup_discard: Vec<Character>,
+}
+
 pub struct Game {
     pub deck: Deck<District>,
     pub players: Vec<Player>,
     pub characters: Vec<Character>,
     pub crowned: PlayerId,
     pub active_turn: Turn,
-    pub to_draft: Vec<Character>,
-    pub discarded_facedown: Vec<Character>,
-    pub discarded_faceup: Vec<Character>,
+    pub draft: Draft,
 }
 
 impl Game {
@@ -115,9 +120,7 @@ impl Game {
         let mut game = Game {
             players,
             crowned,
-            to_draft: Vec::with_capacity(9),
-            discarded_faceup: Vec::with_capacity(3),
-            discarded_facedown: Vec::with_capacity(3),
+            draft: Draft::default(),
             deck: Deck::new(deck),
             active_turn: Turn::Draft(String::with_capacity(0)),
             characters: data::characters::CHARACTERS.into_iter().collect(),
@@ -129,19 +132,30 @@ impl Game {
     pub fn begin_draft(&mut self) {
         let mut rng = rand::thread_rng();
         self.active_turn = Turn::Draft(self.crowned.clone());
-        self.to_draft = self.characters.clone();
+        self.draft.remaining = self.characters.clone();
 
         // discard cards face up in 4+ player game
         if self.players.len() >= 4 {
             for _ in self.players.len() + 2..self.characters.len() {
-                let i = rng.gen_range(0..self.to_draft.len());
-                self.discarded_faceup.push(self.to_draft.remove(i));
+                let mut index;
+                loop {
+                    index = rng.gen_range(0..self.draft.remaining.len());
+
+                    // rank 4 card cannot be discarded faceup
+                    if self.draft.remaining[index].rank != 4 {
+                        break;
+                    }
+                }
+
+                self.draft
+                    .faceup_discard
+                    .push(self.draft.remaining.remove(index));
             }
         }
 
         // discard 1 card facedown
-        let i = rng.gen_range(0..self.to_draft.len());
-        self.discarded_facedown.push(self.to_draft.remove(i));
+        let i = rng.gen_range(0..self.draft.remaining.len());
+        self.draft.initial_discard = Some(self.draft.remaining.remove(i));
     }
 
     pub fn active_player(&self) -> Option<&Player> {
