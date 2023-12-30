@@ -1404,6 +1404,14 @@ html {
   height: 100vh;
 }
 
+.h-2 {
+  height: 0.5rem;
+}
+
+.min-h-8 {
+  min-height: 2rem;
+}
+
 .w-36 {
   width: 9rem;
 }
@@ -1418,6 +1426,10 @@ html {
 
 .grow {
   flex-grow: 1;
+}
+
+.animate-none {
+  animation: none;
 }
 
 .cursor-pointer {
@@ -1562,6 +1574,11 @@ html {
   padding-right: 0.75rem;
 }
 
+.py-0 {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
 .text-left {
   text-align: left;
 }
@@ -1580,14 +1597,14 @@ html {
   line-height: 1.75rem;
 }
 
-.text-xl {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-}
-
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
 }
 
 .font-semibold {

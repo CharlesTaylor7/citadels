@@ -2,6 +2,9 @@
 {% extends "base.html" %} 
 {% block head %}
 <style>
+  :root {
+    --
+  }
   #game-layout {
     display: grid;
     grid-template-areas:
@@ -55,10 +58,10 @@
           class="flex flex-row justify-between items-center gap-2"
           id="{{ player.id }}"
         >
-          {{ player.name }} {% if debug %}
+          {{ player.name }} {% if debug && player_id != player.id %}
           <form>
             <button
-              class="btn btn-accent"
+              class="btn btn-accent h-8 min-h-8 animate-none"
               hx-swap="morph"
               hx-target="#main"
               hx-post="/game/impersonate"
@@ -67,7 +70,6 @@
             </button>
             <input type="hidden" name="player_id" value="{{ player.id }}" />
           </form>
-
           {% endif %}
         </div>
         {% endfor %}

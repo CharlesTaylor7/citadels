@@ -11,6 +11,7 @@ use axum::response::Html;
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
     debug: bool,
+    player_id: &'a str,
     characters: &'a [Character],
     players: &'a [game::Player],
     roles: &'a [Character],
@@ -27,6 +28,7 @@ impl<'a> GameTemplate<'a> {
         let rendered = GameTemplate {
             characters: &game.characters,
             players: &game.players,
+            player_id: &player.id,
             hand: &player.hand,
             roles: &player.roles,
             debug: cfg!(debug_assertions),

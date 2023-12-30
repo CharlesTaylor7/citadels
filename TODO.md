@@ -40,7 +40,7 @@
 
 - [ ] Debug Utilities
     - [x] Impersonation
-    - [ ] refactor impersonate route
+    - [x] refactor impersonate route
     - [ ] indicate impersonated character
 
 - [ ] Left Sidebar Roles & Round Log 
