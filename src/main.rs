@@ -107,6 +107,7 @@ fn get_router() -> Router {
         .route("/game", get(handlers::game))
         .route("/game", post(handlers::start))
         .route("/game/impersonate", post(handlers::game_impersonate))
+        .route("/game/action", post(handlers::game_action))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
 }
@@ -118,6 +119,7 @@ mod handlers {
     use axum::response::{Html, Redirect};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
+    use citadels::actions::Action;
     use citadels::game::Game;
     use citadels::templates::*;
     use http::StatusCode;
@@ -275,6 +277,16 @@ mod handlers {
         path: path<string>,
     ) -> impl IntoResponse {
         StatusCode::NOT_FOUND
+    }
+
+    pub async fn game_action(
+        app: State<AppState>,
+        cookies: PrivateCookieJar,
+        body: axum::Form<Action>,
+    ) -> impl IntoResponse {
+        println!("{:#?}", body.0);
+        ""
+        // game(app, cookies).await
     }
 }
 

@@ -1,7 +1,4 @@
-use crate::{
-    game::Game,
-    types::{Character, RoleName},
-};
+use crate::{game::Game, types::RoleName};
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
