@@ -1,5 +1,5 @@
 <!doctype html>
-<html data-theme="retro">
+<html>
   <head>
     <title>Citadels</title>
     <meta charset="utf-8" />
@@ -9,7 +9,43 @@
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
     <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.js"></script>
-    {% block head %} {% endblock %}
+    <style>
+      #game-layout {
+        display: grid;
+        grid-template-areas:
+          "roles actions actions resources"
+          "roles city    city    players"
+          "roles hand    hand    players";
+      }
+
+      #roles {
+        grid-area: roles;
+      }
+
+      #log {
+        grid-area: log;
+      }
+
+      #actions {
+        grid-area: actions;
+      }
+
+      #resources {
+        grid-area: resources;
+      }
+
+      #players {
+        grid-area: players;
+      }
+
+      #city {
+        grid-area: city;
+      }
+
+      #hand {
+        grid-area: hand;
+      }
+    </style>
     <script>
       // TODO: debug only
       // htmx.logAll();
@@ -23,10 +59,12 @@
     </script>
   </head>
   <body
+    id="ws"
     class="h-screen bg-base-100 h-full text-base-content text-xl"
     hx-ext="ws,idiomorph"
     ws-connect="/ws"
     hx-swap="morph"
+    hx-on:load="Idimorph.defaults.head = 'none'"
   >
     {% block content %} {% endblock %}
   </body>

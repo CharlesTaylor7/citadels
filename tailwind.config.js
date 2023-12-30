@@ -5,7 +5,7 @@ module.exports = {
     files: ["templates/**/*.html", "src/templates.rs"],
   },
   daisyui: {
-    themes: ["retro"],
+    themes: ["dark","retro"],
   },
   theme: {
       colors: {

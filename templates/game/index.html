@@ -1,51 +1,11 @@
 <!-- prettier-ignore -->
 {% extends "base.html" %} 
 {% block head %}
-<style>
-  :root {
-    --
-  }
-  #game-layout {
-    display: grid;
-    grid-template-areas:
-      "roles actions actions resources"
-      "roles city    city    players"
-      "roles hand    hand    players";
-  }
-
-  #roles {
-    grid-area: roles;
-  }
-
-  #log {
-    grid-area: log;
-  }
-
-  #actions {
-    grid-area: actions;
-  }
-
-  #resources {
-    grid-area: resources;
-  }
-
-  #players {
-    grid-area: players;
-  }
-
-  #city {
-    grid-area: city;
-  }
-
-  #hand {
-    grid-area: hand;
-  }
-</style>
 {% endblock %}
 
 <!-- prettier-ignore -->
 {% block content %}
-<main id="main" data-replace-url="/game">
+<main id="main" data-replace-url="/game" data-theme="retro">
   <div id="game-layout" class="h-screen gap-5">
     <div
       id="players"
