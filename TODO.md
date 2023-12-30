@@ -40,10 +40,13 @@
 
 - [ ] Debug Utilities
     - [x] Impersonation
-    - [ ] indicate impersonated character
     - [ ] refactor impersonate route
-- [ ] Turn Log
-- [ ] Round Log
+    - [ ] indicate impersonated character
+
+- [ ] Left Sidebar Roles & Round Log 
+    - [x] Tooltip to the right for each
+    - [ ] Collapsible section of the actions taken
+
 - [ ] Characters (only these 9)
     - [ ] Assassin
     - [ ] Thief

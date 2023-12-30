@@ -104,10 +104,10 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(port).await.unwrap();
 
     println!("\nListening on port: {}", port);
-    axum::serve(listener, router()).await.unwrap();
+    axum::serve(listener, get_router()).await.unwrap();
 }
 
-fn router() -> Router {
+fn get_router() -> Router {
     let context = AppState::default();
 
     Router::new()
@@ -117,7 +117,7 @@ fn router() -> Router {
         .route("/ws", get(handlers::ws))
         .route("/game", get(handlers::game))
         .route("/game", post(handlers::start))
-        .route("/game/:path", get(handlers::game_impersonate))
+        .route("/game/impersonate", post(handlers::game_impersonate))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
 }
@@ -125,7 +125,7 @@ fn router() -> Router {
 mod handlers {
     use crate::AppState;
     use askama::Template;
-    use axum::extract::{Path, State};
+    use axum::extract::State;
     use axum::response::{Html, Redirect};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
@@ -139,7 +139,7 @@ mod handlers {
     #[cfg(debug_assertions)]
     pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
         (
-            cookies.add(Cookie::new("playerId", "Alph")),
+            cookies.add(Cookie::new("player_id", "Alph")),
             Redirect::to("/lobby"),
         )
     }
@@ -148,24 +148,26 @@ mod handlers {
     pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
         Redirect::to("/lobby")
     }
+
     pub async fn lobby(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
+        let player_id = cookies.get("player_id").map(|c| c.value().to_owned());
+        let cookies = cookies.add(Cookie::new(
+            "player_id",
+            player_id.unwrap_or_else(|| Uuid::new_v4().to_string()),
+        ));
+
         if app.game.lock().unwrap().is_some() {
-            return Redirect::to("/game").into_response();
+            return (cookies, Redirect::to("/game")).into_response();
         }
 
         let username = cookies
             .get("username")
             .map_or("".to_owned(), |c| c.value().to_owned());
 
-        let player_id = cookies.get("playerId").map(|c| c.value().to_owned());
-
         let lobby = app.lobby.lock().unwrap();
 
         (
-            cookies.add(Cookie::new(
-                "playerId",
-                player_id.unwrap_or_else(|| Uuid::new_v4().to_string()),
-            )),
+            cookies,
             Html(
                 LobbyTemplate {
                     username: &username,
@@ -188,7 +190,7 @@ mod handlers {
         cookies: PrivateCookieJar,
         args: axum::Form<Register>,
     ) -> impl IntoResponse {
-        let cookie = cookies.get("playerId").unwrap();
+        let cookie = cookies.get("player_id").unwrap();
         let player_id = cookie.value();
         let mut lobby = app.lobby.lock().unwrap();
         lobby.register(player_id, &args.username);
@@ -227,17 +229,18 @@ mod handlers {
             app.connections
                 .lock()
                 .unwrap()
-                .broadcast_each(move |id| GameTemplate::render(game, id));
+                .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
         }
 
         StatusCode::OK.into_response()
     }
 
     fn game_response(app: State<AppState>, cookies: PrivateCookieJar) -> Option<Html<String>> {
-        let id = cookies.get("playerId")?;
+        let cookie = cookies.get("player_id");
+        let id = cookie.as_ref().map(|c| c.value());
         let game = app.game.lock().unwrap();
         let game = game.as_ref()?;
-        GameTemplate::render(game, id.value())
+        GameTemplate::render(game, id)
     }
 
     pub async fn game(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
@@ -251,7 +254,7 @@ mod handlers {
         cookies: PrivateCookieJar,
         ws: WebSocketUpgrade,
     ) -> impl IntoResponse {
-        if let Some(cookie) = cookies.get("playerId") {
+        if let Some(cookie) = cookies.get("player_id") {
             ws.on_upgrade(move |socket| {
                 crate::ws::handle_socket(state, cookie.value().to_owned(), socket)
             })
@@ -261,13 +264,18 @@ mod handlers {
         }
     }
 
+    #[derive(Deserialize)]
+    pub struct Impersonate {
+        player_id: String,
+    }
+
     #[cfg(debug_assertions)]
     pub async fn game_impersonate(
         app: State<AppState>,
         cookies: PrivateCookieJar,
-        path: Path<String>,
+        body: axum::Form<Impersonate>,
     ) -> impl IntoResponse {
-        let cookies = cookies.add(Cookie::new("playerId", path.0));
+        let cookies = cookies.add(Cookie::new("player_id", body.player_id.clone()));
         game(app, cookies).await
     }
 
@@ -277,7 +285,7 @@ mod handlers {
         cookies: privatecookiejar,
         path: path<string>,
     ) -> impl IntoResponse {
-        Redirect::to("/game")
+        StatusCode::NOT_FOUND
     }
 }
 

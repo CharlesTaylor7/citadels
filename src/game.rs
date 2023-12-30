@@ -8,6 +8,7 @@ use rand::prelude::*;
 
 type PlayerId = String;
 
+#[derive(Default)]
 pub struct Player {
     pub id: PlayerId,
     pub name: String,

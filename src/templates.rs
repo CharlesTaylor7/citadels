@@ -18,8 +18,11 @@ pub struct GameTemplate<'a> {
 }
 
 impl<'a> GameTemplate<'a> {
-    pub fn render<'b>(game: &'a Game, player_id: &'b str) -> Option<Html<String>> {
-        let player = game.players.iter().find(|p| p.id == player_id)?;
+    pub fn render<'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<Html<String>> {
+        let def = game::Player::default();
+        let player = player_id
+            .and_then(|id| game.players.iter().find(|p| p.id == id))
+            .unwrap_or(&def);
 
         let rendered = GameTemplate {
             characters: &game.characters,

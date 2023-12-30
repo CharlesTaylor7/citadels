@@ -56,15 +56,17 @@
           id="{{ player.id }}"
         >
           {{ player.name }} {% if debug %}
-          <button
-            class="btn btn-accent"
-            hx-swap="morph"
-            hx-target="#main"
-            hx-get="/game/{{ player.name }}"
-            hx-push-url="true"
-          >
-            Impersonate
-          </button>
+          <form>
+            <button
+              class="btn btn-accent"
+              hx-swap="morph"
+              hx-target="#main"
+              hx-post="/game/impersonate"
+            >
+              Impersonate
+            </button>
+            <input type="hidden" name="player_id" value="{{ player.id }}" />
+          </form>
 
           {% endif %}
         </div>
@@ -91,9 +93,16 @@
       class="flex flex-col items-center rounded border border-neutral"
     >
       <h2 class="m-2 underline text-lg font-semibold">Roles</h2>
+
       <div class="flex flex-col gap-2">
+        <div class="italic text-sm">Hover over a role for details</div>
         {% for card in characters %}
-        <div>{{ card.rank }}. {{ card.name }}</div>
+        <div
+          class="text-left tooltip tooltip-right cursor-pointer"
+          data-tip="{{ card.description }}"
+        >
+          {{ card.rank }}. {{ card.name }}
+        </div>
         {% endfor %}
       </div>
     </div>
