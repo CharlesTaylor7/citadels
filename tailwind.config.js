@@ -9,7 +9,8 @@ module.exports = {
   },
   theme: {
       colors: {
-        'suit-royal': "oklch(0.807415% 0.052534 159.095)",
+        'suit-religious': "var(--fallback-s,oklch(var(--s)/var(--tw-bg-opacity)))",
+        'suit-military': "var(--fallback-p,oklch(var(--p)/var(--tw-bg-opacity)))",
       }
   },
 }

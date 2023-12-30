@@ -1,9 +1,10 @@
 <div
-  class="h-36 w-36 border rounded-lg bg-base-300 flex flex-col tooltip"
+  class="h-36 w-36 border rounded-lg bg-base-200 flex flex-col tooltip"
   data-tip="{{ card.description }}"
 >
   <div
-    class="h-8 w-8 leaded flex flex-row justify-center items-center text-secondary-content rounded-full bg-secondary"
+    class="h-8 w-8 leaded flex flex-row justify-center items-center text-secondary-content rounded-full {{ card.suit|suit_bg_character }}
+   "
   >
     {{ card.rank }}
   </div>

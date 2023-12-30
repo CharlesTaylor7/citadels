@@ -1,19 +1,14 @@
 <div
-  class="h-36 w-36 border rounded-lg bg-base-300 
-  flex flex-col
-  {{ card.suit|suit_border_color }}
-  {% if card.description.is_some() %} tooltip {% endif %}"
+  class="h-36 w-36 border rounded-lg bg-base-300 flex flex-col justify-between {% if card.description.is_some() %} tooltip {% endif %}"
   data-tip="{{ card.description|def }}"
 >
-  {% if card.unique_name != Some(SecretVault) %}
   <div
-    class="h-8 w-8 leaded flex flex-row justify-center items-center text-secondary-content rounded-full bg-primary"
+    class="h-8 w-8 leaded flex flex-row justify-center items-center text-secondary-content rounded-full
+    {{ card.suit|suit_bg_color }}
+    "
   >
-    {{ card.cost }}
+    {% if card.unique_name != Some(SecretVault) %} {{ card.cost }} {% endif %}
   </div>
 
-  {% endif %}
-  <div class="flex flex-col justify-end grow w-full text-center">
-    {{ card.display_name }}
-  </div>
+  <div class="flex flex-col w-full text-center">{{ card.display_name }}</div>
 </div>

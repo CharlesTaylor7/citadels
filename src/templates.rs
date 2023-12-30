@@ -56,13 +56,20 @@ pub struct LobbyPlayersTemplate<'a> {
 mod filters {
     use crate::types::CardSuit;
 
-    pub fn suit_border_color(suit: &CardSuit) -> askama::Result<&'static str> {
+    pub fn suit_bg_character(suit: &Option<CardSuit>) -> askama::Result<&'static str> {
+        match suit.as_ref() {
+            Some(suit) => suit_bg_color(suit),
+            None => Ok("bg-accent"),
+        }
+    }
+
+    pub fn suit_bg_color(suit: &CardSuit) -> askama::Result<&'static str> {
         Ok(match suit {
-            CardSuit::Military => "border-red-700",
-            CardSuit::Religious => "border-blue-700",
-            CardSuit::Royal => "border-yellow-300",
-            CardSuit::Trade => "border-green-700",
-            CardSuit::Unique => "border-purple-700",
+            CardSuit::Military => "bg-suit-military",
+            CardSuit::Religious => "bg-suit-religious",
+            CardSuit::Royal => "bg-suit-royal",
+            CardSuit::Trade => "bg-suit-trade",
+            CardSuit::Unique => "bg-suit-unique",
         })
     }
 
