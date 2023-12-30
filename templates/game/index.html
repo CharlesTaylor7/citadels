@@ -46,7 +46,7 @@
   <div id="game-layout" class="h-screen gap-5">
     <div
       id="players"
-      class="p-7 flex flex-col items-center rounded border border-slate-500"
+      class="p-7 flex flex-col items-center rounded border border-neutral"
     >
       <h2 class="underline text-xl font-semibold">Players</h2>
       <div class="flex flex-col gap-2">
@@ -74,35 +74,38 @@
 
     <div
       id="actions"
-      class="p-7 flex flex-col items-center rounded border border-slate-500"
+      class="p-7 flex flex-col items-center rounded border border-neutral"
     >
       <h2 class="underline text-xl font-semibold">Actions</h2>
     </div>
 
     <div
       id="city"
-      class="p-7 flex flex-col items-center rounded border border-slate-500"
+      class="p-7 flex flex-col items-center rounded border border-neutral"
     >
       <h2 class="underline text-xl font-semibold">City</h2>
     </div>
 
     <div
       id="roles"
-      class="p-7 flex flex-col items-center rounded border border-slate-500"
+      class="flex flex-col items-center rounded border border-neutral"
     >
-      <h2 class="underline text-xl font-semibold">Roles</h2>
+      <h2 class="m-2 underline text-xl font-semibold">Roles</h2>
+      <div class="flex flex-c flex-wrap gap-2">
+        {% for card in hand %} {% include "district.html" %} {% endfor %}
+      </div>
     </div>
 
     <div
       id="resources"
-      class="p-7 flex flex-col items-center rounded border border-slate-500"
+      class="p-7 flex flex-col items-center rounded border border-neutral"
     >
       <h2 class="underline text-xl font-semibold">Resources</h2>
     </div>
 
     <div
       id="hand"
-      class="flex flex-col items-center rounded border border-slate-500"
+      class="flex flex-col items-center rounded border border-neutral"
     >
       <h2 class="underline m-2 text-lg font-semibold">Hand</h2>
       <div class="flex flex-row flex-wrap gap-2">
