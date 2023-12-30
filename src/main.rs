@@ -47,7 +47,10 @@ pub struct AppState {
 impl AppState {
     #[cfg(debug_assertions)]
     pub fn default_game() -> Option<Game> {
-        use citadels::types::{CardSet, CardSuit, District, UniqueDistrict};
+        use citadels::{
+            random,
+            types::{CardSet, CardSuit, District, UniqueDistrict},
+        };
 
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
         game.players[0].hand.push(District {
@@ -58,6 +61,15 @@ impl AppState {
             description: Some("Hey its free"),
             suit: CardSuit::Purple,
         });
+
+        let mut cs: Vec<_> = citadels::data::characters::CHARACTERS.iter().collect();
+        random::shuffle(&mut cs);
+
+        for p in game.players.iter_mut() {
+            p.roles.push(cs.pop().unwrap().clone());
+            p.roles.push(cs.pop().unwrap().clone());
+            p.roles.sort_by_key(|c| c.rank);
+        }
 
         Some(game)
     }

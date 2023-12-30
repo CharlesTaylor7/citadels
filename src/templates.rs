@@ -1,3 +1,5 @@
+use crate::game::Game;
+use crate::types::Character;
 use crate::types::District;
 use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
@@ -8,19 +10,22 @@ use axum::response::Html;
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
-    players: &'a [game::Player],
-    hand: &'a [District],
     debug: bool,
+    characters: &'a [Character],
+    players: &'a [game::Player],
+    roles: &'a [Character],
+    hand: &'a [District],
 }
 
-use crate::game::Game;
 impl<'a> GameTemplate<'a> {
     pub fn render<'b>(game: &'a Game, player_id: &'b str) -> Option<Html<String>> {
         let player = game.players.iter().find(|p| p.id == player_id)?;
 
         let rendered = GameTemplate {
+            characters: &game.characters,
             players: &game.players,
             hand: &player.hand,
+            roles: &player.roles,
             debug: cfg!(debug_assertions),
         }
         .render()
