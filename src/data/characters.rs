@@ -2,7 +2,7 @@ use crate::types::CardSet::*;
 
 use crate::types::Character;
 
-pub const CHARACTERS : [Character; 8] =
+pub const CHARACTERS : [Character; 9] =
   [ Character 
     { rank : 1 
     , set : Base
@@ -50,5 +50,11 @@ pub const CHARACTERS : [Character; 8] =
     , set : Base
     , name : "Warlord"
     , description : "Destroy 1 district by paying 1 fewer gold than its cost. Gain 1 gold for each of your MILITARY districts."
+    }
+  , Character 
+    { rank : 9 
+    , set : DarkCity
+    , name : "Artist"
+    , description : "Beautify up to 2 of your districts by assigning each of them 1 of your gold. A district can be beautified only once. (A beautified district is worth 1 additional point at the end of the game. It is also treated as if its cost is 1 higher than printed,i.e. the Warlord has to pay 1 extra to destroy it.)"
     }
   ];

@@ -28,9 +28,7 @@ impl District {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Rank(pub u8);
-
+pub type Rank = u8;
 #[derive(Clone, Debug)]
 pub struct Character {
     pub name: &'static str,

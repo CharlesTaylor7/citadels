@@ -1,9 +1,10 @@
 use crate::{
-    data,
+    data::{self, characters},
     lobby::{self, Lobby},
     random,
     types::{Character, District, Rank},
 };
+use rand::{distributions::Uniform, prelude::*};
 
 type PlayerId = String;
 
@@ -59,16 +60,21 @@ impl<T> Deck<T> {
     }
 }
 
-pub enum ActiveTurn {
-    RoleDraft(PlayerId),
-    Turn(Rank),
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum Turn {
+    Draft(PlayerId),
+    Call(Rank),
 }
+
 pub struct Game {
     pub deck: Deck<District>,
     pub players: Vec<Player>,
     pub characters: Vec<Character>,
     pub crowned: PlayerId,
-    pub active_turn: ActiveTurn,
+    pub active_turn: Turn,
+    pub to_draft: Vec<Character>,
+    pub discarded_facedown: Vec<Character>,
+    pub discarded_faceup: Vec<Character>,
 }
 
 impl Game {
@@ -106,22 +112,45 @@ impl Game {
             }
         });
 
-        Game {
+        let mut game = Game {
             players,
             crowned,
+            to_draft: Vec::with_capacity(9),
+            discarded_faceup: Vec::with_capacity(3),
+            discarded_facedown: Vec::with_capacity(3),
             deck: Deck::new(deck),
-            active_turn: ActiveTurn::RoleDraft(crowned.clone()),
+            active_turn: Turn::Draft(String::with_capacity(0)),
             characters: data::characters::CHARACTERS.into_iter().collect(),
+        };
+        game.begin_draft();
+        game
+    }
+
+    pub fn begin_draft(&mut self) {
+        let mut rng = rand::thread_rng();
+        self.active_turn = Turn::Draft(self.crowned.clone());
+        self.to_draft = self.characters.clone();
+
+        // discard cards face up in 4+ player game
+        if self.players.len() >= 4 {
+            for _ in self.players.len() + 2..self.characters.len() {
+                let i = rng.gen_range(0..self.to_draft.len());
+                self.discarded_faceup.push(self.to_draft.remove(i));
+            }
         }
+
+        // discard 1 card facedown
+        let i = rng.gen_range(0..self.to_draft.len());
+        self.discarded_facedown.push(self.to_draft.remove(i));
     }
 
     pub fn active_player(&self) -> Option<&Player> {
-        match self.active_turn {
-            ActiveTurn::RoleDraft(_) => None,
-            ActiveTurn::Turn(rank) => self
+        match &self.active_turn {
+            Turn::Draft(id) => self.players.iter().find(move |p| p.id == *id),
+            Turn::Call(rank) => self
                 .players
                 .iter()
-                .find(|p| p.roles.iter().any(|role| role.rank == rank)),
+                .find(|p| p.roles.iter().any(|role| role.rank == *rank)),
         }
     }
 }
