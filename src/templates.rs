@@ -1,4 +1,5 @@
 use crate::game::Game;
+use crate::game::PlayerInfo;
 use crate::types::Character;
 use crate::types::District;
 use crate::types::UniqueDistrict::*;
@@ -13,7 +14,7 @@ pub struct GameTemplate<'a> {
     debug: bool,
     player_id: &'a str,
     characters: &'a [Character],
-    players: &'a [game::Player],
+    players: &'a [PlayerInfo<'a>],
     roles: &'a [Character],
     hand: &'a [District],
 }
@@ -24,10 +25,10 @@ impl<'a> GameTemplate<'a> {
         let player = player_id
             .and_then(|id| game.players.iter().find(|p| p.id == id))
             .unwrap_or(&def);
-
+        let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
         let rendered = GameTemplate {
             characters: &game.characters,
-            players: &game.players,
+            players: &players,
             player_id: &player.id,
             hand: &player.hand,
             roles: &player.roles,

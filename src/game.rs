@@ -18,6 +18,15 @@ pub struct Player {
     pub roles: Vec<Character>,
 }
 
+// Just the public info
+pub struct PlayerInfo<'a> {
+    pub id: &'a str,
+    pub name: &'a str,
+    pub gold: usize,
+    pub hand_size: usize,
+    pub city: &'a [District],
+}
+
 impl Player {
     pub fn new(id: String, name: String) -> Self {
         Player {
@@ -27,6 +36,24 @@ impl Player {
             hand: Vec::new(),
             city: Vec::new(),
             roles: Vec::with_capacity(2),
+        }
+    }
+
+    pub fn info(&self) -> PlayerInfo<'_> {
+        let Player {
+            id,
+            name,
+            gold,
+            hand,
+            city,
+            ..
+        } = self;
+        PlayerInfo {
+            id,
+            name,
+            gold: *gold,
+            hand_size: hand.len(),
+            city,
         }
     }
 }
