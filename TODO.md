@@ -28,15 +28,21 @@
     - [x] shuffle districts
     - [x] collect character cards
     - [x] Deal initial hands and gold
-- [ ] Cookie warning for lobby
-- [ ] Show each player their hand
-- [ ] Static page layout
+- [ ] Role Draft phase
+- [ ] Role Call phase
+- [ ] Allow spectators, instead of bouncing people back to the lobby
+- [x] Show each player their hand
 - [ ] District Card template
+    - [ ] change cost background to match suit
 - [ ] Character Card template
-- [ ] Debug toggle between players
+    - [ ] change rank background to something that doesn't conflict with a suit. Maybe orange?
+- [ ] Debug Utilities
+    - [x] Impersonation
+    - [ ] indicate impersonated character
+    - [ ] refactor impersonate route
 - [ ] Turn Log
 - [ ] Round Log
-- [ ] Characters (only the basic 8)
+- [ ] Characters (only these 9)
     - [ ] Assassin
     - [ ] Thief
     - [ ] Magician
@@ -45,4 +51,5 @@
     - [ ] Merchant
     - [ ] Architect
     - [ ] Warlord
+    - [ ] Artist
 - [ ] Unique Districts (only 14 of the easiest)
