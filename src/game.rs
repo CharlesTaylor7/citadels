@@ -76,7 +76,7 @@ pub struct Draft {
 pub struct Game {
     pub deck: Deck<District>,
     pub players: Vec<Player>,
-    pub characters: Vec<Character>,
+    pub characters: &'static [Character],
     pub crowned: PlayerId,
     pub active_turn: Turn,
     pub draft: Draft,
@@ -117,13 +117,27 @@ impl Game {
             }
         });
 
+        // 9th rank is disallowed for 2
+        // 9th rank is required for 3
+        // 9th rank is optional for 4-7
+        // 9th rank is required for 8
+        let character_count = if players.len() == 2 || players.len() == 8 {
+            8
+        } else {
+            9
+        };
+        let characters = &data::characters::CHARACTERS
+            .into_iter()
+            .take(character_count)
+            .collect::<Vec<_>>();
+
         let mut game = Game {
             players,
             crowned,
+            characters,
             draft: Draft::default(),
             deck: Deck::new(deck),
             active_turn: Turn::Draft(String::with_capacity(0)),
-            characters: data::characters::CHARACTERS.into_iter().collect(),
         };
         game.begin_draft();
         game
@@ -132,7 +146,7 @@ impl Game {
     pub fn begin_draft(&mut self) {
         let mut rng = rand::thread_rng();
         self.active_turn = Turn::Draft(self.crowned.clone());
-        self.draft.remaining = self.characters.clone();
+        self.draft.remaining = self.characters.to_vec();
 
         // discard cards face up in 4+ player game
         if self.players.len() >= 4 {
