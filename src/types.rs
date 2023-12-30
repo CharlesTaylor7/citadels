@@ -28,10 +28,13 @@ impl District {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Rank(pub u8);
+
 #[derive(Clone, Debug)]
 pub struct Character {
     pub name: &'static str,
-    pub rank: usize,
+    pub rank: Rank,
     pub set: CardSet,
     pub description: &'static str,
 }

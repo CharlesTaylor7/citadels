@@ -2,7 +2,7 @@ use crate::{
     data,
     lobby::{self, Lobby},
     random,
-    types::{Character, District},
+    types::{Character, District, Rank},
 };
 
 type PlayerId = String;
@@ -59,13 +59,18 @@ impl<T> Deck<T> {
     }
 }
 
+pub enum ActiveTurn {
+    RoleDraft(PlayerId),
+    Turn(Rank),
+}
 pub struct Game {
     pub deck: Deck<District>,
     pub players: Vec<Player>,
     pub characters: Vec<Character>,
     pub crowned: PlayerId,
-    pub active_player: PlayerId,
+    pub active_turn: ActiveTurn,
 }
+
 impl Game {
     pub fn start(lobby: Lobby) -> Game {
         let Lobby { mut players } = lobby;
@@ -102,11 +107,21 @@ impl Game {
         });
 
         Game {
-            deck: Deck::new(deck),
             players,
-            active_player: crowned.clone(),
             crowned,
+            deck: Deck::new(deck),
+            active_turn: ActiveTurn::RoleDraft(crowned.clone()),
             characters: data::characters::CHARACTERS.into_iter().collect(),
+        }
+    }
+
+    pub fn active_player(&self) -> Option<&Player> {
+        match self.active_turn {
+            ActiveTurn::RoleDraft(_) => None,
+            ActiveTurn::Turn(rank) => self
+                .players
+                .iter()
+                .find(|p| p.roles.iter().any(|role| role.rank == rank)),
         }
     }
 }
