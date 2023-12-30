@@ -47,20 +47,9 @@ pub struct AppState {
 impl AppState {
     #[cfg(debug_assertions)]
     pub fn default_game() -> Option<Game> {
-        use citadels::{
-            random,
-            types::{CardSet, CardSuit, District, UniqueDistrict},
-        };
+        use citadels::random;
 
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
-        game.players[0].hand.push(District {
-            display_name: "Hey it's free",
-            set: CardSet::Custom,
-            unique_name: Some(UniqueDistrict::SecretVault),
-            cost: 0,
-            description: Some("Hey its free"),
-            suit: CardSuit::Unique,
-        });
 
         let mut cs: Vec<_> = citadels::data::characters::CHARACTERS.iter().collect();
         random::shuffle(&mut cs);

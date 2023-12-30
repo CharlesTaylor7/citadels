@@ -59,7 +59,7 @@ mod filters {
     pub fn suit_bg_character(suit: &Option<CardSuit>) -> askama::Result<&'static str> {
         match suit.as_ref() {
             Some(suit) => suit_bg_color(suit),
-            None => Ok("bg-accent"),
+            None => Ok("bg-neutral-content"),
         }
     }
 
