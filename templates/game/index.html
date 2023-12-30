@@ -1,9 +1,4 @@
-<!-- prettier-ignore -->
 {% extends "base.html" %} 
-{% block head %}
-{% endblock %}
-
-<!-- prettier-ignore -->
 {% block content %}
 <main id="main" data-replace-url="/game" data-theme="retro">
   <div id="game-layout" class="h-screen">
@@ -18,18 +13,19 @@
           class="flex flex-row justify-between items-center gap-2"
           id="{{ player.id }}"
         >
-          {{ player.name }} {% if debug && my.id != player.id %}
-          <form>
-            <button
-              class="btn btn-accent h-8 min-h-8 animate-none"
-              hx-swap="morph"
-              hx-target="#main"
-              hx-post="/game/impersonate"
-            >
-              Impersonate
-            </button>
-            <input type="hidden" name="player_id" value="{{ player.id }}" />
-          </form>
+          {{ player.name }} 
+          {% if debug && my.id != player.id %}
+            <form>
+              <button
+                class="btn btn-accent h-8 min-h-8 animate-none"
+                hx-swap="morph"
+                hx-target="#main"
+                hx-post="/game/impersonate"
+              >
+                Impersonate
+              </button>
+              <input type="hidden" name="player_id" value="{{ player.id }}" />
+            </form>
           {% endif %}
         </div>
         {% endfor %}
@@ -40,15 +36,18 @@
       id="actions"
       class="p-2 bg-neutral-content flex flex-col items-center border border-base-200"
     >
-      {% match phase %} {% when Draft %}
-      <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
-      <div class="flex flex-row flex-wrap gap-2">
-        {% set tooltip = "tooltip-bottom" %} {% for card in draft %} {% include
-        "role.html" %} {% endfor %}
-      </div>
+      {% match phase %} 
+        {% when Draft %}
+          <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
+          <div class="flex flex-row flex-wrap gap-2">
+            {% set tooltip = "tooltip-bottom" %} 
+            {% for card in draft %} 
+              {% include "role.html" %}
+            {% endfor %}
+          </div>
 
-      {% when Call %}
-      <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
+        {% when Call %}
+          <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
       {% endmatch %}
     </div>
 
@@ -68,12 +67,12 @@
       <div class="flex flex-col gap-2">
         <div class="italic text-sm">Hover over a role for details</div>
         {% for card in characters %}
-        <div
-          class="text-left tooltip tooltip-right cursor-pointer"
-          data-tip="{{ card.description }}"
-        >
-          {{ card.rank }}. {{ card.name }}
-        </div>
+          <div
+            class="text-left tooltip tooltip-right cursor-pointer"
+            data-tip="{{ card.description }}"
+          >
+            {{ card.rank }}. {{ card.name }}
+          </div>
         {% endfor %}
       </div>
     </div>
@@ -93,9 +92,13 @@
         Hand
       </h2>
       <div class="flex flex-row flex-wrap gap-2">
-        {% set tooltip = "tooltip-top" %} {% for card in my.roles %} {% include
-        "role.html" %} {% endfor %} {% for card in my.hand %} {% include
-        "district.html" %} {% endfor %}
+        {% set tooltip = "tooltip-top" %}
+          {% for card in my.roles %} 
+            {% include "role.html" %} 
+          {% endfor %} 
+          {% for card in my.hand %} 
+            {% include "district.html" %} 
+          {% endfor %}
       </div>
     </div>
   </div>
