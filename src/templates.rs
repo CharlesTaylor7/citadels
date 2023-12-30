@@ -8,10 +8,23 @@ use askama::Template;
 
 use axum::response::Html;
 
+/*
+#[derive(Eq, PartialEq, Clone, Copy)]
+pub enum GamePhase {
+    Draft,
+    Call,
+}
+{
+    game::Turn::Draft(_) => GamePhase::Draft,
+    game::Turn::Call(_) => Game{}
+}
+*/
+
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
     debug: bool,
+    phase: GamePhase,
     player_id: &'a str,
     characters: &'a [Character],
     players: &'a [PlayerInfo<'a>],
@@ -33,6 +46,7 @@ impl<'a> GameTemplate<'a> {
             hand: &player.hand,
             roles: &player.roles,
             debug: cfg!(debug_assertions),
+            phase: game.active_turn,
         }
         .render()
         .ok()?;

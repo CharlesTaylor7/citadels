@@ -28,6 +28,7 @@
     - [x] shuffle districts
     - [x] collect character cards
     - [x] Deal initial hands and gold
+
 - [ ] Role Draft phase
 - [ ] Role Call phase
 - [ ] Allow spectators, instead of bouncing people back to the lobby

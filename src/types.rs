@@ -1,5 +1,8 @@
 use std::fmt;
 
+use serde::Deserialize;
+use serde_repr::Deserialize_repr;
+
 #[derive(Clone, Debug)]
 pub struct District {
     pub display_name: &'static str,
@@ -29,13 +32,34 @@ impl District {
 }
 
 pub type Rank = u8;
+
 #[derive(Clone, Debug)]
 pub struct Character {
-    pub name: &'static str,
+    pub name: RoleName,
     pub rank: Rank,
     pub set: CardSet,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
+}
+
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize_repr)]
+#[repr(u8)]
+pub enum RoleName {
+    Assassin,
+    Thief,
+    Magician,
+    King,
+    Bishop,
+    Merchant,
+    Architect,
+    Warlord,
+    Artist,
+}
+
+impl fmt::Display for RoleName {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:#?}", self)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
