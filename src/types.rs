@@ -34,6 +34,7 @@ pub struct Character {
     pub name: &'static str,
     pub rank: Rank,
     pub set: CardSet,
+    pub suit: Option<CardSuit>,
     pub description: &'static str,
 }
 

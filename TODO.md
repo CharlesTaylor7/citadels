@@ -36,6 +36,8 @@
     - [ ] change cost background to match suit
 - [ ] Character Card template
     - [ ] change rank background to something that doesn't conflict with a suit. Maybe orange?
+    - [ ] card border if its affiliated with a suit.
+
 - [ ] Debug Utilities
     - [x] Impersonation
     - [ ] indicate impersonated character
