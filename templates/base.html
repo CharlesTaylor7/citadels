@@ -19,13 +19,7 @@
         on click 
           toggle .selected-card
           call me.querySelector('input')
-          set input to it
-          if input's @value
-            remove @value from input
-          else
-            set input's @value to my @data-name
-          end
-          log input
+          toggle @checked on it
         end
         
         on mouseleave
