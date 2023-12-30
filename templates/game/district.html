@@ -1,0 +1,7 @@
+<div class="card-bordered rounded {{ card.suit| suit_bg_color }} ">
+  <h3 class="card-title">{{ card.display_name }}</h3>
+  <div class="card-body">
+    {% match card.description %} {% when Some with (d) %} {{ d }} {% when None
+    %} {% endmatch %}
+  </div>
+</div>

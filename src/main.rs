@@ -129,20 +129,6 @@ mod handlers {
     pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
         Redirect::to("/lobby")
     }
-
-    #[derive(Template)]
-    #[template(path = "lobby/index.html")]
-    struct LobbyTemplate<'a> {
-        username: &'a str,
-        players: &'a [lobby::Player],
-    }
-
-    #[derive(Template)]
-    #[template(path = "lobby/players.html")]
-    struct LobbyPlayersTemplate<'a> {
-        players: &'a [lobby::Player],
-    }
-
     pub async fn lobby(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
         if app.game.lock().unwrap().is_some() {
             return Redirect::to("/game").into_response();
@@ -199,32 +185,6 @@ mod handlers {
 
         cookies.add(Cookie::new("username", args.username.clone()))
     }
-
-    #[derive(Template)]
-    #[template(path = "game/index.html")]
-    struct GameTemplate<'a> {
-        players: &'a [game::Player],
-        hand: &'a [District],
-        debug: bool,
-    }
-
-    use crate::game::Game;
-    impl<'a> GameTemplate<'a> {
-        pub fn render<'b>(game: &'a Game, player_id: &'b str) -> Option<Html<String>> {
-            let player = game.players.iter().find(|p| p.id == player_id)?;
-
-            let rendered = GameTemplate {
-                players: &game.players,
-                hand: &player.hand,
-                debug: cfg!(debug_assertions),
-            }
-            .render()
-            .ok()?;
-
-            Some(Html(rendered))
-        }
-    }
-
     pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
         {
             let mut game = app.game.lock().unwrap();
@@ -303,6 +263,7 @@ mod handlers {
 }
 
 pub mod ws {
+    use crate::templates::*;
     use crate::AppState;
     use axum::extract::ws::{Message, WebSocket};
     use axum::extract::State;

@@ -74,15 +74,7 @@
       class="p-7 flex flex-col items-center rounded border border-slate-500"
     >
       <h2 class="underline text-xl font-semibold">Hand</h2>
-      {% for card in hand %}
-      <div class="rounded">
-        <div>{{ card.display_name }}</div>
-
-        {% match card.description %} {% when Some with (d) %}
-        <div>{{ d }}</div>
-        {% when None %} {% endmatch %}
-      </div>
-      {% endfor %}
+      {% for card in hand %} {% include "district.html" %} {% endfor %}
     </div>
 
     <div
