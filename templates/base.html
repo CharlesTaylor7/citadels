@@ -17,9 +17,11 @@
         end
 
         on click 
-          toggle .selected-card
           call me.querySelector('input')
-          toggle @checked on it
+          set input to the result
+
+          toggle .selected-card on me
+          toggle @checked on input
         end
         
         on mouseleave
