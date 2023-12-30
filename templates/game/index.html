@@ -51,7 +51,20 @@
       <h2 class="underline text-xl font-semibold">Players</h2>
       <ul class="list-disc">
         {% for player in players %}
-        <li id="{{ player.id }}">{{ player.name }}</li>
+        <li id="{{ player.id }}">
+          {{ player.name }} {% if debug %}
+          <button
+            class="border rounded px-2 bg-blue-400"
+            hx-swap="morph"
+            hx-target="#main"
+            hx-get="/game/{{ player.name }}"
+            hx-push-url="true"
+          >
+            Impersonate
+          </button>
+
+          {% endif %}
+        </li>
         {% endfor %}
       </ul>
     </div>

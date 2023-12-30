@@ -205,6 +205,7 @@ mod handlers {
     struct GameTemplate<'a> {
         players: &'a [game::Player],
         hand: &'a [District],
+        debug: bool,
     }
 
     use crate::game::Game;
@@ -215,6 +216,7 @@ mod handlers {
             let rendered = GameTemplate {
                 players: &game.players,
                 hand: &player.hand,
+                debug: cfg!(debug_assertions),
             }
             .render()
             .ok()?;
@@ -286,7 +288,7 @@ mod handlers {
         cookies: PrivateCookieJar,
         path: Path<String>,
     ) -> impl IntoResponse {
-        let cookies = cookies.add(Cookie::new("playerid", path.0));
+        let cookies = cookies.add(Cookie::new("playerId", path.0));
         game(app, cookies).await
     }
 
