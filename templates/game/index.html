@@ -40,7 +40,7 @@
         {% when Draft %}
           <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
           <div class="flex flex-row flex-wrap gap-2">
-            {% set tooltip = "tooltip-bottom" %} 
+            {% set class = "tooltip-bottom" %} 
             {% for card in draft %} 
               {% include "role.html" %}
             {% endfor %}
@@ -92,7 +92,7 @@
         Hand
       </h2>
       <div class="flex flex-row flex-wrap gap-2">
-        {% set tooltip = "tooltip-top" %}
+        {% set class = "tooltip-top" %}
           {% for card in my.roles %} 
             {% include "role.html" %} 
           {% endfor %} 

@@ -8,8 +8,43 @@
     <link rel="stylesheet" href="/public/index.css" />
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
     <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.js"></script>
+    <script type="text/hyperscript">
+      behavior Card(tooltip)
+        init
+          if tooltip == 'immediate' add .tooltip
+        end
+
+        on click 
+          toggle .selected-card
+        end
+        
+        on mouseleave
+          if tooltip == 'debounce'
+            remove .tooltip
+            set @data-left to true
+          end
+        end
+
+        on mousemove debounced at 600ms
+          if tooltip == 'debounce'
+            if my @data-left
+              set @data-left to ''
+            else 
+              add .tooltip
+            end
+          end
+        end
+      end
+    </script>
     <style>
+      .selected-card {
+        padding: 0;
+        box-sizing: content-box;
+        border: solid 4px oklch(var(--su));
+      }
+
       #game-layout {
         display: grid;
         grid-template-areas:
@@ -64,7 +99,7 @@
     hx-ext="ws,idiomorph"
     ws-connect="/ws"
     hx-swap="morph"
-    hx-on:load="Idimorph.defaults.head = 'none'"
+    hx-on:load="Idiomorph.defaults.head = 'none'"
   >
     {% block content %} 
     {% endblock %}

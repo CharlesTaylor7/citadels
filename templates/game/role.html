@@ -1,7 +1,10 @@
 <div
-  class="h-36 w-36 p-1 rounded-lg bg-base-300 flex flex-col tooltip 
-  {{tooltip}}"
+  class="h-32 w-32 p-1 rounded-lg bg-base-300 flex flex-col
+  box-content
+  {{class}}"
+  data-name="{{ card.name }}"
   data-tip="{{ card.description }}"
+  _="install Card(tooltip:'debounce')"
 >
   <div
     class="h-8 w-8 leaded flex flex-row justify-center items-center text-secondary-content rounded-full {{ card.suit|suit_bg_character }}
