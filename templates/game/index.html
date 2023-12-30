@@ -32,13 +32,23 @@
       </div>
     </div>
 
-    <div
+    <form
       id="actions"
       class="p-2 bg-neutral-content flex flex-col items-center border border-base-200"
     >
+      <input type="hidden" name="role" />
       {% match phase %} 
         {% when Draft %}
           <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
+          <button 
+            class="btn btn-primary"
+            hx-post="/game/action"
+            name="action"
+            value="Draft"
+          >
+            Draft
+          </button>
+          
           <div class="flex flex-row flex-wrap gap-2">
             {% set class = "tooltip-bottom" %} 
             {% for card in draft %} 
@@ -49,7 +59,7 @@
         {% when Call %}
           <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
       {% endmatch %}
-    </div>
+    </form>
 
     <div
       id="city"

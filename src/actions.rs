@@ -5,7 +5,7 @@ use crate::{
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
-#[serde(tag = "type")]
+#[serde(tag = "action")]
 pub enum Action {
     // Draft Phase
     Draft { role: RoleName },
