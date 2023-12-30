@@ -47,7 +47,6 @@ pub struct AppState {
 impl AppState {
     #[cfg(debug_assertions)]
     pub fn default_game() -> Option<Game> {
-        return None;
         use citadels::{
             random,
             types::{CardSet, CardSuit, District, UniqueDistrict},
