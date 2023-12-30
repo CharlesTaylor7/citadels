@@ -1,5 +1,6 @@
 use crate::game::Game;
 use crate::game::PlayerInfo;
+use crate::game::Turn;
 use crate::types::Character;
 use crate::types::District;
 use crate::types::UniqueDistrict::*;
@@ -8,17 +9,11 @@ use askama::Template;
 
 use axum::response::Html;
 
-/*
 #[derive(Eq, PartialEq, Clone, Copy)]
 pub enum GamePhase {
     Draft,
     Call,
 }
-{
-    game::Turn::Draft(_) => GamePhase::Draft,
-    game::Turn::Call(_) => Game{}
-}
-*/
 
 #[derive(Template)]
 #[template(path = "game/index.html")]
@@ -46,7 +41,10 @@ impl<'a> GameTemplate<'a> {
             hand: &player.hand,
             roles: &player.roles,
             debug: cfg!(debug_assertions),
-            phase: game.active_turn,
+            phase: match game.active_turn {
+                game::Turn::Draft(_) => GamePhase::Draft,
+                game::Turn::Call(_) => GamePhase::Call,
+            },
         }
         .render()
         .ok()?;

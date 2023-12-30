@@ -28,6 +28,7 @@
     - [x] shuffle districts
     - [x] collect character cards
     - [x] Deal initial hands and gold
+- [ ] Simplify grid view into 3 flex columns
 
 - [ ] Role Draft phase
 - [ ] Role Call phase

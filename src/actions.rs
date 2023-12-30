@@ -31,15 +31,16 @@ pub enum Action {
     //    ArtistBeautify,
 }
 
+use std;
 pub struct Error {
     pub msg: String,
 }
-pub type Result = Result<(), Error>;
+pub type Result = std::result::Result<(), Error>;
 
 impl Action {
     pub fn perform(self, game: &mut Game) -> Result {
         match self {
-            Action::Draft => {
+            Action::Draft { role } => {
                 todo!()
             }
             _ => {

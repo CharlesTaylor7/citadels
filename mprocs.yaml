@@ -8,6 +8,7 @@ procs:
 
   Docs:
     shell: cargo doc --offline --lib --open
+    autostart: false
 
   Deploy:
     shell: fly deploy --remote-only --strategy=immediate
