@@ -76,7 +76,7 @@ pub struct Draft {
 pub struct Game {
     pub deck: Deck<District>,
     pub players: Vec<Player>,
-    pub characters: &'static [Character],
+    pub characters: Vec<Character>,
     pub crowned: PlayerId,
     pub active_turn: Turn,
     pub draft: Draft,
@@ -126,7 +126,7 @@ impl Game {
         } else {
             9
         };
-        let characters = &data::characters::CHARACTERS
+        let characters = data::characters::CHARACTERS
             .into_iter()
             .take(character_count)
             .collect::<Vec<_>>();
