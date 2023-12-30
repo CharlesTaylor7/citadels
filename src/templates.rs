@@ -20,11 +20,12 @@ pub enum GamePhase {
 pub struct GameTemplate<'a> {
     debug: bool,
     phase: GamePhase,
-    player_id: &'a str,
+    draft: &'a [Character],
+    draft_discard: &'a [Character],
     characters: &'a [Character],
     players: &'a [PlayerInfo<'a>],
-    roles: &'a [Character],
-    hand: &'a [District],
+    active_player: Option<&'a game::Player>,
+    my: &'a game::Player,
 }
 
 impl<'a> GameTemplate<'a> {
@@ -36,10 +37,11 @@ impl<'a> GameTemplate<'a> {
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
         let rendered = GameTemplate {
             characters: &game.characters,
+            draft: &game.draft.remaining,
+            draft_discard: &game.draft.faceup_discard,
             players: &players,
-            player_id: &player.id,
-            hand: &player.hand,
-            roles: &player.roles,
+            active_player: game.active_player(),
+            my: &player,
             debug: cfg!(debug_assertions),
             phase: match game.active_turn {
                 game::Turn::Draft(_) => GamePhase::Draft,

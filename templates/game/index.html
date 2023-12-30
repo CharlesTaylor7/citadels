@@ -18,7 +18,7 @@
           class="flex flex-row justify-between items-center gap-2"
           id="{{ player.id }}"
         >
-          {{ player.name }} {% if debug && player_id != player.id %}
+          {{ player.name }} {% if debug && my.id != player.id %}
           <form>
             <button
               class="btn btn-accent h-8 min-h-8 animate-none"
@@ -40,7 +40,16 @@
       id="actions"
       class="p-2 bg-neutral-content flex flex-col items-center border border-base-200"
     >
+      {% match phase %} {% when Draft %}
+      <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
+      <div class="flex flex-row flex-wrap gap-2">
+        {% set tooltip = "tooltip-bottom" %} {% for card in draft %} {% include
+        "role.html" %} {% endfor %}
+      </div>
+
+      {% when Call %}
       <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
+      {% endmatch %}
     </div>
 
     <div
@@ -84,8 +93,9 @@
         Hand
       </h2>
       <div class="flex flex-row flex-wrap gap-2">
-        {% for card in roles %} {% include "role.html" %} {% endfor %} {% for
-        card in hand %} {% include "district.html" %} {% endfor %}
+        {% set tooltip = "tooltip-top" %} {% for card in my.roles %} {% include
+        "role.html" %} {% endfor %} {% for card in my.hand %} {% include
+        "district.html" %} {% endfor %}
       </div>
     </div>
   </div>
