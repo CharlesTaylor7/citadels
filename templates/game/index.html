@@ -4,7 +4,7 @@
   <div id="game-layout" class="h-screen">
     <div
       id="players"
-      class="p-2 p-2 bg-neutral-content border border-base-200 flex flex-col items-center"
+      class="min-w-72 p-2 p-2 bg-neutral-content border border-base-200 flex flex-col items-center"
     >
       <h2 class="underline text-lg font-semibold">Players</h2>
       <div class="flex flex-col gap-2">
@@ -34,19 +34,11 @@
 
     <form
       id="actions"
-      class="p-2 bg-neutral-content flex flex-col items-center border border-base-200"
+      class="p-2 bg-neutral-content flex flex-col gap-2 items-center border border-base-200"
     >
       {% match phase %} 
         {% when Draft %}
           <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
-          <button 
-            class="btn btn-primary"
-            hx-post="/game/action"
-            name="action"
-            value="Draft"
-          >
-            Draft
-          </button>
           
           <div class="flex flex-row flex-wrap gap-2">
             {% set class = "tooltip-bottom" %} 
@@ -54,6 +46,14 @@
               {% include "role.html" %}
             {% endfor %}
           </div>
+          <button 
+            class="btn btn-secondary"
+            hx-post="/game/action"
+            name="action"
+            value="Draft"
+          >
+            Confirm
+          </button>
 
         {% when Call %}
           <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
@@ -69,7 +69,7 @@
 
     <div
       id="roles"
-      class="p-2 bg-neutral-content flex flex-col items-center border border-base-200"
+      class="min-w-72 p-2 bg-neutral-content flex flex-col items-center border border-base-200"
     >
       <h2 class="m-2 underline text-lg font-semibold">Roles</h2>
 
