@@ -110,8 +110,11 @@ mod handlers {
     use axum::response::{Html, Redirect, Response};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-    use citadels::types::District;
-    use citadels::{game, lobby};
+    use citadels::templates::*;
+    use citadels::{
+        game::{self, Game},
+        lobby, templates,
+    };
     use http::StatusCode;
     use serde::Deserialize;
     use std::mem;
@@ -263,7 +266,6 @@ mod handlers {
 }
 
 pub mod ws {
-    use crate::templates::*;
     use crate::AppState;
     use axum::extract::ws::{Message, WebSocket};
     use axum::extract::State;

@@ -8,7 +8,7 @@ use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 
 #[derive(Template)]
 #[template(path = "game/index.html")]
-struct GameTemplate<'a> {
+pub struct GameTemplate<'a> {
     players: &'a [game::Player],
     hand: &'a [District],
     debug: bool,
@@ -34,26 +34,26 @@ impl<'a> GameTemplate<'a> {
 #[derive(Template)]
 #[template(path = "lobby/index.html")]
 pub struct LobbyTemplate<'a> {
-    username: &'a str,
-    players: &'a [lobby::Player],
+    pub username: &'a str,
+    pub players: &'a [lobby::Player],
 }
 
 #[derive(Template)]
 #[template(path = "lobby/players.html")]
 pub struct LobbyPlayersTemplate<'a> {
-    players: &'a [lobby::Player],
+    pub players: &'a [lobby::Player],
 }
 
 mod filters {
     use crate::types::CardSuit;
 
-    pub fn suit_bg_color(suit: &CardSuit) -> &'static str {
-        match suit {
+    pub fn suit_bg_color(suit: &CardSuit) -> askama::Result<&'static str> {
+        Ok(match suit {
             CardSuit::Red => "bg-red-200",
             CardSuit::Blue => "bg-blue-200",
             CardSuit::Yellow => "bg-yellow-200",
             CardSuit::Green => "bg-green-200",
             CardSuit::Purple => "bg-purple-200",
-        }
+        })
     }
 }
