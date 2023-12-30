@@ -1,10 +1,9 @@
 use crate::types::District;
+use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
 
-use axum::response::{Html};
-
-
+use axum::response::Html;
 
 #[derive(Template)]
 #[template(path = "game/index.html")]
@@ -47,13 +46,18 @@ pub struct LobbyPlayersTemplate<'a> {
 mod filters {
     use crate::types::CardSuit;
 
-    pub fn suit_bg_color(suit: &CardSuit) -> askama::Result<&'static str> {
+    pub fn suit_border_color(suit: &CardSuit) -> askama::Result<&'static str> {
         Ok(match suit {
-            CardSuit::Red => "bg-red-200",
-            CardSuit::Blue => "bg-blue-200",
-            CardSuit::Yellow => "bg-yellow-200",
-            CardSuit::Green => "bg-green-200",
-            CardSuit::Purple => "bg-purple-200",
+            CardSuit::Red => "border-red-700",
+            CardSuit::Blue => "border-blue-700",
+            CardSuit::Yellow => "border-yellow-300",
+            CardSuit::Green => "border-green-700",
+            CardSuit::Purple => "border-purple-700",
         })
+    }
+
+    pub fn def<'a>(t: &'a Option<&'static str>) -> askama::Result<&'a str> {
+        let c: Option<&str> = t.as_deref();
+        Ok(c.unwrap_or_default())
     }
 }

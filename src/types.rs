@@ -67,9 +67,10 @@ pub enum CardSet {
     Base,
     DarkCity,
     Citadels2016,
+    Custom,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UniqueDistrict {
     HauntedQuarter,
     SecretVault,

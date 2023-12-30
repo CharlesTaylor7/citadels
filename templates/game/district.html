@@ -1,1 +1,15 @@
-<div class="card-bordered rounded {{ card.suit|suit_bg_color }} "></div>
+<div
+  class="h-48 w-48 border rounded-lg flex flex-col justify-between items-start bg-base-300 
+  {{ card.suit|suit_border_color }}
+  {% if card.description.is_some() %} tooltip {% endif %}"
+  data-tip="{{ card.description|def }}"
+>
+  {% if card.unique_name != Some(SecretVault) %}
+  <div
+    class="h-10 w-10 leaded flex flex-row justify-center items-center text-secondary-content rounded-full bg-yellow-600"
+  >
+    {{ card.cost }}
+  </div>
+  {% endif %}
+  <div class="w-full text-center">{{ card.display_name }}</div>
+</div>

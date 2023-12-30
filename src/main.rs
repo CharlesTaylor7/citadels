@@ -5,10 +5,7 @@ use axum::{
     Error, Router,
 };
 use axum_extra::extract::cookie;
-use citadels::{
-    game::{Game},
-    lobby::Lobby,
-};
+use citadels::{game::Game, lobby::Lobby};
 use load_dotenv::load_dotenv;
 use std::collections::hash_map::HashMap;
 use std::sync::{Arc, Mutex};
@@ -50,9 +47,19 @@ pub struct AppState {
 impl AppState {
     #[cfg(debug_assertions)]
     pub fn default_game() -> Option<Game> {
-        Some(Game::start(Lobby::demo(vec![
-            "Alph", "Brittany", "Charlie",
-        ])))
+        use citadels::types::{CardSet, CardSuit, District, UniqueDistrict};
+
+        let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
+        game.players[0].hand.push(District {
+            display_name: "Hey it's free",
+            set: CardSet::Custom,
+            unique_name: Some(UniqueDistrict::SecretVault),
+            cost: 0,
+            description: Some("Hey its free"),
+            suit: CardSuit::Purple,
+        });
+
+        Some(game)
     }
 
     #[cfg(not(debug_assertions))]
@@ -104,16 +111,14 @@ fn router() -> Router {
 }
 
 mod handlers {
-    use crate::{AppState};
+    use crate::AppState;
     use askama::Template;
     use axum::extract::{Path, State};
     use axum::response::{Html, Redirect};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
+    use citadels::game::Game;
     use citadels::templates::*;
-    use citadels::{
-        game::{Game},
-    };
     use http::StatusCode;
     use serde::Deserialize;
     use std::mem;
