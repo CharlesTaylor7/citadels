@@ -94,6 +94,24 @@ pub enum Turn {
     Call(Rank),
 }
 
+impl Turn {
+    pub fn draft(&self) -> Option<&str> {
+        if let Turn::Draft(player_id) = self {
+            Some(player_id)
+        } else {
+            None
+        }
+    }
+
+    pub fn call(&self) -> Option<&Rank> {
+        if let Turn::Call(rank) = self {
+            Some(rank)
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct Draft {
     pub remaining: Vec<Character>,

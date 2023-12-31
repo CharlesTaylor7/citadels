@@ -41,8 +41,9 @@ pub type Result = std::result::Result<(), Error>;
 
 impl Action {
     pub fn perform(self, game: &mut Game) -> Option<()> {
-        match (self, &game.active_turn) {
-            (Action::Draft { role }, Turn::Draft(player_id)) => {
+        match self {
+            Action::Draft { role } => {
+                let player_id = game.active_turn.draft()?;
                 let p = game.players.iter_mut().find(|p| p.id == *player_id)?;
 
                 let i = (0..game.draft.remaining.len())
