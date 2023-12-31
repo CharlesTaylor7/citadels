@@ -20,8 +20,11 @@
           call me.querySelector('input')
           set input to the result
 
-          toggle .selected-card on me
-          toggle @checked on input
+          if input's @checked
+            remove @checked from input
+          else 
+            add @checked="true" to input
+          end
         end
         
         on mouseleave
@@ -43,12 +46,6 @@
       end
     </script>
     <style>
-      .selected-card {
-        padding: 0;
-        box-sizing: content-box;
-        border: solid 4px oklch(var(--su));
-      }
-
       #game-layout {
         display: grid;
         grid-template-areas:

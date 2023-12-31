@@ -1,12 +1,16 @@
 <button
   class="h-32 w-32 p-1 rounded-lg bg-base-300 flex flex-col
   box-content
+  has-[:checked]:p-0
+  has-[:checked]:border
+  has-[:checked]:border-4
+  has-[:checked]:border-success
   {{class}}"
   type="button"
   hx-trigger="none"
   data-name="{{ card.name }}"
   data-tip="{{ card.description }}"
-  _="install Card(tooltip:'debounce')"
+  _="install Card(select: 'single', tooltip:'debounce')"
 >
   <div
     class="h-8 w-8 leaded flex flex-row justify-center items-center text-secondary-content rounded-full {{ card.suit|suit_bg_character }}
@@ -18,5 +22,10 @@
   <div class="flex flex-col justify-end grow w-full text-center">
     {{ card.name }}
   </div>
-  <input class="hidden" type="checkbox" name="role" value="{{ card.name }}"/>
+  <input 
+    class="hidden" 
+    type="{{input_type}}" 
+    name="role" 
+    value="{{ card.name }}"
+  />
 </button>

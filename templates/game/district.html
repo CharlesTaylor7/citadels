@@ -5,7 +5,7 @@
   data-tip="{{ card.description|def }}"
   data-name="{{ card.display_name }}"
   hx-trigger="none"
-  _="install Card(tooltip:
+  _="install Card(select: 'multi', tooltip:
     {% if card.description.is_some() %} 
       'immediate' 
     {% else %}
