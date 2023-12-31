@@ -42,8 +42,7 @@ pub struct Character {
     pub description: &'static str,
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize_repr)]
-#[repr(u8)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize)]
 pub enum RoleName {
     Assassin,
     Thief,
