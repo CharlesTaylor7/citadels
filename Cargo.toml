@@ -16,7 +16,6 @@ http = "1.0.0"
 load-dotenv = "0.1.2"
 rand = "0.8.5"
 serde = { version = "1.0.193", features = ["serde_derive"] }
-serde_repr = "0.1.17"
 tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1.14"
 tower = "0.4.13"

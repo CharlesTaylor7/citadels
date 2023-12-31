@@ -1,7 +1,6 @@
 use std::fmt;
 
 use serde::Deserialize;
-use serde_repr::Deserialize_repr;
 
 #[derive(Clone, Debug)]
 pub struct District {

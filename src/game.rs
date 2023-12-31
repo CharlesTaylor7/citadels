@@ -209,6 +209,16 @@ impl Game {
                 .find(|p| p.roles.iter().any(|role| role.rank == *rank)),
         }
     }
+
+    pub fn active_player_mut(&mut self) -> Option<&mut Player> {
+        match &mut self.active_turn {
+            Turn::Draft(id) => self.players.iter_mut().find(move |p| p.id == *id),
+            Turn::Call(rank) => self
+                .players
+                .iter_mut()
+                .find(|p| p.roles.iter().any(|role| role.rank == *rank)),
+        }
+    }
 }
 
 #[cfg(test)]

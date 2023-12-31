@@ -1,4 +1,7 @@
-use crate::{game::Game, types::RoleName};
+use crate::{
+    game::{Game, Player, Turn},
+    types::RoleName,
+};
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -29,19 +32,28 @@ pub enum Action {
 }
 
 use std;
+
 pub struct Error {
-    pub msg: String,
+    pub msg: &'static str,
 }
+
 pub type Result = std::result::Result<(), Error>;
 
 impl Action {
-    pub fn perform(self, game: &mut Game) -> Result {
-        match self {
-            Action::Draft { role } => {
-                todo!()
+    pub fn perform(self, game: &mut Game) -> Option<()> {
+        match (self, &game.active_turn) {
+            (Action::Draft { role }, Turn::Draft(player_id)) => {
+                let p = game.players.iter_mut().find(|p| p.id == *player_id)?;
+
+                let i = (0..game.draft.remaining.len())
+                    .find(|i| game.draft.remaining[*i].name == role)?;
+
+                let role = game.draft.remaining.remove(i);
+                p.roles.push(role);
+                Some(())
             }
             _ => {
-                todo!("action {:#?} is not implemented", self);
+                todo!("action is not implemented");
             }
         }
     }
