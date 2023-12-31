@@ -116,7 +116,7 @@ mod handlers {
     use crate::AppState;
     use askama::Template;
     use axum::extract::State;
-    use axum::response::{Html, Redirect};
+    use axum::response::{Html, Redirect, Response};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::actions::Action;
@@ -221,9 +221,10 @@ mod handlers {
                 .lock()
                 .unwrap()
                 .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
+            return StatusCode::OK.into_response();
         }
 
-        StatusCode::OK.into_response()
+        StatusCode::BAD_REQUEST.into_response()
     }
 
     fn game_response(app: State<AppState>, cookies: PrivateCookieJar) -> Option<Html<String>> {
@@ -282,11 +283,34 @@ mod handlers {
     pub async fn game_action(
         app: State<AppState>,
         cookies: PrivateCookieJar,
-        body: axum::Form<Action>,
-    ) -> impl IntoResponse {
-        println!("{:#?}", body.0);
-        ""
-        // game(app, cookies).await
+        action: axum::Form<Action>,
+    ) -> Response {
+        match game_action_opt(app, cookies, action).await {
+            Some(r) => r,
+            None => StatusCode::BAD_REQUEST.into_response(),
+        }
+    }
+
+    async fn game_action_opt(
+        app: State<AppState>,
+        cookies: PrivateCookieJar,
+        action: axum::Form<Action>,
+    ) -> Option<Response> {
+        let cookie = cookies.get("player_id")?;
+        let mut game = app.game.lock().unwrap();
+        let mut game = game.as_mut()?;
+
+        let active_player = game.active_player()?;
+        if cookie.value() != active_player.id {
+            return None;
+        }
+
+        action.0.perform(&mut game);
+        app.connections
+            .lock()
+            .unwrap()
+            .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
+        Some(StatusCode::OK.into_response())
     }
 }
 
