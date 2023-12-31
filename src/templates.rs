@@ -31,7 +31,10 @@ pub struct GameTemplate<'a> {
 }
 
 impl<'a> GameTemplate<'a> {
-    pub fn render<'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<Html<String>> {
+    pub fn render<'b>(
+        game: &'a Game,
+        player_id: Option<&'b str>,
+    ) -> axum::response::Result<Html<String>> {
         let def = game::Player::default();
         let player = player_id
             .and_then(|id| game.players.iter().find(|p| p.id == id))
@@ -54,8 +57,7 @@ impl<'a> GameTemplate<'a> {
                 game::Turn::Call(_) => GamePhase::Call,
             },
         }
-        .render()
-        .ok()?;
+        .render()?;
 
         Some(Html(rendered))
     }

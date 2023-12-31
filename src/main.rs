@@ -119,7 +119,7 @@ mod handlers {
     use crate::AppState;
     use askama::Template;
     use axum::extract::State;
-    use axum::response::{Html, Redirect, Response};
+    use axum::response::{Html, Redirect};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::actions::Action;
@@ -129,6 +129,7 @@ mod handlers {
     use serde::Deserialize;
     use std::mem;
     use uuid::Uuid;
+    type Response = axum::response::Result<axum::response::Response>;
 
     #[cfg(debug_assertions)]
     pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
@@ -229,19 +230,15 @@ mod handlers {
 
         StatusCode::BAD_REQUEST.into_response()
     }
-
-    fn game_response(app: State<AppState>, cookies: PrivateCookieJar) -> Option<Html<String>> {
+    pub async fn game(app: State<AppState>, cookies: PrivateCookieJar) -> Response {
         let cookie = cookies.get("player_id");
-        let id = cookie.as_ref().map(|c| c.value());
+        let id = cookie.as_ref().ok_or("missing cookie")?;
         let game = app.game.lock().unwrap();
-        let game = game.as_ref()?;
-        GameTemplate::render(game, id)
-    }
-
-    pub async fn game(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
-        game_response(app, cookies).map_or(Redirect::to("/lobby").into_response(), |html| {
-            html.into_response()
-        })
+        let game = game.as_ref();
+        if let Some(game) = game.as_ref() {
+            GameTemplate::render(game, id)
+        }
+        return Redirect::to("/lobby").into_response();
     }
 
     pub async fn ws(
@@ -294,7 +291,9 @@ mod handlers {
 
         let active_player = game.active_player().ok_or("no active player")?;
         if cookie.value() != active_player.id {
-            return Err("not your turn".into());
+            return Err(
+                format!("{}'s turn; not yours {}", active_player.id, cookie.value()).into(),
+            );
         }
 
         action.0.perform(&mut game);
