@@ -8,7 +8,8 @@ use serde::Deserialize;
 #[serde(tag = "action")]
 pub enum Action {
     // Draft Phase
-    Draft { role: RoleName },
+    DraftPick { role: RoleName },
+    DraftDiscard { role: RoleName },
     // Role Call
     GainGold,
     GainCard,
@@ -42,7 +43,7 @@ pub type Result = std::result::Result<(), Error>;
 impl Action {
     pub fn perform(self, game: &mut Game) -> Option<()> {
         match self {
-            Action::Draft { role } => {
+            Action::DraftPick { role } => {
                 let player_id = game.active_turn.draft()?;
                 let p = game.players.iter_mut().find(|p| p.id == *player_id)?;
 
@@ -53,6 +54,15 @@ impl Action {
                 p.roles.push(role);
                 Some(())
             }
+
+            Action::DraftDiscard { role } => {
+                let i = (0..game.draft.remaining.len())
+                    .find(|i| game.draft.remaining[*i].name == role)?;
+
+                game.draft.remaining.remove(i);
+                Some(())
+            }
+
             _ => {
                 todo!("action is not implemented");
             }
