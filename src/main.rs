@@ -287,25 +287,14 @@ mod handlers {
         app: State<AppState>,
         cookies: PrivateCookieJar,
         action: axum::Form<Action>,
-    ) -> Response {
-        match game_action_opt(app, cookies, action).await {
-            Some(r) => r,
-            None => StatusCode::BAD_REQUEST.into_response(),
-        }
-    }
-
-    async fn game_action_opt(
-        app: State<AppState>,
-        cookies: PrivateCookieJar,
-        action: axum::Form<Action>,
-    ) -> Option<Response> {
-        let cookie = cookies.get("player_id")?;
+    ) -> axum::response::Result<Response> {
+        let cookie = cookies.get("player_id").ok_or("missing cookie")?;
         let mut game = app.game.lock().unwrap();
-        let mut game = game.as_mut()?;
+        let mut game = game.as_mut().ok_or("game hasn't started")?;
 
-        let active_player = game.active_player()?;
+        let active_player = game.active_player().ok_or("no active player")?;
         if cookie.value() != active_player.id {
-            return None;
+            return Err("not your turn".into());
         }
 
         action.0.perform(&mut game);
@@ -313,7 +302,7 @@ mod handlers {
             .lock()
             .unwrap()
             .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
-        Some(StatusCode::OK.into_response())
+        Ok(StatusCode::OK.into_response())
     }
 }
 
