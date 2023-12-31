@@ -6,6 +6,7 @@ use crate::types::District;
 use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
+use std::collections::HashSet;
 
 use axum::response::Html;
 
@@ -22,6 +23,7 @@ pub struct GameTemplate<'a> {
     phase: GamePhase,
     draft: &'a [Character],
     draft_discard: &'a [Character],
+    enabled_actions: &'a HashSet<String>,
     characters: &'a [Character],
     players: &'a [PlayerInfo<'a>],
     active_player: Option<&'a game::Player>,
@@ -35,11 +37,15 @@ impl<'a> GameTemplate<'a> {
             .and_then(|id| game.players.iter().find(|p| p.id == id))
             .unwrap_or(&def);
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
+        let actions: HashSet<_> = vec!["DraftPick".to_owned(), "DraftDiscard".to_owned()]
+            .into_iter()
+            .collect();
         let rendered = GameTemplate {
             characters: &game.characters,
             draft: &game.draft.remaining,
             draft_discard: &game.draft.faceup_discard,
             players: &players,
+            enabled_actions: &actions,
             active_player: game.active_player(),
             my: &player,
             debug: cfg!(debug_assertions),

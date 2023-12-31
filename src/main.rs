@@ -51,6 +51,8 @@ impl AppState {
 
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
 
+        /*
+         * deal roles out randomly
         let mut cs: Vec<_> = citadels::data::characters::CHARACTERS.iter().collect();
         random::shuffle(&mut cs);
 
@@ -59,6 +61,7 @@ impl AppState {
             p.roles.push(cs.pop().unwrap().clone());
             p.roles.sort_by_key(|c| c.rank);
         }
+        */
 
         Some(game)
     }

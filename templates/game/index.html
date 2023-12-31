@@ -32,36 +32,6 @@
       </div>
     </div>
 
-    <form
-      id="actions"
-      class="p-2 bg-neutral-content flex flex-col gap-2 items-center border border-base-200"
-    >
-      {% match phase %} 
-        {% when Draft %}
-          <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
-          
-          <div class="flex flex-row flex-wrap gap-2">
-            {% set class = "tooltip-bottom" %} 
-            {% set input_type = "radio" %} 
-            {% for card in draft %} 
-              {% include "role.html" %}
-            {% endfor %}
-          </div>
-          <button 
-            class="btn btn-secondary"
-            hx-post="/game/action"
-            hx-swap="none"
-            name="action"
-            value="Draft"
-
-          >
-            Confirm
-          </button>
-
-        {% when Call %}
-          <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
-      {% endmatch %}
-    </form>
 
     <div
       id="city"
@@ -114,6 +84,53 @@
           {% endfor %}
       </div>
     </div>
+
+    <form
+      id="actions"
+      class="p-2 bg-neutral-content flex flex-col gap-2 items-center border border-base-200"
+    >
+      {% match phase %} 
+        {% when Draft %}
+          <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
+          <div class="flex flex-row flex-wrap gap-2">
+            {% set class = "tooltip-bottom" %} 
+            {% set input_type = "radio" %} 
+            {% for card in draft %} 
+              {% include "role.html" %}
+            {% endfor %}
+          </div>
+
+          <div class="flex flex-row gap-2">
+            {% if enabled_actions.contains("DraftPick") %}
+              <button 
+                class="btn btn-secondary"
+                hx-post="/game/action"
+                hx-swap="none"
+                name="action"
+                value="DraftPick"
+
+              >
+                Pick
+              </button>
+            {% endif %}
+            {% if true %}
+              <button 
+                class="btn btn-secondary"
+                hx-post="/game/action"
+                hx-swap="none"
+                name="action"
+                value="DraftDiscard"
+
+              >
+                Discard
+              </button>
+            {% endif %}
+        {% when Call %}
+          <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
+      {% endmatch %}
+    </form>
+
   </div>
+
 </main>
 {% endblock %}
