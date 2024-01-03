@@ -57,9 +57,10 @@ impl<'a> GameTemplate<'a> {
                 game::Turn::Call(_) => GamePhase::Call,
             },
         }
-        .render()?;
+        .render()
+        .map_err(|e| format!("askama error: {}", e))?;
 
-        Some(Html(rendered))
+        Ok(Html(rendered))
     }
 }
 
