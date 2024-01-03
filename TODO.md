@@ -43,6 +43,7 @@
     - [x] Impersonation
     - [x] refactor impersonate route
     - [x] indicate impersonated character
+    - [x] Dev feature is independent of debug_assertions
 
 - [ ] Left Sidebar Roles & Round Log 
     - [x] Tooltip to the right for each

@@ -22,3 +22,16 @@ tower = "0.4.13"
 tower-http = { version = "0.5.0", features = ["fs", "trace"] }
 uuid = { version = "1.6.1", features = ["v4"] }
 macros = { path = "./macros"}
+
+[features]
+default = ["dev"]
+dev = []
+
+# https://old.reddit.com/r/rust/comments/gvrgca/this_is_a_neat_trick_for_getting_good_runtime/
+[profile.dev.package."*"]
+# Set the default for dependencies in Development mode.
+opt-level = 3
+
+[profile.dev]
+# Turn on a small amount of optimisation in Development mode.
+opt-level = 1

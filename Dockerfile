@@ -8,6 +8,8 @@ WORKDIR /app
 RUN echo "fn main() {}" > dummy.rs
 COPY .cargo/ .cargo/
 COPY vendor/ vendor/
+COPY macros/ macros/
+COPY macros-impl/ macros-impl/
 COPY Cargo.toml Cargo.lock .
 
 RUN sed -i 's#src/main.rs#dummy.rs#' Cargo.toml
@@ -16,7 +18,8 @@ RUN sed -i 's#dummy.rs#src/main.rs#' Cargo.toml
 COPY .env .env
 COPY templates/ templates/
 COPY src/ src/
-RUN cargo build --release
+RUN cargo build --release --features=dev
+# RUN cargo build --release --no-default-features
 
 # new layer for smaller image
 FROM debian:buster-slim as runner

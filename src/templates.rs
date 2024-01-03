@@ -53,7 +53,7 @@ impl<'a> GameTemplate<'a> {
             enabled_actions: &actions,
             active_player: game.active_player(),
             my: &player,
-            debug: cfg!(debug_assertions),
+            debug: cfg!(feature = "dev"),
             phase: match game.active_turn {
                 game::Turn::Draft(_) => GamePhase::Draft,
                 game::Turn::Call(_) => GamePhase::Call,

@@ -48,7 +48,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "dev")]
     pub fn default_game() -> Option<Game> {
         use citadels::random;
 
@@ -69,7 +69,7 @@ impl AppState {
         Some(game)
     }
 
-    #[cfg(not(debug_assertions))]
+    #[cfg(not(feature = "dev"))]
     pub fn default_game() -> Option<Game> {
         None
     }
@@ -133,7 +133,7 @@ mod handlers {
     use std::mem;
     use uuid::Uuid;
 
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "dev")]
     pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
         (
             cookies.add(Cookie::new("player_id", "Alph")),
@@ -141,7 +141,7 @@ mod handlers {
         )
     }
 
-    #[cfg(not(debug_assertions))]
+    #[cfg(not(feature = "dev"))]
     pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
         Redirect::to("/lobby")
     }
@@ -267,7 +267,7 @@ mod handlers {
         player_id: String,
     }
 
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "dev")]
     pub async fn game_impersonate(
         app: State<AppState>,
         cookies: PrivateCookieJar,
@@ -277,11 +277,11 @@ mod handlers {
         game(app, cookies).await
     }
 
-    #[cfg(not(debug_assertions))]
+    #[cfg(not(feature = "dev"))]
     pub async fn game_impersonate(
-        app: state<appstate>,
-        cookies: privatecookiejar,
-        path: path<string>,
+        _app: State<AppState>,
+        _cookies: PrivateCookieJar,
+        _path: axum::extract::Path<String>,
     ) -> impl IntoResponse {
         StatusCode::NOT_FOUND
     }

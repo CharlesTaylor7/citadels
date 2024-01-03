@@ -11,5 +11,5 @@ procs:
     autostart: false
 
   Deploy:
-    shell: fly deploy --remote-only --strategy=immediate
+    shell: fly deploy --local-only --strategy=immediate
     autostart: false

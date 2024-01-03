@@ -1,6 +1,7 @@
+#![allow(dead_code)]
 use crate::tag::*;
 
-#[derive(Tag, Clone)]
+#[derive(Tag)]
 pub enum WebEvent {
     OnLoad,
     Scroll(f64),
@@ -14,4 +15,9 @@ pub fn demo(event: WebEvent) {
         WebEventTag::Click => 3,
     };
     println!("{}", n);
+
+    //let args = ClickArgs { x: 3, y: 3 };
+
+    //use crate::singletons::*;
+    //let foo: Click;
 }
