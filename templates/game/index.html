@@ -101,7 +101,7 @@
           </div>
 
           <div class="flex flex-row gap-2">
-            {% if enabled_actions.contains("DraftPick") %}
+            {% if enabled_actions.contains("DraftPick".to_owned().borrow()) %}
               <button 
                 class="btn btn-secondary"
                 hx-post="/game/action"

@@ -21,4 +21,4 @@ tokio-stream = "0.1.14"
 tower = "0.4.13"
 tower-http = { version = "0.5.0", features = ["fs", "trace"] }
 uuid = { version = "1.6.1", features = ["v4"] }
-
+macros = { path = "./macros"}
