@@ -1,2 +1,2 @@
 pub mod tag;
-pub mod tag_demo;
+mod tag_demo;

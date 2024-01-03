@@ -15,17 +15,6 @@
         init
           if tooltip == 'immediate' add .tooltip
         end
-
-        on click 
-          call me.querySelector('input')
-          set input to the result
-
-          if input's @checked
-            remove @checked from input
-          else 
-            add @checked="true" to input
-          end
-        end
         
         on mouseleave
           if tooltip == 'debounce'

@@ -232,6 +232,7 @@ mod handlers {
 
         StatusCode::BAD_REQUEST.into_response()
     }
+
     pub async fn game(
         app: State<AppState>,
         cookies: PrivateCookieJar,
@@ -296,19 +297,21 @@ mod handlers {
         let mut game = game.as_mut().ok_or("game hasn't started")?;
 
         let active_player = game.active_player().ok_or("no active player")?;
-        if cookie.value() != active_player.id {
-            return Err(
-                format!("{}'s turn; not yours {}", active_player.id, cookie.value()).into(),
-            );
+
+        if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
+            return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
         }
 
-        action.0.perform(&mut game);
-        app.connections
-            .lock()
-            .unwrap()
-            .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
-
-        Ok(StatusCode::OK.into_response())
+        match action.0.perform(&mut game) {
+            Ok(()) => {
+                app.connections
+                    .lock()
+                    .unwrap()
+                    .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
+                Ok(StatusCode::OK.into_response())
+            }
+            Err(error) => Err((StatusCode::BAD_REQUEST, error).into()),
+        }
     }
 }
 
@@ -334,36 +337,29 @@ pub mod ws {
             .insert(player_id, chan_sender);
 
         while let Some(Ok(msg)) = ws_recv.next().await {
-            if process_message(msg).is_break() {
+            if process_message(msg).is_err() {
                 break;
             }
         }
     }
 
-    fn process_message(msg: Message) -> ControlFlow<(), ()> {
+    fn process_message(msg: Message) -> Result<(), ()> {
         match msg {
             Message::Text(t) => {
-                println!(">>> sent str: {t:?}");
+                println!("WS - client sent str: {t:?}");
             }
             Message::Binary(d) => {
-                println!(">>> sent {} bytes: {:?}", d.len(), d);
+                println!("WS - client sent {} bytes: {:?}", d.len(), d);
             }
-            Message::Close(c) => {
-                if let Some(cf) = c {
-                    println!(
-                        ">>> sent close with code {} and reason `{}`",
-                        cf.code, cf.reason
-                    );
-                } else {
-                    println!(">>> sent close message without CloseFrame");
-                }
-                return ControlFlow::Break(());
+            Message::Close(_) => {
+                println!("WS - closed connection");
+                return Err(());
             }
 
-            // axum's automatically replies to ping
+            // axum automatically replies to ping
             Message::Ping(_) => {}
             Message::Pong(_) => {}
         }
-        ControlFlow::Continue(())
+        Ok(())
     }
 }

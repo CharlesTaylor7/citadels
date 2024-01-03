@@ -2,9 +2,10 @@ use crate::{
     game::{Game, Player, Turn},
     types::RoleName,
 };
+use macros::tag::Tag;
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Tag, Debug)]
 #[serde(tag = "action")]
 pub enum Action {
     // Draft Phase
@@ -34,33 +35,36 @@ pub enum Action {
 
 use std;
 
-pub struct Error {
-    pub msg: &'static str,
-}
-
-pub type Result = std::result::Result<(), Error>;
+pub type Result<T> = std::result::Result<T, &'static str>;
 
 impl Action {
-    pub fn perform(self, game: &mut Game) -> Option<()> {
+    // TODO: convert to result
+    pub fn perform(self, game: &mut Game) -> Result<()> {
         match self {
             Action::DraftPick { role } => {
-                let player_id = game.active_turn.draft()?;
-                let p = game.players.iter_mut().find(|p| p.id == *player_id)?;
+                let player_id = game.active_turn.draft().ok_or("not the draft phase")?;
+                let p = game
+                    .players
+                    .iter_mut()
+                    .find(|p| p.id == player_id)
+                    .ok_or("player does not exist")?;
 
                 let i = (0..game.draft.remaining.len())
-                    .find(|i| game.draft.remaining[*i].name == role)?;
+                    .find(|i| game.draft.remaining[*i].name == role)
+                    .ok_or("selected role is not available")?;
 
                 let role = game.draft.remaining.remove(i);
                 p.roles.push(role);
-                Some(())
+                Ok(())
             }
 
             Action::DraftDiscard { role } => {
                 let i = (0..game.draft.remaining.len())
-                    .find(|i| game.draft.remaining[*i].name == role)?;
+                    .find(|i| game.draft.remaining[*i].name == role)
+                    .ok_or("selected role is not available")?;
 
                 game.draft.remaining.remove(i);
-                Some(())
+                Ok(())
             }
 
             _ => {

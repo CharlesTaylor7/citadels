@@ -28,7 +28,7 @@
     - [x] shuffle districts
     - [x] collect character cards
     - [x] Deal initial hands and gold
-- [ ] Use Result instead of Options
+- [x] Use Result instead of Options
 - [ ] Role Draft phase
 - [ ] Role Call phase
 - [ ] Allow spectators, instead of bouncing people back to the lobby
@@ -38,7 +38,7 @@
 - [x] Character Card template
     - [x] change rank background to something that doesn't conflict with a suit. Maybe orange?
     - [x] card rank background if its affiliated with a suit.
-
+- [ ] Action button enabled only when a card is selected
 - [ ] Debug Utilities
     - [x] Impersonation
     - [x] refactor impersonate route

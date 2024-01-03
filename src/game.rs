@@ -1,9 +1,11 @@
 use crate::{
+    actions::Action,
     data::{self},
     lobby::{self, Lobby},
     random,
     types::{Character, District, Rank},
 };
+use macros::tag::Tag;
 use rand::prelude::*;
 
 type PlayerId = String;
@@ -119,6 +121,19 @@ pub struct Draft {
     pub faceup_discard: Vec<Character>,
 }
 
+#[derive(Default)]
+pub struct Logs {
+    pub turn: Vec<ActionLog>,
+    pub round: Vec<ActionLog>,
+    pub game: Vec<ActionLog>,
+}
+
+pub struct ActionLog {
+    actor: PlayerId,
+    action: Action,
+    display: String,
+}
+
 pub struct Game {
     pub deck: Deck<District>,
     pub players: Vec<Player>,
@@ -126,6 +141,7 @@ pub struct Game {
     pub crowned: PlayerId,
     pub active_turn: Turn,
     pub draft: Draft,
+    pub logs: Logs,
 }
 
 impl Game {
@@ -184,6 +200,7 @@ impl Game {
             draft: Draft::default(),
             deck: Deck::new(deck),
             active_turn: Turn::Draft(String::with_capacity(0)),
+            logs: Logs::default(),
         };
         game.begin_draft();
         game

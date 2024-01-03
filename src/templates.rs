@@ -1,4 +1,6 @@
 #![allow(unused_imports, dead_code)]
+use crate::actions::ActionTag;
+use crate::actions::ActionTag::*;
 use crate::game::Game;
 use crate::game::PlayerInfo;
 use crate::game::Turn;
@@ -25,7 +27,7 @@ pub struct GameTemplate<'a> {
     phase: GamePhase,
     draft: &'a [Character],
     draft_discard: &'a [Character],
-    enabled_actions: &'a [String],
+    enabled_actions: &'a [ActionTag],
     //a str],
     characters: &'a [Character],
     players: &'a [PlayerInfo<'a>],
@@ -43,7 +45,7 @@ impl<'a> GameTemplate<'a> {
             .and_then(|id| game.players.iter().find(|p| p.id == id))
             .unwrap_or(&def);
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
-        let actions = vec!["DraftPick".to_owned(), "DraftDiscard".to_owned()];
+        let actions = vec![DraftPick, DraftDiscard];
         // &HashSet::new(), // &actions,
         let rendered = GameTemplate {
             characters: &game.characters,

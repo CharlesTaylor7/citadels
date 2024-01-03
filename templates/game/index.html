@@ -88,6 +88,14 @@
     <form
       id="actions"
       class="p-2 bg-neutral-content flex flex-col gap-2 items-center border border-base-200"
+      _="
+        on click 
+          call document.querySelectorAll('button:disabled')
+          set btns to the result
+          for btn in btns
+            remove @disabled from btn
+          end
+      "
     >
       {% match phase %} 
         {% when Draft %}
@@ -101,26 +109,27 @@
           </div>
 
           <div class="flex flex-row gap-2">
-            {% if enabled_actions.contains("DraftPick".to_owned().borrow()) %}
+            {% if enabled_actions.contains(DraftPick.borrow()) %}
               <button 
                 class="btn btn-secondary"
+                disabled
                 hx-post="/game/action"
                 hx-swap="none"
                 name="action"
-                value="DraftPick"
+                value={{ DraftPick }}
 
               >
                 Pick
               </button>
             {% endif %}
-            {% if true %}
+            {% if enabled_actions.contains(DraftDiscard.borrow()) %}
               <button 
                 class="btn bg-suit-military"
+                disabled
                 hx-post="/game/action"
                 hx-swap="none"
                 name="action"
-                value="DraftDiscard"
-
+                value={{ DraftDiscard }}
               >
                 Discard
               </button>

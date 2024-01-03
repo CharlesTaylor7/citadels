@@ -53,6 +53,12 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
         #vis enum #tag_enum_name {
             #( #tags, )*
         }
+        impl std::fmt::Display for #tag_enum_name {
+             fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "{:#?}", self)
+            }
+        }
+
         impl Tag for #enum_name {
             type Tag = #tag_enum_name;
             fn tag(&self) -> Self::Tag {
