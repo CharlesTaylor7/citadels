@@ -1,16 +1,12 @@
-#![allow(unused_imports, dead_code)]
 use crate::actions::ActionTag;
 use crate::actions::ActionTag::*;
 use crate::game::Game;
 use crate::game::PlayerInfo;
-use crate::game::Turn;
 use crate::types::Character;
-use crate::types::District;
 use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
 use std::borrow::Borrow;
-use std::collections::HashSet;
 
 use axum::response::Html;
 
@@ -27,11 +23,10 @@ pub struct GameTemplate<'a> {
     phase: GamePhase,
     draft: &'a [Character],
     draft_discard: &'a [Character],
-    enabled_actions: &'a [ActionTag],
-    //a str],
+    allowed_actions: &'a [ActionTag],
     characters: &'a [Character],
     players: &'a [PlayerInfo<'a>],
-    active_player: Option<&'a game::Player>,
+    active_id: Option<&'a str>,
     my: &'a game::Player,
 }
 
@@ -45,16 +40,14 @@ impl<'a> GameTemplate<'a> {
             .and_then(|id| game.players.iter().find(|p| p.id == id))
             .unwrap_or(&def);
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
-        let actions = vec![DraftPick, DraftDiscard];
-        // &HashSet::new(), // &actions,
         let rendered = GameTemplate {
-            characters: &game.characters,
-            draft: &game.draft.remaining,
-            draft_discard: &game.draft.faceup_discard,
-            players: &players,
-            enabled_actions: &actions,
-            active_player: game.active_player(),
-            my: &player,
+            characters: game.characters.borrow(),
+            draft: game.draft.remaining.borrow(),
+            draft_discard: game.draft.faceup_discard.borrow(),
+            players: players.borrow(),
+            allowed_actions: game.allowed_actions().borrow(),
+            active_id: game.active_player().map(|p| p.id.borrow()),
+            my: player.borrow(),
             debug: cfg!(feature = "dev"),
             phase: match game.active_turn {
                 game::Turn::Draft(_) => GamePhase::Draft,

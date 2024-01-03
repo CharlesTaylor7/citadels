@@ -2,6 +2,8 @@ use std::fmt;
 
 use serde::Deserialize;
 
+use crate::{actions::ActionTag, roles::RoleName};
+
 #[derive(Clone, Debug)]
 pub struct District {
     pub display_name: &'static str,
@@ -39,25 +41,7 @@ pub struct Character {
     pub set: CardSet,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
-}
-
-#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize)]
-pub enum RoleName {
-    Assassin,
-    Thief,
-    Magician,
-    King,
-    Bishop,
-    Merchant,
-    Architect,
-    Warlord,
-    Artist,
-}
-
-impl fmt::Display for RoleName {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:#?}", self)
-    }
+    pub actions: &'static [(usize, ActionTag)],
 }
 
 #[derive(Debug, Clone, Copy)]

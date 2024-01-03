@@ -109,7 +109,7 @@
           </div>
 
           <div class="flex flex-row gap-2">
-            {% if enabled_actions.contains(DraftPick.borrow()) %}
+            {% if allowed_actions.contains(DraftPick.borrow()) %}
               <button 
                 class="btn btn-secondary"
                 disabled
@@ -122,7 +122,7 @@
                 Pick
               </button>
             {% endif %}
-            {% if enabled_actions.contains(DraftDiscard.borrow()) %}
+            {% if allowed_actions.contains(DraftDiscard.borrow()) %}
               <button 
                 class="btn bg-suit-military"
                 disabled

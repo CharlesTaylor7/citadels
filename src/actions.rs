@@ -1,7 +1,5 @@
-use crate::{
-    game::{Game, Player, Turn},
-    types::RoleName,
-};
+use crate::game::{Game, Player, Turn};
+use crate::roles::RoleName;
 use macros::tag::Tag;
 use serde::Deserialize;
 
@@ -13,24 +11,24 @@ pub enum Action {
     DraftDiscard { role: RoleName },
     // Role Call
     GainGold,
-    GainCard,
+    GainCards,
     Build { district: String },
     //    character actions
-    //    Assassinate,
-    //    ThiefSteal,
-    //    MagicianSwapWithPlayer,
+    Assassinate,
+    ThiefSteal,
+    MagicianSwapWithPlayer,
     //    // two parts, but maybe some hyperscript?
     //    // We don't need to round trip if they select deck. They just pick the cards.
     //    // ooh, we could
-    //    MagicianSwapWithDeck,
-    //    KingGainGold,
-    //    BishopGain,
-    //    MerchantGainOne,
-    //    MerchantGainGold,
-    //    // architect enables extra builds, but doesn't have any optional activated abilities
-    //    WarlordDestroy,
-    //    WarlordGainGold,
-    //    ArtistBeautify,
+    MagicianSwapWithDeck,
+    KingGainGold,
+    BishopGainGold,
+    MerchantGainOne,
+    MerchantGainGold,
+    ArchitectGainCards,
+    WarlordDestroy,
+    WarlordGainGold,
+    ArtistBeautify,
 }
 
 use std;

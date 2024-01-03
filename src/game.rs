@@ -1,8 +1,11 @@
+use std::collections::HashSet;
+
 use crate::{
-    actions::Action,
+    actions::{Action, ActionTag},
     data::{self},
     lobby::{self, Lobby},
     random,
+    roles::RoleName,
     types::{Character, District, Rank},
 };
 use macros::tag::Tag;
@@ -253,6 +256,72 @@ impl Game {
                 .iter_mut()
                 .find(|p| p.roles.iter().any(|role| role.rank == *rank)),
         }
+    }
+
+    pub fn active_perform_count(&self, tag: ActionTag) -> usize {
+        self.logs
+            .turn
+            .iter()
+            .filter(|log| log.action.tag() == ActionTag::DraftPick)
+            .count()
+    }
+
+    pub fn allowed_actions(&self) -> Vec<ActionTag> {
+        let mut actions = Vec::new();
+        match self.active_turn {
+            Turn::Draft(_) => {
+                if self.active_perform_count(ActionTag::DraftPick) == 0 {
+                    actions.push(ActionTag::DraftPick)
+                }
+                if self.players.len() == 2
+                    && self.active_perform_count(ActionTag::DraftDiscard) == 0
+                {
+                    actions.push(ActionTag::DraftDiscard)
+                }
+            }
+
+            Turn::Call(rank) => {
+                let mut actions = Vec::new();
+                if self.logs.turn.iter().all(|log| {
+                    log.action.tag() != ActionTag::GainCards
+                        && log.action.tag() != ActionTag::GainGold
+                }) {
+                    actions.push(ActionTag::GainGold);
+                    actions.push(ActionTag::GainCards);
+                } else {
+                    match self.characters[rank as usize - 1].name {
+                        RoleName::Assassin => {
+                            todo!()
+                        }
+                        RoleName::Thief => {
+                            todo!()
+                        }
+                        RoleName::Magician => {
+                            todo!()
+                        }
+                        RoleName::King => {
+                            todo!()
+                        }
+                        RoleName::Bishop => {
+                            todo!()
+                        }
+                        RoleName::Merchant => {
+                            todo!()
+                        }
+                        RoleName::Architect => {
+                            todo!()
+                        }
+                        RoleName::Artist => {
+                            todo!()
+                        }
+                        RoleName::Warlord => {
+                            todo!()
+                        }
+                    }
+                }
+            }
+        }
+        actions
     }
 }
 
