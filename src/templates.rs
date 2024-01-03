@@ -24,6 +24,7 @@ pub struct GameTemplate<'a> {
     draft: &'a [Character],
     draft_discard: &'a [Character],
     enabled_actions: &'a HashSet<String>,
+    // String]
     characters: &'a [Character],
     players: &'a [PlayerInfo<'a>],
     active_player: Option<&'a game::Player>,
@@ -40,15 +41,13 @@ impl<'a> GameTemplate<'a> {
             .and_then(|id| game.players.iter().find(|p| p.id == id))
             .unwrap_or(&def);
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
-        let actions: HashSet<_> = vec!["DraftPick".to_owned(), "DraftDiscard".to_owned()]
-            .into_iter()
-            .collect();
+        let actions = vec!["DraftPick".to_owned(), "DraftDiscard".to_owned()];
         let rendered = GameTemplate {
             characters: &game.characters,
             draft: &game.draft.remaining,
             draft_discard: &game.draft.faceup_discard,
             players: &players,
-            enabled_actions: &actions,
+            enabled_actions: &HashSet::new(), // &actions,
             active_player: game.active_player(),
             my: &player,
             debug: cfg!(debug_assertions),

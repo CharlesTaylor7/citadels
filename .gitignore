@@ -1,4 +1,3 @@
 /target/
 /.env
 /vendor/
-/.cargo/

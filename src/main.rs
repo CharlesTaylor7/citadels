@@ -1,6 +1,6 @@
 use axum::{
     extract::{ws::Message, FromRef},
-    response::Html,
+    response::{ErrorResponse, Html},
     routing::{get, post},
     Error, Router,
 };
@@ -24,13 +24,16 @@ impl Connections {
 
     pub fn broadcast_each<'a, F>(&'a mut self, to_html: F)
     where
-        F: Fn(&'a str) -> Option<Html<String>>,
+        F: Fn(&'a str) -> Result<Html<String>, ErrorResponse>,
     {
-        self.0.iter_mut().for_each(|(key, ws)| {
-            if let Some(html) = to_html(key) {
-                let _ = ws.send(Ok(Message::Text(html.0.clone())));
+        for (key, ws) in self.0.iter_mut() {
+            match to_html(key) {
+                Ok(html) => {
+                    let _ = ws.send(Ok(Message::Text(html.0.clone())));
+                }
+                Err(e) => println!("{:#?}", e),
             }
-        });
+        }
     }
 }
 pub enum AppError {
@@ -119,7 +122,7 @@ mod handlers {
     use crate::AppState;
     use askama::Template;
     use axum::extract::State;
-    use axum::response::{Html, Redirect};
+    use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::actions::Action;
@@ -129,7 +132,6 @@ mod handlers {
     use serde::Deserialize;
     use std::mem;
     use uuid::Uuid;
-    type Response = axum::response::Result<axum::response::Response>;
 
     #[cfg(debug_assertions)]
     pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
@@ -230,15 +232,19 @@ mod handlers {
 
         StatusCode::BAD_REQUEST.into_response()
     }
-    pub async fn game(app: State<AppState>, cookies: PrivateCookieJar) -> Response {
+    pub async fn game(
+        app: State<AppState>,
+        cookies: PrivateCookieJar,
+    ) -> Result<Html<String>, ErrorResponse> {
         let cookie = cookies.get("player_id");
-        let id = cookie.as_ref().ok_or("missing cookie")?;
+        let id = cookie.as_ref().map(|c| c.value());
         let game = app.game.lock().unwrap();
         let game = game.as_ref();
         if let Some(game) = game.as_ref() {
             GameTemplate::render(game, id)
+        } else {
+            Err(ErrorResponse::from(Redirect::to("/lobby")))
         }
-        return Redirect::to("/lobby").into_response();
     }
 
     pub async fn ws(
@@ -284,7 +290,7 @@ mod handlers {
         app: State<AppState>,
         cookies: PrivateCookieJar,
         action: axum::Form<Action>,
-    ) -> axum::response::Result<Response> {
+    ) -> Result<Response> {
         let cookie = cookies.get("player_id").ok_or("missing cookie")?;
         let mut game = app.game.lock().unwrap();
         let mut game = game.as_mut().ok_or("game hasn't started")?;
@@ -301,6 +307,7 @@ mod handlers {
             .lock()
             .unwrap()
             .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
+
         Ok(StatusCode::OK.into_response())
     }
 }
