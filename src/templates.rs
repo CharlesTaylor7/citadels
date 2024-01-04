@@ -12,7 +12,7 @@ use log::*;
 use std::borrow::Borrow;
 use std::ops::Deref;
 
-#[derive(Eq, PartialEq, Clone, Copy)]
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum GamePhase {
     Draft,
     Call,
@@ -105,8 +105,13 @@ pub struct LobbyPlayersTemplate<'a> {
 }
 
 mod filters {
+    use std::fmt::{format, Debug};
+
     use crate::types::CardSuit;
 
+    pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
+        Ok(format!("{:#?}", item))
+    }
     pub fn suit_bg_character(suit: &Option<CardSuit>) -> askama::Result<&'static str> {
         match suit.as_ref() {
             Some(suit) => suit_bg_color(suit),
