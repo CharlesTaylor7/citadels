@@ -37,7 +37,7 @@ pub const CHARACTERS: [Character; 9] =
     , set: Base
     , suit: Some(Royal)
     , name: King
-    , actions: &[(1, KingGainGold)]
+    , actions: &[(1, GoldFromNobility)]
     , description: "Take the crown. Gain 1 gold for each of your NOBLE districts."
     }
   , Character 
@@ -45,7 +45,7 @@ pub const CHARACTERS: [Character; 9] =
     , set: Base
     , suit: Some(Religious)
     , name: Bishop
-    , actions: &[(1, BishopGainGold)]
+    , actions: &[(1, GoldFromReligion)]
     , description: "The Warlord/Marshall/Diplomat cannot uses its ability on your districts. Gain 1 gold for each of your RELIGIOUS districts."
     }
   , Character 
@@ -53,7 +53,7 @@ pub const CHARACTERS: [Character; 9] =
     , set: Base
     , suit: Some(Trade)
     , name: Merchant
-    , actions: &[(1, MerchantGainOne), (1, MerchantGainGold)]
+    , actions: &[(1, MerchantGainOne), (1, GoldFromTrade)]
     , description: "Gain 1 extra gold. Gain 1 gold for each of your TRADE districts."
     }
   , Character 
@@ -69,7 +69,7 @@ pub const CHARACTERS: [Character; 9] =
     , set: Base
     , suit: Some(Military)
     , name: Warlord
-    , actions: &[(1, WarlordGainGold), (1, WarlordDestroy)]
+    , actions: &[(1, GoldFromMilitary), (1, WarlordDestroy)]
     , description: "Destroy 1 district by paying 1 fewer gold than its cost. Gain 1 gold for each of your MILITARY districts."
     }
   , Character 

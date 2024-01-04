@@ -16,17 +16,20 @@ pub enum Action {
     // Happens automatically when no actions are left.
     // Turn can end early if requested
     EndTurn,
-    //    character actions
+
+    // gold for district suits
+    GoldFromNobility,
+    GoldFromReligion,
+    GoldFromTrade,
+    GoldFromMilitary,
+
+    // character specific actions
     Assassinate,
     ThiefSteal,
     MagicianSwap(MagicianAction),
-    KingGainGold,
-    BishopGainGold,
     MerchantGainOne,
-    MerchantGainGold,
     ArchitectGainCards,
     WarlordDestroy,
-    WarlordGainGold,
     ArtistBeautify,
 }
 
