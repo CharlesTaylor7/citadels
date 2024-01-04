@@ -6,6 +6,7 @@ use crate::types::Character;
 use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
+use log::*;
 use std::borrow::Borrow;
 
 use axum::response::Html;
@@ -35,9 +36,12 @@ impl<'a> GameTemplate<'a> {
         game: &'a Game,
         player_id: Option<&'b str>,
     ) -> axum::response::Result<Html<String>> {
+        info!("{:#?}", game);
+
         let active_player = game.active_player();
         let def = game::Player::default();
-        let player = my_perspective(game, player_id).unwrap_or(&def);
+        let player = my_perspective(game, player_id);
+        let player = player.unwrap_or(&def);
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
         let rendered = GameTemplate {
             characters: game.characters.borrow(),

@@ -6,6 +6,7 @@ use crate::{
     roles::RoleName,
     types::{Character, District, Rank},
 };
+use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
 use std::{borrow::Borrow, fmt::Debug};
@@ -199,13 +200,18 @@ pub struct Game {
     pub deck: Deck<District>,
     pub players: Vec<Player>,
     pub characters: Vec<Character>,
-    pub crowned: PlayerId,
+    pub crowned: String,
     pub active_turn: Turn,
     pub draft: Draft,
     pub logs: Logs,
 }
 
 impl Game {
+    pub fn active_role(&self) -> Option<&Character> {
+        let rank = self.active_turn.call()?;
+        self.characters.iter().find(|c| c.rank == *rank)
+    }
+
     pub fn start(lobby: Lobby) -> Game {
         let Lobby { mut players } = lobby;
 
@@ -218,7 +224,7 @@ impl Game {
             .map(|lobby::Player { id, name }| Player::new(id, name))
             .collect();
 
-        let crowned = players[0].id.clone();
+        let crowned = players[0].name.clone();
 
         let mut unique_districts: Vec<District> = data::districts::UNIQUE.into_iter().collect();
         random::shuffle(&mut unique_districts);
@@ -300,7 +306,7 @@ impl Game {
 
     pub fn active_player(&self) -> Option<&Player> {
         match &self.active_turn {
-            Turn::Draft(id) => self.players.iter().find(move |p| p.id == *id),
+            Turn::Draft(name) => self.players.iter().find(move |p| p.name == *name),
             Turn::Call(rank) => self
                 .players
                 .iter()
@@ -381,20 +387,35 @@ impl Game {
 
         if tag == ActionTag::EndTurn || self.allowed_actions().is_empty() {
             self.end_turn()?;
+            self.start_turn()?;
         }
 
         Ok(())
     }
-    // TODO: convert to result
+
+    fn start_turn(&mut self) -> Result<()> {
+        loop {
+            if let Some(role) = self.active_role() {
+                if self.active_player().is_none() {
+                    info!("{} was called; but no one responded", role.name);
+                    self.end_turn()?;
+                } else {
+                    break;
+                }
+            }
+        }
+        Ok(())
+    }
+
     #[must_use]
     fn perform_action(&mut self, action: &Action) -> Result<()> {
         match action {
             Action::DraftPick { role } => {
-                let player_id = self.active_turn.draft().ok_or("not the draft phase")?;
+                let name = self.active_turn.draft().ok_or("not the draft phase")?;
                 let p = self
                     .players
                     .iter_mut()
-                    .find(|p| p.id == player_id)
+                    .find(|p| p.name == name)
                     .ok_or("player does not exist")?;
 
                 let i = (0..self.draft.remaining.len())
@@ -413,6 +434,12 @@ impl Game {
                 self.draft.remaining.remove(i);
             }
 
+            Action::EndTurn => {
+                self.active_turn.call().ok_or("not the call phase")?;
+
+                // this is handled later after the action is appended to the log
+            }
+
             _ => {
                 todo!("action is not implemented");
             }
@@ -426,7 +453,7 @@ impl Game {
         self.logs.game.append(&mut self.logs.turn);
 
         match std::mem::take(&mut self.active_turn) {
-            Turn::Draft(id) => {
+            Turn::Draft(name) => {
                 // advance turn
                 let role_count = if self.players.len() <= 3 { 2 } else { 1 };
                 self.active_turn = if self.players.iter().all(|p| p.roles.len() == role_count) {
@@ -436,7 +463,7 @@ impl Game {
                         .players
                         .iter()
                         .enumerate()
-                        .find_map(|(i, p)| if p.id == *id { Some(i) } else { None })
+                        .find_map(|(i, p)| if p.name == *name { Some(i) } else { None })
                         .ok_or("impossible: draft player does not exist")?;
                     let next = (index + 1) % self.players.len();
                     Turn::Draft(self.players[next].id.clone())
@@ -465,7 +492,11 @@ impl Game {
                 }
             }
             Turn::Call(rank) => {
-                todo!("end call turn")
+                self.active_turn = if rank > self.characters.last().unwrap().rank {
+                    Turn::Draft(self.crowned.clone())
+                } else {
+                    Turn::Call(rank + 1)
+                };
             }
         }
         Ok(())

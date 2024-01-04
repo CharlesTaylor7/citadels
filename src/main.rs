@@ -7,6 +7,7 @@ use axum::{
 use axum_extra::extract::cookie;
 use citadels::{game::Game, lobby::Lobby};
 use load_dotenv::load_dotenv;
+use log::*;
 use std::collections::hash_map::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::{self, sync::mpsc};
@@ -31,7 +32,7 @@ impl Connections {
                 Ok(html) => {
                     let _ = ws.send(Ok(Message::Text(html.0.clone())));
                 }
-                Err(e) => println!("{:#?}", e),
+                Err(e) => debug!("{:#?}", e),
             }
         }
     }
@@ -93,10 +94,12 @@ impl FromRef<AppState> for cookie::Key {
 
 #[tokio::main]
 async fn main() {
+    citadels::logger::init();
+
     let port = "0.0.0.0:8080";
     let listener = tokio::net::TcpListener::bind(port).await.unwrap();
 
-    println!("\nListening on port: {}", port);
+    info!("Listening on port: {}", port);
     axum::serve(listener, get_router()).await.unwrap();
 }
 
@@ -143,6 +146,7 @@ mod handlers {
     use citadels::game::Game;
     use citadels::templates::*;
     use http::StatusCode;
+    use log::*;
     use serde::Deserialize;
     use std::mem;
     use uuid::Uuid;
@@ -284,9 +288,9 @@ mod handlers {
 
         match game.perform(action.0) {
             Ok(()) => {
-                println!("{:#?}", game.draft);
-                println!("{:#?}", game.logs);
-                println!("{:#?}", game.active_turn);
+                debug!("{:#?}", game.draft);
+                debug!("{:#?}", game.logs);
+                debug!("{:#?}", game.active_turn);
                 app.connections
                     .lock()
                     .unwrap()
@@ -332,6 +336,7 @@ pub mod ws {
     use axum::extract::ws::{Message, WebSocket};
     use axum::extract::State;
     use futures::stream::StreamExt;
+    use log::*;
     use tokio::sync::mpsc::{self};
     use tokio_stream::wrappers::UnboundedReceiverStream;
 
@@ -357,13 +362,13 @@ pub mod ws {
     fn process_message(msg: Message) -> Result<(), ()> {
         match msg {
             Message::Text(t) => {
-                println!("WS - client sent str: {t:?}");
+                debug!("WS - client sent str: {t:?}");
             }
             Message::Binary(d) => {
-                println!("WS - client sent {} bytes: {:?}", d.len(), d);
+                debug!("WS - client sent {} bytes: {:?}", d.len(), d);
             }
             Message::Close(_) => {
-                println!("WS - closed connection");
+                debug!("WS - closed connection");
                 return Err(());
             }
 

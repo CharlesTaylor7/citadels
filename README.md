@@ -10,6 +10,21 @@ For deployments:
 fly deploy --local-only
 ```
 
+## Logging
+
+The logger offers five levels:
+    - error
+    - warn
+    - info
+    - debug
+    - trace
+
+This is excessive, and I will try to stick to 3:
+    - error
+    - debug
+    - info
+
+
 ### Installing deps
 
 
