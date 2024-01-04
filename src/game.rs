@@ -32,26 +32,9 @@ impl Display for PlayerName {
     }
 }
 
-impl PartialEq<Option<&PlayerName>> for &PlayerName {
-    fn eq(&self, other: &Option<&PlayerName>) -> bool {
-        Some(self) == other.as_ref()
-    }
-}
-
-impl PartialEq<&str> for &PlayerName {
-    fn eq(&self, other: &&str) -> bool {
-        self.0 == *other
-    }
-}
-impl PartialEq<Option<&str>> for &PlayerName {
-    fn eq(&self, other: &Option<&str>) -> bool {
-        Some(self.0.borrow()) == other.as_ref().copied()
-    }
-}
-
-impl Borrow<str> for PlayerName {
-    fn borrow(&self) -> &str {
-        self.0.borrow()
+impl PartialEq<PlayerName> for &PlayerName {
+    fn eq(&self, other: &PlayerName) -> bool {
+        self.0.eq(&other.0)
     }
 }
 
@@ -67,7 +50,7 @@ pub struct Player {
 
 // Just the public info
 pub struct PlayerInfo<'a> {
-    pub name: &'a str,
+    pub name: &'a PlayerName,
     pub gold: usize,
     pub hand_size: usize,
     pub city: &'a [District],

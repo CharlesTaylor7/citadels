@@ -7,7 +7,7 @@
       class="min-w-72 p-2 p-2 bg-neutral-content border border-base-200 flex flex-col items-center"
     >
       <h2 class="underline text-lg font-semibold">Players</h2>
-      { if dev_mode && my.name != active_name }
+      {% if dev_mode && my.name.borrow() != active_name %}
       <button
         class="btn btn-secondary h-8 min-h-8 animate-none m-2 "
         hx-swap="morph"
@@ -17,7 +17,7 @@
       >
         Follow Active
       </button>
-      { endif }
+      {% endif %}
       <div class="flex flex-col gap-2">
         {% for player in players %}
         <div
@@ -30,7 +30,7 @@
           id="player-{{ player.name }}"
         >
           {{ player.name }} 
-          { if dev_mode && my.name != player.name }
+          {% if dev_mode && my.name.borrow() != player.name %}
               <button
                 class="btn btn-accent h-8 min-h-8 animate-none"
                 hx-swap="morph"
@@ -41,7 +41,7 @@
               >
                 Impersonate
               </button>
-          { endif }
+          {% endif %}
         </div>
         {% endfor %}
       </div>
@@ -116,7 +116,7 @@
       {% match phase %} 
         {% when Draft %}
           <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
-          { if active_name == my.name }
+          {% if active_name == my.name %}
           <div class="flex flex-row flex-wrap gap-2">
             {% set class = "tooltip-bottom" %} 
             {% set input_type = "radio" %} 
@@ -152,7 +152,7 @@
               </button>
             {% endif %}
 
-        { endif }
+        {% endif %}
         {% when Call %}
           <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
       {% endmatch %}

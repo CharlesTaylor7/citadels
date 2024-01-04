@@ -7,10 +7,10 @@ use crate::types::Role;
 use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
+use axum::response::Html;
 use log::*;
 use std::borrow::Borrow;
-
-use axum::response::Html;
+use std::ops::Deref;
 
 #[derive(Eq, PartialEq, Clone, Copy)]
 pub enum GamePhase {
@@ -28,7 +28,7 @@ pub struct GameTemplate<'a> {
     allowed_actions: &'a [ActionTag],
     characters: &'a [&'static Role],
     players: &'a [PlayerInfo<'a>],
-    active_name: Option<&'a PlayerName>,
+    active_name: &'a PlayerName,
     my: &'a game::Player,
 }
 
@@ -41,7 +41,9 @@ impl<'a> GameTemplate<'a> {
         let def = game::Player::default();
         let player = my_perspective(game, player_id);
         let player = player.unwrap_or(&def);
+
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
+
         let rendered = GameTemplate {
             characters: &game.characters,
             draft: game
@@ -60,7 +62,7 @@ impl<'a> GameTemplate<'a> {
                 .borrow(),
             players: players.borrow(),
             allowed_actions: game.allowed_actions().borrow(),
-            active_name: active_player.map(|p| p.name.borrow()),
+            active_name: active_player.map_or(def.name.borrow(), |p| p.name.borrow()),
             my: player.borrow(),
             dev_mode: cfg!(feature = "dev"),
             phase: match game.active_turn {
