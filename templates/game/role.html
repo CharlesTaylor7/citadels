@@ -1,6 +1,5 @@
 <label
   class="
-    tooltip
     h-32 w-32 
     p-1 rounded-lg 
     bg-base-300 
@@ -16,11 +15,10 @@
     {{ class }}
   "
   data-tip="{{ card.description }}"
-  _="install DebounceTooltip"
 >
   <div
     class="h-8 w-8 leaded flex flex-row justify-center items-center text-secondary-content rounded-full {{ card.suit|suit_bg_character }}
-   "
+    "
   >
     {{ card.rank }}
   </div>
