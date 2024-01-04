@@ -289,6 +289,9 @@ impl Game {
                     actions.push(ActionTag::GainCards);
                 } else {
                     let role = self.characters[rank as usize - 1].borrow();
+                    if self.active_perform_count(ActionTag::Build) < role.name.build_limit() {
+                        actions.push(ActionTag::Build)
+                    }
                     for (n, action) in role.actions {
                         if self.active_perform_count(*action) < *n {
                             actions.push(*action)

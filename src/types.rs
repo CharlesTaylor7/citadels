@@ -1,7 +1,5 @@
 use std::fmt;
 
-use serde::Deserialize;
-
 use crate::{actions::ActionTag, roles::RoleName};
 
 #[derive(Clone, Debug)]

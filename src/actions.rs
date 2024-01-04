@@ -13,6 +13,9 @@ pub enum Action {
     GainGold,
     GainCards,
     Build { district: String },
+    // Happens automatically when no actions are left.
+    // Turn can end early if requested
+    EndTurn,
     //    character actions
     Assassinate,
     ThiefSteal,
