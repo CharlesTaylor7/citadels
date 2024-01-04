@@ -34,6 +34,9 @@
     - [x] collect character cards
     - [x] Deal initial hands and gold
 - [x] Use Result instead of Options
+- [ ] I should be able to replay a game from the logs.
+    - [ ] I will need to replace the cryptographic rng, with a deterministic prng instead
+    - [ ] https://docs.rs/rand_xoshiro/latest/rand_xoshiro/struct.Xoshiro256PlusPlus.html
 
 - [ ] Highlight active player
 - [ ] Role Draft phase

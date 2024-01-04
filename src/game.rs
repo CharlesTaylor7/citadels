@@ -8,7 +8,7 @@ use crate::{
 };
 use macros::tag::Tag;
 use rand::prelude::*;
-use std::borrow::Borrow;
+use std::{borrow::Borrow, fmt::Debug};
 
 type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
@@ -63,6 +63,12 @@ impl Player {
 pub struct Deck<T> {
     deck: Vec<T>,
     discard: Vec<T>,
+}
+
+impl<T> std::fmt::Debug for Deck<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Deck ({})", self.size())
+    }
 }
 impl<T> Deck<T> {
     pub fn size(&self) -> usize {
@@ -126,6 +132,15 @@ pub struct Draft {
     pub initial_discard: Option<Character>,
     pub faceup_discard: Vec<Character>,
 }
+impl Debug for Draft {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "remaining: {:#?}",
+            self.remaining.iter().map(|c| c.name).collect::<Vec<_>>()
+        )
+    }
+}
 
 #[derive(Default, Debug)]
 pub struct Logs {
@@ -177,6 +192,7 @@ impl std::fmt::Debug for ActionLog {
     }
 }
 
+#[derive(Debug)]
 pub struct Game {
     #[cfg(feature = "dev")]
     pub impersonate: Option<String>,
@@ -425,7 +441,6 @@ impl Game {
                     let next = (index + 1) % self.players.len();
                     Turn::Draft(self.players[next].id.clone())
                 };
-                println!("{:#?}", self.active_turn);
 
                 // for the 3 player game with 9 characters
                 // after the first round of cards are selected,

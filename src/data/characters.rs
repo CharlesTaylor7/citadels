@@ -21,7 +21,7 @@ pub const CHARACTERS: [Character; 9] =
     , set: Base
     , suit: None
     , name: Thief
-    , actions: &[(1, ThiefSteal)]
+    , actions: &[(1, Steal)]
     , description: "Call a character you wish to rob. When the robbed character is revealed you take all their gold."
     }
   , Character 
@@ -53,7 +53,7 @@ pub const CHARACTERS: [Character; 9] =
     , set: Base
     , suit: Some(Trade)
     , name: Merchant
-    , actions: &[(1, MerchantGainOne), (1, GoldFromTrade)]
+    , actions: &[(1, MerchantGainOneGold), (1, GoldFromTrade)]
     , description: "Gain 1 extra gold. Gain 1 gold for each of your TRADE districts."
     }
   , Character 

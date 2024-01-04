@@ -292,8 +292,9 @@ mod handlers {
 
         match game.perform(action.0) {
             Ok(()) => {
-                println!("turn: {:#?}", game.logs);
-                println!("next player: {:#?}", game.active_player().map(|p| &p.name));
+                println!("{:#?}", game.draft);
+                println!("{:#?}", game.logs);
+                println!("{:#?}", game.active_turn);
                 app.connections
                     .lock()
                     .unwrap()

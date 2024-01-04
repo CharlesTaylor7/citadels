@@ -25,9 +25,9 @@ pub enum Action {
 
     // character specific actions
     Assassinate,
-    ThiefSteal,
+    Steal,
     MagicianSwap(MagicianAction),
-    MerchantGainOne,
+    MerchantGainOneGold,
     ArchitectGainCards,
     WarlordDestroy,
     ArtistBeautify,
