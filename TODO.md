@@ -23,13 +23,22 @@
 
 
 ## TODO
+- [ ] Lobby
+    - [x] html escape names. Askama does this by default.
+    - Enforce unique names in a game
+    - Trim spaces around a name before storing.
+    - Impose username character limit
 - [x] Game Setup
     - [x] shuffle seating order
     - [x] shuffle districts
     - [x] collect character cards
     - [x] Deal initial hands and gold
 - [x] Use Result instead of Options
+
+- [ ] Highlight active player
 - [ ] Role Draft phase
+    - [ ] Change active player after pick
+    - [ ] Add a discarded card back to pool for final pick.
 - [ ] Role Call phase
 - [ ] Allow spectators, instead of bouncing people back to the lobby
 - [x] Show each player their hand

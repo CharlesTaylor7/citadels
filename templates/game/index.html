@@ -10,11 +10,16 @@
       <div class="flex flex-col gap-2">
         {% for player in players %}
         <div
-          class="flex flex-row justify-between items-center gap-2"
+          class="
+            flex flex-row justify-between items-center gap-2
+            {% if active_id == Some(player.id) %}
+            underline
+            {% endif %}
+          "
           id="{{ player.id }}"
         >
           {{ player.name }} 
-          {% if debug && my.id != player.id %}
+          {% if dev_mode && my.id != player.id %}
             <form>
               <button
                 class="btn btn-accent h-8 min-h-8 animate-none"

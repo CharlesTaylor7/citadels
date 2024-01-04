@@ -19,7 +19,7 @@ pub enum GamePhase {
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
-    debug: bool,
+    dev_mode: bool,
     phase: GamePhase,
     draft: &'a [Character],
     draft_discard: &'a [Character],
@@ -35,7 +35,11 @@ impl<'a> GameTemplate<'a> {
         game: &'a Game,
         player_id: Option<&'b str>,
     ) -> axum::response::Result<Html<String>> {
+        let active_id = game.active_player().map(|p| p.id.borrow());
+        let dev_mode = cfg!(feature = "dev");
         let def = game::Player::default();
+        let player_id = if dev_mode { active_id } else { player_id };
+
         let player = player_id
             .and_then(|id| game.players.iter().find(|p| p.id == id))
             .unwrap_or(&def);
@@ -46,9 +50,9 @@ impl<'a> GameTemplate<'a> {
             draft_discard: game.draft.faceup_discard.borrow(),
             players: players.borrow(),
             allowed_actions: game.allowed_actions().borrow(),
-            active_id: game.active_player().map(|p| p.id.borrow()),
+            active_id,
             my: player.borrow(),
-            debug: cfg!(feature = "dev"),
+            dev_mode,
             phase: match game.active_turn {
                 game::Turn::Draft(_) => GamePhase::Draft,
                 game::Turn::Call(_) => GamePhase::Call,
