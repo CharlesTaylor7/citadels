@@ -18,7 +18,7 @@
       end
     </script>
     <script>
-      Idiomorph.defaults.head = 'none'
+      Idiomorph.defaults.head = 'none';
       document.addEventListener("htmx:wsAfterMessage", (event) => {
         let node = event.detail.elt.querySelector("[data-replace-url]");
         let url = node.dataset.replaceUrl;

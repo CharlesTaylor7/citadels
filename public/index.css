@@ -1815,6 +1815,10 @@ html {
   min-width: 18rem;
 }
 
+.grow {
+  flex-grow: 1;
+}
+
 .animate-none {
   animation: none;
 }
@@ -1867,6 +1871,10 @@ html {
 
 .gap-3 {
   gap: 0.75rem;
+}
+
+.overflow-scroll {
+  overflow: scroll;
 }
 
 .rounded {

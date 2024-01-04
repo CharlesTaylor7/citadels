@@ -45,7 +45,8 @@
 - [ ] Unique Districts (only 14 of the easiest)
 
 ## UI
-- [ ] Flex row of flex columns instead of grid layout
+- [x] Flex row of flex columns instead of grid layout
+- [ ] Rethink daisyui theme. Maybe something more blue than beige.
 - [ ] Round Log 
     - [x] Tooltip to the right for each role
     - [ ] Collapsible section of the actions taken

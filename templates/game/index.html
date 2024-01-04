@@ -1,7 +1,123 @@
 {% extends "base.html" %} 
 {% block content %}
-<main id="main" data-replace-url="/game" data-theme="retro">
-  <div id="game-layout" class="h-screen">
+<main 
+  id="main" 
+  data-replace-url="/game" 
+  data-theme="retro"
+  class="
+    h-screen
+    flex flex-row
+  "
+>
+    <div
+      id="roles"
+      class="min-w-72 p-2 bg-neutral-content flex flex-col items-center border border-base-200"
+    >
+      <h2 class="m-2 underline text-lg font-semibold">Roles</h2>
+
+      <div class="flex flex-col gap-2">
+        <div class="italic text-sm">Hover over a role for details</div>
+        {% for card in characters %}
+          <div
+            class="text-left tooltip tooltip-right cursor-pointer"
+            data-tip="{{ card.description }}"
+          >
+            {{ card.rank }}. {{ card.name }}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <section
+      id="main-panel"
+      class="grow flex flex-col"
+    >
+      <form
+        id="actions"
+        class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
+        _="
+          on click 
+            call document.querySelectorAll('button:disabled')
+            set btns to the result
+            for btn in btns
+              remove @disabled from btn
+            end
+        "
+      >
+        {% match phase %} 
+        {% when Draft %}
+        <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
+        {% if active_name == my.name %}
+        <div class="flex flex-row flex-wrap gap-2">
+          {% set class = "tooltip-bottom" %} 
+          {% set input_type = "radio" %} 
+          {% for card in draft %} 
+            {% include "role.html" %}
+          {% endfor %}
+        </div>
+
+        <div class="flex flex-row gap-2">
+          {% if allowed_actions.contains(DraftPick.borrow()) %}
+            <button 
+              class="btn btn-secondary"
+              disabled
+              hx-post="/game/action"
+              hx-swap="none"
+              name="action"
+              value={{ DraftPick }}
+            >
+              Pick
+            </button>
+          {% endif %}
+          {% if allowed_actions.contains(DraftDiscard.borrow()) %}
+            <button 
+              class="btn bg-suit-military"
+              disabled
+              hx-post="/game/action"
+              hx-swap="none"
+              name="action"
+              value={{ DraftDiscard }}
+            >
+              Discard
+            </button>
+          {% endif %}
+        </div>
+
+        {% endif %}
+        {% when Call %}
+          <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
+        {% endmatch %}
+      </form>
+      <div
+        id="city"
+        class="p-2 bg-neutral-content grow flex flex-col items-center border border-base-200"
+      >
+        <h2 class="m-2 underline text-lg font-semibold">City</h2>
+      </div>
+
+
+      <div
+        id="hand"
+        class="p-2 bg-neutral-content grow flex flex-col items-start border border-base-200"
+      >
+        <h2 class="m-2 underline m-2 text-lg font-semibold w-full text-center">
+          Hand
+        </h2>
+        <div class="flex flex-row flex-wrap gap-2">
+          {% set class = "tooltip-top" %}
+          {% set input_type = "" %}
+            {% for card in my.roles %} 
+              {% include "role.html" %} 
+            {% endfor %} 
+            {% let input_type = "checkbox" %}
+            {% for card in my.hand %} 
+              {% include "district.html" %} 
+            {% endfor %}
+        </div>
+      </div>
+
+    </section>
+
     <div
       id="players"
       class="min-w-72 p-2 p-2 bg-neutral-content border border-base-200 flex flex-col items-center"
@@ -46,110 +162,5 @@
         {% endfor %}
       </div>
     </div>
-
-
-    <div
-      id="city"
-      class="p-2 bg-neutral-content flex flex-col items-center border border-base-200"
-    >
-      <h2 class="m-2 underline text-lg font-semibold">City</h2>
-    </div>
-
-    <div
-      id="roles"
-      class="min-w-72 p-2 bg-neutral-content flex flex-col items-center border border-base-200"
-    >
-      <h2 class="m-2 underline text-lg font-semibold">Roles</h2>
-
-      <div class="flex flex-col gap-2">
-        <div class="italic text-sm">Hover over a role for details</div>
-        {% for card in characters %}
-          <div
-            class="text-left tooltip tooltip-right cursor-pointer"
-            data-tip="{{ card.description }}"
-          >
-            {{ card.rank }}. {{ card.name }}
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div
-      id="hand"
-      class="p-2 bg-neutral-content flex flex-col items-start border border-base-200"
-    >
-      <h2 class="m-2 underline m-2 text-lg font-semibold w-full text-center">
-        Hand
-      </h2>
-      <div class="flex flex-row flex-wrap gap-2">
-        {% set class = "tooltip-top" %}
-        {% set input_type = "" %}
-          {% for card in my.roles %} 
-            {% include "role.html" %} 
-          {% endfor %} 
-          {% let input_type = "checkbox" %}
-          {% for card in my.hand %} 
-            {% include "district.html" %} 
-          {% endfor %}
-      </div>
-    </div>
-
-    <form
-      id="actions"
-      class="p-2 bg-neutral-content flex flex-col gap-2 items-center border border-base-200"
-      _="
-        on click 
-          call document.querySelectorAll('button:disabled')
-          set btns to the result
-          for btn in btns
-            remove @disabled from btn
-          end
-      "
-    >
-      {% match phase %} 
-      {% when Draft %}
-      <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
-      {% if active_name == my.name %}
-      <div class="flex flex-row flex-wrap gap-2">
-        {% set class = "tooltip-bottom" %} 
-        {% set input_type = "radio" %} 
-        {% for card in draft %} 
-          {% include "role.html" %}
-        {% endfor %}
-      </div>
-
-      <div class="flex flex-row gap-2">
-        {% if allowed_actions.contains(DraftPick.borrow()) %}
-          <button 
-            class="btn btn-secondary"
-            disabled
-            hx-post="/game/action"
-            hx-swap="none"
-            name="action"
-            value={{ DraftPick }}
-          >
-            Pick
-          </button>
-        {% endif %}
-        {% if allowed_actions.contains(DraftDiscard.borrow()) %}
-          <button 
-            class="btn bg-suit-military"
-            disabled
-            hx-post="/game/action"
-            hx-swap="none"
-            name="action"
-            value={{ DraftDiscard }}
-          >
-            Discard
-          </button>
-        {% endif %}
-      </div>
-
-      {% endif %}
-      {% when Call %}
-        <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
-      {% endmatch %}
-    </form>
-  </div>
 </main>
 {% endblock %}
