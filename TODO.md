@@ -1,10 +1,3 @@
- Just build the thing. 
- I can performance tune later.
- I can harden security later.
- I can oxidize the project later.
- I can switch to jinja templates later.
- I can abandon the project altogether if its too distracting.
-
  ## MVP Features
  - all 54 basic districts
  - only 14 of the 30 unique districts
@@ -19,51 +12,26 @@
 - 1 active game room, and 1 active game
 - WS setup end 2 end with Rust axum, and htmx
 - Card data entry for mvp
-
-
+- Game Setup
+- Core action system and game flow 
+- UI for District Cards
+- UI for Characters
+- Allow spectators, instead of bouncing people back to the lobby
+- Impersonation
 
 ## TODO
 - [ ] Lobby
     - [x] html escape names. Askama does this by default.
-    - Enforce unique names in a game
-    - Trim spaces around a name before storing.
-    - Impose username character limit
-- [x] Game Setup
-    - [x] shuffle seating order
-    - [x] shuffle districts
-    - [x] collect character cards
-    - [x] Deal initial hands and gold
-- [x] Use Result instead of Options
+    - [ ] Enforce unique names in a game
+    - [ ] Trim spaces around a name before storing.
+    - [ ] Impose username character limit
+
 - [ ] Action logs
-    - [x] Deterministic rng:
-        https://docs.rs/rand_xoshiro/latest/rand_xoshiro/struct.Xoshiro256PlusPlus.html
+    - [x] Deterministic rng
     - [ ] Write to file
     - [ ] Restore from file
 
-- [x] Highlight active player
-- [x] Role Draft phase
-    - [x] Change active player after pick
-    - [x] Add a discarded card back to pool for final pick.
-
 - [ ] Role Call phase
-- [x] Allow spectators, instead of bouncing people back to the lobby
-- [x] Show each player their hand
-- [x] District Card template
-    - [x] change cost background to match suit
-- [x] Character Card template
-    - [x] change rank background to something that doesn't conflict with a suit. Maybe orange?
-    - [x] card rank background if its affiliated with a suit.
-- [x] Action button enabled only when a card is selected
-- [ ] Debug Utilities
-    - [x] Impersonation
-    - [x] refactor impersonate route
-    - [x] indicate impersonated character
-    - [x] Dev feature is independent of debug_assertions
-
-- [ ] Left Sidebar Roles & Round Log 
-    - [x] Tooltip to the right for each
-    - [ ] Collapsible section of the actions taken
-
 - [ ] Characters (only these 9)
     - [ ] Assassin
     - [ ] Thief
@@ -75,3 +43,24 @@
     - [ ] Warlord
     - [ ] Artist
 - [ ] Unique Districts (only 14 of the easiest)
+
+## UI
+- [ ] Flex row of flex columns instead of grid layout
+- [ ] Round Log 
+    - [x] Tooltip to the right for each role
+    - [ ] Collapsible section of the actions taken
+
+- [ ] Roles
+    - [ ] Unmask player as turn proceeds
+    - [ ] Markers:
+        - Killed
+        - Stolen
+
+- [ ] Player resource summary
+    - Highlight active player
+    - hand size
+    - gold
+    - city size
+    - markers: 
+        - Crown
+    - revealed roles

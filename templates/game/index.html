@@ -23,9 +23,9 @@
         <div
           class="
             flex flex-row justify-between items-center gap-2
-            { % if active_name == player.name %}
+            {% if active_name == player.name %}
             underline
-            { % endif %}
+            {% endif %}
           "
           id="player-{{ player.name }}"
         >
@@ -75,13 +75,6 @@
     </div>
 
     <div
-      id="resources"
-      class="p-2 bg-neutral-content flex flex-col items-center border border-base-200"
-    >
-      <h2 class="m-2 underline text-lg font-semibold">Resources</h2>
-    </div>
-
-    <div
       id="hand"
       class="p-2 bg-neutral-content flex flex-col items-start border border-base-200"
     >
@@ -113,7 +106,6 @@
           end
       "
     >
-      {{ phase|debug }}
       {% match phase %} 
       {% when Draft %}
       <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
