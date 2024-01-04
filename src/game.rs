@@ -16,7 +16,7 @@ use std::{
 type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Player {
     pub id: PlayerId,
     pub name: String,
@@ -28,7 +28,6 @@ pub struct Player {
 
 // Just the public info
 pub struct PlayerInfo<'a> {
-    pub id: &'a str,
     pub name: &'a str,
     pub gold: usize,
     pub hand_size: usize,
@@ -57,7 +56,6 @@ impl Player {
             ..
         } = self;
         PlayerInfo {
-            id,
             name,
             gold: *gold,
             hand_size: hand.len(),
@@ -133,19 +131,22 @@ pub struct Draft {
     pub faceup_discard: Vec<Character>,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Logs {
     pub turn: Vec<Action>,
     pub round: Vec<ActionLog>,
     pub game: Vec<ActionLog>,
 }
 
+#[derive(Debug)]
 pub struct ActionLog {
-    actor: PlayerId,
+    actor: String, // name
     action: Action,
 }
 
 pub struct Game {
+    #[cfg(feature = "dev")]
+    pub impersonate: Option<String>,
     pub deck: Deck<District>,
     pub players: Vec<Player>,
     pub characters: Vec<Character>,
@@ -205,6 +206,8 @@ impl Game {
             .collect::<Vec<_>>();
 
         let mut game = Game {
+            #[cfg(feature = "dev")]
+            impersonate: None,
             players,
             crowned,
             characters,

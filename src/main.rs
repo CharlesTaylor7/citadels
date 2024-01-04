@@ -133,16 +133,7 @@ mod handlers {
     use std::mem;
     use uuid::Uuid;
 
-    #[cfg(feature = "dev")]
-    pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
-        (
-            cookies.add(Cookie::new("player_id", "Alph")),
-            Redirect::to("/lobby"),
-        )
-    }
-
-    #[cfg(not(feature = "dev"))]
-    pub async fn index(cookies: PrivateCookieJar) -> impl IntoResponse {
+    pub async fn index() -> impl IntoResponse {
         Redirect::to("/lobby")
     }
 
@@ -263,9 +254,10 @@ mod handlers {
         }
     }
 
+    #[cfg(feature = "dev")]
     #[derive(Deserialize)]
     pub struct Impersonate {
-        player_id: String,
+        name: String,
     }
 
     #[cfg(feature = "dev")]
@@ -274,16 +266,14 @@ mod handlers {
         cookies: PrivateCookieJar,
         body: axum::Form<Impersonate>,
     ) -> impl IntoResponse {
-        let cookies = cookies.add(Cookie::new("player_id", body.player_id.clone()));
+        if let Some(g) = app.game.lock().unwrap().as_mut() {
+            g.impersonate = Some(body.0.name);
+        }
         game(app, cookies).await
     }
 
     #[cfg(not(feature = "dev"))]
-    pub async fn game_impersonate(
-        _app: State<AppState>,
-        _cookies: PrivateCookieJar,
-        _path: axum::extract::Path<String>,
-    ) -> impl IntoResponse {
+    pub async fn game_impersonate() -> impl IntoResponse {
         StatusCode::NOT_FOUND
     }
 
@@ -304,6 +294,8 @@ mod handlers {
 
         match game.perform(action.0) {
             Ok(()) => {
+                println!("{:#?}", game.logs);
+                println!("{:#?}", game.active_player());
                 app.connections
                     .lock()
                     .unwrap()

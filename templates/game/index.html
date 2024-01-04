@@ -12,25 +12,24 @@
         <div
           class="
             flex flex-row justify-between items-center gap-2
-            {% if active_id == Some(player.id) %}
+            {% if active_name == Some(player.name) %}
             underline
             {% endif %}
           "
-          id="{{ player.id }}"
+          id="player-{{ player.name }}"
         >
           {{ player.name }} 
-          {% if dev_mode && my.id != player.id %}
-            <form>
+          {% if dev_mode && my.name != player.name %}
               <button
                 class="btn btn-accent h-8 min-h-8 animate-none"
                 hx-swap="morph"
                 hx-target="#main"
                 hx-post="/game/impersonate"
+                name="name"
+                value="{{ player.name }}" 
               >
                 Impersonate
               </button>
-              <input type="hidden" name="player_id" value="{{ player.id }}" />
-            </form>
           {% endif %}
         </div>
         {% endfor %}
@@ -106,7 +105,7 @@
       {% match phase %} 
         {% when Draft %}
           <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
-          {% if active_id == Some(my.id) %}
+          {% if active_name == Some(my.name) %}
           <div class="flex flex-row flex-wrap gap-2">
             {% set class = "tooltip-bottom" %} 
             {% set input_type = "radio" %} 

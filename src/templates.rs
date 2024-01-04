@@ -7,6 +7,7 @@ use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
 use std::borrow::Borrow;
+use std::borrow::BorrowMut;
 
 use axum::response::Html;
 
@@ -26,7 +27,7 @@ pub struct GameTemplate<'a> {
     allowed_actions: &'a [ActionTag],
     characters: &'a [Character],
     players: &'a [PlayerInfo<'a>],
-    active_id: Option<&'a str>,
+    active_name: Option<&'a str>,
     my: &'a game::Player,
 }
 
@@ -35,10 +36,14 @@ impl<'a> GameTemplate<'a> {
         game: &'a Game,
         player_id: Option<&'b str>,
     ) -> axum::response::Result<Html<String>> {
-        let active_id = game.active_player().map(|p| p.id.borrow());
+        let active_player = game.active_player();
         let dev_mode = cfg!(feature = "dev");
         let def = game::Player::default();
-        let player_id = if dev_mode { active_id } else { player_id };
+        let player_id = if dev_mode {
+            active_player.map(|p| p.id.borrow())
+        } else {
+            player_id
+        };
 
         let player = player_id
             .and_then(|id| game.players.iter().find(|p| p.id == id))
@@ -50,7 +55,7 @@ impl<'a> GameTemplate<'a> {
             draft_discard: game.draft.faceup_discard.borrow(),
             players: players.borrow(),
             allowed_actions: game.allowed_actions().borrow(),
-            active_id,
+            active_name: active_player.map(|p| p.name.borrow()),
             my: player.borrow(),
             dev_mode,
             phase: match game.active_turn {
