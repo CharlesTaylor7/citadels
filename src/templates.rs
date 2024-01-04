@@ -36,17 +36,8 @@ impl<'a> GameTemplate<'a> {
         player_id: Option<&'b str>,
     ) -> axum::response::Result<Html<String>> {
         let active_player = game.active_player();
-        let dev_mode = cfg!(feature = "dev");
         let def = game::Player::default();
-        let player_id = if dev_mode {
-            active_player.map(|p| p.id.borrow())
-        } else {
-            player_id
-        };
-
-        let player = player_id
-            .and_then(|id| game.players.iter().find(|p| p.id == id))
-            .unwrap_or(&def);
+        let player = my_perspective(game, player_id).unwrap_or(&def);
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
         let rendered = GameTemplate {
             characters: game.characters.borrow(),
@@ -56,7 +47,7 @@ impl<'a> GameTemplate<'a> {
             allowed_actions: game.allowed_actions().borrow(),
             active_name: active_player.map(|p| p.name.borrow()),
             my: player.borrow(),
-            dev_mode,
+            dev_mode: cfg!(feature = "dev"),
             phase: match game.active_turn {
                 game::Turn::Draft(_) => GamePhase::Draft,
                 game::Turn::Call(_) => GamePhase::Call,
@@ -67,6 +58,20 @@ impl<'a> GameTemplate<'a> {
 
         Ok(Html(rendered))
     }
+}
+
+#[cfg(feature = "dev")]
+fn my_perspective<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a game::Player> {
+    if let Some(name) = game.impersonate.borrow() {
+        game.players.iter().find(|p| p.name == *name)
+    } else {
+        game.active_player()
+    }
+}
+
+#[cfg(not(feature = "dev"))]
+fn my_perspective<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
+    player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
 }
 
 #[derive(Template)]

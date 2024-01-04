@@ -57,17 +57,6 @@ impl fmt::Display for CardSuit {
     }
 }
 
-/*
-#[derive(Debug)]
-pub enum CardSuit {
-    Military,  // Red
-    Trade,     // Green
-    Religious, // Blue
-    Noble,     // Yellow
-    Unique,    // Purple
-}
-*/
-
 #[derive(Debug, Clone, Copy)]
 pub enum CardSet {
     Base,

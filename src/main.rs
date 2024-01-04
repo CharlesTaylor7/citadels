@@ -50,7 +50,7 @@ pub struct AppState {
 impl AppState {
     #[cfg(feature = "dev")]
     pub fn default_game() -> Option<Game> {
-        let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
+        let game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
 
         /*
          * deal roles out randomly
@@ -103,17 +103,33 @@ async fn main() {
 fn get_router() -> Router {
     let context = AppState::default();
 
-    Router::new()
+    let router = Router::new()
         .route("/", get(handlers::index))
         .route("/lobby", get(handlers::lobby))
         .route("/register", post(handlers::register))
         .route("/ws", get(handlers::ws))
         .route("/game", get(handlers::game))
         .route("/game", post(handlers::start))
-        .route("/game/impersonate", post(handlers::game_impersonate))
-        .route("/game/action", post(handlers::game_action))
+        .route("/game/action", post(handlers::game_action));
+
+    extend_router(router)
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
+}
+
+#[cfg(feature = "dev")]
+fn extend_router(router: Router<AppState>) -> Router<AppState> {
+    router
+        .route("/game/impersonate", post(handlers::game_impersonate))
+        .route(
+            "/game/impersonate/active",
+            post(handlers::game_impersonate_active),
+        )
+}
+
+#[cfg(not(feature = "dev"))]
+fn extend_router(router: Router<AppState>) -> Router<AppState> {
+    router
 }
 
 mod handlers {
@@ -251,30 +267,6 @@ mod handlers {
             StatusCode::BAD_REQUEST.into_response()
         }
     }
-
-    #[cfg(feature = "dev")]
-    #[derive(Deserialize)]
-    pub struct Impersonate {
-        name: String,
-    }
-
-    #[cfg(feature = "dev")]
-    pub async fn game_impersonate(
-        app: State<AppState>,
-        cookies: PrivateCookieJar,
-        body: axum::Form<Impersonate>,
-    ) -> impl IntoResponse {
-        if let Some(g) = app.game.lock().unwrap().as_mut() {
-            g.impersonate = Some(body.0.name);
-        }
-        game(app, cookies).await
-    }
-
-    #[cfg(not(feature = "dev"))]
-    pub async fn game_impersonate() -> impl IntoResponse {
-        StatusCode::NOT_FOUND
-    }
-
     pub async fn game_action(
         app: State<AppState>,
         cookies: PrivateCookieJar,
@@ -303,6 +295,35 @@ mod handlers {
             }
             Err(error) => Err((StatusCode::BAD_REQUEST, error).into()),
         }
+    }
+
+    #[cfg(feature = "dev")]
+    #[derive(Deserialize)]
+    pub struct Impersonate {
+        name: String,
+    }
+
+    #[cfg(feature = "dev")]
+    pub async fn game_impersonate(
+        app: State<AppState>,
+        cookies: PrivateCookieJar,
+        body: axum::Form<Impersonate>,
+    ) -> impl IntoResponse {
+        if let Some(g) = app.game.lock().unwrap().as_mut() {
+            g.impersonate = Some(body.0.name);
+        }
+        game(app, cookies).await
+    }
+
+    #[cfg(feature = "dev")]
+    pub async fn game_impersonate_active(
+        app: State<AppState>,
+        cookies: PrivateCookieJar,
+    ) -> impl IntoResponse {
+        if let Some(g) = app.game.lock().unwrap().as_mut() {
+            g.impersonate = None;
+        }
+        game(app, cookies).await
     }
 }
 
