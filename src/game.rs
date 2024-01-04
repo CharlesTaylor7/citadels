@@ -8,10 +8,7 @@ use crate::{
 };
 use macros::tag::Tag;
 use rand::prelude::*;
-use std::{
-    borrow::{Borrow, BorrowMut},
-    ops::Deref,
-};
+use std::borrow::Borrow;
 
 type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
@@ -48,7 +45,6 @@ impl Player {
 
     pub fn info(&self) -> PlayerInfo<'_> {
         let Player {
-            id,
             name,
             gold,
             hand,
@@ -133,15 +129,52 @@ pub struct Draft {
 
 #[derive(Default, Debug)]
 pub struct Logs {
-    pub turn: Vec<Action>,
-    pub round: Vec<ActionLog>,
+    pub turn: Vec<ActionLog>,
     pub game: Vec<ActionLog>,
 }
 
-#[derive(Debug)]
 pub struct ActionLog {
-    actor: String, // name
+    player: String,
+    role: Option<RoleName>,
     action: Action,
+}
+
+impl ActionLog {
+    fn private(&self, f: &mut std::fmt::Formatter<'_>) -> Option<std::fmt::Result> {
+        match self.action {
+            Action::DraftPick { role } => Some(write!(f, "{} drafted {}", self.player, role)),
+            Action::DraftDiscard { role } => Some(write!(f, "{} discarded {}", self.player, role)),
+
+            _ => None,
+        }
+    }
+    fn public(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.action {
+            Action::DraftPick { .. } => {
+                write!(f, "{} drafted a card.", self.player)
+            }
+
+            Action::DraftDiscard { .. } => {
+                write!(f, "{} discarded a card.", self.player)
+            }
+
+            _ => {
+                todo!()
+            }
+        }
+    }
+}
+
+impl std::fmt::Display for ActionLog {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.public(f)
+    }
+}
+
+impl std::fmt::Debug for ActionLog {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.private(f).unwrap_or_else(|| self.public(f))
+    }
 }
 
 pub struct Game {
@@ -273,7 +306,7 @@ impl Game {
         self.logs
             .turn
             .iter()
-            .filter(|log| log.tag() == action)
+            .filter(|log| log.action.tag() == action)
             .count()
     }
 
@@ -294,7 +327,8 @@ impl Game {
             Turn::Call(rank) => {
                 let mut actions = Vec::new();
                 if self.logs.turn.iter().all(|log| {
-                    log.tag() != ActionTag::GainCards && log.tag() != ActionTag::GainGold
+                    log.action.tag() != ActionTag::GainCards
+                        && log.action.tag() != ActionTag::GainGold
                 }) {
                     actions.push(ActionTag::GainGold);
                     actions.push(ActionTag::GainCards);
@@ -318,10 +352,18 @@ impl Game {
     pub fn perform(&mut self, action: Action) -> Result<()> {
         self.perform_action(&action)?;
 
-        let end_turn = action.tag() == ActionTag::EndTurn || self.allowed_actions().is_empty();
-        self.logs.turn.push(action);
+        let tag = action.tag();
+        let player = self.active_player().ok_or("no active player")?;
+        self.logs.turn.push(ActionLog {
+            player: player.name.clone(),
+            role: self
+                .active_turn
+                .call()
+                .map(|rank| self.characters[*rank as usize - 1].name),
+            action,
+        });
 
-        if end_turn {
+        if tag == ActionTag::EndTurn || self.allowed_actions().is_empty() {
             self.end_turn()?;
         }
 
@@ -365,12 +407,7 @@ impl Game {
     #[must_use]
     fn end_turn(&mut self) -> Result<()> {
         // append logs
-        for action in std::mem::replace(&mut self.logs.turn, Vec::new()) {
-            self.logs.round.push(ActionLog {
-                actor: self.active_player().unwrap().name.clone(),
-                action,
-            });
-        }
+        self.logs.game.append(&mut self.logs.turn);
 
         match std::mem::take(&mut self.active_turn) {
             Turn::Draft(id) => {
@@ -388,6 +425,7 @@ impl Game {
                     let next = (index + 1) % self.players.len();
                     Turn::Draft(self.players[next].id.clone())
                 };
+                println!("{:#?}", self.active_turn);
 
                 // for the 3 player game with 9 characters
                 // after the first round of cards are selected,

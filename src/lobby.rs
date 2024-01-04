@@ -15,8 +15,9 @@ impl Lobby {
         Self {
             players: players
                 .into_iter()
-                .map(|p| Player {
-                    id: p.to_owned(),
+                .enumerate()
+                .map(|(i, p)| Player {
+                    id: format!("{}", i + 1),
                     name: p.to_owned(),
                 })
                 .collect(),

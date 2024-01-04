@@ -7,7 +7,6 @@ use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
 use std::borrow::Borrow;
-use std::borrow::BorrowMut;
 
 use axum::response::Html;
 

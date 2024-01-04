@@ -50,8 +50,6 @@ pub struct AppState {
 impl AppState {
     #[cfg(feature = "dev")]
     pub fn default_game() -> Option<Game> {
-        use citadels::random;
-
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
 
         /*
@@ -294,8 +292,8 @@ mod handlers {
 
         match game.perform(action.0) {
             Ok(()) => {
-                println!("{:#?}", game.logs);
-                println!("{:#?}", game.active_player());
+                println!("turn: {:#?}", game.logs);
+                println!("next player: {:#?}", game.active_player().map(|p| &p.name));
                 app.connections
                     .lock()
                     .unwrap()
