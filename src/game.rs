@@ -8,9 +8,13 @@ use crate::{
 };
 use macros::tag::Tag;
 use rand::prelude::*;
-use std::{borrow::Borrow, ops::Deref};
+use std::{
+    borrow::{Borrow, BorrowMut},
+    ops::Deref,
+};
 
 type PlayerId = String;
+pub type Result<T> = std::result::Result<T, &'static str>;
 
 #[derive(Default)]
 pub struct Player {
@@ -98,6 +102,12 @@ pub enum Turn {
     Call(Rank),
 }
 
+impl Default for Turn {
+    fn default() -> Self {
+        Turn::Call(0)
+    }
+}
+
 impl Turn {
     pub fn draft(&self) -> Option<&str> {
         if let Turn::Draft(player_id) = self {
@@ -125,7 +135,7 @@ pub struct Draft {
 
 #[derive(Default)]
 pub struct Logs {
-    pub turn: Vec<ActionLog>,
+    pub turn: Vec<Action>,
     pub round: Vec<ActionLog>,
     pub game: Vec<ActionLog>,
 }
@@ -133,7 +143,6 @@ pub struct Logs {
 pub struct ActionLog {
     actor: PlayerId,
     action: Action,
-    display: String,
 }
 
 pub struct Game {
@@ -261,7 +270,7 @@ impl Game {
         self.logs
             .turn
             .iter()
-            .filter(|log| log.action.tag() == action)
+            .filter(|log| log.tag() == action)
             .count()
     }
 
@@ -282,8 +291,7 @@ impl Game {
             Turn::Call(rank) => {
                 let mut actions = Vec::new();
                 if self.logs.turn.iter().all(|log| {
-                    log.action.tag() != ActionTag::GainCards
-                        && log.action.tag() != ActionTag::GainGold
+                    log.tag() != ActionTag::GainCards && log.tag() != ActionTag::GainGold
                 }) {
                     actions.push(ActionTag::GainGold);
                     actions.push(ActionTag::GainCards);
@@ -301,6 +309,110 @@ impl Game {
             }
         }
         actions
+    }
+
+    #[must_use]
+    pub fn perform(&mut self, action: Action) -> Result<()> {
+        self.perform_action(&action)?;
+
+        let end_turn = action.tag() == ActionTag::EndTurn || self.allowed_actions().is_empty();
+        self.logs.turn.push(action);
+
+        if end_turn {
+            self.end_turn()?;
+        }
+
+        Ok(())
+    }
+    // TODO: convert to result
+    #[must_use]
+    fn perform_action(&mut self, action: &Action) -> Result<()> {
+        match action {
+            Action::DraftPick { role } => {
+                let player_id = self.active_turn.draft().ok_or("not the draft phase")?;
+                let p = self
+                    .players
+                    .iter_mut()
+                    .find(|p| p.id == player_id)
+                    .ok_or("player does not exist")?;
+
+                let i = (0..self.draft.remaining.len())
+                    .find(|i| self.draft.remaining[*i].name == *role)
+                    .ok_or("selected role is not available")?;
+
+                let role = self.draft.remaining.remove(i);
+                p.roles.push(role);
+            }
+
+            Action::DraftDiscard { role } => {
+                let i = (0..self.draft.remaining.len())
+                    .find(|i| self.draft.remaining[*i].name == *role)
+                    .ok_or("selected role is not available")?;
+
+                self.draft.remaining.remove(i);
+            }
+
+            _ => {
+                todo!("action is not implemented");
+            }
+        }
+        Ok(())
+    }
+
+    #[must_use]
+    fn end_turn(&mut self) -> Result<()> {
+        // append logs
+        for action in std::mem::replace(&mut self.logs.turn, Vec::new()) {
+            self.logs.round.push(ActionLog {
+                actor: self.active_player().unwrap().name.clone(),
+                action,
+            });
+        }
+
+        match std::mem::take(&mut self.active_turn) {
+            Turn::Draft(id) => {
+                // advance turn
+                let role_count = if self.players.len() <= 3 { 2 } else { 1 };
+                self.active_turn = if self.players.iter().all(|p| p.roles.len() == role_count) {
+                    Turn::Call(1)
+                } else {
+                    let index = self
+                        .players
+                        .iter()
+                        .enumerate()
+                        .find_map(|(i, p)| if p.id == *id { Some(i) } else { None })
+                        .ok_or("impossible: draft player does not exist")?;
+                    let next = (index + 1) % self.players.len();
+                    Turn::Draft(self.players[next].id.clone())
+                };
+
+                // for the 3 player game with 9 characters
+                // after the first round of cards are selected,
+                // randomly discard 1.
+                if self.players.len() == 3
+                    && self.characters.len() == 9
+                    && self.draft.remaining.len() == 5
+                {
+                    let mut rng = rand::thread_rng();
+                    let index = rng.gen_range(0..self.draft.remaining.len());
+                    self.draft.remaining.remove(index);
+                }
+
+                // for the 7 player 8 role game, or 8 player 9 role game
+                // give the final player the choice to choose the initial discard
+                if self.players.len() + 1 == self.characters.len()
+                    && self.draft.remaining.len() == 1
+                    && self.draft.initial_discard.is_some()
+                {
+                    let initial = self.draft.initial_discard.take().ok_or("impossible")?;
+                    self.draft.remaining.push(initial);
+                }
+            }
+            Turn::Call(rank) => {
+                todo!("end call turn")
+            }
+        }
+        Ok(())
     }
 }
 

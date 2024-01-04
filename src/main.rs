@@ -294,7 +294,7 @@ mod handlers {
     ) -> Result<Response> {
         let cookie = cookies.get("player_id").ok_or("missing cookie")?;
         let mut game = app.game.lock().unwrap();
-        let mut game = game.as_mut().ok_or("game hasn't started")?;
+        let game = game.as_mut().ok_or("game hasn't started")?;
 
         let active_player = game.active_player().ok_or("no active player")?;
 
@@ -302,7 +302,7 @@ mod handlers {
             return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
         }
 
-        match action.0.perform(&mut game) {
+        match game.perform(action.0) {
             Ok(()) => {
                 app.connections
                     .lock()
@@ -320,7 +320,6 @@ pub mod ws {
     use axum::extract::ws::{Message, WebSocket};
     use axum::extract::State;
     use futures::stream::StreamExt;
-    use std::ops::ControlFlow;
     use tokio::sync::mpsc::{self};
     use tokio_stream::wrappers::UnboundedReceiverStream;
 
