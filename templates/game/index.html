@@ -101,6 +101,7 @@
       {% match phase %} 
         {% when Draft %}
           <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
+          {% if active_id == Some(my.id) %}
           <div class="flex flex-row flex-wrap gap-2">
             {% set class = "tooltip-bottom" %} 
             {% set input_type = "radio" %} 
@@ -135,6 +136,8 @@
                 Discard
               </button>
             {% endif %}
+
+        {% endif %}
         {% when Call %}
           <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
       {% endmatch %}
