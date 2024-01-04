@@ -34,23 +34,26 @@
     - [x] collect character cards
     - [x] Deal initial hands and gold
 - [x] Use Result instead of Options
-- [ ] I should be able to replay a game from the logs.
-    - [ ] I will need to replace the cryptographic rng, with a deterministic prng instead
-    - [ ] https://docs.rs/rand_xoshiro/latest/rand_xoshiro/struct.Xoshiro256PlusPlus.html
+- [ ] Action logs
+    - [x] Deterministic rng:
+        https://docs.rs/rand_xoshiro/latest/rand_xoshiro/struct.Xoshiro256PlusPlus.html
+    - [ ] Write to file
+    - [ ] Restore from file
 
-- [ ] Highlight active player
-- [ ] Role Draft phase
-    - [ ] Change active player after pick
-    - [ ] Add a discarded card back to pool for final pick.
+- [x] Highlight active player
+- [x] Role Draft phase
+    - [x] Change active player after pick
+    - [x] Add a discarded card back to pool for final pick.
+
 - [ ] Role Call phase
-- [ ] Allow spectators, instead of bouncing people back to the lobby
+- [x] Allow spectators, instead of bouncing people back to the lobby
 - [x] Show each player their hand
 - [x] District Card template
     - [x] change cost background to match suit
 - [x] Character Card template
     - [x] change rank background to something that doesn't conflict with a suit. Maybe orange?
     - [x] card rank background if its affiliated with a suit.
-- [ ] Action button enabled only when a card is selected
+- [x] Action button enabled only when a card is selected
 - [ ] Debug Utilities
     - [x] Impersonation
     - [x] refactor impersonate route

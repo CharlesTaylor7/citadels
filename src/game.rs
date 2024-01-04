@@ -2,13 +2,14 @@ use crate::{
     actions::{Action, ActionTag},
     data::{self},
     lobby::{self, Lobby},
-    random,
+    random::{self, Prng},
     roles::RoleName,
     types::{District, Rank, Role},
 };
 use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
+use rand_core::SeedableRng;
 use std::{
     borrow::Borrow,
     fmt::{Debug, Display},
@@ -207,9 +208,9 @@ impl std::fmt::Debug for ActionLog {
         self.private(f).unwrap_or_else(|| self.public(f))
     }
 }
-
 #[derive(Debug)]
 pub struct Game {
+    rng: Prng,
     #[cfg(feature = "dev")]
     pub impersonate: Option<PlayerName>,
     pub deck: Deck<District>,
@@ -230,8 +231,10 @@ impl Game {
     pub fn start(lobby: Lobby) -> Game {
         let Lobby { mut players } = lobby;
 
+        let mut rng = Prng::from_entropy();
+
         // randomize the seating order
-        random::shuffle(&mut players);
+        players.shuffle(&mut rng);
 
         // create players from the lobby, and filter players who were kicked
         let mut players: Vec<_> = players
@@ -242,14 +245,15 @@ impl Game {
         let crowned = players[0].name.clone();
 
         let mut unique_districts: Vec<District> = data::districts::UNIQUE.into_iter().collect();
-        random::shuffle(&mut unique_districts);
+        unique_districts.shuffle(&mut rng);
 
         let mut deck: Vec<District> = data::districts::NORMAL
             .into_iter()
             .flat_map(|(count, district)| std::iter::repeat(district).take(count))
             .chain(unique_districts.into_iter().take(14))
             .collect();
-        random::shuffle(&mut deck);
+        deck.shuffle(&mut rng);
+
         debug_assert!(deck.len() <= 54 + 14);
 
         // deal starting hands
@@ -278,6 +282,7 @@ impl Game {
         let mut game = Game {
             #[cfg(feature = "dev")]
             impersonate: None,
+            rng,
             players,
             characters,
             draft: Draft::default(),
@@ -291,7 +296,6 @@ impl Game {
     }
 
     pub fn begin_draft(&mut self) {
-        let mut rng = rand::thread_rng();
         self.active_turn = Turn::Draft(self.crowned.clone());
         self.draft.remaining = self.characters.iter().map(|c| c.name).collect();
 
@@ -300,7 +304,7 @@ impl Game {
             for _ in self.players.len() + 2..self.characters.len() {
                 let mut index;
                 loop {
-                    index = rng.gen_range(0..self.draft.remaining.len());
+                    index = self.rng.gen_range(0..self.draft.remaining.len());
                     if self.draft.remaining[index].can_be_discarded_faceup() {
                         break;
                     }
@@ -313,7 +317,7 @@ impl Game {
         }
 
         // discard 1 card facedown
-        let i = rng.gen_range(0..self.draft.remaining.len());
+        let i = self.rng.gen_range(0..self.draft.remaining.len());
         self.draft.initial_discard = Some(self.draft.remaining.remove(i));
     }
 
@@ -496,8 +500,7 @@ impl Game {
                     && self.characters.len() == 9
                     && self.draft.remaining.len() == 5
                 {
-                    let mut rng = rand::thread_rng();
-                    let index = rng.gen_range(0..self.draft.remaining.len());
+                    let index = self.rng.gen_range(0..self.draft.remaining.len());
                     self.draft.remaining.remove(index);
                 }
 

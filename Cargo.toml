@@ -24,6 +24,8 @@ uuid = { version = "1.6.1", features = ["v4"] }
 macros = { path = "./macros"}
 log = "0.4.20"
 env_logger = { version = "0.10.1", features = ["color"] }
+rand_xoshiro = "0.6.0"
+rand_core = { version = "0.6.4", features = ["getrandom"] }
 
 [features]
 default = ["dev"]
