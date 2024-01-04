@@ -1,7 +1,10 @@
 use serde::Deserialize;
 use std::fmt;
 
+use crate::{data::characters::CHARACTERS, types::Role};
+
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize)]
+#[repr(usize)]
 pub enum RoleName {
     Assassin,
     Thief,
@@ -10,10 +13,14 @@ pub enum RoleName {
     Bishop,
     Merchant,
     Architect,
-    Navigator,
-    Scholar,
     Warlord,
     Artist,
+
+    Patrician,
+    Emperor,
+
+    Navigator,
+    Scholar,
 }
 
 impl fmt::Display for RoleName {
@@ -23,7 +30,17 @@ impl fmt::Display for RoleName {
 }
 
 impl RoleName {
-    pub fn build_limit(&self) -> usize {
+    pub fn role(self) -> &'static Role {
+        &CHARACTERS[self as usize]
+    }
+
+    pub fn can_be_discarded_faceup(self) -> bool {
+        // rank 4 cards cannot be discarded faceup during the draft.
+        // see rulebook page 3
+        self.role().rank != 4
+    }
+
+    pub fn build_limit(self) -> usize {
         match self {
             RoleName::Architect => 3,
             RoleName::Navigator => 0,

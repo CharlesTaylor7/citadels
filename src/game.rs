@@ -4,7 +4,7 @@ use crate::{
     lobby::{self, Lobby},
     random,
     roles::RoleName,
-    types::{Character, District, Rank},
+    types::{District, Rank, Role},
 };
 use log::*;
 use macros::tag::Tag;
@@ -21,7 +21,7 @@ pub struct Player {
     pub gold: usize,
     pub hand: Vec<District>,
     pub city: Vec<District>,
-    pub roles: Vec<Character>,
+    pub roles: Vec<&'static Role>,
 }
 
 // Just the public info
@@ -111,8 +111,8 @@ impl Default for Turn {
 
 impl Turn {
     pub fn draft(&self) -> Option<&str> {
-        if let Turn::Draft(player_id) = self {
-            Some(player_id)
+        if let Turn::Draft(name) = self {
+            Some(name)
         } else {
             None
         }
@@ -127,20 +127,11 @@ impl Turn {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Draft {
-    pub remaining: Vec<Character>,
-    pub initial_discard: Option<Character>,
-    pub faceup_discard: Vec<Character>,
-}
-impl Debug for Draft {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "remaining: {:#?}",
-            self.remaining.iter().map(|c| c.name).collect::<Vec<_>>()
-        )
-    }
+    pub remaining: Vec<RoleName>,
+    pub initial_discard: Option<RoleName>,
+    pub faceup_discard: Vec<RoleName>,
 }
 
 #[derive(Default, Debug)]
@@ -199,7 +190,7 @@ pub struct Game {
     pub impersonate: Option<String>,
     pub deck: Deck<District>,
     pub players: Vec<Player>,
-    pub characters: Vec<Character>,
+    pub characters: Vec<&'static Role>,
     pub crowned: String,
     pub active_turn: Turn,
     pub draft: Draft,
@@ -207,9 +198,9 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn active_role(&self) -> Option<&Character> {
+    pub fn active_role(&self) -> Option<&'static Role> {
         let rank = self.active_turn.call()?;
-        self.characters.iter().find(|c| c.rank == *rank)
+        self.characters.iter().find(|c| c.rank == *rank).copied()
     }
 
     pub fn start(lobby: Lobby) -> Game {
@@ -256,7 +247,7 @@ impl Game {
             9
         };
         let characters = data::characters::CHARACTERS
-            .into_iter()
+            .iter()
             .take(character_count)
             .collect::<Vec<_>>();
 
@@ -264,12 +255,12 @@ impl Game {
             #[cfg(feature = "dev")]
             impersonate: None,
             players,
-            crowned,
             characters,
             draft: Draft::default(),
             deck: Deck::new(deck),
-            active_turn: Turn::Draft(String::with_capacity(0)),
             logs: Logs::default(),
+            active_turn: Turn::Draft(crowned.clone()),
+            crowned,
         };
         game.begin_draft();
         game
@@ -278,7 +269,7 @@ impl Game {
     pub fn begin_draft(&mut self) {
         let mut rng = rand::thread_rng();
         self.active_turn = Turn::Draft(self.crowned.clone());
-        self.draft.remaining = self.characters.to_vec();
+        self.draft.remaining = self.characters.iter().map(|c| c.name).collect();
 
         // discard cards face up in 4+ player game
         if self.players.len() >= 4 {
@@ -286,9 +277,7 @@ impl Game {
                 let mut index;
                 loop {
                     index = rng.gen_range(0..self.draft.remaining.len());
-
-                    // rank 4 card cannot be discarded faceup
-                    if self.draft.remaining[index].rank != 4 {
+                    if self.draft.remaining[index].can_be_discarded_faceup() {
                         break;
                     }
                 }
@@ -316,7 +305,7 @@ impl Game {
 
     pub fn active_player_mut(&mut self) -> Option<&mut Player> {
         match &mut self.active_turn {
-            Turn::Draft(id) => self.players.iter_mut().find(move |p| p.id == *id),
+            Turn::Draft(name) => self.players.iter_mut().find(move |p| p.name == *name),
             Turn::Call(rank) => self
                 .players
                 .iter_mut()
@@ -372,18 +361,22 @@ impl Game {
 
     #[must_use]
     pub fn perform(&mut self, action: Action) -> Result<()> {
+        debug!("Performing {:#?}", action);
         self.perform_action(&action)?;
 
         let tag = action.tag();
         let player = self.active_player().ok_or("no active player")?;
-        self.logs.turn.push(ActionLog {
+        let log = ActionLog {
             player: player.name.clone(),
             role: self
                 .active_turn
                 .call()
                 .map(|rank| self.characters[*rank as usize - 1].name),
             action,
-        });
+        };
+        info!("{:#?}", log);
+
+        self.logs.turn.push(log);
 
         if tag == ActionTag::EndTurn || self.allowed_actions().is_empty() {
             self.end_turn()?;
@@ -396,12 +389,15 @@ impl Game {
     fn start_turn(&mut self) -> Result<()> {
         loop {
             if let Some(role) = self.active_role() {
+                info!("Calling {}", role.name);
                 if self.active_player().is_none() {
                     info!("{} was called; but no one responded", role.name);
                     self.end_turn()?;
                 } else {
                     break;
                 }
+            } else {
+                break;
             }
         }
         Ok(())
@@ -419,16 +415,16 @@ impl Game {
                     .ok_or("player does not exist")?;
 
                 let i = (0..self.draft.remaining.len())
-                    .find(|i| self.draft.remaining[*i].name == *role)
+                    .find(|i| self.draft.remaining[*i] == *role)
                     .ok_or("selected role is not available")?;
 
                 let role = self.draft.remaining.remove(i);
-                p.roles.push(role);
+                p.roles.push(role.role());
             }
 
             Action::DraftDiscard { role } => {
                 let i = (0..self.draft.remaining.len())
-                    .find(|i| self.draft.remaining[*i].name == *role)
+                    .find(|i| self.draft.remaining[*i] == *role)
                     .ok_or("selected role is not available")?;
 
                 self.draft.remaining.remove(i);
@@ -492,10 +488,10 @@ impl Game {
                 }
             }
             Turn::Call(rank) => {
-                self.active_turn = if rank > self.characters.last().unwrap().rank {
-                    Turn::Draft(self.crowned.clone())
+                if rank > self.characters.last().unwrap().rank {
+                    self.begin_draft();
                 } else {
-                    Turn::Call(rank + 1)
+                    self.active_turn = Turn::Call(rank + 1);
                 };
             }
         }

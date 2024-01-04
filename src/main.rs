@@ -11,6 +11,7 @@ use log::*;
 use std::collections::hash_map::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::{self, sync::mpsc};
+use tower::Layer;
 use tower_http::services::ServeDir;
 
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
@@ -288,13 +289,16 @@ mod handlers {
 
         match game.perform(action.0) {
             Ok(()) => {
-                debug!("{:#?}", game.draft);
-                debug!("{:#?}", game.logs);
-                debug!("{:#?}", game.active_turn);
+                let g = &game;
                 app.connections
                     .lock()
                     .unwrap()
-                    .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
+                    .broadcast_each(move |id| GameTemplate::render(g, Some(id)));
+
+                debug!("Draft: {:#?}", game.draft);
+                debug!("{:#?}", game.logs);
+                debug!("Turn: {:#?}", game.active_turn);
+                debug!("Active: {:#?}", game.active_player());
                 Ok(StatusCode::OK.into_response())
             }
             Err(error) => Err((StatusCode::BAD_REQUEST, error).into()),

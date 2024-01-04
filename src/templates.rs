@@ -2,7 +2,7 @@ use crate::actions::ActionTag;
 use crate::actions::ActionTag::*;
 use crate::game::Game;
 use crate::game::PlayerInfo;
-use crate::types::Character;
+use crate::types::Role;
 use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
@@ -22,10 +22,10 @@ pub enum GamePhase {
 pub struct GameTemplate<'a> {
     dev_mode: bool,
     phase: GamePhase,
-    draft: &'a [Character],
-    draft_discard: &'a [Character],
+    draft: &'a [&'static Role],
+    draft_discard: &'a [&'static Role],
     allowed_actions: &'a [ActionTag],
-    characters: &'a [Character],
+    characters: &'a [&'static Role],
     players: &'a [PlayerInfo<'a>],
     active_name: Option<&'a str>,
     my: &'a game::Player,
@@ -36,17 +36,27 @@ impl<'a> GameTemplate<'a> {
         game: &'a Game,
         player_id: Option<&'b str>,
     ) -> axum::response::Result<Html<String>> {
-        info!("{:#?}", game);
-
         let active_player = game.active_player();
         let def = game::Player::default();
         let player = my_perspective(game, player_id);
         let player = player.unwrap_or(&def);
         let players: Vec<_> = game.players.iter().map(game::Player::info).collect();
         let rendered = GameTemplate {
-            characters: game.characters.borrow(),
-            draft: game.draft.remaining.borrow(),
-            draft_discard: game.draft.faceup_discard.borrow(),
+            characters: &game.characters,
+            draft: game
+                .draft
+                .remaining
+                .iter()
+                .map(|role| role.role())
+                .collect::<Vec<_>>()
+                .borrow(),
+            draft_discard: game
+                .draft
+                .faceup_discard
+                .iter()
+                .map(|role| role.role())
+                .collect::<Vec<_>>()
+                .borrow(),
             players: players.borrow(),
             allowed_actions: game.allowed_actions().borrow(),
             active_name: active_player.map(|p| p.name.borrow()),

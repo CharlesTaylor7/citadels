@@ -1,8 +1,8 @@
-use std::fmt;
+use std::fmt::{self, Debug};
 
 use crate::{actions::ActionTag, roles::RoleName};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct District {
     pub display_name: &'static str,
     pub cost: usize,
@@ -10,6 +10,12 @@ pub struct District {
     pub set: CardSet,
     pub unique_name: Option<UniqueDistrict>,
     pub description: Option<&'static str>,
+}
+
+impl Debug for District {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.display_name)
+    }
 }
 
 impl District {
@@ -32,14 +38,20 @@ impl District {
 
 pub type Rank = u8;
 
-#[derive(Clone, Debug)]
-pub struct Character {
+#[derive(Clone)]
+pub struct Role {
     pub name: RoleName,
     pub rank: Rank,
     pub set: CardSet,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
     pub actions: &'static [(usize, ActionTag)],
+}
+
+impl Debug for Role {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
