@@ -11,7 +11,6 @@ use log::*;
 use std::collections::hash_map::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::{self, sync::mpsc};
-use tower::Layer;
 use tower_http::services::ServeDir;
 
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
@@ -317,8 +316,10 @@ mod handlers {
         cookies: PrivateCookieJar,
         body: axum::Form<Impersonate>,
     ) -> impl IntoResponse {
+        use citadels::game::PlayerName;
+
         if let Some(g) = app.game.lock().unwrap().as_mut() {
-            g.impersonate = Some(body.0.name);
+            g.impersonate = Some(PlayerName::from(body.0.name));
         }
         game(app, cookies).await
     }

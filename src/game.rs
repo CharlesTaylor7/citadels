@@ -9,15 +9,56 @@ use crate::{
 use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
-use std::{borrow::Borrow, fmt::Debug};
+use std::{
+    borrow::Borrow,
+    fmt::{Debug, Display},
+};
 
 type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
+#[derive(Default, Debug, PartialEq, Eq, Clone)]
+pub struct PlayerName(String);
+
+impl PlayerName {
+    pub fn from(str: String) -> Self {
+        PlayerName(str)
+    }
+}
+
+impl Display for PlayerName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl PartialEq<Option<&PlayerName>> for &PlayerName {
+    fn eq(&self, other: &Option<&PlayerName>) -> bool {
+        Some(self) == other.as_ref()
+    }
+}
+
+impl PartialEq<&str> for &PlayerName {
+    fn eq(&self, other: &&str) -> bool {
+        self.0 == *other
+    }
+}
+impl PartialEq<Option<&str>> for &PlayerName {
+    fn eq(&self, other: &Option<&str>) -> bool {
+        Some(self.0.borrow()) == other.as_ref().copied()
+    }
+}
+
+impl Borrow<str> for PlayerName {
+    fn borrow(&self) -> &str {
+        self.0.borrow()
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct Player {
     pub id: PlayerId,
-    pub name: String,
+    pub name: PlayerName,
     pub gold: usize,
     pub hand: Vec<District>,
     pub city: Vec<District>,
@@ -33,7 +74,7 @@ pub struct PlayerInfo<'a> {
 }
 
 impl Player {
-    pub fn new(id: String, name: String) -> Self {
+    pub fn new(id: String, name: PlayerName) -> Self {
         Player {
             id,
             name,
@@ -53,7 +94,7 @@ impl Player {
             ..
         } = self;
         PlayerInfo {
-            name,
+            name: name.borrow(),
             gold: *gold,
             hand_size: hand.len(),
             city,
@@ -99,7 +140,7 @@ impl<T> Deck<T> {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Turn {
-    Draft(PlayerId),
+    Draft(PlayerName),
     Call(Rank),
 }
 
@@ -110,7 +151,7 @@ impl Default for Turn {
 }
 
 impl Turn {
-    pub fn draft(&self) -> Option<&str> {
+    pub fn draft(&self) -> Option<&PlayerName> {
         if let Turn::Draft(name) = self {
             Some(name)
         } else {
@@ -141,7 +182,7 @@ pub struct Logs {
 }
 
 pub struct ActionLog {
-    player: String,
+    player: PlayerName,
     role: Option<RoleName>,
     action: Action,
 }
@@ -187,11 +228,11 @@ impl std::fmt::Debug for ActionLog {
 #[derive(Debug)]
 pub struct Game {
     #[cfg(feature = "dev")]
-    pub impersonate: Option<String>,
+    pub impersonate: Option<PlayerName>,
     pub deck: Deck<District>,
     pub players: Vec<Player>,
     pub characters: Vec<&'static Role>,
-    pub crowned: String,
+    pub crowned: PlayerName,
     pub active_turn: Turn,
     pub draft: Draft,
     pub logs: Logs,
@@ -411,7 +452,7 @@ impl Game {
                 let p = self
                     .players
                     .iter_mut()
-                    .find(|p| p.name == name)
+                    .find(|p| p.name == *name)
                     .ok_or("player does not exist")?;
 
                 let i = (0..self.draft.remaining.len())
@@ -419,7 +460,7 @@ impl Game {
                     .ok_or("selected role is not available")?;
 
                 let role = self.draft.remaining.remove(i);
-                p.roles.push(role.role());
+                p.roles.push(role.data());
             }
 
             Action::DraftDiscard { role } => {
@@ -459,10 +500,10 @@ impl Game {
                         .players
                         .iter()
                         .enumerate()
-                        .find_map(|(i, p)| if p.name == *name { Some(i) } else { None })
+                        .find_map(|(i, p)| if p.name == name { Some(i) } else { None })
                         .ok_or("impossible: draft player does not exist")?;
                     let next = (index + 1) % self.players.len();
-                    Turn::Draft(self.players[next].id.clone())
+                    Turn::Draft(self.players[next].name.clone())
                 };
 
                 // for the 3 player game with 9 characters

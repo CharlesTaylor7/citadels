@@ -2,6 +2,7 @@ use crate::actions::ActionTag;
 use crate::actions::ActionTag::*;
 use crate::game::Game;
 use crate::game::PlayerInfo;
+use crate::game::PlayerName;
 use crate::types::Role;
 use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
@@ -27,7 +28,7 @@ pub struct GameTemplate<'a> {
     allowed_actions: &'a [ActionTag],
     characters: &'a [&'static Role],
     players: &'a [PlayerInfo<'a>],
-    active_name: Option<&'a str>,
+    active_name: Option<&'a PlayerName>,
     my: &'a game::Player,
 }
 
@@ -47,14 +48,14 @@ impl<'a> GameTemplate<'a> {
                 .draft
                 .remaining
                 .iter()
-                .map(|role| role.role())
+                .map(|role| role.data())
                 .collect::<Vec<_>>()
                 .borrow(),
             draft_discard: game
                 .draft
                 .faceup_discard
                 .iter()
-                .map(|role| role.role())
+                .map(|role| role.data())
                 .collect::<Vec<_>>()
                 .borrow(),
             players: players.borrow(),

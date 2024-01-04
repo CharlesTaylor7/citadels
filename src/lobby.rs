@@ -1,9 +1,11 @@
+use crate::game::PlayerName;
+
 pub type PlayerId = String;
 
-#[derive(serde::Serialize, Clone)]
+#[derive(Clone)]
 pub struct Player {
     pub id: PlayerId,
-    pub name: String,
+    pub name: PlayerName,
 }
 
 pub struct Lobby {
@@ -18,7 +20,7 @@ impl Lobby {
                 .enumerate()
                 .map(|(i, p)| Player {
                     id: format!("{}", i + 1),
-                    name: p.to_owned(),
+                    name: PlayerName::from(p.to_owned()),
                 })
                 .collect(),
         }
@@ -26,12 +28,12 @@ impl Lobby {
     pub fn register(&mut self, id: &str, name: &str) {
         match self.players.iter_mut().find(|p| p.id == id) {
             Some(p) => {
-                p.name = name.to_owned();
+                p.name = PlayerName::from(name.to_owned());
             }
             None => {
                 self.players.push(Player {
                     id: id.to_owned(),
-                    name: name.to_owned(),
+                    name: PlayerName::from(name.to_owned()),
                 });
             }
         }
