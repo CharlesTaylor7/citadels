@@ -17,46 +17,8 @@
         end
       end
     </script>
-    <style>
-      #game-layout {
-        display: grid;
-        grid-template-areas:
-          "roles actions actions players"
-          "roles city    city    players"
-          "roles hand    hand    players";
-      }
-
-      #roles {
-        grid-area: roles;
-      }
-
-      #log {
-        grid-area: log;
-      }
-
-      #actions {
-        grid-area: actions;
-      }
-
-      #resources {
-        grid-area: resources;
-      }
-
-      #players {
-        grid-area: players;
-      }
-
-      #city {
-        grid-area: city;
-      }
-
-      #hand {
-        grid-area: hand;
-      }
-    </style>
     <script>
-      // TODO: debug only
-      // htmx.logAll();
+      Idiomorph.defaults.head = 'none'
       document.addEventListener("htmx:wsAfterMessage", (event) => {
         let node = event.detail.elt.querySelector("[data-replace-url]");
         let url = node.dataset.replaceUrl;
@@ -72,7 +34,6 @@
     hx-ext="ws,idiomorph"
     ws-connect="/ws"
     hx-swap="morph"
-    hx-on:load="Idiomorph.defaults.head = 'none'"
   >
     {% block content %} 
     {% endblock %}
