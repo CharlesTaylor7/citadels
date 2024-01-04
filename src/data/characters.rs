@@ -16,7 +16,6 @@ pub const CHARACTERS: [Character; 9] =
     , actions: &[(1, Assassinate)]
     , description: "Call a character you wish to kill. The killed character skips their turn."
     }
-
   , Character 
     { rank: 2 
     , set: Base
@@ -30,7 +29,7 @@ pub const CHARACTERS: [Character; 9] =
     , set: Base 
     , suit: None 
     , name: Magician 
-    , actions: &[]
+    , actions: &[(1, MagicianSwap)]
     , description: "Either exchange hands of cards with another player or discard any number of cards to gain an equal number of cards." 
     }
   , Character 
@@ -70,7 +69,7 @@ pub const CHARACTERS: [Character; 9] =
     , set: Base
     , suit: Some(Military)
     , name: Warlord
-    , actions: &[(1, WarlordDestroy), (1, WarlordDestroy)]
+    , actions: &[(1, WarlordGainGold), (1, WarlordDestroy)]
     , description: "Destroy 1 district by paying 1 fewer gold than its cost. Gain 1 gold for each of your MILITARY districts."
     }
   , Character 

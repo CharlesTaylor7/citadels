@@ -2048,6 +2048,14 @@ html {
   text-decoration-line: underline;
 }
 
+.has-\[type\=\*\]\:cursor-pointer:has(type=*) {
+  cursor: pointer;
+}
+
+.has-\[type\]\:cursor-pointer:has(type) {
+  cursor: pointer;
+}
+
 .has-\[\:checked\]\:border:has(:checked) {
   border-width: 1px;
 }

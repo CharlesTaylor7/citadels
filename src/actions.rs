@@ -1,4 +1,4 @@
-use crate::game::{Game, Player, Turn};
+use crate::game::Game;
 use crate::roles::RoleName;
 use macros::tag::Tag;
 use serde::Deserialize;
@@ -16,11 +16,7 @@ pub enum Action {
     //    character actions
     Assassinate,
     ThiefSteal,
-    MagicianSwapWithPlayer,
-    //    // two parts, but maybe some hyperscript?
-    //    // We don't need to round trip if they select deck. They just pick the cards.
-    //    // ooh, we could
-    MagicianSwapWithDeck,
+    MagicianSwap(MagicianAction),
     KingGainGold,
     BishopGainGold,
     MerchantGainOne,
@@ -31,7 +27,12 @@ pub enum Action {
     ArtistBeautify,
 }
 
-use std;
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum MagicianAction {
+    TargetPlayer { player: String }, // name
+    TargetDeck { discard: Vec<String> },
+}
 
 pub type Result<T> = std::result::Result<T, &'static str>;
 

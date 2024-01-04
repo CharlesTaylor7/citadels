@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use crate::{
     actions::{Action, ActionTag},
     data::{self},
@@ -10,6 +8,7 @@ use crate::{
 };
 use macros::tag::Tag;
 use rand::prelude::*;
+use std::{borrow::Borrow, ops::Deref};
 
 type PlayerId = String;
 
@@ -258,11 +257,11 @@ impl Game {
         }
     }
 
-    pub fn active_perform_count(&self, tag: ActionTag) -> usize {
+    pub fn active_perform_count(&self, action: ActionTag) -> usize {
         self.logs
             .turn
             .iter()
-            .filter(|log| log.action.tag() == ActionTag::DraftPick)
+            .filter(|log| log.action.tag() == action)
             .count()
     }
 
@@ -289,33 +288,10 @@ impl Game {
                     actions.push(ActionTag::GainGold);
                     actions.push(ActionTag::GainCards);
                 } else {
-                    match self.characters[rank as usize - 1].name {
-                        RoleName::Assassin => {
-                            todo!()
-                        }
-                        RoleName::Thief => {
-                            todo!()
-                        }
-                        RoleName::Magician => {
-                            todo!()
-                        }
-                        RoleName::King => {
-                            todo!()
-                        }
-                        RoleName::Bishop => {
-                            todo!()
-                        }
-                        RoleName::Merchant => {
-                            todo!()
-                        }
-                        RoleName::Architect => {
-                            todo!()
-                        }
-                        RoleName::Artist => {
-                            todo!()
-                        }
-                        RoleName::Warlord => {
-                            todo!()
+                    let role = self.characters[rank as usize - 1].borrow();
+                    for (n, action) in role.actions {
+                        if self.active_perform_count(*action) < *n {
+                            actions.push(*action)
                         }
                     }
                 }
