@@ -1,20 +1,18 @@
-{% let card = role %}
-{% let input_type = "checkbox" %}
 <label
-  data-tip="{{ card.description }}"
-  _="on click log event.target.checked"
+  data-tip="{{ role.description }}"
   class="
     flex flex-col
     justify-between
     select-none
     cursor-pointer
-    p-3
-    has-[:checked]:p-0
-    has-[:checked]:border
-    has-[:checked]:border-4
-    has-[:checked]:border-blue-300
   "
 >
+  <input
+    type="{{ input_type }}"
+    class="peer hidden"
+    name="role"
+    value="{{ role.name }}"
+  />
   <svg 
     xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -35,11 +33,5 @@
           preserveAspectRatio="xMinYMin slice"
     />
   </svg>
-  <input
-    type="{{ input_type }}"
-    class="hidden"
-    name="role"
-    value="{{ card.name }}"
-  />
 </label>
 
