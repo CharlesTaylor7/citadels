@@ -1,11 +1,12 @@
-use crate::districts::{DistrictData, DistrictName};
+use crate::districts::DistrictName;
+use crate::roles::{self, Rank};
 use crate::{
     actions::{Action, ActionTag},
     data::{self},
     lobby::{self, Lobby},
     random::Prng,
     roles::RoleName,
-    types::{CardSet, Rank, Role},
+    types::CardSet,
 };
 use log::*;
 use macros::tag::Tag;
@@ -47,7 +48,7 @@ pub struct Player {
     pub gold: usize,
     pub hand: Vec<DistrictName>,
     pub city: Vec<CityDistrict>,
-    pub roles: Vec<&'static Role>,
+    pub roles: Vec<RoleName>,
 }
 
 #[derive(Debug)]
@@ -126,9 +127,9 @@ impl Turn {
         }
     }
 
-    pub fn call(&self) -> Option<&Rank> {
+    pub fn call(&self) -> Option<Rank> {
         if let Turn::Call(rank) = self {
-            Some(rank)
+            Some(*rank)
         } else {
             None
         }
@@ -198,7 +199,7 @@ pub struct Game {
     pub impersonate: Option<PlayerName>,
     pub deck: Deck<DistrictName>,
     pub players: Vec<Player>,
-    pub characters: Vec<&'static Role>,
+    pub characters: Vec<RoleName>,
     pub crowned: PlayerName,
     pub active_turn: Turn,
     pub draft: Draft,
@@ -206,9 +207,12 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn active_role(&self) -> Option<&'static Role> {
+    pub fn active_role(&self) -> Option<RoleName> {
         let rank = self.active_turn.call()?;
-        self.characters.iter().find(|c| c.rank == *rank).copied()
+        self.characters
+            .iter()
+            .find(|c| c.data().rank == rank)
+            .copied()
     }
 
     pub fn start(lobby: Lobby) -> Game {
@@ -263,32 +267,18 @@ impl Game {
                 p.hand.push(district);
             }
         });
-
-        // 9th rank is disallowed for 2
-        // 9th rank is required for 3
-        // 9th rank is optional for 4-7
-        // 9th rank is required for 8
-        let character_count = if players.len() == 2 || players.len() == 8 {
-            8
-        } else {
-            9
-        };
-        let characters = data::characters::CHARACTERS
-            .iter()
-            .take(character_count)
-            .collect::<Vec<_>>();
-
+        let characters = crate::roles::select(&mut rng, players.len());
         let mut game = Game {
             #[cfg(feature = "dev")]
             impersonate: None,
             rng,
             players,
-            characters,
             draft: Draft::default(),
             deck: Deck::new(deck),
             logs: Logs::default(),
             active_turn: Turn::Draft(crowned.clone()),
             crowned,
+            characters,
         };
         game.begin_draft();
         game
@@ -296,7 +286,7 @@ impl Game {
 
     pub fn begin_draft(&mut self) {
         self.active_turn = Turn::Draft(self.crowned.clone());
-        self.draft.remaining = self.characters.iter().map(|c| c.name).collect();
+        self.draft.remaining = self.characters.iter().cloned().collect();
 
         // discard cards face up in 4+ player game
         if self.players.len() >= 4 {
@@ -326,7 +316,7 @@ impl Game {
             Turn::Call(rank) => self
                 .players
                 .iter()
-                .find(|p| p.roles.iter().any(|role| role.rank == *rank)),
+                .find(|p| p.roles.iter().any(|role| role.rank() == *rank)),
         }
     }
 
@@ -336,7 +326,7 @@ impl Game {
             Turn::Call(rank) => self
                 .players
                 .iter_mut()
-                .find(|p| p.roles.iter().any(|role| role.rank == *rank)),
+                .find(|p| p.roles.iter().any(|role| role.rank() == *rank)),
         }
     }
 
@@ -372,10 +362,10 @@ impl Game {
                     actions.push(ActionTag::GainCards);
                 } else {
                     let role = self.characters[rank as usize - 1].borrow();
-                    if self.active_perform_count(ActionTag::Build) < role.name.build_limit() {
+                    if self.active_perform_count(ActionTag::Build) < role.build_limit() {
                         actions.push(ActionTag::Build)
                     }
-                    for (n, action) in role.actions {
+                    for (n, action) in role.data().actions {
                         if self.active_perform_count(*action) < *n {
                             actions.push(*action)
                         }
@@ -395,10 +385,7 @@ impl Game {
         let player = self.active_player().ok_or("no active player")?;
         let log = ActionLog {
             player: player.name.clone(),
-            role: self
-                .active_turn
-                .call()
-                .map(|rank| self.characters[*rank as usize - 1].name),
+            role: self.active_role(),
             action,
         };
         info!("{:#?}", log);
@@ -416,9 +403,9 @@ impl Game {
     fn start_turn(&mut self) -> Result<()> {
         loop {
             if let Some(role) = self.active_role() {
-                info!("Calling {}", role.name);
+                info!("Calling {}", role);
                 if self.active_player().is_none() {
-                    info!("{} was called; but no one responded", role.name);
+                    info!("{} was called; but no one responded", role);
                     self.end_turn()?;
                 } else {
                     break;
@@ -446,7 +433,7 @@ impl Game {
                     .ok_or("selected role is not available")?;
 
                 let role = self.draft.remaining.remove(i);
-                p.roles.push(role.data());
+                p.roles.push(role);
             }
 
             Action::DraftDiscard { role } => {
@@ -514,10 +501,10 @@ impl Game {
                 }
             }
             Turn::Call(rank) => {
-                if rank > self.characters.last().unwrap().rank {
-                    self.begin_draft();
-                } else {
+                if self.characters.last().is_some_and(|c| rank < c.rank()) {
                     self.active_turn = Turn::Call(rank + 1);
+                } else {
+                    self.begin_draft();
                 };
             }
         }

@@ -1,8 +1,13 @@
-use log::info;
+use rand_core::RngCore;
 use serde::Deserialize;
-use std::fmt;
+use std::fmt::{self, Debug, Formatter};
 
-use crate::{data::characters::CHARACTERS, types::Role};
+use crate::{
+    actions::ActionTag,
+    data::characters::CHARACTERS,
+    types::{CardSet, CardSuit},
+};
+pub type Rank = u8;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize)]
 #[repr(usize)]
@@ -52,8 +57,8 @@ impl fmt::Display for RoleName {
 }
 
 impl RoleName {
-    pub const fn todo(self) -> Role {
-        Role {
+    pub const fn todo(self) -> RoleData {
+        RoleData {
             name: self,
             rank: (self as u8) / 3 + 1,
             set: crate::types::CardSet::Custom,
@@ -71,7 +76,11 @@ impl RoleName {
         -265 * (self as isize / 10)
     }
 
-    pub fn data(self) -> &'static Role {
+    pub fn rank(self) -> Rank {
+        (self as u8 / 3) + 1
+    }
+
+    pub fn data(self) -> &'static RoleData {
         &CHARACTERS[self as usize]
     }
 
@@ -89,4 +98,31 @@ impl RoleName {
             _ => 1,
         }
     }
+}
+
+/// Immutable data
+#[derive(Clone)]
+pub struct RoleData {
+    pub name: RoleName,
+    pub rank: Rank,
+    pub set: CardSet,
+    pub suit: Option<CardSuit>,
+    pub description: &'static str,
+    pub actions: &'static [(usize, ActionTag)],
+}
+
+impl Debug for RoleData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
+pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> Vec<RoleName> {
+    // 9th rank is disallowed for 2
+    // 9th rank is required for 3
+    // 9th rank is optional for 4-7
+    // 9th rank is required for 8
+    let n = if num_players == 2 { 8 } else { 9 };
+
+    vec![]
 }

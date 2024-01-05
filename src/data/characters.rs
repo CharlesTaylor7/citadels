@@ -1,14 +1,11 @@
 use crate::actions::ActionTag::*;
+use crate::roles::RoleData;
 use crate::roles::RoleName::*;
 use crate::types::CardSet::*;
 use crate::types::CardSuit::*;
-use crate::types::Role;
 
-// TODO:
-// pub const CHARACTERS: [[Character; 3]; 9] =
-
-pub const CHARACTERS: [Role; 27] =
-  [ Role 
+pub const CHARACTERS: [RoleData; 27] =
+  [ RoleData 
     { rank: 1 
     , set: Base
     , suit: None
@@ -18,7 +15,7 @@ pub const CHARACTERS: [Role; 27] =
     }
   , Witch.todo()
   , Magistrate.todo()
-  , Role 
+  , RoleData 
     { rank: 2 
     , set: Base
     , suit: None
@@ -28,7 +25,7 @@ pub const CHARACTERS: [Role; 27] =
     }
   , Spy.todo()
   , Blackmailer.todo()
-  , Role 
+  , RoleData 
     { rank: 3 
     , set: Base 
     , suit: None 
@@ -38,7 +35,7 @@ pub const CHARACTERS: [Role; 27] =
     }
   , Wizard.todo()
   , Seer.todo()
-  , Role 
+  , RoleData 
     { rank: 4 
     , set: Base
     , suit: Some(Royal)
@@ -48,7 +45,7 @@ pub const CHARACTERS: [Role; 27] =
     }
   , Emperor.todo()
   , Patrician.todo()
-  , Role 
+  , RoleData 
     { rank: 5 
     , set: Base
     , suit: Some(Religious)
@@ -58,7 +55,7 @@ pub const CHARACTERS: [Role; 27] =
     }
   , Abbot.todo()
   , Cardinal.todo()
-  , Role 
+  , RoleData 
     { rank: 6 
     , set: Base
     , suit: Some(Trade)
@@ -68,7 +65,7 @@ pub const CHARACTERS: [Role; 27] =
     }
   , Alchemist.todo()
   , Trader.todo()
-  , Role 
+  , RoleData 
     { rank: 7 
     , set: Base
     , suit: None
@@ -78,7 +75,7 @@ pub const CHARACTERS: [Role; 27] =
     }
   , Navigator.todo()
   , Scholar.todo()
-  , Role 
+  , RoleData 
     { rank: 8 
     , set: Base
     , suit: Some(Military)
@@ -90,7 +87,7 @@ pub const CHARACTERS: [Role; 27] =
   , Diplomat.todo()
   , Marshal.todo()
   , Queen.todo()
-  , Role 
+  , RoleData 
     { rank: 9 
     , set: DarkCity
     , suit: None

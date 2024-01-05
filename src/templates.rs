@@ -3,10 +3,8 @@ use crate::actions::ActionTag::*;
 use crate::districts::DistrictName;
 use crate::districts::DistrictName::*;
 use crate::game::Game;
-use crate::game::PlayerName;
-use crate::roles::RoleName::*;
+use crate::roles::RoleName::{self, *};
 use crate::types::CardSuit;
-use crate::types::Role;
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
@@ -54,7 +52,7 @@ pub struct PlayerTemplate<'a> {
     pub gold: usize,
     pub hand: &'a [DistrictTemplate],
     pub city: &'a [DistrictTemplate],
-    pub roles: &'a [Role],
+    pub roles: &'a [&'a RoleTemplate],
 }
 
 impl<'a> PlayerTemplate<'a> {
@@ -95,15 +93,23 @@ pub struct DistrictTemplate {
     pub beautified: bool,
 }
 
+pub struct RoleTemplate {
+    pub display_name: &'static str,
+    pub rank: usize,
+    pub name: RoleName,
+    pub suit: Option<CardSuit>,
+    pub description: &'static str,
+}
+
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
     dev_mode: bool,
     phase: GamePhase,
-    draft: &'a [&'static Role],
-    draft_discard: &'a [&'static Role],
+    draft: &'a [&'a RoleTemplate],
+    draft_discard: &'a [&'a RoleTemplate],
     allowed_actions: &'a [ActionTag],
-    characters: &'a [&'static Role],
+    characters: &'a [RoleTemplate],
     players: &'a [PlayerInfoTemplate<'a>],
     active_name: &'a str,
     my: &'a PlayerTemplate<'a>,
@@ -119,21 +125,27 @@ impl<'a> GameTemplate<'a> {
         let players: Vec<_> = game.players.iter().map(PlayerInfoTemplate::from).collect();
 
         let rendered = GameTemplate {
-            characters: &game.characters,
-            draft: game
+            characters: &[],
+            //&game.characters,
+            // TODO:
+            draft: &[],
+            /*
+            game
                 .draft
                 .remaining
                 .iter()
                 .map(|role| role.data())
-                .collect::<Vec<_>>()
-                .borrow(),
-            draft_discard: game
-                .draft
-                .faceup_discard
-                .iter()
-                .map(|role| role.data())
-                .collect::<Vec<_>>()
-                .borrow(),
+                .collect::<Vec<_>>(),
+                */
+            // TODO:
+            draft_discard: &[],
+            /*game
+            .draft
+            .faceup_discard
+            .iter()
+            .map(|role| role.data())
+            .collect::<Vec<_>>(),
+            */
             players: &players,
             allowed_actions: &game.allowed_actions(),
             active_name: &active_player.ok_or("no active player")?.name.0,
