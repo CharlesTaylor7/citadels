@@ -81,6 +81,14 @@ impl RoleName {
         self.data().rank
     }
 
+    pub fn min_player_count(self) -> usize {
+        match self {
+            Self::Queen => 5,
+            Self::Emperor => 3,
+            _ => 0,
+        }
+    }
+
     pub fn data(self) -> &'static RoleData {
         &CHARACTERS[self as usize]
     }
@@ -127,7 +135,9 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> Vec<RoleName> {
     let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
 
     for r in crate::roles::CHARACTERS {
-        grouped_by_rank[(r.rank - 1) as usize].push(r.name)
+        if num_players >= r.name.min_player_count() {
+            grouped_by_rank[(r.rank - 1) as usize].push(r.name)
+        }
     }
 
     grouped_by_rank
