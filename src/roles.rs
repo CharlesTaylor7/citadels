@@ -1,3 +1,4 @@
+use log::info;
 use serde::Deserialize;
 use std::fmt;
 
@@ -61,8 +62,16 @@ impl RoleName {
             actions: &[],
         }
     }
+
     pub fn asset_x(self) -> isize {
-        -55 * (self as isize % 10)
+        info!(
+            "{} {} x:{}, y:{}",
+            self,
+            self as usize,
+            self as usize % 10,
+            self as usize / 10
+        );
+        -155 * (self as isize % 10)
     }
 
     pub fn asset_y(self) -> isize {
