@@ -1,155 +1,314 @@
+use std::fmt::Display;
+use std::fmt::Formatter;
+
+use crate::types::CardSet;
 use crate::types::CardSet::*;
-
+use crate::types::CardSuit;
 use crate::types::CardSuit::*;
-use crate::types::District;
-use crate::types::UniqueDistrict::*;
-use crate::types::*;
 
-pub const NORMAL: [(usize, District); 17] = [
-    // 12
-    (3, District::normal(Base, Royal, 5, "Palace")),
-    (4, District::normal(Base, Royal, 4, "Castle")),
-    (5, District::normal(Base, Royal, 3, "Manor")),
-    // 11
-    (2, District::normal(Base, Military, 5, "Fortress")),
-    (3, District::normal(Base, Military, 3, "Baracks")),
-    (3, District::normal(Base, Military, 2, "Prison")),
-    (3, District::normal(Base, Military, 1, "Watchtower")),
-    // 11
-    (2, District::normal(Base, Religious, 5, "Cathedral")),
-    (3, District::normal(Base, Religious, 3, "Monastery")),
-    (3, District::normal(Base, Religious, 2, "Church")),
-    (3, District::normal(Base, Religious, 1, "Temple")),
-    // 20
-    (2, District::normal(Base, Trade, 5, "Town Hall")),
-    (3, District::normal(Base, Trade, 4, "Harbor")),
-    (3, District::normal(Base, Trade, 3, "Docks")),
-    (4, District::normal(Base, Trade, 2, "Market")),
-    (3, District::normal(Base, Trade, 2, "Trading Post")),
-    (5, District::normal(Base, Trade, 1, "Tavern")),
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(usize)]
+pub enum DistrictName {
+    Temple,
+    Church,
+    Monastery,
+    Cathedral,
+    Watchtower,
+    Prison,
+    Baracks,
+    Fortress,
+    Manor,
+    Castle,
+    Palace,
+    Tavern,
+    Market,
+    TradingPost,
+    Docks,
+    Harbor,
+    TownHall,
+    Smithy,
+    Laboratory,
+    SchoolOfMagic,
+    Keep,
+    DragonGate,
+    HauntedQuarter,
+    GreatWall,
+    Observatory,
+    Library,
+    Quarry,
+    Armory,
+    Factory,
+    Park,
+    Museum,
+    PoorHouse,
+    MapRoom,
+    WishingWell,
+    ImperialTreasury,
+    Framework,
+    Statue,
+    GoldMine,
+    IvoryTower,
+    Necropolis,
+    ThievesDen,
+    Theater,
+    Stables,
+    Basilica,
+    SecretVault,
+    Capitol,
+    Monument,
+}
+
+#[derive(Clone)]
+pub struct District {
+    pub name: DistrictName,
+    pub display_name: &'static str,
+    pub cost: usize,
+    pub suit: CardSuit,
+    pub set: CardSet,
+    pub description: Option<&'static str>,
+}
+
+impl DistrictName {
+    pub const fn normal(
+        self,
+        set: CardSet,
+        suit: CardSuit,
+        cost: usize,
+        display_name: &'static str,
+    ) -> District {
+        District {
+            name: self,
+            set,
+            suit,
+            cost,
+            display_name,
+            description: None,
+        }
+    }
+
+    pub const fn unique(
+        self,
+        set: CardSet,
+        display_name: &'static str,
+        cost: usize,
+        description: &'static str,
+    ) -> District {
+        District {
+            name: self,
+            set,
+            suit: Unique,
+            cost,
+            display_name,
+            description: Some(description),
+        }
+    }
+
+    pub const fn todo(self) -> District {
+        District {
+            name: self,
+            set: Custom,
+            suit: Unique,
+            cost: 0,
+            display_name: "TODO",
+            description: Some("TODO"),
+        }
+    }
+
+    pub fn data(self) -> &'static District {
+        let i = self as usize;
+        let n = NORMAL.len();
+        if i < n {
+            &NORMAL[i]
+        } else {
+            &UNIQUE[i - n]
+        }
+    }
+
+    pub fn multiplicity(self) -> usize {
+        match self {
+            Self::Palace => 3,
+            Self::Castle => 4,
+            Self::Manor => 5,
+
+            Self::Fortress => 2,
+            Self::Baracks => 3,
+            Self::Prison => 3,
+            Self::Watchtower => 3,
+
+            Self::Cathedral => 2,
+            Self::Monastery => 3,
+            Self::Church => 3,
+            Self::Temple => 3,
+
+            Self::TownHall => 2,
+            Self::Harbor => 3,
+            Self::Docks => 3,
+            Self::Market => 0,
+            Self::TradingPost => 0,
+            Self::Tavern => 0,
+            _ => {
+                assert_eq!(self as usize >= NORMAL.len());
+                1
+            }
+        }
+    }
+}
+
+pub const NORMAL: [District; 17] = [
+    (DistrictName::Palace.normal(Base, Royal, 5, "Palace")),
+    (DistrictName::Castle.normal(Base, Royal, 4, "Castle")),
+    (DistrictName::Manor.normal(Base, Royal, 3, "Manor")),
+    (DistrictName::Fortress.normal(Base, Military, 5, "Fortress")),
+    (DistrictName::Baracks.normal(Base, Military, 3, "Baracks")),
+    (DistrictName::Prison.normal(Base, Military, 2, "Prison")),
+    (DistrictName::Watchtower.normal(Base, Military, 1, "Watchtower")),
+    (DistrictName::Cathedral.normal(Base, Religious, 5, "Cathedral")),
+    (DistrictName::Monastery.normal(Base, Religious, 3, "Monastery")),
+    (DistrictName::Church.normal(Base, Religious, 2, "Church")),
+    (DistrictName::Temple.normal(Base, Religious, 1, "Temple")),
+    DistrictName::TownHall.normal(Base, Trade, 5, "Town Hall"),
+    DistrictName::Harbor.normal(Base, Trade, 4, "Harbor"),
+    DistrictName::Docks.normal(Base, Trade, 3, "Docks"),
+    DistrictName::Market.normal(Base, Trade, 2, "Market"),
+    DistrictName::TradingPost.normal(Base, Trade, 2, "Trading Post"),
+    DistrictName::Tavern.normal(Base, Trade, 1, "Tavern"),
 ];
 
-// TODO: implement 14 of these for a full game
-pub const UNIQUE: [District; 14] = [
+pub const UNIQUE: [District; 30] = [
     District {
+        name: DistrictName::Smithy,
         suit: Unique,
-        set: Citadels2016,
-        display_name: "Secret Vault",
-        unique_name: Some(SecretVault),
-        cost: 1_000_000,
-        description:
-            Some("The Secret Vault cannot be built. At the end of the game, reveal the Secret Vault from your hand to score 3 extra points."),
+        set: Base,
+        display_name: "Smithy",
+        cost: 5,
+        description:Some("Once per turn, pay 2 gold to gain 3 cards."),
     },
-
+    DistrictName::Laboratory.todo(),
     District {
+        name: DistrictName::SchoolOfMagic,
+        suit: Unique,
+        set: Base,
+        display_name: "School of Magic",
+        cost: 6,
+        description: Some("For abilities that gain resources for your districts, the School of Magic counts as the district type of your choice."),
+    },
+    District {
+        name: DistrictName::Keep,
+        suit: Unique,
+        set: Base,
+        display_name: "Keep",
+        cost: 6,
+        description: Some("The rank 8 character (Warlord/Diplomat/Marshal) cannot use its ability on the Keep."),
+    },
+    District {
+        name: DistrictName::DragonGate,
         suit: Unique,
         set: Base,
         display_name: "Dragon Gate",
-        unique_name: Some(DragonGate),
         cost: 6,
         description: Some("At the end of the game score 2 extra points.")
     },
-
     District {
+        name: DistrictName::HauntedQuarter,
         suit: Unique,
-        set: DarkCity,
-        display_name: "Park",
-        unique_name: Some(Park),
-        cost: 6,
-        description: Some("If there are no cards in your hand at the end of your turn, gain 2 cards.")
+        set: Base,
+        display_name: "Haunted Quarter",
+        cost: 2,
+        description: Some("At the end of the game, the Haunted Quarter counts as any 1 district type of your choice."),
     },
+    DistrictName::GreatWall.todo(),
+    DistrictName::Observatory.todo(),
+    DistrictName::Library.todo(),
     District {
+        name: DistrictName::Quarry,
         suit: Unique,
         set: DarkCity,
-        display_name: "Imperial Treasury",
-        unique_name: Some(ImperialTreasury), 
+        display_name: "Quarry",
         cost: 5,
-        description:Some("At the end of the game, score 1 extra point for each gold in your stash."),
+        description: Some("You can build districts that are identical to districts in your city."),
     },
+    DistrictName::Armory.todo(),
     District {
-        suit: Unique,
-        set: DarkCity,
-        display_name: "Wishing Well",
-        unique_name: Some(WishingWell), 
-        cost: 5,
-        description: Some("At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well)."),
-    },
-    District {
+        name: DistrictName::Factory,
         suit: Unique,
         set: DarkCity,
         display_name: "Factory",
-        unique_name: Some(Factory),
         cost: 5,
         description: Some("You pay 1 fewer gold to build any other UNIQUE district."),
     },
     District {
+        name: DistrictName::Park,
         suit: Unique,
         set: DarkCity,
-        display_name: "Quarry",
-        unique_name: Some(Quarry),
-        cost: 5,
-        description: Some("You can build districts that are identical to districts in your city."),
+        display_name: "Park",
+        cost: 6,
+        description: Some("If there are no cards in your hand at the end of your turn, gain 2 cards.")
     },
+
+    DistrictName::Museum.todo(),
+    DistrictName::PoorHouse.todo(),
     District {
+        name: DistrictName::MapRoom,
         suit: Unique,
         set: DarkCity,
         display_name: "Map Room",
-        unique_name: Some(MapRoom),
         cost: 5,
         description: Some("At the end of the game, score 1 extra point for each card in your hand."),
     },
-    District {
-        suit: Unique,
-        set: Base,
-        display_name: "School of Magic",
-        unique_name: Some(SchoolOfMagic),
-        cost: 6,
-        description: Some("For abilities that gain resources for your districts, the School of Magic counts as the district type of your choice."),
-    },
 
     District {
+        name: DistrictName::WishingWell,
         suit: Unique,
-        set: Base,
-        display_name: "Haunted Quarter",
-        unique_name: Some(HauntedQuarter),
-        cost: 2,
-        description: Some("At the end of the game, the Haunted Quarter counts as any 1 district type of your choice."),
-    },
-
-    District {
-        suit: Unique,
-        set: Base,
-        display_name: "Keep",
-        unique_name: Some(Keep),
-        cost: 6,
-        description: Some("The rank 8 character (Warlord/Diplomat/Marshal) cannot use its ability on the Keep."),
-    },
-
-    District {
-        suit: Unique,
-        set: Base,
-        display_name: "Smithy",
-        unique_name: Some(Smithy),
+        set: DarkCity,
+        display_name: "Wishing Well",
         cost: 5,
-        description:Some("Once per turn, pay 2 gold to gain 3 cards."),
+        description: Some("At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well)."),
     },
-
     District {
+        name: DistrictName::ImperialTreasury,
+        suit: Unique,
+        set: DarkCity,
+        display_name: "Imperial Treasury",
+        cost: 5,
+        description:Some("At the end of the game, score 1 extra point for each gold in your stash."),
+    },
+    DistrictName::Framework.todo(),
+    District {
+        name: DistrictName::Statue,
         suit: Unique,
         set: Citadels2016,
         display_name: "Statue",
-        unique_name: Some(Statue),
         cost: 3,
         description: Some("If you have the crown at the end of the game, score 5 extra points.")
     },
+
+
     District {
+        name: DistrictName::GoldMine,
         suit: Unique,
         set: Citadels2016,
         display_name: "Gold Mine",
-        unique_name: Some(GoldMine),
         cost: 6,
         description: Some("If you choose to gain gold when gathering resources, gain 1 extra gold.")
     },
+
+    DistrictName::IvoryTower.todo(),
+    DistrictName::Necropolis.todo(),
+    DistrictName::ThievesDen.todo(),
+    DistrictName::Theater.todo(),
+    DistrictName::Stables.todo(),
+    DistrictName::Basilica.todo(),
+    District {
+        name: DistrictName::SecretVault,
+        suit: Unique,
+        set: Citadels2016,
+        display_name: "Secret Vault",
+        cost: 1_000_000,
+        description:
+            Some("The Secret Vault cannot be built. At the end of the game, reveal the Secret Vault from your hand to score 3 extra points."),
+    },
+    DistrictName::Capitol.todo(),
+    DistrictName::Monument.todo(),
 ];
 /*
     },
