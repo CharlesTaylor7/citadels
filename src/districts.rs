@@ -58,8 +58,9 @@ pub enum DistrictName {
     Monument,
 }
 
+// Immutable data
 #[derive(Clone, Debug)]
-pub struct District {
+pub struct DistrictData {
     pub name: DistrictName,
     pub display_name: &'static str,
     pub cost: usize,
@@ -75,8 +76,8 @@ impl DistrictName {
         suit: CardSuit,
         cost: usize,
         display_name: &'static str,
-    ) -> District {
-        District {
+    ) -> DistrictData {
+        DistrictData {
             name: self,
             set,
             suit,
@@ -92,8 +93,8 @@ impl DistrictName {
         display_name: &'static str,
         cost: usize,
         description: &'static str,
-    ) -> District {
-        District {
+    ) -> DistrictData {
+        DistrictData {
             name: self,
             set,
             suit: Unique,
@@ -103,8 +104,8 @@ impl DistrictName {
         }
     }
 
-    pub const fn todo(self) -> District {
-        District {
+    pub const fn todo(self) -> DistrictData {
+        DistrictData {
             name: self,
             set: Custom,
             suit: Unique,
@@ -114,7 +115,7 @@ impl DistrictName {
         }
     }
 
-    pub fn data(self) -> &'static District {
+    pub fn data(self) -> &'static DistrictData {
         let i = self as usize;
         let n = NORMAL.len();
         if i < n {
@@ -154,7 +155,7 @@ impl DistrictName {
     }
 }
 
-pub const NORMAL: [District; 17] = [
+pub const NORMAL: [DistrictData; 17] = [
     (DistrictName::Palace.normal(Base, Royal, 5, "Palace")),
     (DistrictName::Castle.normal(Base, Royal, 4, "Castle")),
     (DistrictName::Manor.normal(Base, Royal, 3, "Manor")),
@@ -174,8 +175,8 @@ pub const NORMAL: [District; 17] = [
     DistrictName::Tavern.normal(Base, Trade, 1, "Tavern"),
 ];
 
-pub const UNIQUE: [District; 30] = [
-    District {
+pub const UNIQUE: [DistrictData; 30] = [
+    DistrictData {
         name: DistrictName::Smithy,
         suit: Unique,
         set: Base,
@@ -184,7 +185,7 @@ pub const UNIQUE: [District; 30] = [
         description:Some("Once per turn, pay 2 gold to gain 3 cards."),
     },
     DistrictName::Laboratory.todo(),
-    District {
+    DistrictData {
         name: DistrictName::SchoolOfMagic,
         suit: Unique,
         set: Base,
@@ -192,7 +193,7 @@ pub const UNIQUE: [District; 30] = [
         cost: 6,
         description: Some("For abilities that gain resources for your districts, the School of Magic counts as the district type of your choice."),
     },
-    District {
+    DistrictData {
         name: DistrictName::Keep,
         suit: Unique,
         set: Base,
@@ -200,7 +201,7 @@ pub const UNIQUE: [District; 30] = [
         cost: 6,
         description: Some("The rank 8 character (Warlord/Diplomat/Marshal) cannot use its ability on the Keep."),
     },
-    District {
+    DistrictData {
         name: DistrictName::DragonGate,
         suit: Unique,
         set: Base,
@@ -208,7 +209,7 @@ pub const UNIQUE: [District; 30] = [
         cost: 6,
         description: Some("At the end of the game score 2 extra points.")
     },
-    District {
+    DistrictData {
         name: DistrictName::HauntedQuarter,
         suit: Unique,
         set: Base,
@@ -219,7 +220,7 @@ pub const UNIQUE: [District; 30] = [
     DistrictName::GreatWall.todo(),
     DistrictName::Observatory.todo(),
     DistrictName::Library.todo(),
-    District {
+    DistrictData {
         name: DistrictName::Quarry,
         suit: Unique,
         set: DarkCity,
@@ -228,7 +229,7 @@ pub const UNIQUE: [District; 30] = [
         description: Some("You can build districts that are identical to districts in your city."),
     },
     DistrictName::Armory.todo(),
-    District {
+    DistrictData {
         name: DistrictName::Factory,
         suit: Unique,
         set: DarkCity,
@@ -236,7 +237,7 @@ pub const UNIQUE: [District; 30] = [
         cost: 5,
         description: Some("You pay 1 fewer gold to build any other UNIQUE district."),
     },
-    District {
+    DistrictData {
         name: DistrictName::Park,
         suit: Unique,
         set: DarkCity,
@@ -247,7 +248,7 @@ pub const UNIQUE: [District; 30] = [
 
     DistrictName::Museum.todo(),
     DistrictName::PoorHouse.todo(),
-    District {
+    DistrictData {
         name: DistrictName::MapRoom,
         suit: Unique,
         set: DarkCity,
@@ -256,7 +257,7 @@ pub const UNIQUE: [District; 30] = [
         description: Some("At the end of the game, score 1 extra point for each card in your hand."),
     },
 
-    District {
+    DistrictData {
         name: DistrictName::WishingWell,
         suit: Unique,
         set: DarkCity,
@@ -264,7 +265,7 @@ pub const UNIQUE: [District; 30] = [
         cost: 5,
         description: Some("At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well)."),
     },
-    District {
+    DistrictData {
         name: DistrictName::ImperialTreasury,
         suit: Unique,
         set: DarkCity,
@@ -273,7 +274,7 @@ pub const UNIQUE: [District; 30] = [
         description:Some("At the end of the game, score 1 extra point for each gold in your stash."),
     },
     DistrictName::Framework.todo(),
-    District {
+    DistrictData {
         name: DistrictName::Statue,
         suit: Unique,
         set: Citadels2016,
@@ -283,7 +284,7 @@ pub const UNIQUE: [District; 30] = [
     },
 
 
-    District {
+    DistrictData {
         name: DistrictName::GoldMine,
         suit: Unique,
         set: Citadels2016,
@@ -298,7 +299,7 @@ pub const UNIQUE: [District; 30] = [
     DistrictName::Theater.todo(),
     DistrictName::Stables.todo(),
     DistrictName::Basilica.todo(),
-    District {
+    DistrictData {
         name: DistrictName::SecretVault,
         suit: Unique,
         set: Citadels2016,

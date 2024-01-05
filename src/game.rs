@@ -1,4 +1,4 @@
-use crate::districts::{District, DistrictName};
+use crate::districts::{DistrictData, DistrictName};
 use crate::{
     actions::{Action, ActionTag},
     data::{self},
