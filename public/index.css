@@ -1691,12 +1691,36 @@ html {
   margin: 0.5rem;
 }
 
+.m-0 {
+  margin: 0px;
+}
+
 .mr-3 {
   margin-right: 0.75rem;
 }
 
 .mt-3 {
   margin-top: 0.75rem;
+}
+
+.ml-\[-75px\] {
+  margin-left: -75px;
+}
+
+.mt-\[-5px\] {
+  margin-top: -5px;
+}
+
+.mt-\[-40px\] {
+  margin-top: -40px;
+}
+
+.ml-\[-10px\] {
+  margin-left: -10px;
+}
+
+.ml-\[-40px\] {
+  margin-left: -40px;
 }
 
 .box-content {
@@ -1735,6 +1759,38 @@ html {
   height: 100vh;
 }
 
+.h-\[400px\] {
+  height: 400px;
+}
+
+.h-\[1600px\] {
+  height: 1600px;
+}
+
+.h-\[1500px\] {
+  height: 1500px;
+}
+
+.h-\[100px\] {
+  height: 100px;
+}
+
+.h-\[200px\] {
+  height: 200px;
+}
+
+.h-\[144px\] {
+  height: 144px;
+}
+
+.h-\[192px\] {
+  height: 192px;
+}
+
+.h-\[800px\] {
+  height: 800px;
+}
+
 .min-h-8 {
   min-height: 2rem;
 }
@@ -1753,6 +1809,22 @@ html {
 
 .w-full {
   width: 100%;
+}
+
+.w-\[400px\] {
+  width: 400px;
+}
+
+.w-\[300px\] {
+  width: 300px;
+}
+
+.w-\[1200px\] {
+  width: 1200px;
+}
+
+.w-\[144px\] {
+  width: 144px;
 }
 
 .min-w-72 {
@@ -1817,6 +1889,10 @@ html {
   gap: 0.75rem;
 }
 
+.overflow-hidden {
+  overflow: hidden;
+}
+
 .rounded {
   border-radius: 0.25rem;
 }
@@ -1827,6 +1903,10 @@ html {
 
 .rounded-lg {
   border-radius: 0.5rem;
+}
+
+.rounded-xl {
+  border-radius: 0.75rem;
 }
 
 .border {
@@ -1846,6 +1926,11 @@ html {
 .border-slate-500 {
   --tw-border-opacity: 1;
   border-color: rgb(100 116 139 / var(--tw-border-opacity));
+}
+
+.border-purple-300 {
+  --tw-border-opacity: 1;
+  border-color: rgb(216 180 254 / var(--tw-border-opacity));
 }
 
 .bg-base-100 {
@@ -1895,6 +1980,15 @@ html {
 .bg-suit-unique {
   --tw-bg-opacity: 1;
   background-color: rgb(185 153 224 / var(--tw-bg-opacity));
+}
+
+.bg-\[url\(\'\/public\/role\.html\'\)\] {
+  background-image: url('/public/role.html');
+}
+
+.object-cover {
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 
 .p-1 {
