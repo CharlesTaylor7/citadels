@@ -32,6 +32,7 @@
       id="main-panel"
       class="grow flex flex-col"
     >
+
       <form
         id="actions"
         class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
@@ -45,47 +46,17 @@
         "
       >
         {% match phase %} 
-        {% when Draft %}
-        <h2 class="m-2 underline text-lg font-semibold">Draft</h2>
+        {% when GamePhase::Draft %}
+        <h2 class="m-2 underline text-lg font-semibold">
+          Draft
+        </h2>
         {% if active_name == my.name %}
-        <div class="flex flex-row flex-wrap gap-2">
-          {% set class = "tooltip-bottom" %} 
-          {% set input_type = "radio" %} 
-          {% for card in draft %} 
-            {% include "role.html" %}
-          {% endfor %}
-        </div>
-
-        <div class="flex flex-row gap-2">
-          {% if allowed_actions.contains(DraftPick.borrow()) %}
-            <button 
-              class="btn btn-secondary"
-              disabled
-              hx-post="/game/action"
-              hx-swap="none"
-              name="action"
-              value={{ DraftPick }}
-            >
-              Pick
-            </button>
-          {% endif %}
-          {% if allowed_actions.contains(DraftDiscard.borrow()) %}
-            <button 
-              class="btn bg-suit-military"
-              disabled
-              hx-post="/game/action"
-              hx-swap="none"
-              name="action"
-              value={{ DraftDiscard }}
-            >
-              Discard
-            </button>
-          {% endif %}
-        </div>
-
+        {% include "draft.html" %}
         {% endif %}
-        {% when Call %}
-          <h2 class="m-2 underline text-lg font-semibold">Actions</h2>
+        {% when GamePhase::Call %}
+        <h2 class="m-2 underline text-lg font-semibold">
+          Actions
+        </h2>
         {% endmatch %}
       </form>
       <div

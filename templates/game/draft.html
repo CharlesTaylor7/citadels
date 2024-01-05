@@ -1,0 +1,36 @@
+
+        <div class="flex flex-row flex-wrap gap-2">
+          {% set class = "tooltip-bottom" %} 
+          {% set input_type = "radio" %} 
+          {% for card in draft %} 
+            {% include "role.html" %}
+          {% endfor %}
+        </div>
+
+        <div class="flex flex-row gap-2">
+          {% if allowed_actions.contains(DraftPick.borrow()) %}
+            <button 
+              class="btn btn-secondary"
+              disabled
+              hx-post="/game/action"
+              hx-swap="none"
+              name="action"
+              value={{ DraftPick }}
+            >
+              Pick
+            </button>
+          {% endif %}
+          {% if allowed_actions.contains(DraftDiscard.borrow()) %}
+            <button 
+              class="btn bg-suit-military"
+              disabled
+              hx-post="/game/action"
+              hx-swap="none"
+              name="action"
+              value={{ DraftDiscard }}
+            >
+              Discard
+            </button>
+          {% endif %}
+        </div>
+

@@ -28,6 +28,7 @@
 
 - [ ] Action logs
     - [x] Deterministic rng
+    - [ ] Logs are named after the timestamp
     - [ ] Write to file
     - [ ] Restore from file
 
