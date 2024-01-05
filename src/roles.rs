@@ -5,22 +5,43 @@ use crate::{data::characters::CHARACTERS, types::Role};
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize)]
 #[repr(usize)]
+/// Laid out in the order of the asset file for their images
 pub enum RoleName {
     Assassin,
+    Witch,
+    Magistrate,
+
     Thief,
+    Spy,
+    Blackmailer,
+
     Magician,
+    Wizard,
+    Seer,
+
     King,
-    Bishop,
-    Merchant,
-    Architect,
-    Warlord,
-    Artist,
-
-    Patrician,
     Emperor,
+    Patrician,
 
+    Bishop,
+    Abbot,
+    Cardinal,
+
+    Merchant,
+    Alchemist,
+    Trader,
+
+    Architect,
     Navigator,
     Scholar,
+
+    Warlord,
+    Diplomat,
+    Marshal,
+
+    Queen,
+    Artist,
+    TaxCollector,
 }
 
 impl fmt::Display for RoleName {
@@ -30,6 +51,24 @@ impl fmt::Display for RoleName {
 }
 
 impl RoleName {
+    pub const fn todo(self) -> Role {
+        Role {
+            name: self,
+            rank: (self as u8) / 3 + 1,
+            set: crate::types::CardSet::Custom,
+            suit: None,
+            description: "todo",
+            actions: &[],
+        }
+    }
+    pub fn asset_x(self) -> isize {
+        -55 * (self as isize % 10)
+    }
+
+    pub fn asset_y(self) -> isize {
+        -265 * (self as isize / 10)
+    }
+
     pub fn data(self) -> &'static Role {
         &CHARACTERS[self as usize]
     }

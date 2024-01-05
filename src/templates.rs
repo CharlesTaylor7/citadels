@@ -3,6 +3,7 @@ use crate::actions::ActionTag::*;
 use crate::game::Game;
 use crate::game::PlayerInfo;
 use crate::game::PlayerName;
+use crate::roles::RoleName::*;
 use crate::types::Role;
 use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
