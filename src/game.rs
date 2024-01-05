@@ -1,10 +1,11 @@
+use crate::districts::District;
 use crate::{
     actions::{Action, ActionTag},
     data::{self},
     lobby::{self, Lobby},
-    random::{self, Prng},
+    random::Prng,
     roles::RoleName,
-    types::{District, Rank, Role},
+    types::{CardSet, Rank, Role},
 };
 use log::*;
 use macros::tag::Tag;
@@ -244,17 +245,27 @@ impl Game {
 
         let crowned = players[0].name.clone();
 
-        let mut unique_districts: Vec<District> = data::districts::UNIQUE.into_iter().collect();
+        let mut unique_districts: Vec<District> = crate::districts::UNIQUE
+            .into_iter()
+            .filter(|d| d.set != CardSet::Custom)
+            .collect();
         unique_districts.shuffle(&mut rng);
 
-        let mut deck: Vec<District> = data::districts::NORMAL
+        let mut deck: Vec<District> = crate::districts::NORMAL
             .into_iter()
-            .flat_map(|(count, district)| std::iter::repeat(district).take(count))
+            .flat_map(|district| {
+                let n = district.name.multiplicity();
+                std::iter::repeat(district).take(n)
+            })
             .chain(unique_districts.into_iter().take(14))
             .collect();
         deck.shuffle(&mut rng);
 
-        debug_assert!(deck.len() <= 54 + 14);
+        debug_assert!(
+            deck.len() == 68,
+            "Deck size is {} but should be 68",
+            deck.len()
+        );
 
         // deal starting hands
         players.iter_mut().for_each(|p| {

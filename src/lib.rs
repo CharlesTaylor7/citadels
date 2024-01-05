@@ -1,5 +1,6 @@
 pub mod actions;
 pub mod data;
+pub mod districts;
 pub mod game;
 pub mod lobby;
 pub mod logger;

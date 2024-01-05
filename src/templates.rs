@@ -1,11 +1,11 @@
 use crate::actions::ActionTag;
 use crate::actions::ActionTag::*;
+use crate::districts::DistrictName::*;
 use crate::game::Game;
 use crate::game::PlayerInfo;
 use crate::game::PlayerName;
 use crate::roles::RoleName::*;
 use crate::types::Role;
-use crate::types::UniqueDistrict::*;
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;

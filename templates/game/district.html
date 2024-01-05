@@ -25,7 +25,7 @@
     {{ card.suit|suit_bg_color }}
     "
   >
-    {% if card.unique_name != Some(SecretVault) %}
+    {% if card.name != SecretVault %}
       {{ card.cost }} 
     {% endif %}
   </div>

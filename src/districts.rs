@@ -58,7 +58,7 @@ pub enum DistrictName {
     Monument,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct District {
     pub name: DistrictName,
     pub display_name: &'static str,
@@ -143,11 +143,11 @@ impl DistrictName {
             Self::TownHall => 2,
             Self::Harbor => 3,
             Self::Docks => 3,
-            Self::Market => 0,
-            Self::TradingPost => 0,
-            Self::Tavern => 0,
+            Self::Market => 4,
+            Self::TradingPost => 3,
+            Self::Tavern => 5,
             _ => {
-                assert_eq!(self as usize >= NORMAL.len());
+                assert!(self as usize >= NORMAL.len());
                 1
             }
         }
