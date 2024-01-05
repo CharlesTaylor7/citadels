@@ -52,6 +52,8 @@ pub enum RoleName {
 }
 
 impl fmt::Display for RoleName {
+    // This is for ease of interpolating into actions in the template
+    // note its different than the display_name property
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:#?}", self)
     }
@@ -79,6 +81,13 @@ impl RoleName {
 
     pub fn rank(self) -> Rank {
         self.data().rank
+    }
+
+    pub fn display_name(self) -> String {
+        match self {
+            Self::TaxCollector => "Tax Collector".to_owned(),
+            _ => format!("{:#?}", self),
+        }
     }
 
     pub fn min_player_count(self) -> usize {

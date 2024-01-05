@@ -1,8 +1,8 @@
 use crate::actions::ActionTag;
 use crate::actions::ActionTag::*;
-use crate::districts::DistrictName;
 use crate::districts::DistrictName::*;
-use crate::game::Game;
+use crate::districts::{DistrictData, DistrictName};
+use crate::game::{CityDistrict, Game};
 use crate::roles::RoleName::{self, *};
 use crate::types::CardSuit;
 use crate::{game, lobby};
@@ -23,7 +23,7 @@ pub struct PlayerInfoTemplate<'a> {
     pub name: &'a str,
     pub gold: usize,
     pub hand_size: usize,
-    pub city: &'a [DistrictTemplate],
+    pub city: Vec<()>,
 }
 
 impl<'a> PlayerInfoTemplate<'a> {
@@ -35,12 +35,12 @@ impl<'a> PlayerInfoTemplate<'a> {
             city,
             ..
         } = player;
-        // TODO:
         Self {
             name: name.0.borrow(),
             gold: *gold,
             hand_size: hand.len(),
-            city: &[],
+            // TODO:
+            city: city.iter().map(|_| ()).collect(),
         }
     }
 }
@@ -50,9 +50,9 @@ impl<'a> PlayerInfoTemplate<'a> {
 pub struct PlayerTemplate<'a> {
     pub name: &'a str,
     pub gold: usize,
-    pub hand: &'a [DistrictTemplate],
-    pub city: &'a [DistrictTemplate],
-    pub roles: &'a [&'a RoleTemplate],
+    pub hand: Vec<DistrictTemplate>,
+    pub roles: Vec<RoleTemplate>,
+    pub city: Vec<()>,
 }
 
 impl<'a> PlayerTemplate<'a> {
@@ -68,17 +68,21 @@ impl<'a> PlayerTemplate<'a> {
             Self {
                 name: name.0.borrow(),
                 gold: *gold,
-                hand: &[],
-                city: &[],
-                roles: &[],
+                hand: hand
+                    .iter()
+                    .cloned()
+                    .map(DistrictTemplate::from_hand)
+                    .collect::<Vec<_>>(),
+                roles: Vec::new(),
+                city: city.iter().map(|_| ()).collect(),
             }
         } else {
             Self {
                 name: "",
                 gold: 0,
-                hand: &[],
-                city: &[],
-                roles: &[],
+                hand: Vec::with_capacity(0),
+                roles: Vec::with_capacity(0),
+                city: Vec::with_capacity(0),
             }
         }
     }
@@ -93,12 +97,43 @@ pub struct DistrictTemplate {
     pub beautified: bool,
 }
 
+impl DistrictTemplate {
+    pub fn from_hand(district: DistrictName) -> Self {
+        let data = district.data();
+        Self {
+            display_name: data.display_name,
+            cost: data.cost,
+            name: data.name,
+            suit: data.suit,
+            description: data.description,
+            beautified: false,
+        }
+    }
+
+    pub fn from_city(district: &CityDistrict) -> Self {
+        todo!()
+    }
+}
+
 pub struct RoleTemplate {
-    pub display_name: &'static str,
-    pub rank: usize,
+    pub display_name: String,
+    pub rank: u8,
     pub name: RoleName,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
+}
+
+impl RoleTemplate {
+    pub fn from(name: RoleName) -> Self {
+        let data = name.data();
+        Self {
+            display_name: name.display_name(),
+            rank: data.rank,
+            name: name,
+            suit: data.suit,
+            description: data.description,
+        }
+    }
 }
 
 #[derive(Template)]
@@ -106,8 +141,8 @@ pub struct RoleTemplate {
 pub struct GameTemplate<'a> {
     dev_mode: bool,
     phase: GamePhase,
-    draft: &'a [&'a RoleTemplate],
-    draft_discard: &'a [&'a RoleTemplate],
+    draft: Vec<RoleTemplate>,
+    draft_discard: Vec<RoleTemplate>,
     allowed_actions: &'a [ActionTag],
     characters: &'a [RoleTemplate],
     players: &'a [PlayerInfoTemplate<'a>],
@@ -128,24 +163,21 @@ impl<'a> GameTemplate<'a> {
             characters: &[],
             //&game.characters,
             // TODO:
-            draft: &[],
-            /*
-            game
+            draft: game
                 .draft
                 .remaining
                 .iter()
-                .map(|role| role.data())
+                .cloned()
+                .map(RoleTemplate::from)
                 .collect::<Vec<_>>(),
-                */
             // TODO:
-            draft_discard: &[],
-            /*game
-            .draft
-            .faceup_discard
-            .iter()
-            .map(|role| role.data())
-            .collect::<Vec<_>>(),
-            */
+            draft_discard: game
+                .draft
+                .faceup_discard
+                .iter()
+                .cloned()
+                .map(RoleTemplate::from)
+                .collect::<Vec<_>>(),
             players: &players,
             allowed_actions: &game.allowed_actions(),
             active_name: &active_player.ok_or("no active player")?.name.0,
