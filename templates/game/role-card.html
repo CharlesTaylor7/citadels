@@ -1,0 +1,45 @@
+{% let card = role %}
+{% let input_type = "checkbox" %}
+<label
+  data-tip="{{ card.description }}"
+  _="on click log event.target.checked"
+  class="
+    flex flex-col
+    justify-between
+    select-none
+    cursor-pointer
+    p-3
+    has-[:checked]:p-0
+    has-[:checked]:border
+    has-[:checked]:border-4
+    has-[:checked]:border-blue-300
+  "
+>
+  <svg 
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="200"
+    width="155" 
+    class="
+      p-1 box-content
+      rounded-xl
+      peer-checked:p-0
+      peer-checked:border
+      peer-checked:border-4
+      peer-checked:border-success
+    "
+  >
+    <image id="img" x="{{role.name.asset_x()}}" y="{{role.name.asset_y()}}"
+          height="400%"
+          xlink:href="/public/roles.jpeg"
+          preserveAspectRatio="xMinYMin slice"
+    />
+  </svg>
+  <input
+    type="{{ input_type }}"
+    class="hidden"
+    name="role"
+    value="{{ card.name }}"
+  />
+</label>
+

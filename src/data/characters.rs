@@ -83,7 +83,6 @@ pub const CHARACTERS: [RoleData; 27] =
     , actions: &[(1, GoldFromMilitary), (1, WarlordDestroy)]
     , description: "Destroy 1 district by paying 1 fewer gold than its cost. Gain 1 gold for each of your MILITARY districts."
     }
-
   , Diplomat.todo()
   , Marshal.todo()
   , Queen.todo()

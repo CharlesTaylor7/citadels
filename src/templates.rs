@@ -129,7 +129,7 @@ impl RoleTemplate {
         Self {
             display_name: name.display_name(),
             rank: data.rank,
-            name: name,
+            name,
             suit: data.suit,
             description: data.description,
         }
@@ -142,6 +142,7 @@ pub struct GameTemplate<'a> {
     dev_mode: bool,
     phase: GamePhase,
     draft: Vec<RoleTemplate>,
+    #[allow(unused)]
     draft_discard: Vec<RoleTemplate>,
     allowed_actions: &'a [ActionTag],
     characters: &'a [RoleTemplate],
@@ -161,8 +162,6 @@ impl<'a> GameTemplate<'a> {
 
         let rendered = GameTemplate {
             characters: &[],
-            //&game.characters,
-            // TODO:
             draft: game
                 .draft
                 .remaining
@@ -170,7 +169,6 @@ impl<'a> GameTemplate<'a> {
                 .cloned()
                 .map(RoleTemplate::from)
                 .collect::<Vec<_>>(),
-            // TODO:
             draft_discard: game
                 .draft
                 .faceup_discard
