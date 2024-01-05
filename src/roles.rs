@@ -64,13 +64,6 @@ impl RoleName {
     }
 
     pub fn asset_x(self) -> isize {
-        info!(
-            "{} {} x:{}, y:{}",
-            self,
-            self as usize,
-            self as usize % 10,
-            self as usize / 10
-        );
         -155 * (self as isize % 10)
     }
 

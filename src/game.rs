@@ -1,4 +1,4 @@
-use crate::districts::District;
+use crate::districts::{District, DistrictName};
 use crate::{
     actions::{Action, ActionTag},
     data::{self},
@@ -20,7 +20,7 @@ type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
 #[derive(Default, Debug, PartialEq, Eq, Clone)]
-pub struct PlayerName(String);
+pub struct PlayerName(pub String);
 
 impl PlayerName {
     pub fn from(str: String) -> Self {
@@ -40,22 +40,20 @@ impl PartialEq<PlayerName> for &PlayerName {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Player {
     pub id: PlayerId,
     pub name: PlayerName,
     pub gold: usize,
-    pub hand: Vec<District>,
-    pub city: Vec<District>,
+    pub hand: Vec<DistrictName>,
+    pub city: Vec<CityDistrict>,
     pub roles: Vec<&'static Role>,
 }
 
-// Just the public info
-pub struct PlayerInfo<'a> {
-    pub name: &'a PlayerName,
-    pub gold: usize,
-    pub hand_size: usize,
-    pub city: &'a [District],
+#[derive(Debug)]
+pub struct CityDistrict {
+    pub name: DistrictName,
+    pub beautified: bool,
 }
 
 impl Player {
@@ -67,22 +65,6 @@ impl Player {
             hand: Vec::new(),
             city: Vec::new(),
             roles: Vec::with_capacity(2),
-        }
-    }
-
-    pub fn info(&self) -> PlayerInfo<'_> {
-        let Player {
-            name,
-            gold,
-            hand,
-            city,
-            ..
-        } = self;
-        PlayerInfo {
-            name: name.borrow(),
-            gold: *gold,
-            hand_size: hand.len(),
-            city,
         }
     }
 }
@@ -214,7 +196,7 @@ pub struct Game {
     rng: Prng,
     #[cfg(feature = "dev")]
     pub impersonate: Option<PlayerName>,
-    pub deck: Deck<District>,
+    pub deck: Deck<DistrictName>,
     pub players: Vec<Player>,
     pub characters: Vec<&'static Role>,
     pub crowned: PlayerName,
@@ -245,17 +227,23 @@ impl Game {
 
         let crowned = players[0].name.clone();
 
-        let mut unique_districts: Vec<District> = crate::districts::UNIQUE
-            .into_iter()
-            .filter(|d| d.set != CardSet::Custom)
+        let mut unique_districts: Vec<DistrictName> = crate::districts::UNIQUE
+            .iter()
+            .filter_map(|d| {
+                if d.set != CardSet::Custom {
+                    Some(d.name)
+                } else {
+                    None
+                }
+            })
             .collect();
         unique_districts.shuffle(&mut rng);
 
-        let mut deck: Vec<District> = crate::districts::NORMAL
-            .into_iter()
+        let mut deck: Vec<DistrictName> = crate::districts::NORMAL
+            .iter()
             .flat_map(|district| {
                 let n = district.name.multiplicity();
-                std::iter::repeat(district).take(n)
+                std::iter::repeat(district.name).take(n)
             })
             .chain(unique_districts.into_iter().take(14))
             .collect();
