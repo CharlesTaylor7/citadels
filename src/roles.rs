@@ -1,3 +1,4 @@
+use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::Deserialize;
 use std::fmt::{self, Debug, Formatter};
@@ -77,7 +78,7 @@ impl RoleName {
     }
 
     pub fn rank(self) -> Rank {
-        (self as u8 / 3) + 1
+        self.data().rank
     }
 
     pub fn data(self) -> &'static RoleData {
@@ -123,6 +124,14 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> Vec<RoleName> {
     // 9th rank is optional for 4-7
     // 9th rank is required for 8
     let n = if num_players == 2 { 8 } else { 9 };
+    let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
 
-    vec![]
+    for r in crate::roles::CHARACTERS {
+        grouped_by_rank[(r.rank - 1) as usize].push(r.name)
+    }
+
+    grouped_by_rank
+        .iter()
+        .filter_map(|roles| roles.choose(rng).cloned())
+        .collect::<Vec<_>>()
 }
