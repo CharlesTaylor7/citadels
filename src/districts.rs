@@ -126,11 +126,11 @@ impl DistrictName {
     }
 
     pub fn asset_x(self) -> isize {
-        -155 * (self as isize % 10)
+        -125 * (self as isize % 10)
     }
 
     pub fn asset_y(self) -> isize {
-        -265 * (self as isize / 10)
+        -200 * (self as isize / 10)
     }
 
     pub fn multiplicity(self) -> usize {
