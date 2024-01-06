@@ -125,14 +125,6 @@ impl DistrictName {
         }
     }
 
-    pub fn asset_x(self) -> isize {
-        -125 * (self as isize % 10)
-    }
-
-    pub fn asset_y(self) -> isize {
-        -200 * (self as isize / 10)
-    }
-
     pub fn multiplicity(self) -> usize {
         match self {
             Self::Palace => 3,

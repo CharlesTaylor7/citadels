@@ -71,14 +71,6 @@ impl RoleName {
         }
     }
 
-    pub fn asset_x(self) -> isize {
-        -155 * (self as isize % 10)
-    }
-
-    pub fn asset_y(self) -> isize {
-        -265 * (self as isize / 10)
-    }
-
     pub fn rank(self) -> Rank {
         self.data().rank
     }

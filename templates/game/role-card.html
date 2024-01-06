@@ -46,11 +46,24 @@
       peer-checked:border-success
     "
   >
-    <image id="img" x="{{role.name.asset_x()}}" y="{{role.name.asset_y()}}"
+    <image id="img" x="{{role.image_offset_x}}" y="{{role.image_offset_y}}"
           height="400%"
           xlink:href="/public/roles.jpeg"
           preserveAspectRatio="xMinYMin slice"
     />
   </svg>
+  <div
+    data-tip="{{ role.name }} - {{ role.description }}"
+    class="
+      absolute
+      bottom-0
+      left-0
+      w-full
+      h-[30%]
+      tooltip
+      tooltip-secondary
+    "
+  >
+  </div>
 </label>
 
