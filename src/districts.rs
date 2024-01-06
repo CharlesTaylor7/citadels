@@ -7,7 +7,6 @@ use crate::types::CardSuit::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[repr(usize)]
-#[serde(untagged)]
 pub enum DistrictName {
     Temple,
     Church,

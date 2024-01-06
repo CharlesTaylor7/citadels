@@ -1,3 +1,4 @@
+use crate::actions::Select;
 use crate::districts::DistrictName;
 use crate::roles::{self, Rank};
 use crate::{
@@ -230,11 +231,11 @@ impl std::fmt::Debug for ActionLog {
 #[derive(Debug)]
 pub struct FollowupAction {
     pub action: ActionTag,
-    pub context: FollowupActionContext,
+    pub context: FollowupContext,
 }
 
-#[derive(Debug)]
-pub enum FollowupActionContext {
+#[derive(Debug, Tag)]
+pub enum FollowupContext {
     PickDistrict(Vec<DistrictName>),
 }
 
@@ -463,17 +464,16 @@ impl Game {
 
     #[must_use]
     pub fn perform(&mut self, action: Action) -> Result<()> {
+        let player = self.active_player().ok_or("no active player")?;
         let allowed = self.allowed_actions();
         if !allowed.contains(&action.tag()) {
             return Err("Action is not allowed");
         }
 
-        info!("{:#?}", self.players);
         debug!("Performing {:#?}", action);
         self.followup = self.perform_action(&action)?;
 
         let tag = action.tag();
-        let player = self.active_player().ok_or("no active player")?;
         let log = ActionLog {
             player: player.name.clone(),
             role: self.active_role(),
@@ -554,6 +554,7 @@ impl Game {
                 player.gold += 2; // roles / districts may affect this
                 None
             }
+
             Action::ResourceGainCards => {
                 let draw_amount = 2; // roles / disricts may affect this
                 let mut cards = Vec::with_capacity(draw_amount);
@@ -568,10 +569,36 @@ impl Game {
                 if cards.len() > 0 {
                     Some(FollowupAction {
                         action: ActionTag::ResourcePickCards,
-                        context: FollowupActionContext::PickDistrict(cards),
+                        context: FollowupContext::PickDistrict(cards),
                     })
                 } else {
                     None
+                }
+            }
+
+            Action::ResourcePickCards { district } => {
+                let followup = self.followup.ok_or("action is not allowed")?;
+                if let FollowupContext::PickDistrict(mut options) = followup.context {
+                    if let Select::Single(district) = district {
+                        let index = options
+                            .iter()
+                            .enumerate()
+                            .find_map(|(i, name)| if name == district { Some(i) } else { None })
+                            .ok_or("district is not valid choice")?;
+
+                        self.active_player_mut().unwrap().hand.push(*district);
+
+                        options.remove(index);
+                        options.shuffle(&mut self.rng);
+                        for remaining in options {
+                            self.deck.discard_to_bottom(remaining);
+                        }
+                        return Ok(None);
+                    } else {
+                        return Err("cannot pick more than 1");
+                    }
+                } else {
+                    return Err("cannot follow up");
                 }
             }
 

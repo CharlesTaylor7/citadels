@@ -36,29 +36,38 @@
       id="main-panel"
       class="grow flex flex-col"
     >
-      <section
+      <form
         id="actions"
         class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
       >
         <h2 class="m-2 underline text-lg font-semibold">
-          {{ actions.header }}
+          {{ header }}
         </h2>
-
-        {% match actions.view %} 
-        {% when ActionsView::Draft with {roles, discard, actions } %}
-        {% include "draft.html" %}
-        {% when ActionsView::SelectDistrict with (_) %}
-        TODO: Select district
-        {% when ActionsView::SelectAction with (actions) %}
+        {% match view %} 
+        {% when ActionsView::Draft with {roles, discard } %}
+          <div class="flex flex-row flex-wrap gap-2">
+            {% set input_type = "radio" %} 
+            {% for role in roles %} 
+              {% include "role-card.html" %}
+            {% endfor %}
+          </div>
+        {% when ActionsView::SelectDistrict with (districts) %}
+        <div class="flex flex-row flex-wrap gap-2">
+          {% set input_type = "checkbox" %}
+          {% for district in districts %}
+          {% include "district-card.html" %}
+          {% endfor %}
+        </div>
+        {% when ActionsView::SelectAction %}
+        {% else %}
+        TODO: Else
+        {% endmatch %}
         <div class="flex flex-row flex-wrap gap-2">
           {% for action in actions %}
           {% include "action.html" %}
           {% endfor %}
         </div>
-        {% else %}
-        TODO: Else
-        {% endmatch %}
-      </section>
+      </form>
       <div
         id="city"
         class="p-2 bg-neutral-content grow flex flex-col items-center border border-base-200"

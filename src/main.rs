@@ -164,7 +164,7 @@ mod handlers {
     pub async fn register(
         app: State<AppState>,
         cookies: PrivateCookieJar,
-        args: axum::Form<Register>,
+        args: axum::Json<Register>,
     ) -> impl IntoResponse {
         let cookie = cookies.get("player_id").unwrap();
         let player_id = cookie.value();
@@ -244,7 +244,7 @@ mod handlers {
     pub async fn game_action(
         app: State<AppState>,
         cookies: PrivateCookieJar,
-        action: axum::Form<Action>,
+        action: axum::Json<Action>,
     ) -> Result<Response> {
         let cookie = cookies.get("player_id").ok_or("missing cookie")?;
         let mut game = app.game.lock().unwrap();
@@ -283,16 +283,10 @@ mod handlers {
     #[cfg(feature = "dev")]
     pub async fn game_impersonate(
         app: State<AppState>,
-        body: axum::Form<Impersonate>,
+        body: axum::Json<Impersonate>,
     ) -> Result<Response, ErrorResponse> {
         let mut game = app.game.lock().unwrap();
         let game = game.as_mut().ok_or("game hasn't started")?;
-        let player = game
-            .players
-            .iter()
-            .find(|p| p.name == body.name)
-            .ok_or("nobody with that name")?;
-
         let html = GameTemplate::render(game, None, Some(body.name.borrow()))?;
         app.connections.lock().unwrap().broadcast(html);
 
