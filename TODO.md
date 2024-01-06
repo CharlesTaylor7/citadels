@@ -48,12 +48,12 @@
 ## UI
 - [x] Flex row of flex columns instead of grid layout
 - [ ] Rethink daisyui theme. Maybe something more blue than beige.
-- [ ] Round Log 
-    - [x] Tooltip to the right for each role
-    - [ ] Collapsible section of the actions taken
-
+- [ ] Action log front and center
+- [ ] Mark who's hand + city I'm looking at.
 - [ ] Roles
+    - [x] Tooltip to the right for each role
     - [ ] Unmask player as turn proceeds
+    - [ ] Collapsible section of the actions taken
     - [ ] Markers:
         - Killed
         - Stolen
