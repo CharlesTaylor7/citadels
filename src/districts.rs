@@ -13,19 +13,23 @@ pub enum DistrictName {
     Church,
     Monastery,
     Cathedral,
+
     Watchtower,
     Prison,
     Baracks,
     Fortress,
+
     Manor,
     Castle,
     Palace,
+
     Tavern,
     Market,
     TradingPost,
     Docks,
     Harbor,
     TownHall,
+
     Smithy,
     Laboratory,
     SchoolOfMagic,
@@ -156,23 +160,23 @@ impl DistrictName {
 }
 
 pub const NORMAL: [DistrictData; 17] = [
-    (DistrictName::Palace.normal(Base, Royal, 5, "Palace")),
-    (DistrictName::Castle.normal(Base, Royal, 4, "Castle")),
-    (DistrictName::Manor.normal(Base, Royal, 3, "Manor")),
-    (DistrictName::Fortress.normal(Base, Military, 5, "Fortress")),
-    (DistrictName::Baracks.normal(Base, Military, 3, "Baracks")),
-    (DistrictName::Prison.normal(Base, Military, 2, "Prison")),
-    (DistrictName::Watchtower.normal(Base, Military, 1, "Watchtower")),
-    (DistrictName::Cathedral.normal(Base, Religious, 5, "Cathedral")),
-    (DistrictName::Monastery.normal(Base, Religious, 3, "Monastery")),
-    (DistrictName::Church.normal(Base, Religious, 2, "Church")),
-    (DistrictName::Temple.normal(Base, Religious, 1, "Temple")),
-    DistrictName::TownHall.normal(Base, Trade, 5, "Town Hall"),
-    DistrictName::Harbor.normal(Base, Trade, 4, "Harbor"),
-    DistrictName::Docks.normal(Base, Trade, 3, "Docks"),
+    DistrictName::Temple.normal(Base, Religious, 1, "Temple"),
+    DistrictName::Church.normal(Base, Religious, 2, "Church"),
+    DistrictName::Monastery.normal(Base, Religious, 3, "Monastery"),
+    DistrictName::Cathedral.normal(Base, Religious, 5, "Cathedral"),
+    DistrictName::Watchtower.normal(Base, Military, 1, "Watchtower"),
+    DistrictName::Prison.normal(Base, Military, 2, "Prison"),
+    DistrictName::Baracks.normal(Base, Military, 3, "Baracks"),
+    DistrictName::Fortress.normal(Base, Military, 5, "Fortress"),
+    DistrictName::Manor.normal(Base, Royal, 3, "Manor"),
+    DistrictName::Castle.normal(Base, Royal, 4, "Castle"),
+    DistrictName::Palace.normal(Base, Royal, 5, "Palace"),
+    DistrictName::Tavern.normal(Base, Trade, 1, "Tavern"),
     DistrictName::Market.normal(Base, Trade, 2, "Market"),
     DistrictName::TradingPost.normal(Base, Trade, 2, "Trading Post"),
-    DistrictName::Tavern.normal(Base, Trade, 1, "Tavern"),
+    DistrictName::Docks.normal(Base, Trade, 3, "Docks"),
+    DistrictName::Harbor.normal(Base, Trade, 4, "Harbor"),
+    DistrictName::TownHall.normal(Base, Trade, 5, "Town Hall"),
 ];
 
 pub const UNIQUE: [DistrictData; 30] = [

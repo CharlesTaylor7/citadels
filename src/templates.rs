@@ -221,11 +221,18 @@ pub struct DistrictTemplate {
 impl DistrictTemplate {
     pub fn from_hand(district: DistrictName) -> Self {
         let data = district.data();
+        info!(
+            "{:#?}: {} ({}, {})",
+            district,
+            district as isize,
+            district as isize % 10,
+            district as isize / 10,
+        );
         Self {
             display_name: data.display_name,
             cost: data.cost,
-            name: data.name,
-            value: format!("{:#?}", data),
+            name: district,
+            value: format!("{:#?}", district),
             suit: data.suit,
             description: data.description,
             beautified: false,
