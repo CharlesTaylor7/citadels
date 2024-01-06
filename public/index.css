@@ -1850,6 +1850,10 @@ html {
   min-width: 18rem;
 }
 
+.min-w-36 {
+  min-width: 9rem;
+}
+
 .grow {
   flex-grow: 1;
 }
