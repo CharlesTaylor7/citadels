@@ -196,8 +196,6 @@ impl std::fmt::Debug for ActionLog {
 #[derive(Debug)]
 pub struct Game {
     rng: Prng,
-    #[cfg(feature = "dev")]
-    pub impersonate: Option<PlayerName>,
     pub deck: Deck<DistrictName>,
     pub players: Vec<Player>,
     pub characters: Vec<RoleName>,
@@ -297,8 +295,6 @@ impl Game {
         });
         let characters = crate::roles::select(&mut rng, players.len());
         let mut game = Game {
-            #[cfg(feature = "dev")]
-            impersonate: None,
             rng,
             players,
             draft: Draft::default(),

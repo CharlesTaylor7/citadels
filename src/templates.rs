@@ -27,12 +27,13 @@ pub struct GameTemplate<'a> {
 }
 
 impl<'a> GameTemplate<'a> {
-    pub fn render<'b>(
+    pub fn render<'b, 'c>(
         game: &'a Game,
         player_id: Option<&'b str>,
+        impersonate: Option<&'c game::PlayerName>,
     ) -> axum::response::Result<Html<String>> {
         let active_player = game.active_player();
-        let player = PlayerTemplate::from(myself(game, player_id));
+        let player = PlayerTemplate::from(myself(game, player_id, impersonate));
         let players: Vec<_> = game.players.iter().map(PlayerInfoTemplate::from).collect();
 
         let rendered = GameTemplate {
@@ -74,8 +75,12 @@ impl<'a> GameTemplate<'a> {
 }
 
 #[cfg(feature = "dev")]
-fn myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a game::Player> {
-    if let Some(name) = game.impersonate.borrow() {
+fn myself<'a, 'b, 'c>(
+    game: &'a Game,
+    _player_id: Option<&'b str>,
+    impersonate: Option<&'c game::PlayerName>,
+) -> Option<&'a game::Player> {
+    if let Some(name) = impersonate {
         game.players.iter().find(|p| p.name == *name)
     } else {
         game.active_player()
@@ -83,7 +88,11 @@ fn myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a gam
 }
 
 #[cfg(not(feature = "dev"))]
-fn myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
+fn myself<'a, 'b>(
+    game: &'a Game,
+    player_id: Option<&'b str>,
+    _impersonate: Option<game::PlayerName>,
+) -> Option<&'a game::Player> {
     player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
 }
 

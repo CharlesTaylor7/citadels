@@ -117,6 +117,7 @@ mod handlers {
     use http::StatusCode;
     use log::*;
     use serde::Deserialize;
+    use std::borrow::Borrow;
     use std::mem;
     use uuid::Uuid;
 
@@ -204,7 +205,7 @@ mod handlers {
             app.connections
                 .lock()
                 .unwrap()
-                .broadcast_each(move |id| GameTemplate::render(game, Some(id)));
+                .broadcast_each(move |id| GameTemplate::render(game, Some(id), None));
             return StatusCode::OK.into_response();
         }
 
@@ -220,7 +221,7 @@ mod handlers {
         let game = app.game.lock().unwrap();
         let game = game.as_ref();
         if let Some(game) = game.as_ref() {
-            GameTemplate::render(game, id)
+            GameTemplate::render(game, id, None)
         } else {
             Err(ErrorResponse::from(Redirect::to("/lobby")))
         }
@@ -261,7 +262,7 @@ mod handlers {
                 app.connections
                     .lock()
                     .unwrap()
-                    .broadcast_each(move |id| GameTemplate::render(g, Some(id)));
+                    .broadcast_each(move |id| GameTemplate::render(g, Some(id), None));
 
                 debug!("Draft: {:#?}", game.draft);
                 debug!("{:#?}", game.logs);
@@ -291,7 +292,8 @@ mod handlers {
             .iter()
             .find(|p| p.name == body.name)
             .ok_or("nobody with that name")?;
-        let html = GameTemplate::render(game, Some(&player.id))?;
+
+        let html = GameTemplate::render(game, None, Some(body.name.borrow()))?;
         app.connections.lock().unwrap().broadcast(html);
 
         Ok(StatusCode::OK.into_response())
