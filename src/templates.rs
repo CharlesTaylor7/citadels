@@ -12,6 +12,124 @@ use log::*;
 use std::borrow::Borrow;
 use std::ops::Deref;
 
+#[derive(Template)]
+#[template(path = "game/index.html")]
+pub struct GameTemplate<'a> {
+    dev_mode: bool,
+    phase: GamePhase,
+    draft: Vec<RoleTemplate>,
+    #[allow(unused)]
+    draft_discard: Vec<RoleTemplate>,
+    allowed_actions: &'a [ActionTag],
+    characters: &'a [RoleTemplate],
+    players: &'a [PlayerInfoTemplate<'a>],
+    active_name: &'a str,
+    my: &'a PlayerTemplate<'a>,
+}
+
+impl<'a> GameTemplate<'a> {
+    pub fn render<'b>(
+        game: &'a Game,
+        player_id: Option<&'b str>,
+    ) -> axum::response::Result<Html<String>> {
+        let active_player = game.active_player();
+        let player = PlayerTemplate::from(myself(game, player_id));
+        let players: Vec<_> = game.players.iter().map(PlayerInfoTemplate::from).collect();
+
+        let rendered = GameTemplate {
+            characters: &[],
+            draft: game
+                .draft
+                .remaining
+                .iter()
+                .cloned()
+                .map(RoleTemplate::from)
+                .collect::<Vec<_>>(),
+            draft_discard: game
+                .draft
+                .faceup_discard
+                .iter()
+                .cloned()
+                .map(RoleTemplate::from)
+                .collect::<Vec<_>>(),
+            players: &players,
+            allowed_actions: &game.allowed_actions(),
+            active_name: &active_player.ok_or("no active player")?.name.0,
+            my: player.borrow(),
+            dev_mode: cfg!(feature = "dev"),
+            phase: GamePhase::Call,
+            /*
+                      match game.active_turn {
+                game::Turn::Draft(_) => GamePhase::Draft,
+                game::Turn::Call(_) => GamePhase::Call,
+            },
+            */
+        }
+        .render()
+        .map_err(|e| format!("askama error: {}", e))?;
+
+        Ok(Html(rendered))
+    }
+}
+
+#[cfg(feature = "dev")]
+fn myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a game::Player> {
+    if let Some(name) = game.impersonate.borrow() {
+        game.players.iter().find(|p| p.name == *name)
+    } else {
+        game.active_player()
+    }
+}
+
+#[cfg(not(feature = "dev"))]
+fn myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
+    player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
+}
+
+#[derive(Template)]
+#[template(path = "lobby/index.html")]
+pub struct LobbyTemplate<'a> {
+    pub username: &'a str,
+    pub players: &'a [lobby::Player],
+}
+
+#[derive(Template)]
+#[template(path = "lobby/players.html")]
+pub struct LobbyPlayersTemplate<'a> {
+    pub players: &'a [lobby::Player],
+}
+
+mod filters {
+    use std::fmt::{format, Debug};
+
+    use crate::types::CardSuit;
+
+    pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
+        Ok(format!("{:#?}", item))
+    }
+    pub fn suit_bg_character(suit: &Option<CardSuit>) -> askama::Result<&'static str> {
+        match suit.as_ref() {
+            Some(suit) => suit_bg_color(suit),
+            None => Ok("bg-neutral-content"),
+        }
+    }
+
+    pub fn suit_bg_color(suit: &CardSuit) -> askama::Result<&'static str> {
+        Ok(match suit {
+            CardSuit::Military => "bg-suit-military",
+            CardSuit::Religious => "bg-suit-religious",
+            CardSuit::Royal => "bg-suit-royal",
+            CardSuit::Trade => "bg-suit-trade",
+            CardSuit::Unique => "bg-suit-unique",
+        })
+    }
+
+    pub fn def<'a>(t: &'a Option<&'static str>) -> askama::Result<&'a str> {
+        let c: Option<&str> = t.as_deref();
+        Ok(c.unwrap_or_default())
+    }
+}
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum GamePhase {
     Draft,
@@ -137,120 +255,5 @@ impl RoleTemplate {
             suit: data.suit,
             description: data.description,
         }
-    }
-}
-
-#[derive(Template)]
-#[template(path = "game/index.html")]
-pub struct GameTemplate<'a> {
-    dev_mode: bool,
-    phase: GamePhase,
-    draft: Vec<RoleTemplate>,
-    #[allow(unused)]
-    draft_discard: Vec<RoleTemplate>,
-    allowed_actions: &'a [ActionTag],
-    characters: &'a [RoleTemplate],
-    players: &'a [PlayerInfoTemplate<'a>],
-    active_name: &'a str,
-    my: &'a PlayerTemplate<'a>,
-}
-
-impl<'a> GameTemplate<'a> {
-    pub fn render<'b>(
-        game: &'a Game,
-        player_id: Option<&'b str>,
-    ) -> axum::response::Result<Html<String>> {
-        let active_player = game.active_player();
-        let player = PlayerTemplate::from(myself(game, player_id));
-        let players: Vec<_> = game.players.iter().map(PlayerInfoTemplate::from).collect();
-
-        let rendered = GameTemplate {
-            characters: &[],
-            draft: game
-                .draft
-                .remaining
-                .iter()
-                .cloned()
-                .map(RoleTemplate::from)
-                .collect::<Vec<_>>(),
-            draft_discard: game
-                .draft
-                .faceup_discard
-                .iter()
-                .cloned()
-                .map(RoleTemplate::from)
-                .collect::<Vec<_>>(),
-            players: &players,
-            allowed_actions: &game.allowed_actions(),
-            active_name: &active_player.ok_or("no active player")?.name.0,
-            my: player.borrow(),
-            dev_mode: cfg!(feature = "dev"),
-            phase: match game.active_turn {
-                game::Turn::Draft(_) => GamePhase::Draft,
-                game::Turn::Call(_) => GamePhase::Call,
-            },
-        }
-        .render()
-        .map_err(|e| format!("askama error: {}", e))?;
-
-        Ok(Html(rendered))
-    }
-}
-
-#[cfg(feature = "dev")]
-fn myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a game::Player> {
-    if let Some(name) = game.impersonate.borrow() {
-        game.players.iter().find(|p| p.name == *name)
-    } else {
-        game.active_player()
-    }
-}
-
-#[cfg(not(feature = "dev"))]
-fn myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
-    player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
-}
-
-#[derive(Template)]
-#[template(path = "lobby/index.html")]
-pub struct LobbyTemplate<'a> {
-    pub username: &'a str,
-    pub players: &'a [lobby::Player],
-}
-
-#[derive(Template)]
-#[template(path = "lobby/players.html")]
-pub struct LobbyPlayersTemplate<'a> {
-    pub players: &'a [lobby::Player],
-}
-
-mod filters {
-    use std::fmt::{format, Debug};
-
-    use crate::types::CardSuit;
-
-    pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
-        Ok(format!("{:#?}", item))
-    }
-    pub fn suit_bg_character(suit: &Option<CardSuit>) -> askama::Result<&'static str> {
-        match suit.as_ref() {
-            Some(suit) => suit_bg_color(suit),
-            None => Ok("bg-neutral-content"),
-        }
-    }
-
-    pub fn suit_bg_color(suit: &CardSuit) -> askama::Result<&'static str> {
-        Ok(match suit {
-            CardSuit::Military => "bg-suit-military",
-            CardSuit::Religious => "bg-suit-religious",
-            CardSuit::Royal => "bg-suit-royal",
-            CardSuit::Trade => "bg-suit-trade",
-            CardSuit::Unique => "bg-suit-unique",
-        })
-    }
-
-    pub fn def<'a>(t: &'a Option<&'static str>) -> askama::Result<&'a str> {
-        let c: Option<&str> = t.as_deref();
-        Ok(c.unwrap_or_default())
     }
 }

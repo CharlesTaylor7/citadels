@@ -1,5 +1,4 @@
 <label
-  data-tip="{{ district.name|debug }} - {{ district.description|def }}"
   class="
     relative
     select-none
@@ -33,4 +32,19 @@
           preserveAspectRatio="xMinYMin slice"
     />
   </svg>
+  <div
+    data-tip="{{ district.name|debug }} - {{ district.description|def }}"
+    class="
+      absolute
+      bottom-0
+      left-0
+      w-full
+      h-[30%]
+      {% if district.description.is_some() %}
+      tooltip
+      tooltip-secondary
+      {% endif %}
+    "
+  >
+  </div>
 </label>

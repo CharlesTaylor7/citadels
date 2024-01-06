@@ -1737,6 +1737,21 @@ html {
   bottom: auto;
 }
 
+.tooltip-primary {
+  --tooltip-color: var(--fallback-p,oklch(var(--p)/1));
+  --tooltip-text-color: var(--fallback-pc,oklch(var(--pc)/1));
+}
+
+.tooltip-secondary {
+  --tooltip-color: var(--fallback-s,oklch(var(--s)/1));
+  --tooltip-text-color: var(--fallback-sc,oklch(var(--sc)/1));
+}
+
+.tooltip-info {
+  --tooltip-color: var(--fallback-in,oklch(var(--in)/1));
+  --tooltip-text-color: var(--fallback-inc,oklch(var(--inc)/1));
+}
+
 .static {
   position: static;
 }
@@ -1755,6 +1770,14 @@ html {
 
 .top-0 {
   top: 0px;
+}
+
+.bottom-0 {
+  bottom: 0px;
+}
+
+.left-0 {
+  left: 0px;
 }
 
 .m-2 {
@@ -1803,6 +1826,10 @@ html {
 
 .h-screen {
   height: 100vh;
+}
+
+.h-\[30\%\] {
+  height: 30%;
 }
 
 .min-h-8 {
