@@ -1,0 +1,44 @@
+<div
+  class="
+    text-base
+    flex flex-col
+    mt-1
+    p-2
+    border
+    border-neutral
+    rounded-xl
+    {% if active_name == player.name %}
+    bg-slate-300
+    {% endif %}
+  "
+>
+  <div
+    class="
+      flex flex-row items-center justify-between gap-2
+    "
+    id="player-{{ player.name }}"
+  >
+    <div class="text-lg semibold">
+      {{ player.name }} 
+    </div>
+    {% if dev_mode && my.name.borrow() != player.name %}
+    <button
+      class="btn bg-slate-300 border-neutral h-8 min-h-8 animate-none"
+      hx-post="/game/impersonate"
+      name="name"
+      value="{{ player.name }}" 
+    >
+      View
+    </button>
+    {% endif %}
+  </div>
+  <div>
+    Gold: {{ player.gold }}
+  </div>
+  <div>
+    Hand: {{ player.hand_size }}
+  </div>
+  <div>
+    City: {{ player.city.len() }}
+  </div>
+</div>

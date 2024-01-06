@@ -94,9 +94,10 @@
 
     <div
       id="players"
-      class="min-w-72 p-2 p-2 bg-neutral-content border border-base-200 flex flex-col items-center"
+      class="px-4 bg-neutral-content border border-base-200 flex flex-col items-center gap-2"
     >
-      <h2 class="underline text-lg font-semibold">Players</h2>
+      <h2 class="m-2 underline text-lg font-semibold">Players</h2>
+      <div class="italic text-sm">Hover over a player to see more details</div>
       {% if dev_mode && my.name.borrow() != active_name %}
       <button
         class="btn btn-secondary h-8 min-h-8 animate-none m-2 "
@@ -109,34 +110,7 @@
       {% endif %}
       <div class="flex flex-col gap-2">
         {% for player in players %}
-        <div
-          class="
-            flex flex-row justify-between items-center gap-2
-          "
-          id="player-{{ player.name }}"
-        >
-          <div
-            class="
-              p-3
-              bg-green-200
-              {% if active_name == player.name %}
-              underline
-              {% endif %}
-            "
-          >
-            {{ player.name }} 
-          </div>
-          {% if dev_mode && my.name.borrow() != player.name %}
-              <button
-                class="btn btn-accent h-8 min-h-8 animate-none"
-                hx-post="/game/impersonate"
-                name="name"
-                value="{{ player.name }}" 
-              >
-                Impersonate
-              </button>
-          {% endif %}
-        </div>
+        {% include "player-summary.html" %}
         {% endfor %}
       </div>
     </div>
