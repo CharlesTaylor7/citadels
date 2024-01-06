@@ -214,8 +214,8 @@ pub struct DistrictTemplate {
     pub suit: CardSuit,
     pub description: Option<&'static str>,
     pub beautified: bool,
-    pub image_offset_x: isize,
-    pub image_offset_y: isize,
+    pub image_offset_x: f64,
+    pub image_offset_y: f64,
 }
 
 impl DistrictTemplate {
@@ -236,8 +236,8 @@ impl DistrictTemplate {
             suit: data.suit,
             description: data.description,
             beautified: false,
-            image_offset_x: -125 * (district as isize % 10),
-            image_offset_y: -200 * (district as isize / 10),
+            image_offset_x: -125.8 * (district as usize % 10) as f64,
+            image_offset_y: -200.0 * (district as usize / 10) as f64,
         }
     }
 
@@ -253,8 +253,8 @@ pub struct RoleTemplate {
     pub value: String,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
-    pub image_offset_x: isize,
-    pub image_offset_y: isize,
+    pub image_offset_x: f64,
+    pub image_offset_y: f64,
 }
 
 impl RoleTemplate {
@@ -267,8 +267,8 @@ impl RoleTemplate {
             value: format!("{:#?}", role),
             suit: data.suit,
             description: data.description,
-            image_offset_x: -155 * (role as isize % 10),
-            image_offset_y: -265 * (role as isize / 10),
+            image_offset_x: -155.0 * (role as usize % 10) as f64,
+            image_offset_y: -265.0 * (role as usize / 10) as f64,
         }
     }
 }
