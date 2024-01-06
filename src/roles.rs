@@ -130,7 +130,7 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> Vec<RoleName> {
     let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
 
     for r in crate::roles::ROLES {
-        if num_players >= r.name.min_player_count() {
+        if r.set != CardSet::Custom && num_players >= r.name.min_player_count() {
             grouped_by_rank[(r.rank - 1) as usize].push(r.name)
         }
     }

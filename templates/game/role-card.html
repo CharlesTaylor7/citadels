@@ -1,31 +1,10 @@
 <label
-  data-tip="{{ role.name }} - {{ role.description }}"
   class="
     relative
     select-none
     cursor-pointer
-    tooltip
   "
 >
-  <!--
-  <div
-    class="
-      absolute
-      right-0
-      top-0
-      leaded
-      h-8 w-8
-      flex flex-row 
-      justify-center items-center 
-      text-slate-600
-      rounded-full
-      border
-      border-neutral-content
-    "
-  >
-    ?
-  </div>
-  -->
   <input
     type="{{ input_type }}"
     class="peer hidden"
@@ -53,7 +32,7 @@
     />
   </svg>
   <div
-    data-tip="{{ role.name }} - {{ role.description }}"
+    data-tip="{{ role.description }}"
     class="
       absolute
       bottom-0

@@ -101,7 +101,6 @@
       <button
         class="btn btn-secondary h-8 min-h-8 animate-none m-2 "
         hx-swap="morph"
-        hx-target="#main"
         hx-post="/game/impersonate/active"
 
       >
@@ -113,18 +112,23 @@
         <div
           class="
             flex flex-row justify-between items-center gap-2
-            {% if active_name == player.name %}
-            underline
-            {% endif %}
           "
           id="player-{{ player.name }}"
         >
-          {{ player.name }} 
+          <div
+            class="
+              p-3
+              bg-green-200
+              {% if active_name == player.name %}
+              underline
+              {% endif %}
+            "
+          >
+            {{ player.name }} 
+          </div>
           {% if dev_mode && my.name.borrow() != player.name %}
               <button
                 class="btn btn-accent h-8 min-h-8 animate-none"
-                hx-swap="morph"
-                hx-target="#main"
                 hx-post="/game/impersonate"
                 name="name"
                 value="{{ player.name }}" 

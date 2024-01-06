@@ -61,13 +61,10 @@ impl<'a> GameTemplate<'a> {
             active_name: &active_player.ok_or("no active player")?.name.0,
             my: player.borrow(),
             dev_mode: cfg!(feature = "dev"),
-            phase: GamePhase::Call,
-            /*
-                      match game.active_turn {
+            phase: match game.active_turn {
                 game::Turn::Draft(_) => GamePhase::Draft,
                 game::Turn::Call(_) => GamePhase::Call,
             },
-            */
         }
         .render()
         .map_err(|e| format!("askama error: {}", e))?;
