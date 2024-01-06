@@ -378,6 +378,7 @@ impl Game {
 
     #[must_use]
     pub fn perform(&mut self, action: Action) -> Result<()> {
+        info!("{:#?}", self.players);
         debug!("Performing {:#?}", action);
         self.perform_action(&action)?;
 
