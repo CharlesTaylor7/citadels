@@ -96,12 +96,7 @@ fn get_router() -> Router {
 
 #[cfg(feature = "dev")]
 fn extend_router(router: Router<AppState>) -> Router<AppState> {
-    router
-        .route("/game/impersonate", post(handlers::game_impersonate))
-        .route(
-            "/game/impersonate/active",
-            post(handlers::game_impersonate_active),
-        )
+    router.route("/game/impersonate", post(handlers::game_impersonate))
 }
 
 #[cfg(not(feature = "dev"))]
@@ -117,7 +112,7 @@ mod handlers {
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::actions::Action;
-    use citadels::game::Game;
+    use citadels::game::{Game, PlayerName};
     use citadels::templates::*;
     use http::StatusCode;
     use log::*;
@@ -281,32 +276,25 @@ mod handlers {
     #[cfg(feature = "dev")]
     #[derive(Deserialize)]
     pub struct Impersonate {
-        name: String,
+        name: PlayerName,
     }
 
     #[cfg(feature = "dev")]
     pub async fn game_impersonate(
         app: State<AppState>,
-        cookies: PrivateCookieJar,
         body: axum::Form<Impersonate>,
-    ) -> impl IntoResponse {
-        use citadels::game::PlayerName;
+    ) -> Result<Response, ErrorResponse> {
+        let mut game = app.game.lock().unwrap();
+        let game = game.as_mut().ok_or("game hasn't started")?;
+        let player = game
+            .players
+            .iter()
+            .find(|p| p.name == body.name)
+            .ok_or("nobody with that name")?;
+        let html = GameTemplate::render(game, Some(&player.id))?;
+        app.connections.lock().unwrap().broadcast(html);
 
-        if let Some(g) = app.game.lock().unwrap().as_mut() {
-            g.impersonate = Some(PlayerName::from(body.0.name));
-        }
-        game(app, cookies).await
-    }
-
-    #[cfg(feature = "dev")]
-    pub async fn game_impersonate_active(
-        app: State<AppState>,
-        cookies: PrivateCookieJar,
-    ) -> impl IntoResponse {
-        if let Some(g) = app.game.lock().unwrap().as_mut() {
-            g.impersonate = None;
-        }
-        game(app, cookies).await
+        Ok(StatusCode::OK.into_response())
     }
 }
 
@@ -331,6 +319,8 @@ pub mod ws {
             .0
             .insert(player_id, chan_sender);
 
+        info!("WS - connected");
+
         while let Some(Ok(msg)) = ws_recv.next().await {
             if process_message(msg).is_err() {
                 break;
@@ -352,8 +342,12 @@ pub mod ws {
             }
 
             // axum automatically replies to ping
-            Message::Ping(_) => {}
-            Message::Pong(_) => {}
+            Message::Ping(_) => {
+                trace!("WS - Ping")
+            }
+            Message::Pong(_) => {
+                trace!("WS - Pong")
+            }
         }
         Ok(())
     }

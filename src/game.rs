@@ -12,6 +12,7 @@ use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
 use rand_core::SeedableRng;
+use serde::Deserialize;
 use std::{
     borrow::Borrow,
     fmt::{Debug, Display},
@@ -20,7 +21,7 @@ use std::{
 type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
-#[derive(Default, Debug, PartialEq, Eq, Clone)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Deserialize)]
 pub struct PlayerName(pub String);
 
 impl PlayerName {

@@ -1,5 +1,4 @@
-{% let dev_mode = false %}
-<div
+<button
   class="
     min-w-36
     text-base
@@ -11,6 +10,14 @@
     bg-slate-300
     {% endif %}
   "
+  {% if dev_mode %}
+  type="submit"
+  hx-post="/game/impersonate"
+  name="name"
+  value="{{ player.name }}"
+  {% else %}
+  type="button"
+  {% endif %}
 >
   <div
     class="text-center text-lg semibold"
@@ -43,4 +50,4 @@
       </div>
     </div>
   </div>
-</div>
+</button>

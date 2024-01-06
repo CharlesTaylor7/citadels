@@ -37,17 +37,9 @@
       class="grow flex flex-col"
     >
 
-      <form
+      <section
         id="actions"
         class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
-        _="
-          on click 
-            call document.querySelectorAll('button:disabled')
-            set btns to the result
-            for btn in btns
-              remove @disabled from btn
-            end
-        "
       >
         {% match phase %} 
         {% when GamePhase::Draft %}
@@ -62,7 +54,7 @@
           Actions
         </h2>
         {% endmatch %}
-      </form>
+      </section>
       <div
         id="city"
         class="p-2 bg-neutral-content grow flex flex-col items-center border border-base-200"
