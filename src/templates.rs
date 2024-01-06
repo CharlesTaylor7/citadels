@@ -19,7 +19,7 @@ pub struct GameTemplate<'a> {
     draft: Vec<RoleTemplate>,
     #[allow(unused)]
     draft_discard: Vec<RoleTemplate>,
-    allowed_actions: &'a [ActionTag],
+    actions: &'a [ActionTag],
     characters: Vec<RoleTemplate>,
     players: &'a [PlayerInfoTemplate<'a>],
     active_name: &'a str,
@@ -58,7 +58,7 @@ impl<'a> GameTemplate<'a> {
                 .map(RoleTemplate::from)
                 .collect::<Vec<_>>(),
             players: &players,
-            allowed_actions: &game.allowed_actions(),
+            actions: &game.allowed_actions(),
             active_name: &active_player.ok_or("no active player")?.name.0,
             my: player.borrow(),
             dev_mode: cfg!(feature = "dev"),

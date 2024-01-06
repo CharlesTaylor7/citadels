@@ -7,7 +7,7 @@
 </div>
 
 <div class="flex flex-row gap-2">
-  {% if allowed_actions.contains(DraftPick.borrow()) %}
+  {% if actions.contains(DraftPick.borrow()) %}
     <button 
       class="btn btn-secondary"
       disabled
@@ -18,7 +18,7 @@
       Pick
     </button>
   {% endif %}
-  {% if allowed_actions.contains(DraftDiscard.borrow()) %}
+  {% if actions.contains(DraftDiscard.borrow()) %}
     <button 
       class="btn bg-suit-military"
       disabled

@@ -50,6 +50,7 @@
 - [ ] Rethink daisyui theme. Maybe something more blue than beige.
 - [ ] Action log front and center
 - [ ] Mark who's hand + city I'm looking at.
+- [ ] Point estimate for a player's city
 - [ ] Roles
     - [x] Tooltip to the right for each role
     - [ ] Unmask player as turn proceeds
