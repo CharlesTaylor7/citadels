@@ -3,7 +3,7 @@ use log::*;
 use std::io::Write;
 
 pub fn init() {
-    let env = Env::default().filter_or("LOG_LEVEL", "debug");
+    let env = Env::default().filter_or("LOG_LEVEL", "info");
     env_logger::Builder::from_env(env)
         .format(|buf, record| {
             let color = match record.level() {

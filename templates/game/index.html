@@ -36,23 +36,27 @@
       id="main-panel"
       class="grow flex flex-col"
     >
-
       <section
         id="actions"
         class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
       >
-        {% match phase %} 
-        {% when GamePhase::Draft %}
         <h2 class="m-2 underline text-lg font-semibold">
-          Draft
+          {{ actions.header }}
         </h2>
-        {% if active_name == my.name %}
+
+        {% match actions.view %} 
+        {% when ActionsView::Draft with {roles, discard, actions } %}
         {% include "draft.html" %}
-        {% endif %}
-        {% when GamePhase::Call %}
-        <h2 class="m-2 underline text-lg font-semibold">
-          Actions
-        </h2>
+        {% when ActionsView::SelectDistrict with (_) %}
+        TODO: Select district
+        {% when ActionsView::SelectAction with (actions) %}
+        <div class="flex flex-row flex-wrap gap-2">
+          {% for action in actions %}
+          {% include "action.html" %}
+          {% endfor %}
+        </div>
+        {% else %}
+        TODO: Else
         {% endmatch %}
       </section>
       <div

@@ -2068,8 +2068,7 @@ html {
 }
 
 .tooltip:before {
-  max-width: 80%;
-  z-index:12;
+  max-width: 100%;
 }
 
 .peer:checked ~ .peer-checked\:border {

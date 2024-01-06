@@ -107,6 +107,13 @@ impl<T> Deck<T> {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Step {
+    GainResource,
+    Main,
+    EndOfTurn,
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Turn {
     Draft(PlayerName),
@@ -162,11 +169,15 @@ impl ActionLog {
             Action::DraftPick { role } => Some(write!(f, "{} drafted {}", self.player, role)),
             Action::DraftDiscard { role } => Some(write!(f, "{} discarded {}", self.player, role)),
 
-            _ => None,
+            _ => {
+                debug!("Warning: default case for {:#?}", self.action);
+                None
+            }
         }
     }
+
     fn public(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.action {
+        match &self.action {
             Action::DraftPick { .. } => {
                 write!(f, "{} drafted a card.", self.player)
             }
@@ -175,8 +186,30 @@ impl ActionLog {
                 write!(f, "{} discarded a card.", self.player)
             }
 
+            Action::ResourceGainCards { .. } => {
+                write!(f, "Resource step: {} is picking card(s).", self.player)
+            }
+
+            Action::ResourcePickCards { district } => {
+                write!(
+                    f,
+                    "Resource step: {} picked {} card(s).",
+                    self.player,
+                    district.len()
+                )
+            }
+
+            Action::ResourceGainGold { .. } => {
+                write!(f, "Resource step: {} gained gold.", self.player)
+            }
+
+            Action::EndTurn { .. } => {
+                write!(f, "{} ended their turn.", self.player)
+            }
+
             _ => {
-                todo!()
+                debug!("Warning: default case for {:#?}", self.action);
+                write!(f, "{:#?}", self.action)
             }
         }
     }
@@ -193,6 +226,18 @@ impl std::fmt::Debug for ActionLog {
         self.private(f).unwrap_or_else(|| self.public(f))
     }
 }
+
+#[derive(Debug)]
+pub struct FollowupAction {
+    pub action: ActionTag,
+    pub context: FollowupActionContext,
+}
+
+#[derive(Debug)]
+pub enum FollowupActionContext {
+    PickDistrict(Vec<DistrictName>),
+}
+
 #[derive(Debug)]
 pub struct Game {
     rng: Prng,
@@ -203,6 +248,7 @@ pub struct Game {
     pub active_turn: Turn,
     pub draft: Draft,
     pub logs: Logs,
+    pub followup: Option<FollowupAction>,
 }
 
 impl Game {
@@ -303,6 +349,7 @@ impl Game {
             active_turn: Turn::Draft(crowned.clone()),
             crowned,
             characters,
+            followup: None,
         };
         game.begin_draft();
         game
@@ -362,10 +409,24 @@ impl Game {
             .count()
     }
 
+    fn has_done<F: Fn(&Action) -> bool>(&self, f: F) -> bool {
+        self.logs.turn.iter().any(|log| f(&log.action))
+    }
+
+    fn has_not_done<F: Fn(&Action) -> bool>(&self, f: F) -> bool {
+        self.logs.turn.iter().all(|log| !f(&log.action))
+    }
+
     pub fn allowed_actions(&self) -> Vec<ActionTag> {
+        if let Some(f) = &self.followup {
+            return vec![f.action];
+        }
+
+        info!("Checking actions");
         let mut actions = Vec::new();
         match self.active_turn {
             Turn::Draft(_) => {
+                debug!("Draft step");
                 if self.active_perform_count(ActionTag::DraftPick) == 0 {
                     actions.push(ActionTag::DraftPick)
                 }
@@ -377,26 +438,26 @@ impl Game {
             }
 
             Turn::Call(rank) => {
-                let mut actions = Vec::new();
-                if self.logs.turn.iter().all(|log| {
-                    log.action.tag() != ActionTag::GainCards
-                        && log.action.tag() != ActionTag::GainGold
-                }) {
-                    actions.push(ActionTag::GainGold);
-                    actions.push(ActionTag::GainCards);
+                // still picking a resource
+                if self.has_not_done(|action| action.tag().is_resource_action()) {
+                    actions.push(ActionTag::ResourceGainGold);
+                    actions.push(ActionTag::ResourceGainCards);
                 } else {
                     let role = self.characters[rank as usize - 1].borrow();
                     if self.active_perform_count(ActionTag::Build) < role.build_limit() {
                         actions.push(ActionTag::Build)
                     }
+
                     for (n, action) in role.data().actions {
                         if self.active_perform_count(*action) < *n {
                             actions.push(*action)
                         }
                     }
+                    actions.push(ActionTag::EndTurn)
                 }
             }
         }
+        info!("Available actions: {:#?}", actions);
         actions
     }
 
@@ -404,7 +465,7 @@ impl Game {
     pub fn perform(&mut self, action: Action) -> Result<()> {
         info!("{:#?}", self.players);
         debug!("Performing {:#?}", action);
-        self.perform_action(&action)?;
+        self.followup = self.perform_action(&action)?;
 
         let tag = action.tag();
         let player = self.active_player().ok_or("no active player")?;
@@ -443,8 +504,8 @@ impl Game {
     }
 
     #[must_use]
-    fn perform_action(&mut self, action: &Action) -> Result<()> {
-        match action {
+    fn perform_action(&mut self, action: &Action) -> Result<Option<FollowupAction>> {
+        let followup = match action {
             Action::DraftPick { role } => {
                 let name = self.active_turn.draft().ok_or("not the draft phase")?;
                 let p = self
@@ -459,6 +520,7 @@ impl Game {
 
                 let role = self.draft.remaining.remove(i);
                 p.roles.push(role);
+                None
             }
 
             Action::DraftDiscard { role } => {
@@ -467,19 +529,43 @@ impl Game {
                     .ok_or("selected role is not available")?;
 
                 self.draft.remaining.remove(i);
+                None
             }
 
             Action::EndTurn => {
                 self.active_turn.call().ok_or("not the call phase")?;
 
+                None
                 // this is handled later after the action is appended to the log
             }
 
-            _ => {
-                todo!("action is not implemented");
+            Action::ResourceGainCards => {
+                let draw_amount = 2; // roles / disricts may affect this
+                let mut cards = Vec::with_capacity(draw_amount);
+                for _ in 0..draw_amount {
+                    if let Some(card) = self.deck.draw() {
+                        cards.push(card);
+                    } else {
+                        break;
+                    }
+                }
+
+                if cards.len() > 0 {
+                    Some(FollowupAction {
+                        action: ActionTag::ResourcePickCards,
+                        context: FollowupActionContext::PickDistrict(cards),
+                    })
+                } else {
+                    None
+                }
             }
-        }
-        Ok(())
+
+            _ => {
+                // todo
+                return Err("action is not implemented");
+            }
+        };
+        Ok(followup)
     }
 
     #[must_use]

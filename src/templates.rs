@@ -1,25 +1,20 @@
 use crate::actions::ActionTag;
-use crate::actions::ActionTag::*;
-use crate::districts::{DistrictData, DistrictName};
-use crate::game::{CityDistrict, Game};
-use crate::roles::RoleName::{self, *};
+use crate::districts::DistrictName;
+use crate::game::{CityDistrict, FollowupAction, FollowupActionContext, Game, Turn};
+use crate::roles::RoleName;
 use crate::types::CardSuit;
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
 use log::*;
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 use std::ops::Deref;
 
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
     dev_mode: bool,
-    phase: GamePhase,
-    draft: Vec<RoleTemplate>,
-    #[allow(unused)]
-    draft_discard: Vec<RoleTemplate>,
-    actions: &'a [ActionTag],
+    actions: ActionsViewTemplate<'a>,
     characters: Vec<RoleTemplate>,
     players: &'a [PlayerInfoTemplate<'a>],
     active_name: &'a str,
@@ -35,7 +30,6 @@ impl<'a> GameTemplate<'a> {
         let active_player = game.active_player();
         let player = PlayerTemplate::from(myself(game, player_id, impersonate));
         let players: Vec<_> = game.players.iter().map(PlayerInfoTemplate::from).collect();
-
         let rendered = GameTemplate {
             characters: game
                 .characters
@@ -43,29 +37,13 @@ impl<'a> GameTemplate<'a> {
                 .cloned()
                 .map(RoleTemplate::from)
                 .collect(),
-            draft: game
-                .draft
-                .remaining
-                .iter()
-                .cloned()
-                .map(RoleTemplate::from)
-                .collect::<Vec<_>>(),
-            draft_discard: game
-                .draft
-                .faceup_discard
-                .iter()
-                .cloned()
-                .map(RoleTemplate::from)
-                .collect::<Vec<_>>(),
+
+            actions: ActionsViewTemplate::from(game),
+
             players: &players,
-            actions: &game.allowed_actions(),
             active_name: &active_player.ok_or("no active player")?.name.0,
             my: player.borrow(),
             dev_mode: cfg!(feature = "dev"),
-            phase: match game.active_turn {
-                game::Turn::Draft(_) => GamePhase::Draft,
-                game::Turn::Call(_) => GamePhase::Call,
-            },
         }
         .render()
         .map_err(|e| format!("askama error: {}", e))?;
@@ -193,7 +171,7 @@ impl<'a> PlayerTemplate<'a> {
                     .hand
                     .iter()
                     .cloned()
-                    .map(DistrictTemplate::from_hand)
+                    .map(DistrictTemplate::from)
                     .collect::<Vec<_>>(),
                 roles: p.roles.iter().cloned().map(RoleTemplate::from).collect(),
                 city: p.city.iter().map(|_| ()).collect(),
@@ -222,7 +200,7 @@ pub struct DistrictTemplate {
 }
 
 impl DistrictTemplate {
-    pub fn from_hand(district: DistrictName) -> Self {
+    pub fn from(district: DistrictName) -> Self {
         let data = district.data();
         Self {
             name: data.display_name,
@@ -239,6 +217,122 @@ impl DistrictTemplate {
     pub fn from_city(district: &CityDistrict) -> Self {
         todo!()
     }
+}
+
+pub struct ActionTemplate<'a> {
+    pub value: Cow<'a, str>,
+    pub text: Cow<'a, str>,
+    pub class: Cow<'a, str>,
+}
+
+impl<'a> ActionTemplate<'a> {
+    pub fn from(action: ActionTag, game: &'a Game) -> Self {
+        let value = format!("{:#?}", action);
+        Self {
+            value: Cow::Owned(value),
+            text: Self::text(action, game),
+            class: Cow::Borrowed(match action {
+                ActionTag::DraftPick => "btn-secondary",
+                ActionTag::DraftDiscard => "bg-suit-military",
+                _ => "btn-secondary",
+            }),
+        }
+    }
+
+    fn text(action: ActionTag, _game: &'a Game) -> Cow<'a, str> {
+        match action {
+            ActionTag::ResourceGainGold => Cow::Borrowed("Gain 2 gold"),
+            ActionTag::ResourceGainCards => Cow::Borrowed("Draw 2 cards, pick 1"),
+            ActionTag::Build => Cow::Borrowed("Build"),
+            ActionTag::MagicianSwap => Cow::Borrowed("Magician Swap"),
+            ActionTag::EndTurn => Cow::Borrowed("End turn"),
+            ActionTag::ResourcePickCards => Cow::Borrowed("Pick"),
+            _ => {
+                debug!("Warning: default case for {}", action);
+                Cow::Owned(format!("{:#?}", action))
+            }
+        }
+    }
+}
+
+pub struct ActionsViewTemplate<'a> {
+    header: Cow<'a, str>,
+    view: ActionsView<'a>,
+}
+
+impl<'a> ActionsViewTemplate<'a> {
+    pub fn from(game: &'a Game) -> Self {
+        let actions = game
+            .allowed_actions()
+            .iter()
+            .map(|action| ActionTemplate::from(*action, game))
+            .collect();
+        match game.active_turn {
+            Turn::Draft(_) => ActionsViewTemplate {
+                header: Cow::Borrowed("Draft"),
+                view: ActionsView::Draft {
+                    actions,
+                    roles: game
+                        .draft
+                        .remaining
+                        .iter()
+                        .cloned()
+                        .map(RoleTemplate::from)
+                        .collect::<Vec<_>>(),
+                    discard: game
+                        .draft
+                        .faceup_discard
+                        .iter()
+                        .cloned()
+                        .map(RoleTemplate::from)
+                        .collect::<Vec<_>>(),
+                },
+            },
+
+            Turn::Call(_) => {
+                match &game.followup {
+                    Some(FollowupAction { action: _, context }) => {
+                        match context {
+                            FollowupActionContext::PickDistrict(districts) => {
+                                //
+                                ActionsViewTemplate {
+                                    header: Cow::Borrowed("Select"),
+                                    view: ActionsView::SelectDistrict(
+                                        districts
+                                            .iter()
+                                            .cloned()
+                                            .map(DistrictTemplate::from)
+                                            .collect(),
+                                    ),
+                                }
+                            }
+                        }
+                    }
+                    None => {
+                        //
+                        ActionsViewTemplate {
+                            header: Cow::Borrowed("Actions"),
+                            view: ActionsView::SelectAction(actions),
+                        }
+                    }
+                }
+                //todo!();
+            }
+        }
+    }
+}
+
+pub enum ActionsView<'a> {
+    ActionFeed, // other players or spectator view
+    Draft {
+        roles: Vec<RoleTemplate>,
+        discard: Vec<RoleTemplate>,
+        actions: Vec<ActionTemplate<'a>>,
+    },
+    SelectDistrict(Vec<DistrictTemplate>),
+    SelectRole(Vec<RoleTemplate>),
+    SelectPlayer(Vec<game::PlayerName>),
+    SelectAction(Vec<ActionTemplate<'a>>),
 }
 
 pub struct RoleTemplate {

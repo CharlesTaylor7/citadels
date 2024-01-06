@@ -1,13 +1,13 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
+use serde::Deserialize;
 
 use crate::types::CardSet;
 use crate::types::CardSet::*;
 use crate::types::CardSuit;
 use crate::types::CardSuit::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[repr(usize)]
+#[serde(untagged)]
 pub enum DistrictName {
     Temple,
     Church,

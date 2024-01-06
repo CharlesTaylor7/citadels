@@ -6,7 +6,6 @@
  - no config, no timers etc
  - card assets? I might just put the card titles and descriptions
 
-
 ## Done !
 - Simple Lobby
 - 1 active game room, and 1 active game
@@ -59,6 +58,8 @@
         - Killed
         - Stolen
 
+- [ ] Show errors inline
+        - https://stackoverflow.com/a/73615279/4875161
 - [ ] Player resource summary
     - Highlight active player
     - hand size
