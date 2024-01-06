@@ -51,7 +51,10 @@ pub struct AppState {
 impl AppState {
     #[cfg(feature = "dev")]
     pub fn default_game() -> Option<Game> {
-        let game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
+        let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
+        for p in game.players.iter_mut() {
+            p.hand.push(citadels::districts::DistrictName::SecretVault);
+        }
 
         /*
          * deal roles out randomly
