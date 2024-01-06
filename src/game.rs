@@ -1,6 +1,7 @@
 use crate::actions::Select;
 use crate::districts::DistrictName;
 use crate::roles::{self, Rank};
+use crate::types::CardSuit;
 use crate::{
     actions::{Action, ActionTag},
     data::{self},
@@ -57,6 +58,15 @@ pub struct Player {
 pub struct CityDistrict {
     pub name: DistrictName,
     pub beautified: bool,
+}
+
+impl CityDistrict {
+    pub fn from(name: DistrictName) -> Self {
+        Self {
+            name,
+            beautified: false,
+        }
+    }
 }
 
 impl Player {
@@ -601,13 +611,42 @@ impl Game {
                     return Err("cannot follow up");
                 }
             }
+            Action::GoldFromNobility => self.gain_gold_for_suit(CardSuit::Royal)?,
+            Action::GoldFromReligion => self.gain_gold_for_suit(CardSuit::Religious)?,
+            Action::GoldFromTrade => self.gain_gold_for_suit(CardSuit::Trade)?,
+            Action::GoldFromMilitary => self.gain_gold_for_suit(CardSuit::Military)?,
 
+            Action::Build { district } => {
+                let player = self.active_player_mut().ok_or("no active player")?;
+                let cost = district.data().cost;
+                if cost > player.gold {
+                    return Err("not enough gold");
+                }
+                if player.city.iter().any(|d| d.name == *district) {
+                    return Err("cannot build duplicate");
+                }
+
+                player.gold -= cost;
+                player.city.push(CityDistrict::from(*district));
+                None
+            }
             _ => {
                 // todo
                 return Err("action is not implemented");
             }
         };
         Ok(followup)
+    }
+
+    fn gain_gold_for_suit(&mut self, suit: CardSuit) -> Result<Option<FollowupAction>> {
+        let player = self.active_player_mut().ok_or("no active player")?;
+        player.gold += player
+            .city
+            .iter()
+            .filter(|c| c.name.data().suit == suit)
+            .count();
+
+        Ok(None)
     }
 
     #[must_use]

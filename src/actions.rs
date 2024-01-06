@@ -20,7 +20,7 @@ pub enum Action {
     // pick 1 usually, unless roles or districts change this
     ResourcePickCards { district: Select<DistrictName> },
 
-    Build { district: String },
+    Build { district: DistrictName },
     // Happens automatically when no actions are left.
     // Turn can end early if requested
     EndTurn,
