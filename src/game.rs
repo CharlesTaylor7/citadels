@@ -463,6 +463,11 @@ impl Game {
 
     #[must_use]
     pub fn perform(&mut self, action: Action) -> Result<()> {
+        let allowed = self.allowed_actions();
+        if !allowed.contains(&action.tag()) {
+            return Err("Action is not allowed");
+        }
+
         info!("{:#?}", self.players);
         debug!("Performing {:#?}", action);
         self.followup = self.perform_action(&action)?;
@@ -478,7 +483,12 @@ impl Game {
 
         self.logs.turn.push(log);
 
-        if tag == ActionTag::EndTurn || self.allowed_actions().is_empty() {
+        if tag == ActionTag::EndTurn
+            || self
+                .allowed_actions()
+                .iter()
+                .all(|action| *action == ActionTag::EndTurn)
+        {
             self.end_turn()?;
             self.start_turn()?;
         }
@@ -539,6 +549,11 @@ impl Game {
                 // this is handled later after the action is appended to the log
             }
 
+            Action::ResourceGainGold => {
+                let player = self.active_player_mut().ok_or("no active player")?;
+                player.gold += 2; // roles / districts may affect this
+                None
+            }
             Action::ResourceGainCards => {
                 let draw_amount = 2; // roles / disricts may affect this
                 let mut cards = Vec::with_capacity(draw_amount);
