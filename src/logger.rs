@@ -3,7 +3,8 @@ use log::*;
 use std::io::Write;
 
 pub fn init() {
-    env_logger::Builder::from_env(Env::default().filter_or("LOG_LEVEL", "debug"))
+    let env = Env::default().filter_or("LOG_LEVEL", "debug");
+    env_logger::Builder::from_env(env)
         .format(|buf, record| {
             let color = match record.level() {
                 Level::Error => Color::Red,
@@ -22,10 +23,9 @@ pub fn init() {
                 style.value(record.level()),
                 record.file().unwrap_or("unknown"),
                 record.line().unwrap_or(0),
-                //                chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
+                // chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
                 record.args()
             )
         })
-        //.default_format()
         .init();
 }
