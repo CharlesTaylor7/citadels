@@ -1,9 +1,10 @@
 <label
-  data-tip="{{ role.description }}"
+  data-tip="{{ role.name }} - {{ role.description }}"
   class="
     relative
     select-none
     cursor-pointer
+    tooltip
   "
 >
   <!--
@@ -29,7 +30,7 @@
     type="{{ input_type }}"
     class="peer hidden"
     name="role"
-    value="{{ role.name }}"
+    value="{{ role.value }}"
   />
   <svg 
     xmlns="http://www.w3.org/2000/svg"

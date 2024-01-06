@@ -5,7 +5,7 @@ use std::fmt::{self, Debug, Formatter};
 
 use crate::{
     actions::ActionTag,
-    data::characters::CHARACTERS,
+    data::characters::ROLES,
     types::{CardSet, CardSuit},
 };
 pub type Rank = u8;
@@ -66,7 +66,7 @@ impl RoleName {
             rank: (self as u8) / 3 + 1,
             set: crate::types::CardSet::Custom,
             suit: None,
-            description: "todo",
+            description: "TODO",
             actions: &[],
         }
     }
@@ -99,7 +99,7 @@ impl RoleName {
     }
 
     pub fn data(self) -> &'static RoleData {
-        &CHARACTERS[self as usize]
+        &ROLES[self as usize]
     }
 
     pub fn can_be_discarded_faceup(self) -> bool {
@@ -129,12 +129,6 @@ pub struct RoleData {
     pub actions: &'static [(usize, ActionTag)],
 }
 
-impl Debug for RoleData {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
-    }
-}
-
 pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> Vec<RoleName> {
     // 9th rank is disallowed for 2
     // 9th rank is required for 3
@@ -143,7 +137,7 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> Vec<RoleName> {
     let n = if num_players == 2 { 8 } else { 9 };
     let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
 
-    for r in crate::roles::CHARACTERS {
+    for r in crate::roles::ROLES {
         if num_players >= r.name.min_player_count() {
             grouped_by_rank[(r.rank - 1) as usize].push(r.name)
         }

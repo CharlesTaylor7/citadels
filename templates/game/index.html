@@ -80,8 +80,8 @@
               {% include "role-card.html" %} 
             {% endfor %} 
             {% let input_type = "checkbox" %}
-            {% for card in my.hand %} 
-              {% include "district.html" %} 
+            {% for district in my.hand %} 
+              {% include "district-card.html" %} 
             {% endfor %}
         </div>
       </div>

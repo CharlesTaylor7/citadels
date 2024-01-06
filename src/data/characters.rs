@@ -4,7 +4,7 @@ use crate::roles::RoleName::*;
 use crate::types::CardSet::*;
 use crate::types::CardSuit::*;
 
-pub const CHARACTERS: [RoleData; 27] =
+pub const ROLES: [RoleData; 27] =
   [ RoleData 
     { rank: 1 
     , set: Base
@@ -92,18 +92,18 @@ pub const CHARACTERS: [RoleData; 27] =
     , suit: None
     , name: Artist
     , actions: &[(2, ArtistBeautify)]
-    , description: "Beautify up to 2 of your districts by assigning each of them 1 of your gold. A district can be beautified only once. (A beautified district is worth 1 additional point at the end of the game. It is also treated as if its cost is 1 higher than printed,i.e. the Warlord has to pay 1 extra to destroy it.)"
+    , description: "Beautify up to 2 of your districts by assigning each of them 1 of your gold. A district can be beautified only once. (A beautified district is worth 1 more point and its cost is raised by 1 gold. For example, the Warlord has to pay 1 more to destroy a beautified city.)"
     }
   , TaxCollector.todo()
   ];
 
 #[cfg(test)]
 mod tests {
-    use super::CHARACTERS;
+    use super::ROLES;
 
     #[test]
     pub fn test_role_names_align_with_character_data() {
-        for (index, c) in CHARACTERS.iter().enumerate() {
+        for (index, c) in ROLES.iter().enumerate() {
             assert_eq!(c.name as usize, index);
         }
     }

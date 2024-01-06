@@ -92,6 +92,7 @@ pub struct DistrictTemplate {
     pub display_name: &'static str,
     pub cost: usize,
     pub name: DistrictName,
+    pub value: String,
     pub suit: CardSuit,
     pub description: Option<&'static str>,
     pub beautified: bool,
@@ -104,6 +105,7 @@ impl DistrictTemplate {
             display_name: data.display_name,
             cost: data.cost,
             name: data.name,
+            value: format!("{:#?}", data),
             suit: data.suit,
             description: data.description,
             beautified: false,
@@ -119,6 +121,7 @@ pub struct RoleTemplate {
     pub display_name: String,
     pub rank: u8,
     pub name: RoleName,
+    pub value: String,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
 }
@@ -130,6 +133,7 @@ impl RoleTemplate {
             display_name: name.display_name(),
             rank: data.rank,
             name,
+            value: format!("{:#?}", name),
             suit: data.suit,
             description: data.description,
         }

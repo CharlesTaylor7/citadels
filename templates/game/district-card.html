@@ -1,0 +1,36 @@
+<label
+  data-tip="{{ district.name|debug }} - {{ district.description|def }}"
+  class="
+    relative
+    select-none
+    cursor-pointer
+    tooltip
+  "
+>
+  <input 
+    type="{{ input_type }}" 
+    class="peer hidden" 
+    name="district" 
+    value="{{ district.value }}"
+  />
+  <svg 
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="200"
+    width="155" 
+    class="
+      p-1 box-content
+      rounded-xl
+      peer-checked:p-0
+      peer-checked:border
+      peer-checked:border-4
+      peer-checked:border-success
+    "
+  >
+    <image id="img" x="{{district.name.asset_x()}}" y="{{district.name.asset_y()}}"
+          height="400%"
+          xlink:href="/public/districts.jpeg"
+          preserveAspectRatio="xMinYMin slice"
+    />
+  </svg>
+</label>
