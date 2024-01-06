@@ -207,6 +207,33 @@ pub struct Game {
 }
 
 impl Game {
+    #[cfg(feature = "dev")]
+    pub fn default_game() -> Option<Game> {
+        let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
+        for p in game.players.iter_mut() {
+            p.hand.push(DistrictName::SecretVault);
+        }
+
+        // deal roles out randomly
+        let mut cs: Vec<_> = game.characters.iter().collect();
+        cs.shuffle(&mut game.rng);
+
+        for p in game.players.iter_mut() {
+            p.roles.push(cs.pop().unwrap().clone());
+            p.roles.push(cs.pop().unwrap().clone());
+            p.roles.sort_by_key(|c| c.rank());
+        }
+        game.active_turn = Turn::Call(1);
+        game.start_turn();
+
+        Some(game)
+    }
+
+    #[cfg(not(feature = "dev"))]
+    pub fn default_game() -> Option<Game> {
+        None
+    }
+
     pub fn active_role(&self) -> Option<RoleName> {
         let rank = self.active_turn.call()?;
         self.characters

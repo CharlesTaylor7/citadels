@@ -48,35 +48,6 @@ pub struct AppState {
     pub connections: Arc<Mutex<Connections>>,
 }
 
-impl AppState {
-    #[cfg(feature = "dev")]
-    pub fn default_game() -> Option<Game> {
-        let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
-        for p in game.players.iter_mut() {
-            p.hand.push(citadels::districts::DistrictName::SecretVault);
-        }
-
-        /*
-         * deal roles out randomly
-        let mut cs: Vec<_> = citadels::data::characters::CHARACTERS.iter().collect();
-        random::shuffle(&mut cs);
-
-        for p in game.players.iter_mut() {
-            p.roles.push(cs.pop().unwrap().clone());
-            p.roles.push(cs.pop().unwrap().clone());
-            p.roles.sort_by_key(|c| c.rank);
-        }
-        */
-
-        Some(game)
-    }
-
-    #[cfg(not(feature = "dev"))]
-    pub fn default_game() -> Option<Game> {
-        None
-    }
-}
-
 impl Default for AppState {
     fn default() -> Self {
         load_dotenv!();
@@ -84,7 +55,7 @@ impl Default for AppState {
             cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
             connections: Arc::new(Mutex::new(Connections(HashMap::new()))),
             lobby: Arc::new(Mutex::new(Lobby::default())),
-            game: Arc::new(Mutex::new(AppState::default_game())),
+            game: Arc::new(Mutex::new(Game::default_game())),
         }
     }
 }
