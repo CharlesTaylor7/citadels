@@ -51,7 +51,7 @@ pub const ROLES: [RoleData; 27] =
     , suit: Some(Religious)
     , name: Bishop
     , actions: &[(1, GoldFromReligion)]
-    , description: "The Warlord/Marshall/Diplomat cannot uses its ability on your districts. Gain 1 gold for each of your RELIGIOUS districts."
+    , description: "The rank 8 character (Warlord/Marshall/Diplomat) cannot use its ability on your districts. Gain 1 gold for each of your RELIGIOUS districts."
     }
   , Abbot.todo()
   , Cardinal.todo()

@@ -1,6 +1,5 @@
 use crate::actions::ActionTag;
 use crate::actions::ActionTag::*;
-use crate::districts::DistrictName::*;
 use crate::districts::{DistrictData, DistrictName};
 use crate::game::{CityDistrict, Game};
 use crate::roles::RoleName::{self, *};
@@ -21,7 +20,7 @@ pub struct GameTemplate<'a> {
     #[allow(unused)]
     draft_discard: Vec<RoleTemplate>,
     allowed_actions: &'a [ActionTag],
-    characters: &'a [RoleTemplate],
+    characters: Vec<RoleTemplate>,
     players: &'a [PlayerInfoTemplate<'a>],
     active_name: &'a str,
     my: &'a PlayerTemplate<'a>,
@@ -37,7 +36,12 @@ impl<'a> GameTemplate<'a> {
         let players: Vec<_> = game.players.iter().map(PlayerInfoTemplate::from).collect();
 
         let rendered = GameTemplate {
-            characters: &[],
+            characters: game
+                .characters
+                .iter()
+                .cloned()
+                .map(RoleTemplate::from)
+                .collect(),
             draft: game
                 .draft
                 .remaining
@@ -175,24 +179,18 @@ pub struct PlayerTemplate<'a> {
 
 impl<'a> PlayerTemplate<'a> {
     pub fn from(player: Option<&'a game::Player>) -> Self {
-        if let Some(game::Player {
-            name,
-            gold,
-            hand,
-            city,
-            ..
-        }) = player
-        {
+        if let Some(p) = player {
             Self {
-                name: name.0.borrow(),
-                gold: *gold,
-                hand: hand
+                name: p.name.0.borrow(),
+                gold: p.gold,
+                hand: p
+                    .hand
                     .iter()
                     .cloned()
                     .map(DistrictTemplate::from_hand)
                     .collect::<Vec<_>>(),
-                roles: Vec::new(),
-                city: city.iter().map(|_| ()).collect(),
+                roles: p.roles.iter().cloned().map(RoleTemplate::from).collect(),
+                city: p.city.iter().map(|_| ()).collect(),
             }
         } else {
             Self {
@@ -207,9 +205,8 @@ impl<'a> PlayerTemplate<'a> {
 }
 
 pub struct DistrictTemplate {
-    pub display_name: &'static str,
+    pub name: &'static str,
     pub cost: usize,
-    pub name: DistrictName,
     pub value: String,
     pub suit: CardSuit,
     pub description: Option<&'static str>,
@@ -221,17 +218,9 @@ pub struct DistrictTemplate {
 impl DistrictTemplate {
     pub fn from_hand(district: DistrictName) -> Self {
         let data = district.data();
-        info!(
-            "{:#?}: {} ({}, {})",
-            district,
-            district as isize,
-            district as isize % 10,
-            district as isize / 10,
-        );
         Self {
-            display_name: data.display_name,
+            name: data.display_name,
             cost: data.cost,
-            name: district,
             value: format!("{:#?}", district),
             suit: data.suit,
             description: data.description,
@@ -247,9 +236,8 @@ impl DistrictTemplate {
 }
 
 pub struct RoleTemplate {
-    pub display_name: String,
+    pub name: String,
     pub rank: u8,
-    pub name: RoleName,
     pub value: String,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
@@ -261,9 +249,8 @@ impl RoleTemplate {
     pub fn from(role: RoleName) -> Self {
         let data = role.data();
         Self {
-            display_name: role.display_name(),
+            name: role.display_name(),
             rank: data.rank,
-            name: role,
             value: format!("{:#?}", role),
             suit: data.suit,
             description: data.description,
