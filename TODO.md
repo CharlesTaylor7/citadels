@@ -31,7 +31,7 @@
     - [ ] Write to file
     - [ ] Restore from file
 
-- [ ] Actions need to self describe what happened for the log.
+- [x] Actions need to self describe what happened for the log.
 - [x] Required actions
 
 - [ ] Characters (only these 9)

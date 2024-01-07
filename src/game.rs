@@ -607,10 +607,25 @@ impl Game {
                 }
             }
 
-            Action::Assassinate { role: _RoleName } => {
-                todo!()
+            Action::Assassinate { role } => {
+                let target = self
+                    .characters
+                    .iter_mut()
+                    .find(|c| c.role == *role)
+                    .ok_or("mark is not valid")?;
+
+                target.markers.push(Marker::Assassinated);
+
+                ActionOutput {
+                    log: format!(
+                        "The Assassin ({}) killed the {}; Their turn will be skipped.",
+                        self.active_player()?.name,
+                        role.display_name(),
+                    ),
+                    followup: None,
+                }
             }
-            Action::Steal { role: _RoleName } => {
+            Action::Steal { role } => {
                 todo!()
             }
 
