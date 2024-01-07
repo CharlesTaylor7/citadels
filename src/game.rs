@@ -636,11 +636,7 @@ impl Game {
                 None
             }
             Action::ArchitectGainCards => {
-                for _ in 0..2 {
-                    if let Some(district) = self.deck.draw() {
-                        self.active_player_mut().unwrap().hand.push(district);
-                    }
-                }
+                self.gain_cards(2);
                 None
             }
             Action::Build { district } => {
@@ -685,6 +681,20 @@ impl Game {
                 todo!()
             }
 
+            Action::NavigatorGain {
+                resource: Resource::Cards,
+            } => {
+                self.gain_cards(4);
+                None
+            }
+
+            Action::NavigatorGain {
+                resource: Resource::Gold,
+            } => {
+                self.active_player_mut().unwrap().gold += 4;
+                None
+            }
+
             Action::SeerTake { .. } => {
                 todo!()
             }
@@ -700,9 +710,6 @@ impl Game {
                 todo!()
             }
 
-            Action::NavigatorGain { .. } => {
-                todo!()
-            }
             Action::ResourcesFromReligious { .. } => {
                 todo!()
             }
@@ -753,6 +760,20 @@ impl Game {
             .enumerate()
             .find_map(|(i, v)| if item == *v { Some(i) } else { None })?;
         Some(items.remove(index))
+    }
+
+    fn gain_cards(&mut self, amount: usize) -> usize {
+        let mut tally = 0;
+        for _ in 0..amount {
+            if let Some(district) = self.deck.draw() {
+                let player = self.active_player_mut().unwrap();
+                player.hand.push(district);
+                tally += 1;
+            } else {
+                break;
+            }
+        }
+        tally
     }
 
     fn gain_gold_for_suit(&mut self, suit: CardSuit) -> Result<Option<FollowupAction>> {
