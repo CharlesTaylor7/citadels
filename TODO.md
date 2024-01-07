@@ -31,8 +31,8 @@
     - [ ] Write to file
     - [ ] Restore from file
 
-- [ ] Role Call phase
-    - [ ] Required actions
+- [ ] Actions need to self describe what happened for the log.
+- [x] Required actions
 
 - [ ] Characters (only these 9)
     - [ ] Assassin
@@ -41,17 +41,20 @@
     - [ ] King
     - [ ] Bishop
     - [ ] Merchant
-    - [ ] Architect
+    - [x] Architect
     - [ ] Warlord
     - [ ] Artist
+- [ ] Scoring
 - [ ] Unique Districts (only 14 of the easiest)
+- [ ] Manually test interactions between roles and unique districts.
 
 ## UI
 - [x] Flex row of flex columns instead of grid layout
 - [ ] Rethink daisyui theme. Maybe something more blue than beige.
 - [ ] Action log front and center
-- [ ] Mark who's hand + city I'm looking at.
+- [x] Mark who's hand + city I'm looking at.
 - [ ] Point estimate for a player's city
+- [ ] Game end overlay with player scores
 - [ ] Roles
     - [x] Tooltip to the right for each role
     - [ ] Unmask player as turn proceeds

@@ -1,7 +1,7 @@
 use crate::actions::{Resource, Select};
 use crate::districts::DistrictName;
 use crate::roles::Rank;
-use crate::types::{CardSuit, Marker};
+use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use crate::{
     actions::{Action, ActionTag},
     lobby::{self, Lobby},
@@ -19,29 +19,7 @@ use std::{
     fmt::{Debug, Display},
 };
 
-type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
-
-#[derive(Default, Debug, PartialEq, Eq, Clone, Deserialize)]
-pub struct PlayerName(pub String);
-
-impl PlayerName {
-    pub fn from(str: String) -> Self {
-        PlayerName(str)
-    }
-}
-
-impl Display for PlayerName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl PartialEq<PlayerName> for &PlayerName {
-    fn eq(&self, other: &PlayerName) -> bool {
-        self.0.eq(&other.0)
-    }
-}
 
 #[derive(Debug)]
 pub struct Player {
@@ -112,6 +90,10 @@ impl<T> Deck<T> {
         }
     }
 
+    pub fn draw_many(&mut self, amount: usize) -> impl Iterator<Item = T> + '_ {
+        (0..amount).flat_map(|_| self.draw())
+    }
+
     pub fn discard_to_bottom(&mut self, card: T) {
         self.discard.push(card);
     }
@@ -175,89 +157,18 @@ pub struct Logs {
     pub game: Vec<ActionLog>,
 }
 
+#[derive(Debug)]
 pub struct ActionLog {
     player: PlayerName,
     role: Option<RoleName>,
     action: Action,
-}
-
-impl ActionLog {
-    fn private(&self, f: &mut std::fmt::Formatter<'_>) -> Option<std::fmt::Result> {
-        match self.action {
-            Action::DraftPick { role } => Some(write!(f, "{} drafted {}", self.player, role)),
-            Action::DraftDiscard { role } => Some(write!(f, "{} discarded {}", self.player, role)),
-
-            _ => {
-                debug!("Warning: default case for {:#?}", self.action);
-                None
-            }
-        }
-    }
-
-    fn public(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.action {
-            Action::DraftPick { .. } => {
-                write!(f, "{} drafted a card.", self.player)
-            }
-
-            Action::DraftDiscard { .. } => {
-                write!(f, "{} discarded a card.", self.player)
-            }
-
-            Action::GatherResources {
-                resource: Resource::Cards,
-            } => {
-                write!(f, "Resource step: {} is picking card(s).", self.player)
-            }
-
-            Action::GatherCardsPick { district } => {
-                write!(
-                    f,
-                    "Resource step: {} picked {} card(s).",
-                    self.player,
-                    district.len()
-                )
-            }
-
-            Action::GatherResources {
-                resource: Resource::Gold,
-            } => {
-                write!(f, "Resource step: {} gained gold.", self.player)
-            }
-
-            Action::EndTurn { .. } => {
-                write!(f, "{} ended their turn.", self.player)
-            }
-
-            _ => {
-                debug!("Warning: default case for {:#?}", self.action);
-                write!(f, "{:#?}", self.action)
-            }
-        }
-    }
-}
-
-impl std::fmt::Display for ActionLog {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.public(f)
-    }
-}
-
-impl std::fmt::Debug for ActionLog {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.private(f).unwrap_or_else(|| self.public(f))
-    }
+    display: String,
 }
 
 #[derive(Debug)]
 pub struct FollowupAction {
     pub action: ActionTag,
-    pub context: FollowupContext,
-}
-
-#[derive(Debug, Tag)]
-pub enum FollowupContext {
-    PickDistrict(Vec<DistrictName>),
+    pub revealed: Vec<DistrictName>,
 }
 
 #[derive(Debug)]
@@ -277,6 +188,13 @@ pub struct Game {
     pub draft: Draft,
     pub logs: Logs,
     pub followup: Option<FollowupAction>,
+}
+
+pub type ActionResult = Result<ActionOutput>;
+
+pub struct ActionOutput {
+    pub followup: Option<FollowupAction>,
+    pub log: String,
 }
 
 impl Game {
@@ -307,9 +225,12 @@ impl Game {
         None
     }
 
-    pub fn active_role(&self) -> Option<&GameRole> {
-        let rank = self.active_turn.call()?;
-        self.characters.iter().find(|c| c.role.rank() == rank)
+    pub fn active_role(&self) -> Result<&GameRole> {
+        let rank = self.active_turn.call().ok_or("not the call phase")?;
+        self.characters
+            .iter()
+            .find(|c| c.role.rank() == rank)
+            .ok_or("no active role")
     }
 
     pub fn start(lobby: Lobby) -> Game {
@@ -411,24 +332,26 @@ impl Game {
         self.draft.initial_discard = Some(self.draft.remaining.remove(i));
     }
 
-    pub fn active_player(&self) -> Option<&Player> {
-        match &self.active_turn {
+    pub fn active_player(&self) -> Result<&Player> {
+        let option = match &self.active_turn {
             Turn::Draft(name) => self.players.iter().find(move |p| p.name == *name),
             Turn::Call(rank) => self
                 .players
                 .iter()
                 .find(|p| p.roles.iter().any(|role| role.rank() == *rank)),
-        }
+        };
+        option.ok_or("no active player")
     }
 
-    pub fn active_player_mut(&mut self) -> Option<&mut Player> {
-        match &mut self.active_turn {
+    pub fn active_player_mut(&mut self) -> Result<&mut Player> {
+        let option = match &mut self.active_turn {
             Turn::Draft(name) => self.players.iter_mut().find(move |p| p.name == *name),
             Turn::Call(rank) => self
                 .players
                 .iter_mut()
                 .find(|p| p.roles.iter().any(|role| role.rank() == *rank)),
-        }
+        };
+        option.ok_or("no active player")
     }
 
     pub fn active_perform_count(&self, action: ActionTag) -> usize {
@@ -486,20 +409,22 @@ impl Game {
 
     #[must_use]
     pub fn perform(&mut self, action: Action) -> Result<()> {
-        self.active_player().ok_or("no active player")?;
+        self.active_player()?;
         let allowed = self.allowed_actions();
         if !allowed.contains(&action.tag()) {
             return Err("Action is not allowed");
         }
 
-        self.followup = self.perform_action(&action)?;
+        let ActionOutput { followup, log } = self.perform_action(&action)?;
+        self.followup = followup;
 
-        let player = self.active_player().ok_or("no active player")?;
+        let player = self.active_player()?;
         let tag = action.tag();
         let log = ActionLog {
             player: player.name.clone(),
-            role: self.active_role().map(|c| c.role),
+            role: self.active_role().map(|c| c.role).ok(),
             action,
+            display: log,
         };
         info!("{:#?}", log);
         if self.followup.is_some() {
@@ -523,10 +448,10 @@ impl Game {
 
     fn start_turn(&mut self) -> Result<()> {
         loop {
-            if let Some(c) = self.active_role() {
-                info!("Calling {}", c.role);
-                if self.active_player().is_none() {
-                    info!("{} was called; but no one responded", c.role);
+            if let Ok(c) = self.active_role() {
+                info!("Calling {}", c.role.display_name());
+                if self.active_player().is_err() {
+                    info!("{} was called; but no one responded", c.role.display_name());
                     self.end_turn()?;
                 } else {
                     break;
@@ -539,23 +464,17 @@ impl Game {
     }
 
     #[must_use]
-    fn perform_action(&mut self, action: &Action) -> Result<Option<FollowupAction>> {
+    fn perform_action(&mut self, action: &Action) -> ActionResult {
         Ok(match action {
             Action::DraftPick { role } => {
-                let name = self.active_turn.draft().ok_or("not the draft phase")?;
-                let p = self
-                    .players
-                    .iter_mut()
-                    .find(|p| p.name == *name)
-                    .ok_or("player does not exist")?;
+                Game::remove_first(&mut self.draft.remaining, *role);
+                let player = self.active_player_mut()?;
+                player.roles.push(*role);
 
-                let i = (0..self.draft.remaining.len())
-                    .find(|i| self.draft.remaining[*i] == *role)
-                    .ok_or("selected role is not available")?;
-
-                let role = self.draft.remaining.remove(i);
-                p.roles.push(role);
-                None
+                ActionOutput {
+                    log: format!("{} drafted a role.", player.name),
+                    followup: None,
+                }
             }
 
             Action::DraftDiscard { role } => {
@@ -564,61 +483,71 @@ impl Game {
                     .ok_or("selected role is not available")?;
 
                 self.draft.remaining.remove(i);
-                None
+                ActionOutput {
+                    log: format!("{} discarded a role face down.", self.active_player()?.name),
+                    followup: None,
+                }
             }
 
             Action::EndTurn => {
-                self.active_turn.call().ok_or("not the call phase")?;
-
-                None
-                // this is handled later after the action is appended to the log
+                // this is handled after the logs are updated.
+                ActionOutput {
+                    log: format!("{} ended their turn.", self.active_player()?.name),
+                    followup: None,
+                }
             }
 
             Action::GatherResources {
                 resource: Resource::Gold,
             } => {
-                let player = self.active_player_mut().ok_or("no active player")?;
-                player.gold += 2; // roles / districts may affect this
-                None
+                let player = self.active_player_mut()?;
+                player.gold += 2;
+                ActionOutput {
+                    log: format!("{} gained 2 gold.", player.name),
+                    followup: None,
+                }
             }
 
             Action::GatherResources {
                 resource: Resource::Cards,
             } => {
                 let draw_amount = 2; // roles / disricts may affect this
-                let mut cards = Vec::with_capacity(draw_amount);
-                for _ in 0..draw_amount {
-                    if let Some(card) = self.deck.draw() {
-                        cards.push(card);
-                    } else {
-                        break;
-                    }
-                }
+                let drawn: Vec<_> = self.deck.draw_many(draw_amount).collect();
+                let player = self.active_player()?;
 
-                if cards.len() > 0 {
-                    Some(FollowupAction {
-                        action: ActionTag::GatherCardsPick,
-                        context: FollowupContext::PickDistrict(cards),
-                    })
-                } else {
-                    warn!("No cards left in the deck");
-                    None
+                ActionOutput {
+                    log: format!(
+                        "{} is gathering cards. They revealed {} cards from the top of the deck.",
+                        player.name, 2
+                    ),
+                    followup: if drawn.len() > 0 {
+                        Some(FollowupAction {
+                            action: ActionTag::GatherCardsPick,
+                            revealed: drawn,
+                        })
+                    } else {
+                        None
+                    },
                 }
             }
 
             Action::GatherCardsPick { district } => {
-                let followup = self.followup.take().ok_or("action is not allowed")?;
-                let FollowupContext::PickDistrict(mut options) = followup.context;
-                if let Select::Single(district) = district {
-                    Game::remove_first(&mut options, *district).ok_or("invalid choice")?;
-                    let player = self.active_player_mut().ok_or("no active player")?;
-                    player.hand.push(*district);
+                let FollowupAction { mut revealed, .. } =
+                    self.followup.take().ok_or("action is not allowed")?;
 
-                    options.shuffle(&mut self.rng);
-                    for remaining in options {
+                if let Select::Single(district) = district {
+                    Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
+                    self.active_player_mut()?.hand.push(*district);
+
+                    revealed.shuffle(&mut self.rng);
+                    for remaining in revealed {
                         self.deck.discard_to_bottom(remaining);
                     }
-                    return Ok(None);
+                    let player = self.active_player()?;
+                    ActionOutput {
+                        log: format!("{} picked {} card(s).", player.name, 1),
+                        followup: None,
+                    }
                 } else {
                     return Err("cannot pick more than 1");
                 }
@@ -632,33 +561,54 @@ impl Game {
             Action::CardsFromReligious => self.gain_cards_for_suit(CardSuit::Religious)?,
 
             Action::MerchantGainOneGold => {
-                self.active_player_mut().unwrap().gold += 1;
-                None
+                let player = self.active_player_mut()?;
+                player.gold += 1;
+                ActionOutput {
+                    log: format!("The Merchant ({}) gained 1 extra gold.", player.name),
+                    followup: None,
+                }
             }
             Action::ArchitectGainCards => {
                 self.gain_cards(2);
-                None
+                let player = self.active_player()?;
+                ActionOutput {
+                    log: format!("The Architect ({}) gained 2 extra cards.", player.name),
+                    followup: None,
+                }
             }
             Action::Build { district } => {
-                let player = self.active_player_mut().ok_or("no active player")?;
-                let cost = district.data().cost;
-                if cost > player.gold {
+                let player = self.active_player_mut()?;
+                let data = district.data();
+                if data.cost > player.gold {
                     return Err("not enough gold");
                 }
                 if player.city.iter().any(|d| d.name == *district) {
                     return Err("cannot build duplicate");
                 }
+
                 Game::remove_first(&mut player.hand, *district).ok_or("card not in hand")?;
-                player.gold -= cost;
+                player.gold -= data.cost;
                 player.city.push(CityDistrict::from(*district));
-                None
+
+                ActionOutput {
+                    log: format!("{} built a {}.", player.name, data.display_name),
+                    followup: None,
+                }
             }
 
             Action::TakeCrown => {
-                let player = self.active_player().ok_or("no active player")?;
-                self.crowned = player.name.clone();
+                self.crowned = self.active_player()?.name.clone();
 
-                None
+                let active = self.active_role()?;
+                let player = self.active_player()?;
+                ActionOutput {
+                    log: format!(
+                        "The {} ({}) took the crown.",
+                        active.role.display_name(),
+                        player.name,
+                    ),
+                    followup: None,
+                }
             }
 
             Action::Assassinate { role: RoleName } => {
@@ -685,14 +635,25 @@ impl Game {
                 resource: Resource::Cards,
             } => {
                 self.gain_cards(4);
-                None
+                ActionOutput {
+                    log: format!(
+                        "The Navigator ({}) gained 4 extra cards.",
+                        self.active_player()?.name
+                    ),
+                    followup: None,
+                }
             }
 
             Action::NavigatorGain {
                 resource: Resource::Gold,
             } => {
-                self.active_player_mut().unwrap().gold += 4;
-                None
+                let mut player = self.active_player_mut()?;
+                player.gold += 4;
+
+                ActionOutput {
+                    log: format!("The Navigator ({}) gained 4 extra gold.", player.name),
+                    followup: None,
+                }
             }
 
             Action::SeerTake { .. } => {
@@ -776,37 +737,45 @@ impl Game {
         tally
     }
 
-    fn gain_gold_for_suit(&mut self, suit: CardSuit) -> Result<Option<FollowupAction>> {
-        let player = self.active_player_mut().ok_or("no active player")?;
-        player.gold += player
+    fn gain_gold_for_suit(&mut self, suit: CardSuit) -> ActionResult {
+        let player = self.active_player_mut()?;
+        let amount = player
             .city
             .iter()
             .filter(|c| c.name.data().suit == suit)
             .count();
 
-        Ok(None)
+        player.gold += amount;
+
+        Ok(ActionOutput {
+            followup: None,
+            log: format!(
+                "{} gained {} gold from their {} districts",
+                player.name, amount, suit
+            ),
+        })
     }
 
-    // TODO: needs to return the log of what happened.
-    // in this case they may have drawn less cards because the deck was low on cards.
-    fn gain_cards_for_suit(&mut self, suit: CardSuit) -> Result<Option<FollowupAction>> {
-        let player = self.active_player().ok_or("no active player")?;
+    fn gain_cards_for_suit(&mut self, suit: CardSuit) -> Result<ActionOutput> {
+        let player = self.active_player()?;
         let count = player
             .city
             .iter()
             .filter(|c| c.name.data().suit == suit)
             .count();
 
-        for _ in 0..count {
-            if let Some(card) = self.deck.draw() {
-                let player = self.active_player_mut().ok_or("no active player")?;
-                player.hand.push(card);
-            } else {
-                break;
-            }
-        }
+        // they may have drawn less cards then the number of districts
+        // if the deck was low on cards.
+        let amount = self.gain_cards(count);
+        let player = self.active_player()?;
 
-        Ok(None)
+        Ok(ActionOutput {
+            followup: None,
+            log: format!(
+                "{} gained {} cards from their {} districts",
+                player.name, amount, suit
+            ),
+        })
     }
 
     #[must_use]

@@ -51,14 +51,6 @@ pub enum RoleName {
     TaxCollector,
 }
 
-impl fmt::Display for RoleName {
-    // This is for ease of interpolating into actions in the template
-    // note its different than the display_name property
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:#?}", self)
-    }
-}
-
 impl RoleName {
     pub const fn todo(self) -> RoleData {
         RoleData {

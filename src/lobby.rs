@@ -1,6 +1,4 @@
-use crate::game::PlayerName;
-
-pub type PlayerId = String;
+use crate::types::{PlayerId, PlayerName};
 
 #[derive(Clone)]
 pub struct Player {

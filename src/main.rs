@@ -5,7 +5,7 @@ use axum::{
     Error, Router,
 };
 use axum_extra::extract::cookie;
-use citadels::{game::Game, lobby::Lobby};
+use citadels::{game::Game, lobby::Lobby, types::PlayerName};
 use load_dotenv::load_dotenv;
 use log::*;
 use std::collections::hash_map::HashMap;
@@ -112,8 +112,9 @@ mod handlers {
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
     use citadels::actions::Action;
-    use citadels::game::{Game, PlayerName};
+    use citadels::game::Game;
     use citadels::templates::*;
+    use citadels::types::PlayerName;
     use http::StatusCode;
     use log::*;
     use serde::Deserialize;
@@ -250,7 +251,7 @@ mod handlers {
         let mut game = app.game.lock().unwrap();
         let game = game.as_mut().ok_or("game hasn't started")?;
 
-        let active_player = game.active_player().ok_or("no active player")?;
+        let active_player = game.active_player()?;
 
         if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
             return Err((StatusCode::BAD_REQUEST, "not your turn!").into());

@@ -1,8 +1,8 @@
 use crate::actions::ActionTag;
 use crate::districts::DistrictName;
-use crate::game::{CityDistrict, FollowupAction, FollowupContext, Game, Turn};
+use crate::game::{CityDistrict, FollowupAction, Game, Turn};
 use crate::roles::RoleName;
-use crate::types::CardSuit;
+use crate::types::{CardSuit, PlayerName};
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
@@ -26,9 +26,9 @@ impl<'a> GameTemplate<'a> {
     pub fn render<'b, 'c>(
         game: &'a Game,
         player_id: Option<&'b str>,
-        impersonate: Option<&'c game::PlayerName>,
+        impersonate: Option<&'c PlayerName>,
     ) -> axum::response::Result<Html<String>> {
-        let active_player = game.active_player();
+        let active_player = game.active_player()?;
         let player = PlayerTemplate::from(myself(game, player_id, impersonate));
         let players: Vec<_> = game.players.iter().map(PlayerInfoTemplate::from).collect();
         let rendered = GameTemplate {
@@ -56,7 +56,7 @@ impl<'a> GameTemplate<'a> {
                 .collect(),
 
             players: &players,
-            active_name: &active_player.ok_or("no active player")?.name.0,
+            active_name: &active_player.name.0,
             my: player.borrow(),
             dev_mode: cfg!(feature = "dev"),
         }
@@ -71,12 +71,12 @@ impl<'a> GameTemplate<'a> {
 fn myself<'a, 'b, 'c>(
     game: &'a Game,
     _player_id: Option<&'b str>,
-    impersonate: Option<&'c game::PlayerName>,
+    impersonate: Option<&'c PlayerName>,
 ) -> Option<&'a game::Player> {
     if let Some(name) = impersonate {
         game.players.iter().find(|p| p.name == *name)
     } else {
-        game.active_player()
+        game.active_player().ok()
     }
 }
 
@@ -84,7 +84,7 @@ fn myself<'a, 'b, 'c>(
 fn myself<'a, 'b>(
     game: &'a Game,
     player_id: Option<&'b str>,
-    _impersonate: Option<game::PlayerName>,
+    _impersonate: Option<PlayerName>,
 ) -> Option<&'a game::Player> {
     player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
 }
@@ -305,15 +305,17 @@ impl ActionsView {
 
             Turn::Call(_) => {
                 match &game.followup {
-                    Some(FollowupAction { action: _, context }) => match context {
-                        FollowupContext::PickDistrict(districts) => ActionsView::SelectDistrict(
-                            districts
-                                .iter()
-                                .cloned()
-                                .map(DistrictTemplate::from)
-                                .collect(),
-                        ),
-                    },
+                    Some(FollowupAction {
+                        action: _,
+                        revealed,
+                    }) => ActionsView::SelectDistrict(
+                        revealed
+                            .iter()
+                            .cloned()
+                            .map(DistrictTemplate::from)
+                            .collect(),
+                    ),
+
                     None => ActionsView::SelectAction,
                 }
                 //todo!();
@@ -330,7 +332,7 @@ pub enum ActionsView {
     },
     SelectDistrict(Vec<DistrictTemplate>),
     SelectRole(Vec<RoleTemplate>),
-    SelectPlayer(Vec<game::PlayerName>),
+    SelectPlayer(Vec<PlayerName>),
     SelectAction,
 }
 
