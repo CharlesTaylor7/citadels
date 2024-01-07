@@ -848,16 +848,6 @@ html {
 }
 
 @media (hover: hover) {
-  .btm-nav > *.disabled:hover,
-      .btm-nav > *[disabled]:hover {
-    pointer-events: none;
-    --tw-border-opacity: 0;
-    background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));
-    --tw-bg-opacity: 0.1;
-    color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
-    --tw-text-opacity: 0.2;
-  }
-
   .btn:hover {
     --tw-border-opacity: 1;
     border-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-border-opacity)));
@@ -982,14 +972,6 @@ html {
   text-decoration-line: underline;
 }
 
-.menu li.disabled {
-  cursor: not-allowed;
-  -webkit-user-select: none;
-     -moz-user-select: none;
-          user-select: none;
-  color: var(--fallback-bc,oklch(var(--bc)/0.3));
-}
-
 .radio {
   flex-shrink: 0;
   --chkbg: var(--bc);
@@ -1033,16 +1015,6 @@ html {
   border-top-width: 2px;
   --tw-bg-opacity: 1;
   background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity)));
-}
-
-.btm-nav > *.disabled,
-    .btm-nav > *[disabled] {
-  pointer-events: none;
-  --tw-border-opacity: 0;
-  background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));
-  --tw-bg-opacity: 0.1;
-  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
-  --tw-text-opacity: 0.2;
 }
 
 .btm-nav > * .label {
@@ -1616,14 +1588,6 @@ html {
   bottom: var(--tooltip-offset);
 }
 
-.tooltip-bottom:before {
-  transform: translateX(-50%);
-  top: var(--tooltip-offset);
-  left: 50%;
-  right: auto;
-  bottom: auto;
-}
-
 .tooltip-right:before {
   transform: translateY(-50%);
   top: 50%;
@@ -1717,15 +1681,6 @@ html {
   left: 50%;
   right: auto;
   bottom: var(--tooltip-tail-offset);
-}
-
-.tooltip-bottom:after {
-  transform: translateX(-50%);
-  border-color: transparent transparent var(--tooltip-color) transparent;
-  top: var(--tooltip-tail-offset);
-  left: 50%;
-  right: auto;
-  bottom: auto;
 }
 
 .tooltip-right:after {
@@ -1975,11 +1930,6 @@ html {
   background-color: rgb(75 203 214 / var(--tw-bg-opacity));
 }
 
-.bg-suit-royal {
-  --tw-bg-opacity: 1;
-  background-color: rgb(207 182 60 / var(--tw-bg-opacity));
-}
-
 .bg-suit-trade {
   --tw-bg-opacity: 1;
   background-color: rgb(104 189 126 / var(--tw-bg-opacity));
@@ -1988,6 +1938,11 @@ html {
 .bg-suit-unique {
   --tw-bg-opacity: 1;
   background-color: rgb(185 153 224 / var(--tw-bg-opacity));
+}
+
+.bg-suit-noble {
+  --tw-bg-opacity: 1;
+  background-color: rgb(207 182 60 / var(--tw-bg-opacity));
 }
 
 .p-1 {

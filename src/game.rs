@@ -1,6 +1,6 @@
 use crate::actions::Select;
 use crate::districts::DistrictName;
-use crate::roles::{Rank};
+use crate::roles::Rank;
 use crate::types::CardSuit;
 use crate::{
     actions::{Action, ActionTag},
@@ -604,11 +604,23 @@ impl Game {
                     return Err("cannot pick more than 1");
                 }
             }
-            Action::GoldFromNobility => self.gain_gold_for_suit(CardSuit::Royal)?,
+            Action::GoldFromNobility => self.gain_gold_for_suit(CardSuit::Noble)?,
             Action::GoldFromReligion => self.gain_gold_for_suit(CardSuit::Religious)?,
             Action::GoldFromTrade => self.gain_gold_for_suit(CardSuit::Trade)?,
             Action::GoldFromMilitary => self.gain_gold_for_suit(CardSuit::Military)?,
 
+            Action::MerchantGainOneGold => {
+                self.active_player_mut().unwrap().gold += 1;
+                None
+            }
+            Action::ArchitectGainCards => {
+                for _ in 0..2 {
+                    if let Some(district) = self.deck.draw() {
+                        self.active_player_mut().unwrap().hand.push(district);
+                    }
+                }
+                None
+            }
             Action::Build { district } => {
                 let player = self.active_player_mut().ok_or("no active player")?;
                 let cost = district.data().cost;

@@ -1,13 +1,11 @@
 use std::fmt::{self, Debug};
 
-
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CardSuit {
-    Military,
-    Trade,
+    Noble,
     Religious,
-    Royal,
+    Trade,
+    Military,
     Unique,
 }
 

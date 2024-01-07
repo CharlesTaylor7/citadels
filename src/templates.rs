@@ -103,7 +103,7 @@ pub struct LobbyPlayersTemplate<'a> {
 }
 
 mod filters {
-    use std::fmt::{Debug};
+    use std::fmt::Debug;
 
     use crate::types::CardSuit;
 
@@ -121,7 +121,7 @@ mod filters {
         Ok(match suit {
             CardSuit::Military => "bg-suit-military",
             CardSuit::Religious => "bg-suit-religious",
-            CardSuit::Royal => "bg-suit-royal",
+            CardSuit::Noble => "bg-suit-noble",
             CardSuit::Trade => "bg-suit-trade",
             CardSuit::Unique => "bg-suit-unique",
         })

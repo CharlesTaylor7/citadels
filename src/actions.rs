@@ -1,5 +1,3 @@
-
-
 use crate::{districts::DistrictName, game::PlayerName, roles::RoleName};
 use macros::tag::Tag;
 use serde::Deserialize;
@@ -29,17 +27,45 @@ pub enum Action {
     GoldFromReligion,
     GoldFromTrade,
     GoldFromMilitary,
+    MerchantGainOneGold,
+    ArchitectGainCards,
 
     // character specific actions
     Assassinate,                  // select 1 role
     Steal,                        // select 1 role
     MagicianSwap(MagicianAction), // select 1 player, or select many cards from hand
-    MerchantGainOneGold,
-    ArchitectGainCards,
-    WarlordDestroy, // select a player, then select a city district
-    ArtistBeautify, // select one of your district cities
+    WarlordDestroy,               // select a player, then select a city district
+    ArtistBeautify,               // select one of your district cities
 }
 
+// action target domains:
+// a role - Assassinate, Steal, single
+// other player - Magician, single
+// my hand - Magician, many
+// my city - Build, beautify, single
+// other city - Warlord, single
+// revealed - picking cards revealed from somwhere else, such as top of deck or another hand,
+// single or many
+// draft - picking roles, single
+//
+// fluidly the ui needs to swap input types from 3 states:
+// disabled = ""
+// single = "checkbox"
+// many = "radio"
+//
+// depending on what the active action is.
+// I should not leak the UI needs into the domain layer.
+// Resource pick cards is the only followup action I need at the moment.
+// I may need more followup actions for new roles and districts, but at the moment that's the only
+// followup needed.
+//
+// So I need the UI layer to smartly allow:
+// - picking an action,
+// - that enables selection from the desired zone/domain.
+// - and puts in a simple confirm button into the ui.
+//
+//
+//
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Select<T> {

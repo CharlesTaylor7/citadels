@@ -32,6 +32,8 @@
     - [ ] Restore from file
 
 - [ ] Role Call phase
+    - [ ] Required actions
+
 - [ ] Characters (only these 9)
     - [ ] Assassin
     - [ ] Thief

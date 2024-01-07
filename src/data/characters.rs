@@ -38,7 +38,7 @@ pub const ROLES: [RoleData; 27] =
   , RoleData 
     { rank: 4 
     , set: Base
-    , suit: Some(Royal)
+    , suit: Some(Noble)
     , name: King
     , actions: &[(1, GoldFromNobility)]
     , description: "Take the crown. Gain 1 gold for each of your NOBLE districts."
