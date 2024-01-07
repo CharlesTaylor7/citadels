@@ -1,6 +1,6 @@
 use crate::actions::ActionTag::*;
 use crate::roles::RoleData;
-use crate::roles::RoleName::*;
+use crate::roles::RoleName::{self, *};
 use crate::types::CardSet::*;
 use crate::types::CardSuit::*;
 
@@ -23,14 +23,14 @@ pub const ROLES: [RoleData; 27] =
     , actions: &[(1, Steal)]
     , description: "Call a character you wish to rob. When the robbed character is revealed you take all their gold."
     }
-  , Spy.todo()
+  , RoleName::Spy.todo()
   , Blackmailer.todo()
   , RoleData 
     { rank: 3 
     , set: Base 
     , suit: None 
     , name: Magician 
-    , actions: &[(1, MagicianSwap)]
+    , actions: &[(1, Magic)]
     , description: "Either exchange hands of cards with another player or discard any number of cards to gain an equal number of cards." 
     }
   , Wizard.todo()
@@ -88,7 +88,7 @@ pub const ROLES: [RoleData; 27] =
     , set: Base
     , suit: Some(Military)
     , name: Warlord
-    , actions: &[(1, GoldFromMilitary), (1, WarlordDestroy)]
+    , actions: &[(1, GoldFromMilitary), (1, Destroy)]
     , description: "Destroy 1 district by paying 1 fewer gold than its cost. Gain 1 gold for each of your MILITARY districts."
     }
   , Diplomat.todo()

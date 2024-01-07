@@ -270,7 +270,7 @@ impl<'a> ActionTemplate<'a> {
             ActionTag::ResourceGainGold => Cow::Borrowed("Gain 2 gold"),
             ActionTag::ResourceGainCards => Cow::Borrowed("Draw 2 cards, pick 1"),
             ActionTag::Build => Cow::Borrowed("Build"),
-            ActionTag::MagicianSwap => Cow::Borrowed("Magician Swap"),
+            ActionTag::Magic => Cow::Borrowed("Magic"),
             ActionTag::EndTurn => Cow::Borrowed("End turn"),
             ActionTag::ResourcePickCards => Cow::Borrowed("Pick"),
             _ => {

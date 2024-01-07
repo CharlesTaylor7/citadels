@@ -1,6 +1,7 @@
+use serde::Deserialize;
 use std::fmt::{self, Debug};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub enum CardSuit {
     Noble,
     Religious,
