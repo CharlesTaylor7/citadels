@@ -592,15 +592,10 @@ impl Game {
                 let followup = self.followup.take().ok_or("action is not allowed")?;
                 let FollowupContext::PickDistrict(mut options) = followup.context;
                 if let Select::Single(district) = district {
-                    let index = options
-                        .iter()
-                        .enumerate()
-                        .find_map(|(i, name)| if name == district { Some(i) } else { None })
-                        .ok_or("district is not valid choice")?;
+                    Game::remove_first(&mut options, *district).ok_or("invalid choice")?;
+                    let player = self.active_player_mut().ok_or("no active player")?;
+                    player.hand.push(*district);
 
-                    self.active_player_mut().unwrap().hand.push(*district);
-
-                    options.remove(index);
                     options.shuffle(&mut self.rng);
                     for remaining in options {
                         self.deck.discard_to_bottom(remaining);
@@ -624,7 +619,7 @@ impl Game {
                 if player.city.iter().any(|d| d.name == *district) {
                     return Err("cannot build duplicate");
                 }
-
+                Game::remove_first(&mut player.hand, *district).ok_or("card not in hand")?;
                 player.gold -= cost;
                 player.city.push(CityDistrict::from(*district));
                 None
@@ -635,6 +630,14 @@ impl Game {
             }
         };
         Ok(followup)
+    }
+
+    fn remove_first<T: PartialEq>(items: &mut Vec<T>, item: T) -> Option<T> {
+        let index = items
+            .iter()
+            .enumerate()
+            .find_map(|(i, v)| if item == *v { Some(i) } else { None })?;
+        Some(items.remove(index))
     }
 
     fn gain_gold_for_suit(&mut self, suit: CardSuit) -> Result<Option<FollowupAction>> {
