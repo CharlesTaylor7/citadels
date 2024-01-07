@@ -99,7 +99,7 @@ pub const ROLES: [RoleData; 27] =
     , set: DarkCity
     , suit: None
     , name: Artist
-    , actions: &[(2, ArtistBeautify)]
+    , actions: &[(2, Beautify)]
     , description: "Beautify up to 2 of your districts by assigning each of them 1 of your gold. A district can be beautified only once. "
     //, reminder_text: "A beautified district is worth 1 more point and its cost is raised by 1 gold. For example, the Warlord has to pay 1 more to destroy a beautified city."
     }

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{districts::DistrictName, game::PlayerName, roles::RoleName};
 use macros::tag::Tag;
 use serde::Deserialize;
@@ -7,17 +9,25 @@ use serde::Deserialize;
 pub enum Action {
     // single select a role, then click pick or discard
     // Draft Phase
-    DraftPick { role: RoleName },
-    DraftDiscard { role: RoleName },
+    DraftPick {
+        role: RoleName,
+    },
+    DraftDiscard {
+        role: RoleName,
+    },
 
     // Call phase actions
     // Gain resource step
     ResourceGainGold,
     ResourceGainCards,
     // pick 1 usually, unless roles or districts change this
-    ResourcePickCards { district: Select<DistrictName> },
+    ResourcePickCards {
+        district: Select<DistrictName>,
+    },
 
-    Build { district: DistrictName },
+    Build {
+        district: DistrictName,
+    },
     // Happens automatically when no actions are left.
     // Turn can end early if requested
     EndTurn,
@@ -30,9 +40,6 @@ pub enum Action {
     MerchantGainOneGold,
     ArchitectGainCards,
 
-    // Patrician
-    CardsFromNobility,
-
     // the king and patrician always target themselves.
     // this action must happen each round.
     // The game says "at some point during their turn".
@@ -40,20 +47,76 @@ pub enum Action {
     // If bewitched the original player still claims the crown.
     // If the character is killed it happens at the end of the round.
     TakeCrown,
+    // character specific actions
+    Assassinate {
+        role: RoleName,
+    }, // select 1 role
+    Steal {
+        role: RoleName,
+    }, // select 1 role
+
+    MagicianSwap(MagicianAction), // select 1 player, or select many cards from hand
+
+    // may destroy own district
+    // may not destroy from any completed city
+    // may not destroy from bishop's city
+    WarlordDestroy {
+        district: DistrictName,
+        player: PlayerName,
+        beautified: bool,
+    },
+    Beautify {
+        district: DistrictName,
+    }, // select one of your district cities
+    //
+
+    // LATER
 
     // emperor always targets someone else
     // Similar to the king and patricain.
     // The action is required.
     // If bewitched, the witch assigns the crown.
     // If killed, the action occurs at the end of the round, and no resources are taken.
-    EmperorAssignCrown { player: PlayerName },
+    EmperorAssignCrown {
+        player: PlayerName,
+    },
+    AbbotGainResources {
+        gold: usize,
+        cards: usize,
+    },
+    AbbotTaxRich,
 
-    // character specific actions
-    Assassinate,                  // select 1 role
-    Steal,                        // select 1 role
-    MagicianSwap(MagicianAction), // select 1 player, or select many cards from hand
-    WarlordDestroy,               // select a player, then select a city district
-    ArtistBeautify,               // select one of your district cities
+    // Patrician
+    CardsFromNobility,
+
+    // Cardinal
+    CardsFromReligious,
+    // Witch
+    Bewitch {
+        role: RoleName,
+    },
+
+    MagistrateAssignWarrants {
+        warrant: [Warrant; 3],
+    },
+    BlackmailerAssignThreats {
+        threat: [Threat; 2],
+    },
+
+    // Tax Collector collects from the tax pool
+    CollectTaxes,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Warrant {
+    pub role: RoleName,
+    pub signed: bool,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Threat {
+    pub role: RoleName,
+    pub flowered: bool,
 }
 
 // action target domains:
@@ -91,7 +154,16 @@ pub enum Select<T> {
     Many(Vec<T>),
 }
 
-impl<T> Select<T> {
+impl<T: Clone> Select<T> {
+    pub fn to_vec(&self) -> Cow<'_, [T]>
+    where
+        [T]: ToOwned<Owned = Vec<T>>,
+    {
+        match self {
+            Select::Single(item) => Cow::Owned(vec![item.clone()]),
+            Select::Many(items) => Cow::Borrowed(items),
+        }
+    }
     pub fn len(&self) -> usize {
         match self {
             Select::Single(_) => 1,

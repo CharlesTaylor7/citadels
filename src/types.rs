@@ -28,8 +28,6 @@ pub enum Marker {
     Assassinated,
     Bewitched,
     Robbed,
-    ThreatFloweredLace,
-    ThreatNormalLace,
-    WarrantSigned,
-    WarrantUnsigned,
+    Threat { flowered: bool },
+    Warrant { signed: bool },
 }
