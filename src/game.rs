@@ -680,7 +680,32 @@ impl Game {
             }
 
             Action::Magic(MagicianAction::TargetDeck { discard }) => {
-                todo!()
+                let active = self.active_player_mut()?;
+                let discard = discard.to_vec();
+                let backup = active.hand.clone();
+
+                for card in discard.iter() {
+                    if Game::remove_first(&mut active.hand, *card).is_none() {
+                        active.hand = backup;
+                        return Err("Can't discard a card that's not in your hand");
+                    }
+                }
+
+                for card in discard.iter() {
+                    self.deck.discard_to_bottom(*card);
+                }
+
+                self.gain_cards(discard.len());
+
+                ActionOutput {
+                    log: format!(
+                        "The Magician ({}) discarded {} cards and drew {} more.",
+                        self.active_player()?.name,
+                        discard.len(),
+                        discard.len(),
+                    ),
+                    followup: None,
+                }
             }
 
             Action::Destroy(_) => {

@@ -221,7 +221,7 @@ impl<T: Clone> Select<T> {
 #[serde(untagged)]
 pub enum MagicianAction {
     TargetPlayer { player: PlayerName },
-    TargetDeck { discard: Vec<DistrictName> },
+    TargetDeck { discard: Select<DistrictName> },
 }
 
 impl ActionTag {
