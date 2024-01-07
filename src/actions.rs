@@ -72,7 +72,8 @@ pub enum Action {
     ResourcesFromReligious { gold: usize, cards: usize },
 
     // Abbot
-    TakeFromRich,
+    // player arg to break a tie amongst the richest.
+    TakeFromRich { player: Option<PlayerName> },
 
     // Cardinal
     CardsFromReligious,

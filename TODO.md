@@ -37,15 +37,19 @@
 - [ ] Characters (only these 9)
     - [ ] Assassin
     - [ ] Thief
-    - [ ] Magician
+    - [x] Magician
     - [ ] King
-    - [ ] Bishop
-    - [ ] Merchant
+    - [x] Bishop
+    - [x] Merchant
     - [x] Architect
-    - [ ] Warlord
-    - [ ] Artist
+    - [x] Warlord
+    - [x] Artist
 - [ ] Scoring
 - [ ] Unique Districts (only 14 of the easiest)
+    - [x] Great Wall
+    - [x] Keep
+    - [ ] Secret Vault
+    - [ ] Park
 - [ ] Manually test interactions between roles and unique districts.
 
 ## UI

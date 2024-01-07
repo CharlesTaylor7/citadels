@@ -191,6 +191,14 @@ pub struct ActionOutput {
 }
 
 impl Game {
+    pub fn complete_city_size(&self) -> usize {
+        if self.players.len() <= 3 {
+            8
+        } else {
+            7
+        }
+    }
+
     #[cfg(feature = "dev")]
     pub fn default_game() -> Option<Game> {
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
@@ -714,11 +722,11 @@ impl Game {
                 }
 
                 let available_gold = self.active_player()?.gold;
-
+                let complete_size = self.complete_city_size();
                 let targeted_player = self
                     .players
                     .iter_mut()
-                    .find(|p| p.name == target.player)
+                    .find(|p| p.city.len() < complete_size && p.name == target.player)
                     .ok_or("invalid player target")?;
 
                 if targeted_player.roles.iter().any(|r| *r == RoleName::Bishop) {
