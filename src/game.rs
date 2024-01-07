@@ -612,7 +612,7 @@ impl Game {
                     .characters
                     .iter_mut()
                     .find(|c| c.role == *role)
-                    .ok_or("mark is not valid")?;
+                    .ok_or("target is not valid")?;
 
                 target.markers.push(Marker::Assassinated);
 
@@ -626,7 +626,33 @@ impl Game {
                 }
             }
             Action::Steal { role } => {
-                todo!()
+                if role.rank() < 3 {
+                    return Err("target rank is too low");
+                }
+
+                let target = self
+                    .characters
+                    .iter_mut()
+                    .find(|c| c.role == *role)
+                    .ok_or("target is not valid")?;
+
+                if target
+                    .markers
+                    .iter()
+                    .any(|marker| *marker == Marker::Assassinated)
+                {
+                    return Err("cannot rob from the dead");
+                }
+                target.markers.push(Marker::Robbed);
+
+                ActionOutput {
+                    log: format!(
+                        "The Thief ({}) robbed the {}; Their gold will be taken at the start of their turn.",
+                        self.active_player()?.name,
+                        role.display_name(),
+                    ),
+                    followup: None,
+                }
             }
 
             // select 1 player, or select many cards from hand
