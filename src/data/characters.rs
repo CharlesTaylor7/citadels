@@ -81,7 +81,14 @@ pub const ROLES: [RoleData; 27] =
     , actions: &[(1, ArchitectGainCards)]
     , description: "Gain 2 extra cards. You can build up to 3 districts."
     }
-  , Navigator.todo()
+  , RoleData 
+    { rank: 7 
+    , set: DarkCity
+    , suit: None
+    , name: Navigator
+    , actions: &[(1, NavigatorGain)]
+    , description: "Gain 4 extra cards or 4 extra gold. You cannot build districts this turn."
+    }
   , Scholar.todo()
   , RoleData 
     { rank: 8 
