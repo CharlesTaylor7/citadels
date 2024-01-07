@@ -161,6 +161,14 @@ pub struct Draft {
     pub faceup_discard: Vec<RoleName>,
 }
 
+impl Draft {
+    pub fn clear(&mut self) {
+        self.remaining.clear();
+        self.initial_discard = None;
+        self.faceup_discard.clear();
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct Logs {
     pub turn: Vec<ActionLog>,
@@ -717,7 +725,7 @@ impl Game {
                 if self.characters.last().is_some_and(|c| rank < c.role.rank()) {
                     self.active_turn = Turn::Call(rank + 1);
                 } else {
-                    self.begin_draft();
+                    self.end_round();
                 };
             }
         }
@@ -725,9 +733,12 @@ impl Game {
     }
 
     pub fn end_round(&mut self) {
+        self.draft.clear();
+
         for character in self.characters.iter_mut() {
             character.markers.clear();
         }
+        self.begin_draft();
     }
 }
 

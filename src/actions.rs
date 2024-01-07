@@ -34,8 +34,18 @@ pub enum Action {
     CardsFromNobility,
 
     // the king and patrician always target themselves.
+    // this action must happen each round.
+    // The game says "at some point during their turn".
+    // Since there's no strategy to waiting, it will happen automatically.
+    // If bewitched the original player still claims the crown.
+    // If the character is killed it happens at the end of the round.
     TakeCrown,
+
     // emperor always targets someone else
+    // Similar to the king and patricain.
+    // The action is required.
+    // If bewitched, the witch assigns the crown.
+    // If killed, the action occurs at the end of the round, and no resources are taken.
     EmperorAssignCrown { player: PlayerName },
 
     // character specific actions

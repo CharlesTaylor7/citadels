@@ -105,6 +105,7 @@ impl RoleName {
             RoleName::Architect => 3,
             RoleName::Navigator => 0,
             RoleName::Scholar => 2,
+            RoleName::Seer => 2,
             _ => 1,
         }
     }
