@@ -280,7 +280,7 @@ impl Game {
             p.roles.sort_by_key(|c| c.rank());
         }
         game.active_turn = Turn::Call(1);
-        game.start_turn();
+        game.start_turn().ok();
 
         Some(game)
     }
@@ -433,11 +433,9 @@ impl Game {
             return vec![f.action];
         }
 
-        info!("Checking actions");
         let mut actions = Vec::new();
         match self.active_turn {
             Turn::Draft(_) => {
-                debug!("Draft step");
                 if self.active_perform_count(ActionTag::DraftPick) == 0 {
                     actions.push(ActionTag::DraftPick)
                 }
@@ -474,15 +472,15 @@ impl Game {
 
     #[must_use]
     pub fn perform(&mut self, action: Action) -> Result<()> {
-        let player = self.active_player().ok_or("no active player")?;
+        self.active_player().ok_or("no active player")?;
         let allowed = self.allowed_actions();
         if !allowed.contains(&action.tag()) {
             return Err("Action is not allowed");
         }
 
-        debug!("Performing {:#?}", action);
         self.followup = self.perform_action(&action)?;
 
+        let player = self.active_player().ok_or("no active player")?;
         let tag = action.tag();
         let log = ActionLog {
             player: player.name.clone(),
@@ -490,6 +488,9 @@ impl Game {
             action,
         };
         info!("{:#?}", log);
+        if self.followup.is_some() {
+            info!("followup: {:#?}", self.followup);
+        }
 
         self.logs.turn.push(log);
 
@@ -582,33 +583,31 @@ impl Game {
                         context: FollowupContext::PickDistrict(cards),
                     })
                 } else {
+                    warn!("No cards left in the deck");
                     None
                 }
             }
 
             Action::ResourcePickCards { district } => {
-                let followup = self.followup.ok_or("action is not allowed")?;
-                if let FollowupContext::PickDistrict(mut options) = followup.context {
-                    if let Select::Single(district) = district {
-                        let index = options
-                            .iter()
-                            .enumerate()
-                            .find_map(|(i, name)| if name == district { Some(i) } else { None })
-                            .ok_or("district is not valid choice")?;
+                let followup = self.followup.take().ok_or("action is not allowed")?;
+                let FollowupContext::PickDistrict(mut options) = followup.context;
+                if let Select::Single(district) = district {
+                    let index = options
+                        .iter()
+                        .enumerate()
+                        .find_map(|(i, name)| if name == district { Some(i) } else { None })
+                        .ok_or("district is not valid choice")?;
 
-                        self.active_player_mut().unwrap().hand.push(*district);
+                    self.active_player_mut().unwrap().hand.push(*district);
 
-                        options.remove(index);
-                        options.shuffle(&mut self.rng);
-                        for remaining in options {
-                            self.deck.discard_to_bottom(remaining);
-                        }
-                        return Ok(None);
-                    } else {
-                        return Err("cannot pick more than 1");
+                    options.remove(index);
+                    options.shuffle(&mut self.rng);
+                    for remaining in options {
+                        self.deck.discard_to_bottom(remaining);
                     }
+                    return Ok(None);
                 } else {
-                    return Err("cannot follow up");
+                    return Err("cannot pick more than 1");
                 }
             }
             Action::GoldFromNobility => self.gain_gold_for_suit(CardSuit::Royal)?,

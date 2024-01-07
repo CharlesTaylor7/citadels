@@ -1,6 +1,6 @@
 use crate::actions::ActionTag;
 use crate::districts::DistrictName;
-use crate::game::{CityDistrict, FollowupAction, FollowupActionContext, Game, Turn};
+use crate::game::{CityDistrict, FollowupAction, FollowupContext, Game, Turn};
 use crate::roles::RoleName;
 use crate::types::CardSuit;
 use crate::{game, lobby};
@@ -294,15 +294,13 @@ impl ActionsView {
             Turn::Call(_) => {
                 match &game.followup {
                     Some(FollowupAction { action: _, context }) => match context {
-                        FollowupActionContext::PickDistrict(districts) => {
-                            ActionsView::SelectDistrict(
-                                districts
-                                    .iter()
-                                    .cloned()
-                                    .map(DistrictTemplate::from)
-                                    .collect(),
-                            )
-                        }
+                        FollowupContext::PickDistrict(districts) => ActionsView::SelectDistrict(
+                            districts
+                                .iter()
+                                .cloned()
+                                .map(DistrictTemplate::from)
+                                .collect(),
+                        ),
                     },
                     None => ActionsView::SelectAction,
                 }

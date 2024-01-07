@@ -1,4 +1,3 @@
-use core::slice::SlicePattern;
 use std::borrow::Cow;
 
 use crate::{districts::DistrictName, game::PlayerName, roles::RoleName};
