@@ -1,7 +1,7 @@
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::Deserialize;
-use std::fmt::{Debug};
+use std::fmt::Debug;
 
 use crate::{
     actions::ActionTag,
@@ -114,10 +114,7 @@ pub struct RoleData {
     pub actions: &'static [(usize, ActionTag)],
 }
 
-pub fn select<'a, T: RngCore>(
-    rng: &'a mut T,
-    num_players: usize,
-) -> impl Iterator<Item = RoleName> + 'a {
+pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> impl Iterator<Item = RoleName> + '_ {
     // 9th rank is disallowed for 2
     // 9th rank is required for 3
     // 9th rank is optional for 4-7

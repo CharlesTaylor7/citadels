@@ -6,6 +6,7 @@ pub struct Player {
     pub name: PlayerName,
 }
 
+#[derive(Default)]
 pub struct Lobby {
     pub players: Vec<Player>,
 }
@@ -34,14 +35,6 @@ impl Lobby {
                     name: PlayerName::from(name.to_owned()),
                 });
             }
-        }
-    }
-}
-
-impl Default for Lobby {
-    fn default() -> Self {
-        Self {
-            players: Vec::new(),
         }
     }
 }

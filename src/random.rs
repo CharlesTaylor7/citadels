@@ -35,7 +35,7 @@ impl SeedableRng for Prng {
     type Seed = Seed;
     fn from_seed(seed: Self::Seed) -> Self {
         Self {
-            seed: seed.clone(),
+            seed: seed,
             rng: SeedableRng::from_seed(seed),
         }
     }

@@ -14,10 +14,7 @@ use macros::tag::Tag;
 use rand::prelude::*;
 use rand_core::SeedableRng;
 
-use std::{
-    borrow::Borrow,
-    fmt::{Debug},
-};
+use std::{borrow::Borrow, fmt::Debug};
 
 pub type Result<T> = std::result::Result<T, &'static str>;
 
@@ -210,8 +207,8 @@ impl Game {
         cs.shuffle(&mut game.rng);
 
         for p in game.players.iter_mut() {
-            p.roles.push(cs.pop().unwrap().clone());
-            p.roles.push(cs.pop().unwrap().clone());
+            p.roles.push(cs.pop().unwrap());
+            p.roles.push(cs.pop().unwrap());
             p.roles.sort_by_key(|c| c.rank());
         }
         game.active_turn = Turn::Call(1);
