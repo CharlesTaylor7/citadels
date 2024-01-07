@@ -30,6 +30,14 @@ pub enum Action {
     MerchantGainOneGold,
     ArchitectGainCards,
 
+    // Patrician
+    CardsFromNobility,
+
+    // the king and patrician always target themselves.
+    TakeCrown,
+    // emperor always targets someone else
+    EmperorAssignCrown { player: PlayerName },
+
     // character specific actions
     Assassinate,                  // select 1 role
     Steal,                        // select 1 role

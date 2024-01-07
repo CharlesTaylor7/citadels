@@ -22,3 +22,14 @@ pub enum CardSet {
     Citadels2016,
     Custom,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Marker {
+    Assassinated,
+    Bewitched,
+    Robbed,
+    ThreatFloweredLace,
+    ThreatNormalLace,
+    WarrantSigned,
+    WarrantUnsigned,
+}

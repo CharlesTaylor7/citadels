@@ -44,7 +44,15 @@ pub const ROLES: [RoleData; 27] =
     , description: "Take the crown. Gain 1 gold for each of your NOBLE districts."
     }
   , Emperor.todo()
-  , Patrician.todo()
+  , RoleData 
+    { rank: 4 
+    , set: Base
+    , suit: Some(Noble)
+    , name: Patrician
+    , actions: &[(1, CardsFromNobility)]
+    , description: "Take the crown. Gain 1 card for each of your NOBLE districts."
+    }
+
   , RoleData 
     { rank: 5 
     , set: Base

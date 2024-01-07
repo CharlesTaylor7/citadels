@@ -44,7 +44,7 @@ impl<'a> GameTemplate<'a> {
             characters: game
                 .characters
                 .iter()
-                .cloned()
+                .map(|c| c.role)
                 .map(RoleTemplate::from)
                 .collect(),
 

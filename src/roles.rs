@@ -121,7 +121,10 @@ pub struct RoleData {
     pub actions: &'static [(usize, ActionTag)],
 }
 
-pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> Vec<RoleName> {
+pub fn select<'a, T: RngCore>(
+    rng: &'a mut T,
+    num_players: usize,
+) -> impl Iterator<Item = RoleName> + 'a {
     // 9th rank is disallowed for 2
     // 9th rank is required for 3
     // 9th rank is optional for 4-7
@@ -136,7 +139,6 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> Vec<RoleName> {
     }
 
     grouped_by_rank
-        .iter()
+        .into_iter()
         .filter_map(|roles| roles.choose(rng).cloned())
-        .collect::<Vec<_>>()
 }
