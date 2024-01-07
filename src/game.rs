@@ -439,14 +439,6 @@ impl Game {
             .count()
     }
 
-    fn has_done<F: Fn(&Action) -> bool>(&self, f: F) -> bool {
-        self.logs.turn.iter().any(|log| f(&log.action))
-    }
-
-    fn has_not_done<F: Fn(&Action) -> bool>(&self, f: F) -> bool {
-        self.logs.turn.iter().all(|log| !f(&log.action))
-    }
-
     pub fn allowed_actions(&self) -> Vec<ActionTag> {
         if let Some(f) = &self.followup {
             return vec![f.action];
@@ -475,7 +467,7 @@ impl Game {
                 }
 
                 // You have to gather resources before building
-                if self.has_not_done(|action| action.tag() == ActionTag::GatherResources) {
+                if self.active_perform_count(ActionTag::GatherResources) < 1 {
                     // gather
                     actions.push(ActionTag::GatherResources);
                 } else if self.active_perform_count(ActionTag::Build) < c.role.build_limit() {
@@ -548,7 +540,7 @@ impl Game {
 
     #[must_use]
     fn perform_action(&mut self, action: &Action) -> Result<Option<FollowupAction>> {
-        let followup = match action {
+        Ok(match action {
             Action::DraftPick { role } => {
                 let name = self.active_turn.draft().ok_or("not the draft phase")?;
                 let p = self
@@ -636,6 +628,9 @@ impl Game {
             Action::GoldFromTrade => self.gain_gold_for_suit(CardSuit::Trade)?,
             Action::GoldFromMilitary => self.gain_gold_for_suit(CardSuit::Military)?,
 
+            Action::CardsFromNobility => self.gain_cards_for_suit(CardSuit::Noble)?,
+            Action::CardsFromReligious => self.gain_cards_for_suit(CardSuit::Religious)?,
+
             Action::MerchantGainOneGold => {
                 self.active_player_mut().unwrap().gold += 1;
                 None
@@ -662,12 +657,94 @@ impl Game {
                 player.city.push(CityDistrict::from(*district));
                 None
             }
-            _ => {
-                // todo
-                return Err("action is not implemented");
+
+            Action::TakeCrown => {
+                let player = self.active_player().ok_or("no active player")?;
+                self.crowned = player.name.clone();
+
+                None
             }
-        };
-        Ok(followup)
+
+            Action::Assassinate { role: RoleName } => {
+                todo!()
+            }
+            Action::Steal { role: RoleName } => {
+                todo!()
+            }
+
+            // select 1 player, or select many cards from hand
+            Action::Magic(_) => {
+                todo!()
+            }
+
+            Action::Destroy(_) => {
+                todo!()
+            }
+
+            Action::Beautify { district } => {
+                todo!()
+            }
+
+            Action::SeerTake { .. } => {
+                todo!()
+            }
+
+            Action::SeerDistribute { .. } => {
+                todo!()
+            }
+
+            Action::WizardPeek { .. } => {
+                todo!()
+            }
+            Action::WizardPick { .. } => {
+                todo!()
+            }
+
+            Action::NavigatorGain { .. } => {
+                todo!()
+            }
+            Action::ResourcesFromReligious { .. } => {
+                todo!()
+            }
+            Action::EmperorAssignCrown { .. } => {
+                todo!()
+            }
+            Action::QueenGainGold { .. } => {
+                todo!()
+            }
+            Action::Spy { .. } => {
+                todo!()
+            }
+            Action::CollectTaxes { .. } => {
+                todo!()
+            }
+            Action::Bewitch { .. } => {
+                todo!()
+            }
+            Action::Seize { .. } => {
+                todo!()
+            }
+
+            Action::TakeFromRich { .. } => {
+                todo!()
+            }
+            Action::SendWarrants { .. } => {
+                todo!()
+            }
+            Action::Threaten { .. } => {
+                todo!()
+            }
+            Action::ExchangeCityDistricts { .. } => {
+                todo!()
+            }
+
+            Action::ScholarReveal { .. } => {
+                todo!()
+            }
+            Action::ScholarPick { .. } => {
+                todo!()
+            }
+        })
     }
 
     fn remove_first<T: PartialEq>(items: &mut Vec<T>, item: T) -> Option<T> {
@@ -685,6 +762,28 @@ impl Game {
             .iter()
             .filter(|c| c.name.data().suit == suit)
             .count();
+
+        Ok(None)
+    }
+
+    // TODO: needs to return the log of what happened.
+    // in this case they may have drawn less cards because the deck was low on cards.
+    fn gain_cards_for_suit(&mut self, suit: CardSuit) -> Result<Option<FollowupAction>> {
+        let player = self.active_player().ok_or("no active player")?;
+        let count = player
+            .city
+            .iter()
+            .filter(|c| c.name.data().suit == suit)
+            .count();
+
+        for _ in 0..count {
+            if let Some(card) = self.deck.draw() {
+                let player = self.active_player_mut().ok_or("no active player")?;
+                player.hand.push(card);
+            } else {
+                break;
+            }
+        }
 
         Ok(None)
     }

@@ -46,7 +46,7 @@ pub const ROLES: [RoleData; 27] =
   , Emperor.todo()
   , RoleData 
     { rank: 4 
-    , set: Base
+    , set: Citadels2016
     , suit: Some(Noble)
     , name: Patrician
     , actions: &[(1, CardsFromNobility)]

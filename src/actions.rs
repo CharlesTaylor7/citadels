@@ -33,9 +33,6 @@ pub enum Action {
     MerchantGainOneGold,
     ArchitectGainCards,
 
-    // 4 gold or 4 cards
-    NavigatorGainResources { resource: Resource },
-
     // the king and patrician always target themselves.
     // this action must happen each round.
     // The game says "at some point during their turn".
@@ -58,7 +55,9 @@ pub enum Action {
 
     // must be one of your district cities
     Beautify { district: DistrictName },
-    //
+
+    // Patrician
+    CardsFromNobility,
 
     // LATER
 
@@ -74,9 +73,6 @@ pub enum Action {
 
     // Abbot
     TakeFromRich,
-
-    // Patrician
-    CardsFromNobility,
 
     // Cardinal
     CardsFromReligious,
@@ -97,13 +93,16 @@ pub enum Action {
     CollectTaxes,
 
     // Diplomat
-    Exchange { exchange: [CityDistrictTarget; 2] },
+    ExchangeCityDistricts { exchange: [CityDistrictTarget; 2] },
 
     // Spy
-    SpyOn { player: PlayerName, suit: CardSuit },
+    Spy { player: PlayerName, suit: CardSuit },
 
     // can happen during turn, or at end of round if king was killed
     QueenGainGold,
+
+    // 4 gold or 4 cards
+    NavigatorGain { resource: Resource },
 
     // take 1 card at random from each player
     SeerTake,
