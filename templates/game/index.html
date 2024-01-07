@@ -76,6 +76,12 @@
           {{ my.name }}'s
           City
         </h2>
+        <div class="flex flex-row flex-wrap gap-2">
+            {% let input_type = "checkbox" %}
+            {% for district in my.city %} 
+              {% include "district-card.html" %} 
+            {% endfor %}
+        </div>
       </section>
       <section
         id="hand"

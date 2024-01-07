@@ -174,7 +174,7 @@ pub struct PlayerTemplate<'a> {
     pub gold: usize,
     pub hand: Vec<DistrictTemplate>,
     pub roles: Vec<RoleTemplate>,
-    pub city: Vec<()>,
+    pub city: Vec<DistrictTemplate>,
 }
 
 impl<'a> PlayerTemplate<'a> {
@@ -190,7 +190,7 @@ impl<'a> PlayerTemplate<'a> {
                     .map(DistrictTemplate::from)
                     .collect::<Vec<_>>(),
                 roles: p.roles.iter().cloned().map(RoleTemplate::from).collect(),
-                city: p.city.iter().map(|_| ()).collect(),
+                city: p.city.iter().map(DistrictTemplate::from_city).collect(),
             }
         } else {
             Self {
@@ -231,7 +231,18 @@ impl DistrictTemplate {
     }
 
     pub fn from_city(district: &CityDistrict) -> Self {
-        todo!()
+        let data = district.name.data();
+        let name = district.name;
+        Self {
+            name: data.display_name,
+            cost: data.cost,
+            value: format!("{:#?}", district),
+            suit: data.suit,
+            description: data.description,
+            beautified: district.beautified,
+            image_offset_x: -125.8 * (name as usize % 10) as f64,
+            image_offset_y: -200.0 * (name as usize / 10) as f64,
+        }
     }
 }
 
