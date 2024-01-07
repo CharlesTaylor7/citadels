@@ -13,10 +13,10 @@ use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
 use rand_core::SeedableRng;
-use serde::Deserialize;
+
 use std::{
     borrow::Borrow,
-    fmt::{Debug, Display},
+    fmt::{Debug},
 };
 
 pub type Result<T> = std::result::Result<T, &'static str>;
@@ -611,10 +611,10 @@ impl Game {
                 }
             }
 
-            Action::Assassinate { role: RoleName } => {
+            Action::Assassinate { role: _RoleName } => {
                 todo!()
             }
-            Action::Steal { role: RoleName } => {
+            Action::Steal { role: _RoleName } => {
                 todo!()
             }
 
@@ -627,7 +627,7 @@ impl Game {
                 todo!()
             }
 
-            Action::Beautify { district } => {
+            Action::Beautify { district: _ } => {
                 todo!()
             }
 
@@ -647,7 +647,7 @@ impl Game {
             Action::NavigatorGain {
                 resource: Resource::Gold,
             } => {
-                let mut player = self.active_player_mut()?;
+                let player = self.active_player_mut()?;
                 player.gold += 4;
 
                 ActionOutput {

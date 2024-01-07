@@ -1,7 +1,7 @@
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::Deserialize;
-use std::fmt::{self, Debug};
+use std::fmt::{Debug};
 
 use crate::{
     actions::ActionTag,

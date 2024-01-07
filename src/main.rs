@@ -5,7 +5,7 @@ use axum::{
     Error, Router,
 };
 use axum_extra::extract::cookie;
-use citadels::{game::Game, lobby::Lobby, types::PlayerName};
+use citadels::{game::Game, lobby::Lobby};
 use load_dotenv::load_dotenv;
 use log::*;
 use std::collections::hash_map::HashMap;
