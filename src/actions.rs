@@ -204,11 +204,16 @@ impl<T: Clone> Select<T> {
             Select::Many(items) => Cow::Borrowed(items),
         }
     }
+
     pub fn len(&self) -> usize {
         match self {
             Select::Single(_) => 1,
             Select::Many(items) => items.len(),
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 

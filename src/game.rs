@@ -155,6 +155,7 @@ pub struct Logs {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct ActionLog {
     player: PlayerName,
     role: Option<RoleName>,
@@ -404,7 +405,6 @@ impl Game {
         actions
     }
 
-    #[must_use]
     pub fn perform(&mut self, action: Action) -> Result<()> {
         self.active_player()?;
         let allowed = self.allowed_actions();
@@ -444,23 +444,22 @@ impl Game {
     }
 
     fn start_turn(&mut self) -> Result<()> {
-        loop {
-            if let Ok(c) = self.active_role() {
-                info!("Calling {}", c.role.display_name());
-                if self.active_player().is_err() {
-                    info!("{} was called; but no one responded", c.role.display_name());
-                    self.end_turn()?;
-                } else {
-                    break;
-                }
+        while let Ok(c) = self.active_role() {
+            if let Ok(player) = self.active_player() {
+                info!(
+                    "Calling {}; {} started their turn.",
+                    c.role.display_name(),
+                    player.name
+                );
+                self.end_turn()?;
             } else {
+                info!("Calling {}; no one responded.", c.role.display_name());
                 break;
             }
         }
         Ok(())
     }
 
-    #[must_use]
     fn perform_action(&mut self, action: &Action) -> ActionResult {
         Ok(match action {
             Action::DraftPick { role } => {
@@ -775,7 +774,6 @@ impl Game {
         })
     }
 
-    #[must_use]
     fn end_turn(&mut self) -> Result<()> {
         // append logs
         self.logs.game.append(&mut self.logs.turn);

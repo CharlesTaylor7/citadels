@@ -1,3 +1,5 @@
+#![allow(clippy::len_zero)]
+
 pub mod actions;
 pub mod data;
 pub mod districts;

@@ -68,6 +68,7 @@ impl<'a> GameTemplate<'a> {
 }
 
 #[cfg(feature = "dev")]
+#[allow(clippy::needless_lifetimes)]
 fn myself<'a, 'b, 'c>(
     game: &'a Game,
     _player_id: Option<&'b str>,
@@ -81,10 +82,11 @@ fn myself<'a, 'b, 'c>(
 }
 
 #[cfg(not(feature = "dev"))]
-fn myself<'a, 'b>(
+#[allow(clippy::needless_lifetimes)]
+fn myself<'a, 'b, 'c>(
     game: &'a Game,
     player_id: Option<&'b str>,
-    _impersonate: Option<PlayerName>,
+    _impersonate: Option<&'c PlayerName>,
 ) -> Option<&'a game::Player> {
     player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
 }
