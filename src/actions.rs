@@ -13,12 +13,12 @@ pub enum Action {
     DraftPick { role: RoleName },
     DraftDiscard { role: RoleName },
 
-    // Call phase actions
-    // Gain resource step
-    ResourceGainGold,
-    ResourceGainCards,
-    // pick 1 usually, unless roles or districts change this
-    ResourcePickCards { district: Select<DistrictName> },
+    // Call phase
+
+    // either gain gold or reveal cards
+    GatherResources { resource: Resource },
+    // pick 1 or more revealed cards
+    GatherCardsPick { district: Select<DistrictName> },
 
     Build { district: DistrictName },
     // Happens automatically when no actions are left.
@@ -99,30 +99,32 @@ pub enum Action {
     // Diplomat
     Exchange { exchange: [CityDistrictTarget; 2] },
 
-    Spy { player: PlayerName, suit: CardSuit },
+    // Spy
+    SpyOn { player: PlayerName, suit: CardSuit },
 
     // can happen during turn, or at end of round if king was killed
     QueenGainGold,
 
     // take 1 card at random from each player
-    Seer,
+    SeerTake,
     // distribute 1 card to each player that you took from.
     // note: if an opponent has no cards initially, they get no card back from you.
     SeerDistribute { seer: Vec<SeerTarget> },
 
     // reveals 7 cards
-    Scholar,
+    ScholarReveal,
     // picks 1 of them
     // shuffles the rest into the deck.
     // Note: shuffle the _entire_ deck.
     // Usually cards are discarded to the bottom of the deck.
-    ScholarPick,
+    ScholarPick { district: DistrictName },
 
     // action
     // Reveals a players hand
-    Wizard { player: PlayerName },
-    // builds out of revealed hand
-    WizardBuild,
+    WizardPeek { player: PlayerName },
+    // picks out of revealed hand
+    // gets the option to build the picked card or to add to hand
+    WizardPick { district: DistrictName, build: bool },
 }
 
 // cardinal is complicated. I think I will add optional fields to the build action
@@ -212,19 +214,28 @@ impl<T: Clone> Select<T> {
     }
 }
 
-impl ActionTag {
-    pub fn is_resource_action(self) -> bool {
-        match self {
-            Self::ResourceGainGold => true,
-            Self::ResourceGainCards => true,
-            _ => false,
-        }
-    }
-}
-
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum MagicianAction {
     TargetPlayer { player: PlayerName },
     TargetDeck { discard: Vec<DistrictName> },
+}
+
+impl ActionTag {
+    pub fn is_required(self) -> bool {
+        match self {
+            ActionTag::Bewitch => true,
+            ActionTag::TakeCrown => true,
+            ActionTag::EmperorAssignCrown => true,
+            ActionTag::GatherResources => true,
+
+            // followup actions are often required
+            ActionTag::GatherCardsPick => true,
+            ActionTag::SeerDistribute => true,
+            ActionTag::ScholarPick => true,
+            ActionTag::WizardPick => true,
+
+            _ => false,
+        }
+    }
 }

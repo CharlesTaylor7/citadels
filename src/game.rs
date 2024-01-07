@@ -1,4 +1,4 @@
-use crate::actions::Select;
+use crate::actions::{Resource, Select};
 use crate::districts::DistrictName;
 use crate::roles::Rank;
 use crate::types::{CardSuit, Marker};
@@ -204,11 +204,13 @@ impl ActionLog {
                 write!(f, "{} discarded a card.", self.player)
             }
 
-            Action::ResourceGainCards { .. } => {
+            Action::GatherResources {
+                resource: Resource::Cards,
+            } => {
                 write!(f, "Resource step: {} is picking card(s).", self.player)
             }
 
-            Action::ResourcePickCards { district } => {
+            Action::GatherCardsPick { district } => {
                 write!(
                     f,
                     "Resource step: {} picked {} card(s).",
@@ -217,7 +219,9 @@ impl ActionLog {
                 )
             }
 
-            Action::ResourceGainGold { .. } => {
+            Action::GatherResources {
+                resource: Resource::Gold,
+            } => {
                 write!(f, "Resource step: {} gained gold.", self.player)
             }
 
@@ -462,22 +466,25 @@ impl Game {
             }
 
             Turn::Call(rank) => {
-                // still picking a resource
-                if self.has_not_done(|action| action.tag().is_resource_action()) {
-                    actions.push(ActionTag::ResourceGainGold);
-                    actions.push(ActionTag::ResourceGainCards);
-                } else {
-                    let c = self.characters[rank as usize - 1].borrow();
-                    if self.active_perform_count(ActionTag::Build) < c.role.build_limit() {
-                        actions.push(ActionTag::Build)
-                    }
+                let c = self.characters[rank as usize - 1].borrow();
 
-                    for (n, action) in c.role.data().actions {
-                        if self.active_perform_count(*action) < *n {
-                            actions.push(*action)
-                        }
+                for (n, action) in c.role.data().actions {
+                    if self.active_perform_count(*action) < *n {
+                        actions.push(*action)
                     }
-                    actions.push(ActionTag::EndTurn)
+                }
+
+                // You have to gather resources before building
+                if self.has_not_done(|action| action.tag() == ActionTag::GatherResources) {
+                    // gather
+                    actions.push(ActionTag::GatherResources);
+                } else if self.active_perform_count(ActionTag::Build) < c.role.build_limit() {
+                    // build
+                    actions.push(ActionTag::Build)
+                }
+
+                if actions.iter().all(|action| !action.is_required()) {
+                    actions.push(ActionTag::EndTurn);
                 }
             }
         }
@@ -575,13 +582,17 @@ impl Game {
                 // this is handled later after the action is appended to the log
             }
 
-            Action::ResourceGainGold => {
+            Action::GatherResources {
+                resource: Resource::Gold,
+            } => {
                 let player = self.active_player_mut().ok_or("no active player")?;
                 player.gold += 2; // roles / districts may affect this
                 None
             }
 
-            Action::ResourceGainCards => {
+            Action::GatherResources {
+                resource: Resource::Cards,
+            } => {
                 let draw_amount = 2; // roles / disricts may affect this
                 let mut cards = Vec::with_capacity(draw_amount);
                 for _ in 0..draw_amount {
@@ -594,7 +605,7 @@ impl Game {
 
                 if cards.len() > 0 {
                     Some(FollowupAction {
-                        action: ActionTag::ResourcePickCards,
+                        action: ActionTag::GatherCardsPick,
                         context: FollowupContext::PickDistrict(cards),
                     })
                 } else {
@@ -603,7 +614,7 @@ impl Game {
                 }
             }
 
-            Action::ResourcePickCards { district } => {
+            Action::GatherCardsPick { district } => {
                 let followup = self.followup.take().ok_or("action is not allowed")?;
                 let FollowupContext::PickDistrict(mut options) = followup.context;
                 if let Select::Single(district) = district {
