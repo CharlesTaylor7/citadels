@@ -1,14 +1,9 @@
-use crate::actions::{Resource, Select};
+use crate::actions::{Action, ActionTag, MagicianAction, Resource, Select};
 use crate::districts::DistrictName;
-use crate::roles::Rank;
-use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
-use crate::{
-    actions::{Action, ActionTag},
-    lobby::{self, Lobby},
-    random::Prng,
-    roles::RoleName,
-    types::CardSet,
-};
+use crate::lobby::{self, Lobby};
+use crate::random::Prng;
+use crate::roles::{Rank, RoleName};
+use crate::types::{CardSet, CardSuit, Marker, PlayerId, PlayerName};
 use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
@@ -655,8 +650,36 @@ impl Game {
                 }
             }
 
-            // select 1 player, or select many cards from hand
-            Action::Magic(_) => {
+            Action::Magic(MagicianAction::TargetPlayer { player }) => {
+                let mut hand = std::mem::take(&mut self.active_player_mut()?.hand);
+                let target = if let Some(p) = self.players.iter_mut().find(|p| p.name == *player) {
+                    p
+                } else {
+                    // put the hand back;
+                    self.active_player_mut()?.hand = hand;
+                    return Err("invalid target");
+                };
+
+                let hand_count = hand.len();
+                let target_count = target.hand.len();
+
+                std::mem::swap(&mut hand, &mut target.hand);
+                self.active_player_mut()?.hand = hand;
+
+                ActionOutput {
+                    log: format!(
+                        "The Magician ({}) swapped their hand of {} cards with {}'s hand of {} cards.",
+                        self.active_player()?.name,
+                        hand_count,
+                        player,
+                        target_count,
+
+                    ),
+                    followup: None,
+                }
+            }
+
+            Action::Magic(MagicianAction::TargetDeck { discard }) => {
                 todo!()
             }
 
