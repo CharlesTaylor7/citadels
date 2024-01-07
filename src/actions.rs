@@ -47,15 +47,16 @@ pub enum Action {
     // If bewitched the original player still claims the crown.
     // If the character is killed it happens at the end of the round.
     TakeCrown,
-    // character specific actions
+
     Assassinate {
         role: RoleName,
-    }, // select 1 role
+    },
     Steal {
         role: RoleName,
-    }, // select 1 role
+    },
 
-    MagicianSwap(MagicianAction), // select 1 player, or select many cards from hand
+    // select 1 player, or select many cards from hand
+    MagicianSwap(MagicianAction),
 
     // may destroy own district
     // may not destroy from any completed city
@@ -65,9 +66,10 @@ pub enum Action {
         player: PlayerName,
         beautified: bool,
     },
+    // must be one of your district cities
     Beautify {
         district: DistrictName,
-    }, // select one of your district cities
+    },
     //
 
     // LATER
@@ -80,26 +82,34 @@ pub enum Action {
     EmperorAssignCrown {
         player: PlayerName,
     },
-    AbbotGainResources {
+
+    // Abbot
+    ResourcesFromReligious {
         gold: usize,
         cards: usize,
     },
-    AbbotTaxRich,
+
+    // Abbot
+    TaxRich,
 
     // Patrician
     CardsFromNobility,
 
     // Cardinal
     CardsFromReligious,
+
     // Witch
     Bewitch {
         role: RoleName,
     },
 
-    MagistrateAssignWarrants {
+    // Magistrate
+    AssignWarrants {
         warrant: [Warrant; 3],
     },
-    BlackmailerAssignThreats {
+
+    // Blackmailer
+    AssignThreats {
         threat: [Threat; 2],
     },
 
