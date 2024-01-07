@@ -8,7 +8,6 @@ use askama::Template;
 use axum::response::Html;
 use log::*;
 use std::borrow::{Borrow, Cow};
-use std::ops::Deref;
 
 #[derive(Template)]
 #[template(path = "game/index.html")]
@@ -104,7 +103,7 @@ pub struct LobbyPlayersTemplate<'a> {
 }
 
 mod filters {
-    use std::fmt::{format, Debug};
+    use std::fmt::{Debug};
 
     use crate::types::CardSuit;
 

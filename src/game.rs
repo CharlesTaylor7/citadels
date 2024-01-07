@@ -1,10 +1,9 @@
 use crate::actions::Select;
 use crate::districts::DistrictName;
-use crate::roles::{self, Rank};
+use crate::roles::{Rank};
 use crate::types::CardSuit;
 use crate::{
     actions::{Action, ActionTag},
-    data::{self},
     lobby::{self, Lobby},
     random::Prng,
     roles::RoleName,
