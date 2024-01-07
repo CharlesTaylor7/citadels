@@ -762,8 +762,30 @@ impl Game {
                 }
             }
 
-            Action::Beautify { district: _ } => {
-                todo!()
+            Action::Beautify { district } => {
+                let player = self.active_player_mut()?;
+
+                if player.gold < 1 {
+                    return Err("not enough gold");
+                }
+
+                let city_district = player
+                    .city
+                    .iter_mut()
+                    .find(|d| !d.beautified && d.name == *district)
+                    .ok_or("invalid target; is it already beautified?")?;
+
+                city_district.beautified = true;
+                player.gold -= 1;
+
+                ActionOutput {
+                    log: format!(
+                        "The Artist ({}) beautified their {}.",
+                        self.active_player()?.name,
+                        district.data().display_name,
+                    ),
+                    followup: None,
+                }
             }
 
             Action::NavigatorGain {
