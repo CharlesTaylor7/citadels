@@ -1,3 +1,4 @@
+use crate::game::Player;
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
 use macros::tag::Tag;
@@ -133,6 +134,25 @@ pub struct CityDistrictTarget {
     pub player: PlayerName,
     pub district: DistrictName,
     pub beautified: bool,
+}
+
+impl CityDistrictTarget {
+    pub fn effective_cost(&self, player: &Player) -> usize {
+        let mut cost = self.district.data().cost;
+        if self.beautified {
+            cost += 1;
+        }
+
+        if player
+            .city
+            .iter()
+            .any(|city| city.name == DistrictName::GreatWall)
+        {
+            cost += 1;
+        }
+
+        cost
+    }
 }
 
 #[derive(Deserialize, Debug)]

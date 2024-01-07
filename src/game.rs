@@ -1,4 +1,4 @@
-use crate::actions::{Action, ActionTag, MagicianAction, Resource, Select};
+use crate::actions::{Action, ActionTag, CityDistrictTarget, MagicianAction, Resource, Select};
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
@@ -708,8 +708,58 @@ impl Game {
                 }
             }
 
-            Action::Destroy(_) => {
-                todo!()
+            Action::Destroy(target) => {
+                if target.district == DistrictName::Keep {
+                    return Err("cannot destroy the Keep");
+                }
+
+                let available_gold = self.active_player()?.gold;
+
+                let targeted_player = self
+                    .players
+                    .iter_mut()
+                    .find(|p| p.name == target.player)
+                    .ok_or("invalid player target")?;
+
+                if targeted_player.roles.iter().any(|r| *r == RoleName::Bishop) {
+                    return Err("cannot target the Bishop's city");
+                }
+
+                if target.district == DistrictName::Keep {
+                    return Err("cannot target the Keep");
+                }
+
+                let city_index = targeted_player
+                    .city
+                    .iter()
+                    .enumerate()
+                    .find_map(|(i, c)| {
+                        if c.name == target.district && c.beautified == target.beautified {
+                            Some(i)
+                        } else {
+                            None
+                        }
+                    })
+                    .ok_or("does not exist in the targeted player's city")?;
+
+                let destroy_cost = target.effective_cost(targeted_player) - 1;
+                if available_gold < destroy_cost {
+                    return Err("not enough gold to destroy");
+                }
+
+                targeted_player.city.remove(city_index);
+                self.active_player_mut()?.gold -= destroy_cost;
+                self.deck.discard_to_bottom(target.district);
+
+                ActionOutput {
+                    log: format!(
+                        "The Warlord ({}) destroyed {}'s {}.",
+                        self.active_player()?.name,
+                        target.player,
+                        target.district.data().display_name,
+                    ),
+                    followup: None,
+                }
             }
 
             Action::Beautify { district: _ } => {
