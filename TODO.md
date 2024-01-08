@@ -49,13 +49,7 @@
     - [x] Navigator
 - [ ] Scoring
 - [ ] Unique Districts (only 14 of the easiest)
-    - [x] Great Wall
-    - [x] Keep
-    - [x] Factory
-    - [x] Quarry
-    - [x] School of Magic
-    - [ ] Secret Vault
-    - [ ] Park
+    - use enabled() function as a checklist
 - [ ] Manually test interactions between roles and unique districts.
 
 ## UI

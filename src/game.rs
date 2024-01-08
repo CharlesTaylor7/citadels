@@ -253,13 +253,7 @@ impl Game {
 
         let mut unique_districts: Vec<DistrictName> = crate::districts::UNIQUE
             .iter()
-            .filter_map(|d| {
-                if d.set != CardSet::Custom {
-                    Some(d.name)
-                } else {
-                    None
-                }
-            })
+            .filter_map(|d| if d.name.enabled() { Some(d.name) } else { None })
             .collect();
         unique_districts.shuffle(&mut rng);
 
