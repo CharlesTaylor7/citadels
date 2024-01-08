@@ -180,14 +180,18 @@ pub struct Threat {
     pub flowered: bool,
 }
 
+// action button click leads to one of 3 outcomes:
+// - immediate action
+// - open menu and possibly allow selection from either your hand or your city.
+
 // action target domains:
 // a role - Assassinate, Steal, single
 // other player - Magician, single
 // my hand - Magician, many
 // my city - Build, beautify, single
 // other city - Warlord, single
-// revealed - picking cards revealed from somwhere else, such as top of deck or another hand,
-// single or many
+// revealed hand - Wizard, single
+// revealed top of deck - Scholar, single
 // draft - picking roles, single
 //
 // fluidly the ui needs to swap input types from 3 states:

@@ -158,19 +158,6 @@ impl Draft {
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
-pub struct Log {
-    source: Source,
-    display: String,
-}
-
-#[derive(Debug)]
-pub enum Source {
-    Triggered,
-    Action(PlayerName, Action),
-}
-
-#[derive(Debug)]
 pub struct FollowupAction {
     pub action: ActionTag,
     pub revealed: Vec<DistrictName>,
@@ -200,7 +187,7 @@ pub struct Game {
     pub draft: Draft,
     pub followup: Option<FollowupAction>,
     pub turn_actions: Vec<Action>,
-    pub logs: Vec<Log>,
+    pub logs: Vec<String>,
     pub first_to_complete: Option<PlayerName>,
 }
 
@@ -492,10 +479,6 @@ impl Game {
 
         let player = self.active_player()?;
         let tag = action.tag();
-        let log = Log {
-            source: Source::Action(player.name.clone(), action),
-            display: log,
-        };
         info!("{:#?}", log);
         if self.followup.is_some() {
             info!("followup: {:#?}", self.followup);
@@ -558,10 +541,7 @@ impl Game {
 
         for item in logs {
             info!("{}", item);
-            self.logs.push(Log {
-                source: Source::Triggered,
-                display: item,
-            });
+            self.logs.push(item);
         }
 
         Ok(())
@@ -1150,24 +1130,18 @@ impl Game {
 
                     if gains_gold {
                         self.active_player_mut().unwrap().gold += 1;
-                        self.logs.push(Log {
-                            display: format!(
-                                "{} gains 1 gold from their Poor House.",
-                                self.active_player().unwrap().name,
-                            ),
-                            source: Source::Triggered,
-                        });
+                        self.logs.push(format!(
+                            "{} gains 1 gold from their Poor House.",
+                            self.active_player().unwrap().name,
+                        ));
                     }
 
                     if gains_cards {
                         self.gain_cards(2);
-                        self.logs.push(Log {
-                            display: format!(
-                                "{} gains 2 cards from their Park.",
-                                self.active_player().unwrap().name,
-                            ),
-                            source: Source::Triggered,
-                        });
+                        self.logs.push(format!(
+                            "{} gains 2 cards from their Park.",
+                            self.active_player().unwrap().name,
+                        ));
                     }
                 }
 
@@ -1194,10 +1168,11 @@ impl Game {
             }) {
                 if *role == RoleName::King || *role == RoleName::Patrician {
                     self.crowned = player.name.clone();
-                    self.logs.push(Log {
-                        source: Source::Triggered,
-                        display: format!("{}'s heir {} crowned.", role.display_name(), player.name),
-                    });
+                    self.logs.push(format!(
+                        "{}'s heir {} crowned.",
+                        role.display_name(),
+                        player.name
+                    ));
                 }
                 if *role == RoleName::Emperor {
                     todo!();
