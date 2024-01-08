@@ -143,19 +143,17 @@ impl Draft {
     }
 }
 
-#[derive(Default, Debug)]
-pub struct Logs {
-    pub turn: Vec<ActionLog>,
-    pub game: Vec<ActionLog>,
+#[derive(Debug)]
+#[allow(dead_code)]
+pub struct Log {
+    source: Source,
+    display: String,
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
-pub struct ActionLog {
-    player: PlayerName,
-    role: Option<RoleName>,
-    action: Action,
-    display: String,
+pub enum Source {
+    Triggered,
+    Action(PlayerName, Action),
 }
 
 #[derive(Debug)]
@@ -179,8 +177,9 @@ pub struct Game {
     pub crowned: PlayerName,
     pub active_turn: Turn,
     pub draft: Draft,
-    pub logs: Logs,
     pub followup: Option<FollowupAction>,
+    pub turn_actions: Vec<Action>,
+    pub logs: Vec<Log>,
 }
 
 pub type ActionResult = Result<ActionOutput>;
@@ -297,11 +296,12 @@ impl Game {
             players,
             draft: Draft::default(),
             deck: Deck::new(deck),
-            logs: Logs::default(),
             active_turn: Turn::Draft(crowned.clone()),
             crowned,
             characters,
             followup: None,
+            turn_actions: Vec::new(),
+            logs: Vec::with_capacity(1000),
         };
         game.begin_draft();
         game
@@ -356,10 +356,9 @@ impl Game {
     }
 
     pub fn active_perform_count(&self, action: ActionTag) -> usize {
-        self.logs
-            .turn
+        self.turn_actions
             .iter()
-            .filter(|log| log.action.tag() == action)
+            .filter(|act| act.tag() == action)
             .count()
     }
 
@@ -420,18 +419,15 @@ impl Game {
 
         let player = self.active_player()?;
         let tag = action.tag();
-        let log = ActionLog {
-            player: player.name.clone(),
-            role: self.active_role().map(|c| c.role).ok(),
-            action,
+        let log = Log {
+            source: Source::Action(player.name.clone(), action),
             display: log,
         };
         info!("{:#?}", log);
         if self.followup.is_some() {
             info!("followup: {:#?}", self.followup);
         }
-
-        self.logs.turn.push(log);
+        self.logs.push(log);
 
         if tag == ActionTag::EndTurn
             || self
@@ -454,11 +450,10 @@ impl Game {
                     c.role.display_name(),
                     player.name
                 );
-                self.end_turn()?;
-            } else {
-                info!("Calling {}; no one responded.", c.role.display_name());
                 break;
             }
+            info!("Calling {}; no one responded.", c.role.display_name());
+            self.end_turn()?;
         }
         Ok(())
     }
@@ -944,8 +939,7 @@ impl Game {
     }
 
     fn end_turn(&mut self) -> Result<()> {
-        // append logs
-        self.logs.game.append(&mut self.logs.turn);
+        self.turn_actions.clear();
 
         match std::mem::take(&mut self.active_turn) {
             Turn::Draft(name) => {
