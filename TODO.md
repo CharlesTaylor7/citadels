@@ -56,19 +56,18 @@
 - [ ] Take active player at the start of performing an action so it doesn't have to be mutably borrowed a bajillion times.
 
 ## UI
-- [x] Flex row of flex columns instead of grid layout
+- [ ] Action menus
 - [ ] Rethink daisyui theme. Maybe something more blue than beige.
 - [ ] Action log front and center
 - [x] Mark who's hand + city I'm looking at.
 - [ ] Point estimate for a player's city
 - [ ] Game end overlay with player scores
 - [ ] Roles
-    - [x] Tooltip to the right for each role
     - [ ] Unmask player as turn proceeds
     - [ ] Collapsible section of the actions taken
     - [ ] Markers:
         - Killed
-        - Stolen
+        - Robbed
 
 - [ ] Show errors inline
         - https://stackoverflow.com/a/73615279/4875161
