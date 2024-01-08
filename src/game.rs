@@ -1040,6 +1040,33 @@ impl Game {
                 }
             }
             Turn::Call(rank) => {
+                if let Ok(player) = self.active_player() {
+                    let gains_gold = player.gold == 0 && player.city_has(DistrictName::PoorHouse);
+                    let gains_cards = player.hand.len() == 0 && player.city_has(DistrictName::Park);
+
+                    if gains_gold {
+                        self.active_player_mut().unwrap().gold += 1;
+                        self.logs.push(Log {
+                            display: format!(
+                                "{} gains 1 gold from their Poor House.",
+                                self.active_player().unwrap().name,
+                            ),
+                            source: Source::Triggered,
+                        });
+                    }
+
+                    if gains_cards {
+                        self.gain_cards(2);
+                        self.logs.push(Log {
+                            display: format!(
+                                "{} gains 2 cards from their Park.",
+                                self.active_player().unwrap().name,
+                            ),
+                            source: Source::Triggered,
+                        });
+                    }
+                }
+
                 if self.characters.last().is_some_and(|c| rank < c.role.rank()) {
                     self.active_turn = Turn::Call(rank + 1);
                 } else {
