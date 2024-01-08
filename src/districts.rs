@@ -220,7 +220,14 @@ pub const UNIQUE: [DistrictData; 30] = [
         cost: 2,
         description: Some("At the end of the game, the Haunted Quarter counts as any 1 district type of your choice."),
     },
-    DistrictName::GreatWall.todo(),
+    DistrictData {
+        name: DistrictName::GreatWall,
+        suit: Unique,
+        set: Base,
+        display_name: "Great Wall",
+        cost: 6,
+        description: Some("The rank 8 character must pay 1 more gold to use its ability on any district in your city."),
+    },
     DistrictName::Observatory.todo(),
     DistrictName::Library.todo(),
     DistrictData {
@@ -334,13 +341,6 @@ pub const UNIQUE: [DistrictData; 30] = [
         count: 1,
         suit: Unique,
         set: Base,
-        display_name: "Great Wall",
-        cost: 6,
-    },
-    District {
-        count: 1,
-        suit: Unique,
-        set: Base,
         display_name: "Laboratory",
         cost: 5,
     },
@@ -445,7 +445,6 @@ pub const UNIQUE: [DistrictData; 30] = [
 , ("Monument", "You cannot build the Monument if you have 5 or more districts in your city. Treat the Monument as being 2 districts toward your completed city.")
 , ("Museum", "Once per turn, assign 1 card from your hand facedown under the Museum. At the end of the game, score 1 extra point for each card under the Museum.")
 , ("Observatory", "If you choose to draw cards when gathering resources, draw 3 cards instead of 2.")
-, ("Great Wall", "The rank 8 character must pay 1 more gold to use its ability on any district in your city.")
 , ("Library", "If you choose to draw cards when gathering resources, keep all drawn cards.")
 , ("Laboratory", "Once per turn, discard 1 card from your hand to gain 2 gold.")
 ]
