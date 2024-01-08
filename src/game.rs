@@ -212,20 +212,29 @@ impl Game {
         }
     }
 
-    // score based on publicly known factors.
-    // Secret Vault is not counted here
+    pub fn total_score(&self, player: &Player) -> usize {
+        let mut score = self.public_score(player);
+
+        for c in &player.hand {
+            if *c == DistrictName::SecretVault {
+                score += 3;
+            }
+        }
+        score
+    }
+
     pub fn public_score(&self, player: &Player) -> usize {
         let mut score = 0;
         let mut counts: [usize; 5] = [0, 0, 0, 0, 0];
 
         // total costs
-        for card in player.city.iter() {
+        for card in &player.city {
             score += card.effective_cost();
             counts[card.name.data().suit as usize] += 1;
         }
 
         // uniques
-        for card in player.city.iter() {
+        for card in &player.city {
             score += match card.name {
                 DistrictName::DragonGate => 2,
                 DistrictName::MapRoom => player.hand.len(),
