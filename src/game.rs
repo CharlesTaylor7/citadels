@@ -36,6 +36,13 @@ pub struct CityDistrict {
 }
 
 impl CityDistrict {
+    pub fn effective_cost(&self) -> usize {
+        let mut cost = self.name.data().cost;
+        if self.beautified {
+            cost += 1;
+        }
+        cost
+    }
     pub fn from(name: DistrictName) -> Self {
         Self {
             name,
@@ -174,6 +181,13 @@ pub struct GameRole {
     pub markers: Vec<Marker>,
 }
 
+pub type ActionResult = Result<ActionOutput>;
+
+pub struct ActionOutput {
+    pub followup: Option<FollowupAction>,
+    pub log: String,
+}
+
 #[derive(Debug)]
 pub struct Game {
     rng: Prng,
@@ -186,13 +200,7 @@ pub struct Game {
     pub followup: Option<FollowupAction>,
     pub turn_actions: Vec<Action>,
     pub logs: Vec<Log>,
-}
-
-pub type ActionResult = Result<ActionOutput>;
-
-pub struct ActionOutput {
-    pub followup: Option<FollowupAction>,
-    pub log: String,
+    pub first_to_complete: Option<PlayerName>,
 }
 
 impl Game {
@@ -202,6 +210,39 @@ impl Game {
         } else {
             7
         }
+    }
+
+    // score based on publicly known factors.
+    // Secret Vault is not counted here
+    pub fn public_score(&self, player: &Player) -> usize {
+        let mut score = 0;
+        let mut counts: [usize; 5] = [0, 0, 0, 0, 0];
+
+        // total costs
+        for card in player.city.iter() {
+            score += card.effective_cost();
+            counts[card.name.data().suit as usize] += 1;
+        }
+
+        // one district of each type: 3 points
+        if counts.iter().all(|s| *s > 0) {
+            score += 3;
+        }
+
+        // first_to_complete: 4
+        if self
+            .first_to_complete
+            .as_ref()
+            .is_some_and(|c| c == player.name)
+        {
+            score += 4;
+        }
+        // other completed: 2
+        else if player.city.len() >= self.complete_city_size() {
+            score += 2;
+        }
+
+        score
     }
 
     #[cfg(feature = "dev")]
@@ -298,6 +339,7 @@ impl Game {
             followup: None,
             turn_actions: Vec::new(),
             logs: Vec::with_capacity(1000),
+            first_to_complete: None,
         };
         game.begin_draft();
         game
