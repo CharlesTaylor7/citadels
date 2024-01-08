@@ -34,16 +34,18 @@
 - [x] Actions need to self describe what happened for the log.
 - [x] Required actions
 
-- [ ] Characters (only these 9)
-    - [ ] Assassin
-    - [ ] Thief
+- Characters 
+    - [x] Assassin
+    - [x] Thief
     - [x] Magician
     - [ ] King
+    - [ ] Patrician
     - [x] Bishop
     - [x] Merchant
     - [x] Architect
     - [x] Warlord
     - [x] Artist
+    - [ ] Navigator
 - [ ] Scoring
 - [ ] Unique Districts (only 14 of the easiest)
     - [x] Great Wall

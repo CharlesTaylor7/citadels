@@ -201,10 +201,6 @@ impl Game {
     #[cfg(feature = "dev")]
     pub fn default_game() -> Option<Game> {
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
-        for p in game.players.iter_mut() {
-            p.hand.push(DistrictName::SecretVault);
-        }
-
         // deal roles out randomly
         let mut cs: Vec<_> = game.characters.iter().map(|c| c.role).collect();
         cs.shuffle(&mut game.rng);
@@ -484,6 +480,7 @@ impl Game {
         }
 
         for item in logs {
+            info!("{}", item);
             self.logs.push(Log {
                 source: Source::Triggered,
                 display: item,
@@ -1026,11 +1023,34 @@ impl Game {
     }
 
     pub fn end_round(&mut self) {
-        self.draft.clear();
+        // triggered actions
+        let rank = 4;
+        let character = &self.characters[rank as usize - 1];
+        if character.markers.iter().any(|m| *m == Marker::Assassinated) {
+            if let Some((player, role)) = self.players.iter().find_map(|p| {
+                p.roles
+                    .iter()
+                    .find(|role| role.rank() == rank)
+                    .map(|role| (p, role))
+            }) {
+                if *role == RoleName::King || *role == RoleName::Patrician {
+                    self.crowned = player.name.clone();
+                    self.logs.push(Log {
+                        source: Source::Triggered,
+                        display: format!("{}'s heir {} crowned.", role.display_name(), player.name),
+                    });
+                }
+                if *role == RoleName::Emperor {
+                    todo!();
+                }
+            }
+        }
 
+        // cleanup
         for character in self.characters.iter_mut() {
             character.markers.clear();
         }
+        self.draft.clear();
         self.begin_draft();
     }
 }
