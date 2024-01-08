@@ -214,7 +214,7 @@ pub struct Threat {
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Select<T> {
-    Single(T),
+    One(T),
     Many(Vec<T>),
 }
 
@@ -224,14 +224,14 @@ impl<T: Clone> Select<T> {
         [T]: ToOwned<Owned = Vec<T>>,
     {
         match self {
-            Select::Single(item) => Cow::Owned(vec![item.clone()]),
+            Select::One(item) => Cow::Owned(vec![item.clone()]),
             Select::Many(items) => Cow::Borrowed(items),
         }
     }
 
     pub fn len(&self) -> usize {
         match self {
-            Select::Single(_) => 1,
+            Select::One(_) => 1,
             Select::Many(items) => items.len(),
         }
     }
