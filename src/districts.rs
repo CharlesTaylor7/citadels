@@ -118,20 +118,31 @@ impl DistrictName {
     }
 
     pub fn enabled(self) -> bool {
+        // 19
         match self {
             Self::GreatWall => true,
             Self::Keep => true,
             Self::Factory => true,
             Self::Quarry => true,
             Self::SchoolOfMagic => true,
+
             Self::Library => true,
             Self::Observatory => true,
             Self::Park => true,
             Self::PoorHouse => true,
             Self::GoldMine => true,
-            // 9
-            Self::SecretVault => false,
-            Self::HauntedQuarter => false,
+
+            Self::SecretVault => true,
+            Self::DragonGate => true,
+            Self::WishingWell => true,
+            Self::IvoryTower => true,
+            Self::ImperialTreasury => true,
+
+            Self::MapRoom => true,
+            Self::Statue => true,
+            Self::Basilica => true,
+            Self::Capitol => true,
+
             _ => false,
         }
     }

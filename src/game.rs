@@ -115,6 +115,7 @@ pub enum Step {
 pub enum Turn {
     Draft(PlayerName),
     Call(Rank),
+    GameOver,
 }
 
 impl Default for Turn {
@@ -404,6 +405,7 @@ impl Game {
 
     pub fn active_player(&self) -> Result<&Player> {
         let option = match &self.active_turn {
+            Turn::GameOver => None,
             Turn::Draft(name) => self.players.iter().find(move |p| p.name == *name),
             Turn::Call(rank) => self
                 .players
@@ -415,6 +417,7 @@ impl Game {
 
     pub fn active_player_mut(&mut self) -> Result<&mut Player> {
         let option = match &mut self.active_turn {
+            Turn::GameOver => None,
             Turn::Draft(name) => self.players.iter_mut().find(move |p| p.name == *name),
             Turn::Call(rank) => self
                 .players
@@ -438,6 +441,7 @@ impl Game {
 
         let mut actions = Vec::new();
         match self.active_turn {
+            Turn::GameOver => {}
             Turn::Draft(_) => {
                 if self.active_perform_count(ActionTag::DraftPick) == 0 {
                     actions.push(ActionTag::DraftPick)
@@ -731,8 +735,20 @@ impl Game {
                 player.gold -= cost;
                 player.city.push(CityDistrict::from(district.name));
 
+                // trigger end game
+                let player = self.active_player()?;
+                if player.city.len() >= self.complete_city_size()
+                    && self.first_to_complete.is_none()
+                {
+                    self.first_to_complete = Some(player.name.clone());
+                }
+
                 ActionOutput {
-                    log: format!("{} built a {}.", player.name, district.display_name),
+                    log: format!(
+                        "{} built a {}.",
+                        self.active_player()?.name,
+                        district.display_name
+                    ),
                     followup: None,
                 }
             }
@@ -1089,6 +1105,7 @@ impl Game {
         self.turn_actions.clear();
 
         match std::mem::take(&mut self.active_turn) {
+            Turn::GameOver => {}
             Turn::Draft(name) => {
                 // advance turn
                 let role_count = if self.players.len() <= 3 { 2 } else { 1 };
@@ -1186,6 +1203,10 @@ impl Game {
                     todo!();
                 }
             }
+        }
+
+        if self.first_to_complete.is_some() {
+            return;
         }
 
         // cleanup

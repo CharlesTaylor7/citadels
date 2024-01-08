@@ -47,10 +47,9 @@
     - Bonus
     - [x] Patrician
     - [x] Navigator
-- [ ] Scoring
-- [ ] Unique Districts (only 14 of the easiest)
-    - use enabled() function as a checklist
-- [ ] Manually test interactions between roles and unique districts.
+- [x] Scoring
+- [x] Unique Districts (implemented 19/30)
+- [ ] Detect game end
 
 ## UI
 - [x] Flex row of flex columns instead of grid layout
@@ -77,3 +76,7 @@
     - markers: 
         - Crown
     - revealed roles
+
+## QA / Playtesting
+- [ ] Manually test interactions for every role
+- [ ] For every  unique districts.

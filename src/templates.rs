@@ -288,6 +288,7 @@ impl<'a> ActionTemplate<'a> {
 impl ActionsView {
     pub fn from(game: &Game) -> Self {
         match game.active_turn {
+            Turn::GameOver => ActionsView::SelectAction,
             Turn::Draft(_) => ActionsView::Draft {
                 roles: game
                     .draft
