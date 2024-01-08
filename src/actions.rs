@@ -17,8 +17,7 @@ pub enum Action {
 
     // either gain gold or reveal cards
     GatherResources { resource: Resource },
-    // pick 1 or more revealed cards
-    GatherCardsPick { district: Select<DistrictName> },
+    GatherCardsPick { district: DistrictName },
 
     Build { district: DistrictName },
     // Happens automatically when no actions are left.

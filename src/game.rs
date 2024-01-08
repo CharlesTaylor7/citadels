@@ -653,21 +653,17 @@ impl Game {
                 let FollowupAction { mut revealed, .. } =
                     self.followup.take().ok_or("action is not allowed")?;
 
-                if let Select::Single(district) = district {
-                    Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
-                    self.active_player_mut()?.hand.push(*district);
+                Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
+                self.active_player_mut()?.hand.push(*district);
 
-                    revealed.shuffle(&mut self.rng);
-                    for remaining in revealed {
-                        self.deck.discard_to_bottom(remaining);
-                    }
-                    let player = self.active_player()?;
-                    ActionOutput {
-                        log: format!("{} picked {} card(s).", player.name, 1),
-                        followup: None,
-                    }
-                } else {
-                    return Err("cannot pick more than 1");
+                revealed.shuffle(&mut self.rng);
+                for remaining in revealed {
+                    self.deck.discard_to_bottom(remaining);
+                }
+                let player = self.active_player()?;
+                ActionOutput {
+                    log: format!("{} picked {} card(s).", player.name, 1),
+                    followup: None,
                 }
             }
             Action::GoldFromNobility => self.gain_gold_for_suit(CardSuit::Noble)?,

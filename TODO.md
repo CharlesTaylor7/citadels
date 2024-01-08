@@ -49,7 +49,11 @@
     - [x] Navigator
 - [x] Scoring
 - [x] Unique Districts (implemented 19/30)
-- [ ] Detect game end
+- [x] Detect game end
+
+## Improvements
+- [ ] Linebreaks, italics and bolds in card descriptions.
+- [ ] Take active player at the start of performing an action so it doesn't have to be mutably borrowed a bajillion times.
 
 ## UI
 - [x] Flex row of flex columns instead of grid layout
