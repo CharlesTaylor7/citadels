@@ -9,9 +9,10 @@ use macros::tag::Tag;
 use rand::prelude::*;
 use rand_core::SeedableRng;
 
-use std::{borrow::Borrow, fmt::Debug};
+use std::borrow::{Borrow, Cow};
+use std::fmt::Debug;
 
-pub type Result<T> = std::result::Result<T, &'static str>;
+pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
 
 #[derive(Debug)]
 pub struct Player {
@@ -297,7 +298,7 @@ impl Game {
         self.characters
             .iter()
             .find(|c| c.role.rank() == rank)
-            .ok_or("no active role")
+            .ok_or("no active role".into())
     }
 
     pub fn start(lobby: Lobby) -> Game {
@@ -404,7 +405,7 @@ impl Game {
                 .iter()
                 .find(|p| p.roles.iter().any(|role| role.rank() == *rank)),
         };
-        option.ok_or("no active player")
+        option.ok_or("no active player".into())
     }
 
     pub fn active_player_mut(&mut self) -> Result<&mut Player> {
@@ -416,7 +417,7 @@ impl Game {
                 .iter_mut()
                 .find(|p| p.roles.iter().any(|role| role.rank() == *rank)),
         };
-        option.ok_or("no active player")
+        option.ok_or("no active player".into())
     }
 
     pub fn active_perform_count(&self, action: ActionTag) -> usize {
@@ -476,7 +477,7 @@ impl Game {
         self.active_player()?;
         let allowed = self.allowed_actions();
         if !allowed.contains(&action.tag()) {
-            return Err("Action is not allowed");
+            return Err("Action is not allowed".into());
         }
 
         let ActionOutput { followup, log } = self.perform_action(&action)?;
@@ -702,13 +703,13 @@ impl Game {
                 }
 
                 if cost > player.gold {
-                    return Err("not enough gold");
+                    return Err("not enough gold".into());
                 }
 
                 if !player.city_has(DistrictName::Quarry)
                     && player.city.iter().any(|d| d.name == district.name)
                 {
-                    return Err("cannot build duplicate");
+                    return Err("cannot build duplicate".into());
                 }
 
                 Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
@@ -769,7 +770,7 @@ impl Game {
 
             Action::Steal { role } => {
                 if role.rank() < 3 {
-                    return Err("target rank is too low");
+                    return Err("target rank is too low".into());
                 }
 
                 let target = self
@@ -783,7 +784,7 @@ impl Game {
                     .iter()
                     .any(|marker| *marker == Marker::Assassinated)
                 {
-                    return Err("cannot rob from the dead");
+                    return Err("cannot rob from the dead".into());
                 }
                 target.markers.push(Marker::Robbed);
 
@@ -804,7 +805,7 @@ impl Game {
                 } else {
                     // put the hand back;
                     self.active_player_mut()?.hand = hand;
-                    return Err("invalid target");
+                    return Err("invalid target".into());
                 };
 
                 let hand_count = hand.len();
@@ -834,7 +835,7 @@ impl Game {
                 for card in discard.iter() {
                     if Game::remove_first(&mut active.hand, *card).is_none() {
                         active.hand = backup;
-                        return Err("Can't discard a card that's not in your hand");
+                        return Err("Can't discard a card that's not in your hand".into());
                     }
                 }
 
@@ -857,7 +858,7 @@ impl Game {
 
             Action::Destroy(target) => {
                 if target.district == DistrictName::Keep {
-                    return Err("cannot destroy the Keep");
+                    return Err("cannot destroy the Keep".into());
                 }
 
                 let available_gold = self.active_player()?.gold;
@@ -869,11 +870,7 @@ impl Game {
                     .ok_or("invalid player target")?;
 
                 if targeted_player.roles.iter().any(|r| *r == RoleName::Bishop) {
-                    return Err("cannot target the Bishop's city");
-                }
-
-                if target.district == DistrictName::Keep {
-                    return Err("cannot target the Keep");
+                    return Err("cannot target the Bishop's city".into());
                 }
 
                 let city_index = targeted_player
@@ -891,7 +888,7 @@ impl Game {
 
                 let destroy_cost = target.effective_cost(targeted_player) - 1;
                 if available_gold < destroy_cost {
-                    return Err("not enough gold to destroy");
+                    return Err("not enough gold to destroy".into());
                 }
 
                 targeted_player.city.remove(city_index);
@@ -913,7 +910,7 @@ impl Game {
                 let player = self.active_player_mut()?;
 
                 if player.gold < 1 {
-                    return Err("not enough gold");
+                    return Err("not enough gold".into());
                 }
 
                 let city_district = player
@@ -975,8 +972,34 @@ impl Game {
                 todo!()
             }
 
-            Action::ResourcesFromReligion { .. } => {
-                todo!()
+            Action::ResourcesFromReligion { gold, cards } => {
+                let player = self.active_player()?;
+                let count = player
+                    .city
+                    .iter()
+                    .filter(|c| {
+                        c.name.data().suit == CardSuit::Religious
+                            || c.name == DistrictName::SchoolOfMagic
+                    })
+                    .count();
+                if gold + cards < count {
+                    return Err(format!("Too few resources, you should select {}", count).into());
+                }
+
+                if gold + cards > count {
+                    return Err(format!("Too many resources, you should select {}", count).into());
+                }
+
+                let amount = self.gain_cards(count);
+                let player = self.active_player()?;
+
+                ActionOutput {
+                    followup: None,
+                    log: format!(
+                        "The Abbot ({}) gained {} gold and {} cards from their Religious districts",
+                        player.name, gold, cards
+                    ),
+                }
             }
             Action::EmperorGiveCrown { .. } => {
                 todo!()
