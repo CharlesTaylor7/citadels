@@ -945,7 +945,7 @@ impl Game {
         let amount = player
             .city
             .iter()
-            .filter(|c| c.name.data().suit == suit)
+            .filter(|c| c.name.data().suit == suit || c.name == DistrictName::SchoolOfMagic)
             .count();
 
         player.gold += amount;
@@ -964,7 +964,7 @@ impl Game {
         let count = player
             .city
             .iter()
-            .filter(|c| c.name.data().suit == suit)
+            .filter(|c| c.name.data().suit == suit || c.name == DistrictName::SchoolOfMagic)
             .count();
 
         // they may have drawn less cards then the number of districts
