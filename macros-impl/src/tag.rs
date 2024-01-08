@@ -57,5 +57,4 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
             }
         }
     }
-
 }

@@ -52,17 +52,6 @@ pub enum RoleName {
 }
 
 impl RoleName {
-    pub const fn todo(self) -> RoleData {
-        RoleData {
-            name: self,
-            rank: (self as u8) / 3 + 1,
-            set: crate::types::CardSet::Custom,
-            suit: None,
-            description: "TODO",
-            actions: &[],
-        }
-    }
-
     pub fn rank(self) -> Rank {
         self.data().rank
     }
@@ -101,6 +90,28 @@ impl RoleName {
             _ => 1,
         }
     }
+
+    pub fn enabled(self) -> bool {
+        match self {
+            Self::Assassin => true,
+            Self::Thief => true,
+            Self::Magician => true,
+            Self::King => true,
+            Self::Bishop => true,
+            Self::Merchant => true,
+            Self::Architect => true,
+            Self::Warlord => true,
+            Self::Artist => true,
+            // Bonus
+            // 4
+            Self::Patrician => true,
+            // 7
+            Self::Navigator => true,
+            Self::Scholar => true,
+            // everything else
+            _ => false,
+        }
+    }
 }
 
 /// Immutable data
@@ -111,6 +122,7 @@ pub struct RoleData {
     pub set: CardSet,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
+    pub reminder: &'static str,
     pub actions: &'static [(usize, ActionTag)],
 }
 
@@ -123,7 +135,7 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> impl Iterator<Item
     let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
 
     for r in crate::roles::ROLES {
-        if r.set != CardSet::Custom && num_players >= r.name.min_player_count() {
+        if r.name.enabled() && num_players >= r.name.min_player_count() {
             grouped_by_rank[(r.rank - 1) as usize].push(r.name)
         }
     }

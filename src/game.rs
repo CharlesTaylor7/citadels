@@ -3,7 +3,7 @@ use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
 use crate::roles::{Rank, RoleName};
-use crate::types::{CardSet, CardSuit, Marker, PlayerId, PlayerName};
+use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
@@ -75,6 +75,11 @@ impl<T> std::fmt::Debug for Deck<T> {
     }
 }
 impl<T> Deck<T> {
+    pub fn shuffle<R: RngCore>(&mut self, rng: &mut R) {
+        self.deck.append(&mut self.discard);
+        self.deck.shuffle(rng);
+    }
+
     pub fn size(&self) -> usize {
         self.deck.len() + self.discard.len()
     }
@@ -477,7 +482,6 @@ impl Game {
         let ActionOutput { followup, log } = self.perform_action(&action)?;
         self.followup = followup;
 
-        let player = self.active_player()?;
         let tag = action.tag();
         info!("{:#?}", log);
         if self.followup.is_some() {
@@ -672,7 +676,7 @@ impl Game {
             Action::GoldFromMilitary => self.gain_gold_for_suit(CardSuit::Military)?,
 
             Action::CardsFromNobility => self.gain_cards_for_suit(CardSuit::Noble)?,
-            Action::CardsFromReligious => self.gain_cards_for_suit(CardSuit::Religious)?,
+            Action::CardsFromReligion => self.gain_cards_for_suit(CardSuit::Religious)?,
 
             Action::MerchantGainOneGold => {
                 let player = self.active_player_mut()?;
@@ -766,6 +770,7 @@ impl Game {
                     followup: None,
                 }
             }
+
             Action::Steal { role } => {
                 if role.rank() < 3 {
                     return Err("target rank is too low");
@@ -974,10 +979,10 @@ impl Game {
                 todo!()
             }
 
-            Action::ResourcesFromReligious { .. } => {
+            Action::ResourcesFromReligion { .. } => {
                 todo!()
             }
-            Action::EmperorAssignCrown { .. } => {
+            Action::EmperorGiveCrown { .. } => {
                 todo!()
             }
             Action::QueenGainGold { .. } => {
@@ -1009,11 +1014,41 @@ impl Game {
                 todo!()
             }
 
-            Action::ScholarReveal { .. } => {
-                todo!()
+            Action::ScholarReveal => {
+                let drawn = self.deck.draw_many(7).collect::<Vec<_>>();
+
+                ActionOutput {
+                    log: format!(
+                        "The Scholar ({}) is choosing from the top {} cards of the deck.",
+                        self.active_player()?.name,
+                        drawn.len(),
+                    ),
+                    followup: Some(FollowupAction {
+                        action: ActionTag::ScholarPick,
+                        revealed: drawn,
+                    }),
+                }
             }
-            Action::ScholarPick { .. } => {
-                todo!()
+
+            Action::ScholarPick { district } => {
+                let FollowupAction { mut revealed, .. } =
+                    self.followup.take().ok_or("action is not allowed")?;
+
+                Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
+                self.active_player_mut()?.hand.push(*district);
+
+                for remaining in revealed {
+                    self.deck.discard_to_bottom(remaining);
+                }
+                self.deck.shuffle(&mut self.rng);
+
+                ActionOutput {
+                    log: format!(
+                        "The Scholar ({}) picked a card, discarded the rest and shuffled the deck.",
+                        self.active_player()?.name,
+                    ),
+                    followup: None,
+                }
             }
         })
     }

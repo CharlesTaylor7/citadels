@@ -66,17 +66,17 @@ pub enum Action {
     // The action is required.
     // If bewitched, the witch assigns the crown.
     // If killed, the action occurs at the end of the round, and no resources are taken.
-    EmperorAssignCrown { player: PlayerName },
+    EmperorGiveCrown { player: PlayerName },
 
     // Abbot
-    ResourcesFromReligious { gold: usize, cards: usize },
+    ResourcesFromReligion { gold: usize, cards: usize },
 
     // Abbot
     // player arg to break a tie amongst the richest.
     TakeFromRich { player: Option<PlayerName> },
 
     // Cardinal
-    CardsFromReligious,
+    CardsFromReligion,
 
     // Witch
     Bewitch { role: RoleName },
@@ -254,7 +254,7 @@ impl ActionTag {
         match self {
             ActionTag::Bewitch => true,
             ActionTag::TakeCrown => true,
-            ActionTag::EmperorAssignCrown => true,
+            ActionTag::EmperorGiveCrown => true,
             ActionTag::GatherResources => true,
 
             // followup actions are often required
