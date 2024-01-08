@@ -605,15 +605,22 @@ impl Game {
             Action::Build { district } => {
                 let player = self.active_player_mut()?;
                 let data = district.data();
-                if data.cost > player.gold {
+
+                let mut cost = data.cost;
+                if data.suit == CardSuit::Unique
+                    && player.city.iter().any(|d| d.name == DistrictName::Factory)
+                {
+                    cost -= 1;
+                }
+
+                if cost > player.gold {
                     return Err("not enough gold");
                 }
                 if player.city.iter().any(|d| d.name == *district) {
                     return Err("cannot build duplicate");
                 }
-
                 Game::remove_first(&mut player.hand, *district).ok_or("card not in hand")?;
-                player.gold -= data.cost;
+                player.gold -= cost;
                 player.city.push(CityDistrict::from(*district));
 
                 ActionOutput {

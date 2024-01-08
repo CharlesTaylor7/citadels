@@ -38,18 +38,20 @@
     - [x] Assassin
     - [x] Thief
     - [x] Magician
-    - [ ] King
-    - [ ] Patrician
+    - [x] King
     - [x] Bishop
     - [x] Merchant
     - [x] Architect
     - [x] Warlord
     - [x] Artist
-    - [ ] Navigator
+    - Bonus
+    - [x] Patrician
+    - [x] Navigator
 - [ ] Scoring
 - [ ] Unique Districts (only 14 of the easiest)
     - [x] Great Wall
     - [x] Keep
+    - [x] Factory
     - [ ] Secret Vault
     - [ ] Park
 - [ ] Manually test interactions between roles and unique districts.
