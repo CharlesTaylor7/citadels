@@ -52,6 +52,7 @@
     - [x] Great Wall
     - [x] Keep
     - [x] Factory
+    - [x] Quarry
     - [ ] Secret Vault
     - [ ] Park
 - [ ] Manually test interactions between roles and unique districts.
