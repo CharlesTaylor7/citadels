@@ -23,6 +23,12 @@ pub struct Player {
     pub roles: Vec<RoleName>,
 }
 
+impl Player {
+    pub fn city_has(&self, name: DistrictName) -> bool {
+        self.city.iter().any(|c| c.name == name)
+    }
+}
+
 #[derive(Debug)]
 pub struct CityDistrict {
     pub name: DistrictName,
@@ -617,7 +623,7 @@ impl Game {
                     return Err("not enough gold");
                 }
 
-                if district.name != DistrictName::Quarry
+                if !player.city_has(DistrictName::Quarry)
                     && player.city.iter().any(|d| d.name == district.name)
                 {
                     return Err("cannot build duplicate");
