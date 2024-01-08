@@ -14,21 +14,13 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
 
     let tag_enum_name = format_ident!("{}Tag", enum_name);
 
-    // How to pattern match on the fields of each variant. 
-    // Used below in implementation of `tag`.
-    let mut pattern_suffix = Vec::with_capacity(variants.len());
     let mut tags = Vec::with_capacity(variants.len());
   //  let mut arg_structs: Vec<TokenStream> = Vec::with_capacity(variants.len());
 
     for mut variant in variants.into_iter() {
-
-        pattern_suffix.push(match variant.fields {
-            Fields::Unit => quote!(),
-            Fields::Unnamed(_) => quote!((_)),
-            Fields::Named(_) => quote!({ .. }),
-        });
-
-/*
+        variant.fields = Fields::Unit;
+        tags.push(variant);
+        /*
         if let Fields::Named(fields) = variant.fields {
             println!("{:#?}", variant.ident);
             let name = format_ident!("{}Args", variant.ident);
@@ -41,9 +33,6 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
             })
  }
         */
-
-        variant.fields = Fields::Unit;
-        tags.push(variant);
     }
 
     quote! {
@@ -62,7 +51,7 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
             fn tag(&self) -> Self::Tag {
                 match self {
                     #(
-                        #enum_name::#tags #pattern_suffix => #tag_enum_name::#tags,
+                        #enum_name::#tags { .. } => #tag_enum_name::#tags,
                     )*
                 }
             }
