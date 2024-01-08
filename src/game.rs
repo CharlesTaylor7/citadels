@@ -215,7 +215,7 @@ impl Game {
             p.roles.sort_by_key(|c| c.rank());
         }
         game.active_turn = Turn::Call(1);
-        game.start_turn().ok();
+        game.start_turn().ok()?;
 
         Some(game)
     }
@@ -442,7 +442,7 @@ impl Game {
         Ok(())
     }
 
-    fn start_turn(&mut self) -> Result<Vec<String>> {
+    fn start_turn(&mut self) -> Result<()> {
         let mut logs = Vec::new();
         while let Ok(c) = self.active_role() {
             let role = c.role.clone();
@@ -482,7 +482,15 @@ impl Game {
 
             self.end_turn()?;
         }
-        Ok(logs)
+
+        for item in logs {
+            self.logs.push(Log {
+                source: Source::Triggered,
+                display: item,
+            });
+        }
+
+        Ok(())
     }
 
     fn perform_action(&mut self, action: &Action) -> ActionResult {
