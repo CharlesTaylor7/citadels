@@ -542,22 +542,35 @@ impl Game {
                     draw_amount += 1;
                 }
 
-                let drawn: Vec<_> = self.deck.draw_many(draw_amount).collect();
+                let mut drawn = self.deck.draw_many(draw_amount).collect();
 
-                ActionOutput {
-                    log: format!(
+                if self.active_player()?.city_has(DistrictName::Library) {
+                    self.active_player_mut()?.hand.append(&mut drawn);
+
+                    ActionOutput {
+                        log: format!(
+                            "{} is gathering cards. With their library they kept all {} cards.",
+                            self.active_player()?.name,
+                            draw_amount
+                        ),
+                        followup: None,
+                    }
+                } else {
+                    ActionOutput {
+                        log: format!(
                         "{} is gathering cards. They revealed {} cards from the top of the deck.",
                         self.active_player()?.name,
                         draw_amount
                     ),
-                    followup: if drawn.len() > 0 {
-                        Some(FollowupAction {
-                            action: ActionTag::GatherCardsPick,
-                            revealed: drawn,
-                        })
-                    } else {
-                        None
-                    },
+                        followup: if drawn.len() > 0 {
+                            Some(FollowupAction {
+                                action: ActionTag::GatherCardsPick,
+                                revealed: drawn,
+                            })
+                        } else {
+                            None
+                        },
+                    }
                 }
             }
 
