@@ -224,6 +224,28 @@ impl Game {
             counts[card.name.data().suit as usize] += 1;
         }
 
+        // uniques
+        for card in player.city.iter() {
+            score += match card.name {
+                DistrictName::DragonGate => 2,
+                DistrictName::MapRoom => player.hand.len(),
+                DistrictName::ImperialTreasury => player.gold,
+                DistrictName::Statue if player.name == self.crowned => 5,
+                DistrictName::Capitol if counts.iter().any(|c| *c >= 3) => 3,
+                DistrictName::IvoryTower if 1 == counts[CardSuit::Unique as usize] => 5,
+                DistrictName::WishingWell => counts[CardSuit::Unique as usize],
+                DistrictName::Basilica => player
+                    .city
+                    .iter()
+                    .filter(|c| c.name.data().cost % 2 == 1)
+                    .count(),
+
+                DistrictName::HauntedQuarter => todo!(),
+
+                _ => 0,
+            }
+        }
+
         // one district of each type: 3 points
         if counts.iter().all(|s| *s > 0) {
             score += 3;
