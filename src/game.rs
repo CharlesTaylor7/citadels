@@ -1,4 +1,4 @@
-use crate::actions::{Action, ActionTag, CityDistrictTarget, MagicianAction, Resource, Select};
+use crate::actions::{Action, ActionTag, MagicianAction, Resource, Select};
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
@@ -442,20 +442,47 @@ impl Game {
         Ok(())
     }
 
-    fn start_turn(&mut self) -> Result<()> {
+    fn start_turn(&mut self) -> Result<Vec<String>> {
+        let mut logs = Vec::new();
         while let Ok(c) = self.active_role() {
+            let role = c.role.clone();
+            logs.push(format!("Calling {}", c.role.display_name()));
+
+            if c.markers.iter().any(|m| *m == Marker::Assassinated) {
+                logs.push(format!("They were killed; their turn is skipped."));
+                continue;
+            }
+
             if let Ok(player) = self.active_player() {
-                info!(
-                    "Calling {}; {} started their turn.",
-                    c.role.display_name(),
-                    player.name
-                );
+                logs.push(format!("{} started their turn.", player.name));
+
+                if c.markers.iter().any(|m| *m == Marker::Robbed) {
+                    let gold = player.gold;
+                    self.active_player_mut().unwrap().gold = 0;
+                    let thief = self
+                        .players
+                        .iter_mut()
+                        .find(|p| p.roles.iter().any(|r| *r == role))
+                        .unwrap();
+                    thief.gold += gold;
+                    let thief_name = thief.name.clone();
+
+                    logs.push(format!(
+                        "{} ({}) was robbed; they forfeit all their gold to {}.",
+                        role.display_name(),
+                        self.active_player().unwrap().name,
+                        thief_name
+                    ));
+                }
+
                 break;
             }
-            info!("Calling {}; no one responded.", c.role.display_name());
+
+            logs.push(format!("no one responded"));
+
             self.end_turn()?;
         }
-        Ok(())
+        Ok(logs)
     }
 
     fn perform_action(&mut self, action: &Action) -> ActionResult {
