@@ -124,6 +124,9 @@ impl DistrictName {
             Self::Factory => true,
             Self::Quarry => true,
             Self::SchoolOfMagic => true,
+            Self::Library => true,
+            Self::Observatory => true,
+
             Self::SecretVault => false,
             Self::Park => false,
             Self::HauntedQuarter => false,

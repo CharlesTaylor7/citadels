@@ -537,14 +537,18 @@ impl Game {
             Action::GatherResources {
                 resource: Resource::Cards,
             } => {
-                let draw_amount = 2; // roles / disricts may affect this
+                let mut draw_amount = 2; // roles / disricts may affect this
+                if self.active_player()?.city_has(DistrictName::Observatory) {
+                    draw_amount += 1;
+                }
+
                 let drawn: Vec<_> = self.deck.draw_many(draw_amount).collect();
-                let player = self.active_player()?;
 
                 ActionOutput {
                     log: format!(
                         "{} is gathering cards. They revealed {} cards from the top of the deck.",
-                        player.name, 2
+                        self.active_player()?.name,
+                        draw_amount
                     ),
                     followup: if drawn.len() > 0 {
                         Some(FollowupAction {
