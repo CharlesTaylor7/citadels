@@ -128,10 +128,10 @@ impl DistrictName {
             Self::Observatory => true,
             Self::Park => true,
             Self::PoorHouse => true,
-
+            Self::GoldMine => true,
+            // 9
             Self::SecretVault => false,
             Self::HauntedQuarter => false,
-            Self::Smithy => false,
             _ => false,
         }
     }

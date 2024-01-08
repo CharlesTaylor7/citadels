@@ -527,9 +527,23 @@ impl Game {
                 resource: Resource::Gold,
             } => {
                 let player = self.active_player_mut()?;
-                player.gold += 2;
+                let mut amount = 2;
+                let log: String;
+
+                if player.city_has(DistrictName::GoldMine) {
+                    amount += 1;
+                    log = format!(
+                        "{} gathered {} gold, (1 extra from their Gold Mine)",
+                        player.name, amount
+                    );
+                } else {
+                    log = format!("{} gathered {} gold.", player.name, amount);
+                }
+
+                player.gold += amount;
+
                 ActionOutput {
-                    log: format!("{} gained 2 gold.", player.name),
+                    log,
                     followup: None,
                 }
             }
