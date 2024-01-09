@@ -267,9 +267,9 @@ impl Game {
         cs.shuffle(&mut game.rng);
 
         for p in game.players.iter_mut() {
-            p.roles.push(cs.pop().unwrap());
-            p.roles.push(cs.pop().unwrap());
-            p.roles.sort_by_key(|c| c.rank());
+            p.roles.push(RoleName::Assassin);
+            p.roles.push(RoleName::Thief);
+            //p.roles.sort_by_key(|c| c.rank());
 
             // deal out city districts randomly
             for card in game.deck.draw_many(3) {
@@ -497,6 +497,7 @@ impl Game {
         if self.followup.is_some() {
             info!("followup: {:#?}", self.followup);
         }
+        self.turn_actions.push(action);
         self.logs.push(log);
 
         if tag == ActionTag::EndTurn

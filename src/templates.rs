@@ -51,10 +51,20 @@ impl<'a> CityRootTemplate<'a> {
     }
 }
 
+// for the thief, assassin
+#[derive(Template)]
+#[template(path = "game/menus/select-role.html")]
+pub struct SelectRoleMenu<'a> {
+    pub roles: Vec<RoleTemplate>,
+    pub action: ActionTag,
+    pub header: Cow<'a, str>,
+    pub confirm: Cow<'a, str>,
+}
+
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
-    main: MainTemplate<'a>,
+    menu: MainTemplate<'a>,
     characters: Vec<RoleTemplate>,
     players: &'a [PlayerInfoTemplate<'a>],
     active_name: &'a str,
@@ -96,7 +106,7 @@ impl<'a> GameTemplate<'a> {
                 deck: game.deck.size(),
                 timer: None,
             },
-            main: MainTemplate {
+            menu: MainTemplate {
                 header: Cow::Borrowed({
                     if game.active_turn.draft().is_some() {
                         "Draft"
@@ -106,12 +116,7 @@ impl<'a> GameTemplate<'a> {
                         "Actions"
                     }
                 }),
-                view: MainView::from(game),
-                actions: game
-                    .allowed_actions()
-                    .iter()
-                    .map(|action| ActionTemplate::from(*action, game))
-                    .collect(),
+                view: MenuView::from(game),
             },
             players: &players,
             active_name: &active_player.name.0,
@@ -133,8 +138,7 @@ fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a 
 
 pub struct MainTemplate<'a> {
     header: Cow<'a, str>,
-    view: MainView<'a>,
-    actions: Vec<ActionTemplate<'a>>,
+    view: MenuView<'a>,
 }
 
 struct MiscTemplate {
@@ -332,7 +336,7 @@ impl<'a> ActionTemplate<'a> {
     }
 }
 
-pub enum MainView<'a> {
+pub enum MenuView<'a> {
     Draft {
         roles: Vec<RoleTemplate>,
         discard: Vec<RoleTemplate>,
@@ -347,7 +351,7 @@ pub enum MainView<'a> {
     },
 }
 
-impl<'a> MainView<'a> {
+impl<'a> MenuView<'a> {
     pub fn from(game: &'a Game) -> Self {
         let actions = game
             .allowed_actions()
@@ -355,8 +359,8 @@ impl<'a> MainView<'a> {
             .map(|act| ActionTemplate::from(*act, game))
             .collect();
         match game.active_turn {
-            Turn::GameOver => MainView::Call { actions },
-            Turn::Draft(_) => MainView::Draft {
+            Turn::GameOver => MenuView::Call { actions },
+            Turn::Draft(_) => MenuView::Draft {
                 actions,
                 roles: game
                     .draft
@@ -376,7 +380,7 @@ impl<'a> MainView<'a> {
 
             Turn::Call(_) => {
                 match &game.followup {
-                    Some(FollowupAction { action, revealed }) => MainView::Followup {
+                    Some(FollowupAction { action, revealed }) => MenuView::Followup {
                         action: *action,
                         revealed: revealed
                             .iter()
@@ -385,7 +389,7 @@ impl<'a> MainView<'a> {
                             .collect(),
                     },
 
-                    None => MainView::Call { actions },
+                    None => MenuView::Call { actions },
                 }
                 //todo!();
             }

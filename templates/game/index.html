@@ -37,14 +37,15 @@
     class="grow flex flex-col"
   >
     <section
-      id="main"
+      id="menu"
       class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
     >
       <h2 class="m-2 underline text-lg font-semibold">
-        {{ main.header }}
+        {{ menu.header }}
       </h2>
-      {% match main.view %} 
-      {% when MainView::Draft with { actions, roles, discard } %}
+      {% match menu.view %} 
+      {% when MenuView::Draft with { actions, roles, discard } %}
+
         <div class="flex flex-row flex-wrap gap-2">
           {% set input_type = "radio" %} 
           {% set disabled = false %} 
@@ -57,7 +58,7 @@
           {% include "action.html" %}
           {% endfor %}
         </div>
-      {% when MainView::Followup with { action, revealed} %}
+      {% when MenuView::Followup with { action, revealed} %}
         <div class="flex flex-row flex-wrap gap-2">
           {% set input_type = "radio" %}
           {% set disabled = false %}
@@ -77,12 +78,12 @@
             Confirm
           </button>
         </div>
-      {% when MainView::Call { actions } %}
-      <div class="flex flex-row flex-wrap gap-2">
-        {% for action in actions %}
-        {% include "action.html" %}
-        {% endfor %}
-      </div>
+      {% when MenuView::Call { actions } %}
+        <div class="flex flex-row flex-wrap gap-2">
+          {% for action in actions %}
+          {% include "action.html" %}
+          {% endfor %}
+        </div>
       {% endmatch %}
     </section>
     {% include "city.html" %}

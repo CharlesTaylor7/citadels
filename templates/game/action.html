@@ -1,6 +1,8 @@
 <button 
   class="btn {{ action.class }}"
   hx-post="/game/action"
+  hx-swap="outerHTML"
+  hx-target="#menu"
   name="action"
   value="{{ action.value }}"
 >

@@ -9,8 +9,10 @@
     type="{{ input_type }}"
     class="peer hidden"
     name="role"
-    disabled="{{ disabled }}"
     value="{{ role.value }}"
+    {% if disabled %}
+    disabled
+    {% endif %}
   />
   <svg 
     xmlns="http://www.w3.org/2000/svg"

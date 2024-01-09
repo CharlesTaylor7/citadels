@@ -1,4 +1,4 @@
-use crate::actions::ActionSubmission;
+use crate::actions::{ActionSubmission, ActionTag};
 use crate::game::Game;
 use crate::server::state::AppState;
 use crate::templates::GameTemplate;
@@ -14,7 +14,6 @@ use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use http::StatusCode;
 use log::*;
 use serde::Deserialize;
-use std::borrow::Borrow;
 use std::borrow::Cow;
 use std::mem;
 use tower_http::services::ServeDir;
@@ -30,11 +29,10 @@ pub fn get_router() -> Router {
         .route("/ws", get(get_ws))
         .route("/game", get(game))
         .route("/game/actions", get(get_game_actions))
-        .route("/game/actions/:action", get(get_game_action_menu))
         .route("/game/city/:player_name", get(get_game_city))
         .route("/game/logs", get(get_game_logs))
         .route("/game", post(start))
-        .route("/game/action", post(perform_game_action))
+        .route("/game/action", post(submit_game_action))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
 }
@@ -174,13 +172,6 @@ pub async fn get_game_logs(
     todo!()
 }
 
-pub async fn get_game_action_menu(
-    _app: State<AppState>,
-    _cookies: PrivateCookieJar,
-) -> Result<Html<String>, ErrorResponse> {
-    todo!()
-}
-
 pub async fn get_ws(
     state: State<AppState>,
     cookies: PrivateCookieJar,
@@ -196,7 +187,7 @@ pub async fn get_ws(
     }
 }
 
-async fn perform_game_action(
+async fn submit_game_action(
     app: State<AppState>,
     cookies: PrivateCookieJar,
     action: axum::Json<ActionSubmission>,
@@ -217,6 +208,7 @@ async fn perform_game_action(
             //
             match game.perform(action) {
                 Ok(()) => {
+                    // TODO: broadcast other
                     let g = &game;
                     app.connections
                         .lock()
@@ -229,9 +221,26 @@ async fn perform_game_action(
             }
         }
 
-        ActionSubmission::Incomplete { action: _ } => {
+        ActionSubmission::Incomplete { action } => {
             //
-            Ok(StatusCode::OK.into_response())
+            match action {
+                ActionTag::Assassinate => {
+                    let rendered = SelectRoleMenu {
+                        roles: game
+                            .characters
+                            .iter()
+                            .filter(|c| c.role.rank() > 1)
+                            .map(|c| RoleTemplate::from(c.role))
+                            .collect(),
+                        header: "Assassin".into(),
+                        confirm: "Assassinate".into(),
+                        action: ActionTag::Assassinate,
+                    }
+                    .to_html()?;
+                    Ok(rendered.into_response())
+                }
+                _ => Ok("not implemented".into_response()),
+            }
         }
     }
 }
