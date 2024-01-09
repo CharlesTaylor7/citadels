@@ -10,10 +10,48 @@ use log::*;
 use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]
+#[template(path = "game/city.html")]
+//#[repr(transparent)]
+pub struct CityRootTemplate<'a> {
+    city: CityTemplate<'a>,
+}
+
+impl<'a> CityRootTemplate<'a> {
+    pub fn from(
+        player_name: Cow<'a, PlayerName>,
+        game: &'a Game,
+        active_id: Option<&'a str>,
+    ) -> Result<Self, String> {
+        let myself = get_myself(game, active_id);
+        let player = game
+            .players
+            .iter()
+            .find(|p| p.name == *player_name)
+            .ok_or(format!("no player named: {}", player_name))?;
+
+        Ok(Self {
+            city: CityTemplate {
+                header: if myself.is_some_and(|p| p.name == *player_name) {
+                    "My City".into()
+                } else {
+                    format!("{}'s City", player_name).into()
+                },
+                districts: player
+                    .city
+                    .iter()
+                    .map(DistrictTemplate::from_city)
+                    .collect::<Vec<_>>(),
+            },
+        })
+    }
+}
+
+#[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
-    dev_mode: bool,
     header: Cow<'a, str>,
+    dev_mode: bool,
+    city: CityTemplate<'a>,
     actions: Vec<ActionTemplate<'a>>,
     view: ActionsView,
     characters: Vec<RoleTemplate>,
@@ -26,12 +64,17 @@ impl<'a> GameTemplate<'a> {
     pub fn render_with<'b, 'c>(
         game: &'a Game,
         player_id: Option<&'b str>,
-        impersonate: Option<&'c PlayerName>,
     ) -> axum::response::Result<Html<String>> {
         let active_player = game.active_player()?;
-        let player = PlayerTemplate::from(myself(game, player_id, impersonate));
-        let players: Vec<_> = game.players.iter().map(PlayerInfoTemplate::from).collect();
-        let rendered = GameTemplate {
+        let myself = get_myself(game, player_id);
+        let player_template = PlayerTemplate::from(myself);
+        let players: Vec<_> = game
+            .players
+            .iter()
+            .map(|p| PlayerInfoTemplate::from(p, game))
+            .collect();
+
+        GameTemplate {
             header: Cow::Borrowed({
                 if game.active_turn.draft().is_some() {
                     "Draft"
@@ -47,6 +90,12 @@ impl<'a> GameTemplate<'a> {
                 .map(|c| c.role)
                 .map(RoleTemplate::from)
                 .collect(),
+            city: CityRootTemplate::from(
+                myself.map(|p| Cow::Borrowed(&p.name)).unwrap_or_default(),
+                game,
+                player_id,
+            )?
+            .city,
 
             view: ActionsView::from(game),
             actions: game
@@ -57,38 +106,28 @@ impl<'a> GameTemplate<'a> {
 
             players: &players,
             active_name: &active_player.name.0,
-            my: player.borrow(),
+            my: player_template.borrow(),
             dev_mode: cfg!(feature = "dev"),
         }
-        .render()
-        .map_err(|e| format!("askama error: {}", e))?;
-
-        Ok(Html(rendered))
+        .to_html()
     }
 }
 
 #[cfg(feature = "dev")]
 #[allow(clippy::needless_lifetimes)]
-fn myself<'a, 'b, 'c>(
-    game: &'a Game,
-    _player_id: Option<&'b str>,
-    impersonate: Option<&'c PlayerName>,
-) -> Option<&'a game::Player> {
-    if let Some(name) = impersonate {
-        game.players.iter().find(|p| p.name == *name)
-    } else {
-        game.active_player().ok()
-    }
+fn get_myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a game::Player> {
+    game.active_player().ok()
 }
 
 #[cfg(not(feature = "dev"))]
 #[allow(clippy::needless_lifetimes)]
-fn myself<'a, 'b, 'c>(
-    game: &'a Game,
-    player_id: Option<&'b str>,
-    _impersonate: Option<&'c PlayerName>,
-) -> Option<&'a game::Player> {
+fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
     player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
+}
+
+pub struct CityTemplate<'a> {
+    header: Cow<'a, str>,
+    districts: Vec<DistrictTemplate>,
 }
 
 #[derive(Template)]
@@ -146,24 +185,25 @@ pub struct PlayerInfoTemplate<'a> {
     pub name: &'a str,
     pub gold: usize,
     pub hand_size: usize,
-    pub city: Vec<()>,
+    pub city_size: usize,
+    pub crowned: bool,
+    pub complete_city: bool,
+    pub first_complete_city: bool,
 }
 
 impl<'a> PlayerInfoTemplate<'a> {
-    pub fn from(player: &'a game::Player) -> Self {
-        let game::Player {
-            name,
-            gold,
-            hand,
-            city,
-            ..
-        } = player;
+    pub fn from(player: &'a game::Player, game: &'a Game) -> Self {
         Self {
-            name: name.0.borrow(),
-            gold: *gold,
-            hand_size: hand.len(),
-            // TODO:
-            city: city.iter().map(|_| ()).collect(),
+            name: player.name.0.borrow(),
+            gold: player.gold,
+            hand_size: player.hand.len(),
+            city_size: player.city.len(),
+            crowned: game.crowned == player.name,
+            first_complete_city: game
+                .first_to_complete
+                .as_ref()
+                .is_some_and(|c| c == player.name),
+            complete_city: player.city.len() >= game.complete_city_size(),
         }
     }
 }
@@ -175,7 +215,6 @@ pub struct PlayerTemplate<'a> {
     pub gold: usize,
     pub hand: Vec<DistrictTemplate>,
     pub roles: Vec<RoleTemplate>,
-    pub city: Vec<DistrictTemplate>,
 }
 
 impl<'a> PlayerTemplate<'a> {
@@ -191,7 +230,6 @@ impl<'a> PlayerTemplate<'a> {
                     .map(DistrictTemplate::from)
                     .collect::<Vec<_>>(),
                 roles: p.roles.iter().cloned().map(RoleTemplate::from).collect(),
-                city: p.city.iter().map(DistrictTemplate::from_city).collect(),
             }
         } else {
             Self {
@@ -199,7 +237,6 @@ impl<'a> PlayerTemplate<'a> {
                 gold: 0,
                 hand: Vec::with_capacity(0),
                 roles: Vec::with_capacity(0),
-                city: Vec::with_capacity(0),
             }
         }
     }
@@ -232,18 +269,9 @@ impl DistrictTemplate {
     }
 
     pub fn from_city(district: &CityDistrict) -> Self {
-        let data = district.name.data();
-        let name = district.name;
-        Self {
-            name: data.display_name,
-            cost: data.cost,
-            value: format!("{:#?}", district),
-            suit: data.suit,
-            description: data.description,
-            beautified: district.beautified,
-            image_offset_x: -125.8 * (name as usize % 10) as f64,
-            image_offset_y: -200.0 * (name as usize / 10) as f64,
-        }
+        let mut template = Self::from(district.name);
+        template.beautified = district.beautified;
+        template
     }
 }
 
@@ -360,6 +388,19 @@ impl RoleTemplate {
             description: data.description,
             image_offset_x: -155.0 * (role as usize % 10) as f64,
             image_offset_y: -265.0 * (role as usize / 10) as f64,
+        }
+    }
+}
+
+pub trait MyTemplate {
+    fn to_html(&self) -> axum::response::Result<Html<String>>;
+}
+
+impl<T: Template> MyTemplate for T {
+    fn to_html(&self) -> axum::response::Result<Html<String>> {
+        match self.render() {
+            Ok(html) => Ok(Html(html)),
+            Err(err) => Err(format!("askama: {}", err).into()),
         }
     }
 }

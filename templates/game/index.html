@@ -56,8 +56,9 @@
         <div class="flex flex-row flex-wrap gap-2">
           {% set input_type = "checkbox" %}
           {% set disabled = false %}
-          {% for district in districts %}
-          {% include "district-card.html" %}
+          {% set context = "revealed" %}
+          {% for (index, district) in city.districts.iter().enumerate() %} 
+            {% include "district-card.html" %} 
           {% endfor %}
         </div>
         {% when ActionsView::SelectAction %}
@@ -70,22 +71,7 @@
           {% endfor %}
         </div>
       </section>
-      <section
-        id="city"
-        class="p-2 bg-neutral-content grow flex flex-col items-center border border-base-200"
-      >
-        <h2 class="m-2 underline text-lg font-semibold">
-          {{ my.name }}'s
-          City
-        </h2>
-        <div class="flex flex-row flex-wrap gap-2">
-            {% let input_type = "checkbox" %}
-            {% let disabled = true %}
-            {% for district in my.city %} 
-              {% include "district-card.html" %} 
-            {% endfor %}
-        </div>
-      </section>
+      {% include "city.html" %}
       <section
         id="hand"
         class="p-2 bg-neutral-content grow flex flex-col overflow-scroll items-start border border-base-200"
@@ -96,10 +82,11 @@
         <div class="flex flex-row flex-wrap gap-2">
             {% set input_type = "checkbox" %}
             {% set disabled = true %}
+            {% set context = "hand" %}
             {% for role in my.roles %} 
               {% include "role-card.html" %} 
             {% endfor %} 
-            {% for district in my.hand %} 
+            {% for (index, district) in my.hand.iter().enumerate() %} 
               {% include "district-card.html" %} 
             {% endfor %}
         </div>
@@ -108,9 +95,12 @@
     <div
       id="players"
       class="px-4 bg-neutral-content border border-base-200 flex flex-col items-center gap-2"
+      hx-trigger="mouseleave"
+      hx-get="/game/city/{{ my.name }}"
+      hx-target="#city"
     >
       <h2 class="m-2 underline text-lg font-semibold">Players</h2>
-      <div class="italic text-sm">Click to see more details</div>
+      <div class="italic text-sm">Hover to see more details</div>
       <div class="flex flex-col gap-2">
         {% for player in players %}
         {% include "player-summary.html" %}

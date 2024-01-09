@@ -710,6 +710,18 @@ html {
     --tw-text-opacity: 1;
     color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
   }
+
+  .table tr.hover:hover,
+  .table tr.hover:nth-child(even):hover {
+    --tw-bg-opacity: 1;
+    background-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-bg-opacity)));
+  }
+
+  .table-zebra tr.hover:hover,
+  .table-zebra tr.hover:nth-child(even):hover {
+    --tw-bg-opacity: 1;
+    background-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-bg-opacity)));
+  }
 }
 
 .btn {
@@ -1708,16 +1720,12 @@ html {
   left: 0px;
 }
 
-.right-0 {
-  right: 0px;
+.left-1 {
+  left: 0.25rem;
 }
 
 .top-0 {
   top: 0px;
-}
-
-.left-1 {
-  left: 0.25rem;
 }
 
 .m-2 {
@@ -1828,10 +1836,6 @@ html {
 
 .items-start {
   align-items: flex-start;
-}
-
-.items-end {
-  align-items: flex-end;
 }
 
 .items-center {
@@ -1987,6 +1991,11 @@ html {
   line-height: 2rem;
 }
 
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
 .text-base {
   font-size: 1rem;
   line-height: 1.5rem;
@@ -2005,11 +2014,6 @@ html {
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
-}
-
-.text-3xl {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
 }
 
 .font-semibold {
@@ -2034,19 +2038,14 @@ html {
   text-decoration-line: underline;
 }
 
+tooltip:before {
+  whitespace: pre;
+  content: attr(data-tip);
+}
+
 .before\:max-w-full::before {
   content: var(--tw-content);
   max-width: 100%;
-}
-
-.before\:whitespace-pre::before {
-  content: var(--tw-content);
-  white-space: pre;
-}
-
-.before\:content-\[attr\(data-tip\)\]::before {
-  --tw-content: attr(data-tip);
-  content: var(--tw-content);
 }
 
 .peer:checked ~ .peer-checked\:border {

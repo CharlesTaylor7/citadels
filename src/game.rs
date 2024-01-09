@@ -269,7 +269,15 @@ impl Game {
             p.roles.push(cs.pop().unwrap());
             p.roles.push(cs.pop().unwrap());
             p.roles.sort_by_key(|c| c.rank());
+
+            for (i, card) in game.deck.draw_many(8).enumerate() {
+                p.city.push(CityDistrict {
+                    name: card,
+                    beautified: i % 2 == 0,
+                });
+            }
         }
+
         game.active_turn = Turn::Call(1);
         game.start_turn().ok()?;
 

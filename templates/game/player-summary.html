@@ -1,4 +1,4 @@
-<button
+<div
   class="
     min-w-36
     text-base
@@ -10,14 +10,10 @@
     bg-slate-300
     {% endif %}
   "
-  {% if dev_mode %}
-  type="submit"
-  hx-post="/game/impersonate"
-  name="name"
-  value="{{ player.name }}"
-  {% else %}
   type="button"
-  {% endif %}
+  hx-get="/game/city/{{ player.name }}"
+  hx-trigger="mouseenter"
+  hx-target="#city"
 >
   <div
     class="text-center text-lg semibold"
@@ -36,56 +32,6 @@
       <div>
         City: 
       </div>
-      <span 
-        data-tip="The crown. They will draft first next round."
-        class="tooltip tooltip-left tooltip-secondary text-2xl"
-      > 
-        👑
-      </span>
-
-      <span 
-        data-tip="First completed city.&#10;Worth 4 extra points at the end of the game."
-        class="tooltip tooltip-left tooltip-secondary text-2xl before:whitespace-pre before:content-[attr(data-tip)]"
-      > 
-        🥇 
-      </span>
-      <span 
-        data-tip="Completed city, but not first.&#10;Worth 2 extra points at the end of the game."
-        class="tooltip tooltip-left tooltip-secondary text-2xl before:whitespace-pre before:content-[attr(data-tip)]"
-      > 
-        ✔️
-      </span>
-      <span 
-        data-tip="Killed by the Assassin"
-        class="tooltip tooltip-left tooltip-secondary text-2xl"
-      > 
-        ☠️
-      </span>
-      <span 
-        data-tip="Robbed by the Thief"
-        class="tooltip tooltip-left tooltip-secondary text-2xl"
-      > 
-        💸
-      </span>
-
-      <span 
-        data-tip="Warrant from the Magistrate"
-        class="tooltip tooltip-left tooltip-secondary text-2xl"
-      > 
-        📜
-      </span>
-      <span 
-        data-tip="Threat from the Blackmailer"
-        class="tooltip tooltip-left tooltip-secondary text-2xl"
-      > 
-        ✉️
-      </span>
-      <span
-          data-tip="Bewitched by the Witch"
-          class="tooltip tooltip-left tooltip-secondary text-2xl"
-      > 
-        🦹‍♂️
-      </span>
     </div>
 
     <div class="flex flex-col">
@@ -96,8 +42,8 @@
         {{ player.hand_size }}
       </div>
       <div>
-        {{ player.city.len() }}
+        {{ player.city_size }}
       </div>
     </div>
   </div>
-</button>
+</div>

@@ -1,4 +1,5 @@
 <label
+  id="{{ context }}-{{ index }}"
   class="
     relative
     select-none
@@ -6,12 +7,14 @@
     tooltip
   "
 >
+  {% if district.beautified %}
   <div 
-      data-tip="Beautified by the Artist"
+      data-tip="Beautified by the Artist. Effective cost of {{ district.cost + 1 }}"
       class="absolute left-1 top-0 tooltip tooltip-secondary text-3xl"
   > 
       ✨
   </div>
+  {% endif %}
   <input 
     type="{{ input_type }}" 
     class="peer hidden" 
@@ -50,7 +53,7 @@
       {% if district.description.is_some() %}
       tooltip
       tooltip-secondary
-      tooltip-max-w-100
+      tooltip-max-w-full
       {% endif %}
     "
   >

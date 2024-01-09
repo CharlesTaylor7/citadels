@@ -5,7 +5,7 @@ use crate::templates::GameTemplate;
 use crate::templates::*;
 use crate::types::PlayerName;
 use askama::Template;
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
 use axum::Router;
@@ -15,6 +15,7 @@ use http::StatusCode;
 use log::*;
 use serde::Deserialize;
 use std::borrow::Borrow;
+use std::borrow::Cow;
 use std::mem;
 use tower_http::services::ServeDir;
 use uuid::Uuid;
@@ -22,7 +23,7 @@ use uuid::Uuid;
 pub fn get_router() -> Router {
     let context = AppState::default();
 
-    let router = Router::new()
+    Router::new()
         .route("/", get(index))
         .route("/lobby", get(get_lobby))
         .route("/lobby/register", post(register))
@@ -33,21 +34,9 @@ pub fn get_router() -> Router {
         .route("/game/city/:player_name", get(get_game_city))
         .route("/game/logs", get(get_game_logs))
         .route("/game", post(start))
-        .route("/game/action", post(perform_game_action));
-
-    extend_router(router)
+        .route("/game/action", post(perform_game_action))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
-}
-
-#[cfg(feature = "dev")]
-fn extend_router(router: Router<AppState>) -> Router<AppState> {
-    router.route("/game/impersonate", post(game_impersonate))
-}
-
-#[cfg(not(feature = "dev"))]
-fn extend_router(router: Router<AppState>) -> Router<AppState> {
-    router
 }
 
 pub async fn index() -> impl IntoResponse {
@@ -134,7 +123,7 @@ pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl Int
         app.connections
             .lock()
             .unwrap()
-            .broadcast_each(move |id| GameTemplate::render_with(game, Some(id), None));
+            .broadcast_each(move |id| GameTemplate::render_with(game, Some(id)));
         return StatusCode::OK.into_response();
     }
 
@@ -150,7 +139,7 @@ pub async fn game(
     let game = app.game.lock().unwrap();
     let game = game.as_ref();
     if let Some(game) = game.as_ref() {
-        GameTemplate::render_with(game, id, None)
+        GameTemplate::render_with(game, id)
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
@@ -164,10 +153,18 @@ pub async fn get_game_actions(
 }
 
 pub async fn get_game_city(
-    _app: State<AppState>,
-    _cookies: PrivateCookieJar,
+    app: State<AppState>,
+    cookies: PrivateCookieJar,
+    path: Path<PlayerName>,
 ) -> Result<Html<String>, ErrorResponse> {
-    todo!()
+    let cookie = cookies.get("player_id");
+    let id = cookie.as_ref().map(|c| c.value());
+    let game = app.game.lock().unwrap();
+    if let Some(game) = game.as_ref() {
+        CityRootTemplate::from(Cow::Owned(path.0), game, id)?.to_html()
+    } else {
+        Err(ErrorResponse::from(Redirect::to("/lobby")))
+    }
 }
 
 pub async fn get_game_logs(
@@ -224,7 +221,7 @@ async fn perform_game_action(
                     app.connections
                         .lock()
                         .unwrap()
-                        .broadcast_each(move |id| GameTemplate::render_with(g, Some(id), None));
+                        .broadcast_each(move |id| GameTemplate::render_with(g, Some(id)));
 
                     Ok(StatusCode::OK.into_response())
                 }
@@ -237,23 +234,4 @@ async fn perform_game_action(
             Ok(StatusCode::OK.into_response())
         }
     }
-}
-
-#[cfg(feature = "dev")]
-#[derive(Deserialize)]
-pub struct Impersonate {
-    name: PlayerName,
-}
-
-#[cfg(feature = "dev")]
-async fn game_impersonate(
-    app: State<AppState>,
-    body: axum::Json<Impersonate>,
-) -> Result<Response, ErrorResponse> {
-    let mut game = app.game.lock().unwrap();
-    let game = game.as_mut().ok_or("game hasn't started")?;
-    let html = GameTemplate::render_with(game, None, Some(body.name.borrow()))?;
-    app.connections.lock().unwrap().broadcast(html);
-
-    Ok(StatusCode::OK.into_response())
 }

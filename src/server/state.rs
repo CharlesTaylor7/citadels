@@ -24,10 +24,8 @@ impl Default for AppState {
         Self {
             cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
             connections: new_arc_mutex(ws::Connections::new()),
-            //lobby: Arc::new(Mutex::new(Lobby::default())),
-            lobby: new_arc_mutex(Lobby::demo(vec!["Bob", "Craig"])),
-            game: new_arc_mutex(None),
-            //game: Arc::new(Mutex::new(Game::default_game())),
+            lobby: new_arc_mutex(Lobby::default()),
+            game: new_arc_mutex(Game::default_game()),
         }
     }
 }
