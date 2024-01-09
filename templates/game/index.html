@@ -9,94 +9,98 @@
     flex flex-row
   "
 >
-    <div
-      id="roles"
-      class="min-w-72 p-2 bg-neutral-content flex flex-col items-center border border-base-200"
-    >
-      <h2 class="m-2 underline text-lg font-semibold">Roles</h2>
+  <div
+    id="roles"
+    class="min-w-72 p-2 bg-neutral-content flex flex-col items-center border border-base-200"
+  >
+    <h2 class="m-2 underline text-lg font-semibold">Roles</h2>
 
-      <div class="flex flex-col gap-2">
-        <div class="italic text-sm">Hover over a role for details</div>
-        {% for role in characters %}
-          <div
-            data-tip="{{ role.description }}"
-            class="
-              cursor-pointer
-              text-left 
-              tooltip tooltip-right tooltip-secondary
-            "
-          >
-            {{ role.rank }}. {{ role.name }}
-          </div>
+    <div class="flex flex-col gap-2">
+      <div class="italic text-sm">Hover over a role for details</div>
+      {% for role in characters %}
+        <div
+          data-tip="{{ role.description }}"
+          class="
+            cursor-pointer
+            text-left 
+            tooltip tooltip-right tooltip-secondary
+          "
+        >
+          {{ role.rank }}. {{ role.name }}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <form
+    id="main-panel"
+    class="grow flex flex-col"
+  >
+    <section
+      id="actions"
+      class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
+    >
+      <h2 class="m-2 underline text-lg font-semibold">
+        {{ header }}
+      </h2>
+      {% match view %} 
+      {% when ActionsView::Draft with {roles, discard } %}
+        <div class="flex flex-row flex-wrap gap-2">
+          {% set input_type = "radio" %} 
+          {% set disabled = false %} 
+          {% for role in roles %} 
+            {% include "role-card.html" %}
+          {% endfor %}
+        </div>
+      {% when ActionsView::SelectDistrict with (districts) %}
+      <div class="flex flex-row flex-wrap gap-2">
+        {% set input_type = "checkbox" %}
+        {% set disabled = false %}
+        {% set context = "revealed" %}
+        {% set tooltip_class = "" %}
+        {% for (index, district) in city.districts.iter().enumerate() %} 
+          {% include "district-card.html" %} 
         {% endfor %}
       </div>
-    </div>
-
-    <form
-      id="main-panel"
-      class="grow flex flex-col"
+      {% when ActionsView::SelectAction %}
+      {% else %}
+      TODO: Else
+      {% endmatch %}
+      <div class="flex flex-row flex-wrap gap-2">
+        {% for action in actions %}
+        {% include "action.html" %}
+        {% endfor %}
+      </div>
+    </section>
+    {% include "city.html" %}
+    <section
+      id="hand"
+      class="p-2 bg-neutral-content grow flex flex-col overflow-scroll items-start border border-base-200"
     >
-      <section
-        id="actions"
-        class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
-      >
-        <h2 class="m-2 underline text-lg font-semibold">
-          {{ header }}
-        </h2>
-        {% match view %} 
-        {% when ActionsView::Draft with {roles, discard } %}
-          <div class="flex flex-row flex-wrap gap-2">
-            {% set input_type = "radio" %} 
-            {% set disabled = false %} 
-            {% for role in roles %} 
-              {% include "role-card.html" %}
-            {% endfor %}
-          </div>
-        {% when ActionsView::SelectDistrict with (districts) %}
-        <div class="flex flex-row flex-wrap gap-2">
+      <h2 class="m-2 underline m-2 text-lg font-semibold w-full text-center">
+        My Hand
+      </h2>
+      <div class="flex flex-row flex-wrap gap-2">
           {% set input_type = "checkbox" %}
-          {% set disabled = false %}
-          {% set context = "revealed" %}
+          {% set disabled = true %}
+          {% set context = "hand" %}
+          {% for role in my.roles %} 
+            {% include "role-card.html" %} 
+          {% endfor %} 
           {% set tooltip_class = "" %}
-          {% for (index, district) in city.districts.iter().enumerate() %} 
+          {% for (index, district) in my.hand.iter().enumerate() %} 
             {% include "district-card.html" %} 
           {% endfor %}
-        </div>
-        {% when ActionsView::SelectAction %}
-        {% else %}
-        TODO: Else
-        {% endmatch %}
-        <div class="flex flex-row flex-wrap gap-2">
-          {% for action in actions %}
-          {% include "action.html" %}
-          {% endfor %}
-        </div>
-      </section>
-      {% include "city.html" %}
-      <section
-        id="hand"
-        class="p-2 bg-neutral-content grow flex flex-col overflow-scroll items-start border border-base-200"
-      >
-        <h2 class="m-2 underline m-2 text-lg font-semibold w-full text-center">
-          My Hand
-        </h2>
-        <div class="flex flex-row flex-wrap gap-2">
-            {% set input_type = "checkbox" %}
-            {% set disabled = true %}
-            {% set context = "hand" %}
-            {% for role in my.roles %} 
-              {% include "role-card.html" %} 
-            {% endfor %} 
-            {% set tooltip_class = "" %}
-            {% for (index, district) in my.hand.iter().enumerate() %} 
-              {% include "district-card.html" %} 
-            {% endfor %}
-        </div>
-      </section>
-    </form>
+      </div>
+    </section>
+  </form>
+  <div
+    id="right-panel"
+    class="flex flex-col"
+  >
     <div
       id="players"
-      class="px-4 bg-neutral-content border border-base-200 flex flex-col items-center gap-2"
+      class="p-4 bg-neutral-content border border-base-200 flex flex-col items-center gap-2"
       hx-trigger="mouseleave"
       hx-get="/game/city/{{ my.name }}"
       hx-target="#city"
@@ -107,6 +111,42 @@
         {% for player in players %}
         {% include "player-summary.html" %}
         {% endfor %}
+      </div>
+    </div>
+    <div
+      id="misc"
+      class="grow px-4 bg-neutral-content border border-base-200 flex flex-col items-center gap-2 text-base"
+    >
+      <h2 class="m-2 underline text-lg font-semibold">Info</h2>
+      <div class="flex flex-row justify-center gap-3" >
+        <div class="flex flex-col" >
+          <div>
+            Round: 
+          </div>
+          <div>
+            Deck: 
+          </div>
+          {% if misc.timer.is_some() %}
+          <div>
+            Timer: 
+          </div>
+          {% endif %}
+        </div>
+        <div class="flex flex-col">
+          <div>
+            {{ misc.round }}
+          </div>
+          <div>
+            {{ misc.deck }}
+          </div>
+          {% match misc.timer %}
+          {% when Some with (timer) %}
+            <div>
+              {{ timer }}
+            </div>
+          {% else %}
+          {% endmatch %}
+        </div>
       </div>
     </div>
 </main>

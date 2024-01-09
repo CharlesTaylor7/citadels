@@ -11,7 +11,6 @@ use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]
 #[template(path = "game/city.html")]
-//#[repr(transparent)]
 pub struct CityRootTemplate<'a> {
     city: CityTemplate<'a>,
 }
@@ -56,13 +55,14 @@ impl<'a> CityRootTemplate<'a> {
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
     header: Cow<'a, str>,
-    city: CityTemplate<'a>,
     actions: Vec<ActionTemplate<'a>>,
     view: ActionsView,
     characters: Vec<RoleTemplate>,
     players: &'a [PlayerInfoTemplate<'a>],
     active_name: &'a str,
     my: &'a PlayerTemplate<'a>,
+    misc: MiscTemplate,
+    city: CityTemplate<'a>,
 }
 
 impl<'a> GameTemplate<'a> {
@@ -101,14 +101,17 @@ impl<'a> GameTemplate<'a> {
                 player_id,
             )?
             .city,
-
+            misc: MiscTemplate {
+                round: 0,
+                deck: game.deck.size(),
+                timer: None,
+            },
             view: ActionsView::from(game),
             actions: game
                 .allowed_actions()
                 .iter()
                 .map(|action| ActionTemplate::from(*action, game))
                 .collect(),
-
             players: &players,
             active_name: &active_player.name.0,
             my: player_template.borrow(),
@@ -118,15 +121,19 @@ impl<'a> GameTemplate<'a> {
 }
 
 #[cfg(feature = "dev")]
-#[allow(clippy::needless_lifetimes)]
 fn get_myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a game::Player> {
     game.active_player().ok()
 }
 
 #[cfg(not(feature = "dev"))]
-#[allow(clippy::needless_lifetimes)]
 fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
     player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
+}
+
+struct MiscTemplate {
+    round: usize,
+    deck: usize,
+    timer: Option<usize>,
 }
 
 pub struct CityTemplate<'a> {
