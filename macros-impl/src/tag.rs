@@ -1,34 +1,31 @@
 use ::proc_macro2::TokenStream;
 use ::quote::{format_ident, quote};
-use syn::{Meta, Attribute, MetaList};
 use ::syn::{Data, DeriveInput, Fields};
+use syn::{Attribute, Meta, MetaList};
 
 pub fn derive(ast: DeriveInput) -> TokenStream {
     let (vis, enum_name, variants, attrs) = match ast {
-       DeriveInput { vis, ident, data: Data::Enum(data), attrs, .. }  => {
-           (vis, ident, data.variants, attrs)
-       }
-       _ => {
-           panic!("Tag can only be derived for enums")
-       }
+        DeriveInput {
+            vis,
+            ident,
+            data: Data::Enum(data),
+            attrs,
+            ..
+        } => (vis, ident, data.variants, attrs),
+        _ => {
+            panic!("Tag can only be derived for enums")
+        }
     };
 
-    let trait_list = if 
-        let Some(
-            Attribute { 
-                meta: Meta::List(
-                    MetaList {  
-                        tokens, 
-                        ..
-                    }
-                ), 
-            .. }
-        ) = attrs.first() {
+    let trait_list = if let Some(Attribute {
+        meta: Meta::List(MetaList { tokens, .. }),
+        ..
+    }) = attrs.first()
+    {
         quote! {
             #[derive(#tokens, Clone, Copy, PartialEq, Eq, std::fmt::Debug)]
         }
-    }
-    else {
+    } else {
         quote! {
             #[derive(Clone, Copy, PartialEq, Eq, std::fmt::Debug)]
         }
@@ -43,7 +40,7 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
         tags.push(variant);
     }
 
-        //[derive(Clone, Copy, PartialEq, Eq, std::fmt::Debug)]
+    //[derive(Clone, Copy, PartialEq, Eq, std::fmt::Debug)]
     quote! {
         #trait_list
         #vis enum #tag_enum_name {
