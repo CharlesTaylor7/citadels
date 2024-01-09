@@ -95,6 +95,7 @@ impl<'a> GameTemplate<'a> {
                 .map(|c| c.role)
                 .map(RoleTemplate::from)
                 .collect(),
+
             city: CityRootTemplate::from(
                 myself.map(|p| Cow::Borrowed(&p.name)).unwrap_or_default(),
                 game,
@@ -102,7 +103,7 @@ impl<'a> GameTemplate<'a> {
             )?
             .city,
             misc: MiscTemplate {
-                round: 0,
+                round: game.round,
                 deck: game.deck.size(),
                 timer: None,
             },

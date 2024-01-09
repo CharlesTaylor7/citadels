@@ -173,6 +173,7 @@ pub struct ActionOutput {
 #[derive(Debug)]
 pub struct Game {
     rng: Prng,
+    pub round: usize,
     pub deck: Deck<DistrictName>,
     pub players: Vec<Player>,
     pub characters: Vec<GameRole>,
@@ -352,6 +353,7 @@ impl Game {
         let mut game = Game {
             rng,
             players,
+            round: 0,
             draft: Draft::default(),
             deck: Deck::new(deck),
             active_turn: Turn::Draft(crowned.clone()),
@@ -367,6 +369,7 @@ impl Game {
     }
 
     pub fn begin_draft(&mut self) {
+        self.round += 1;
         self.active_turn = Turn::Draft(self.crowned.clone());
         self.draft.remaining = self.characters.iter().map(|c| c.role).collect();
 
