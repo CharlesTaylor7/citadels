@@ -54,9 +54,7 @@ impl<'a> CityRootTemplate<'a> {
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
-    header: Cow<'a, str>,
-    actions: Vec<ActionTemplate<'a>>,
-    view: ActionsView,
+    main: MainTemplate<'a>,
     characters: Vec<RoleTemplate>,
     players: &'a [PlayerInfoTemplate<'a>],
     active_name: &'a str,
@@ -80,15 +78,6 @@ impl<'a> GameTemplate<'a> {
             .collect();
 
         GameTemplate {
-            header: Cow::Borrowed({
-                if game.active_turn.draft().is_some() {
-                    "Draft"
-                } else if (game.followup).is_some() {
-                    "Select"
-                } else {
-                    "Actions"
-                }
-            }),
             characters: game
                 .characters
                 .iter()
@@ -107,12 +96,23 @@ impl<'a> GameTemplate<'a> {
                 deck: game.deck.size(),
                 timer: None,
             },
-            view: ActionsView::from(game),
-            actions: game
-                .allowed_actions()
-                .iter()
-                .map(|action| ActionTemplate::from(*action, game))
-                .collect(),
+            main: MainTemplate {
+                header: Cow::Borrowed({
+                    if game.active_turn.draft().is_some() {
+                        "Draft"
+                    } else if (game.followup).is_some() {
+                        "Select"
+                    } else {
+                        "Actions"
+                    }
+                }),
+                view: MainView::from(game),
+                actions: game
+                    .allowed_actions()
+                    .iter()
+                    .map(|action| ActionTemplate::from(*action, game))
+                    .collect(),
+            },
             players: &players,
             active_name: &active_player.name.0,
             my: player_template.borrow(),
@@ -129,6 +129,12 @@ fn get_myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a
 #[cfg(not(feature = "dev"))]
 fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
     player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
+}
+
+pub struct MainTemplate<'a> {
+    header: Cow<'a, str>,
+    view: MainView<'a>,
+    actions: Vec<ActionTemplate<'a>>,
 }
 
 struct MiscTemplate {
@@ -326,11 +332,32 @@ impl<'a> ActionTemplate<'a> {
     }
 }
 
-impl ActionsView {
-    pub fn from(game: &Game) -> Self {
+pub enum MainView<'a> {
+    Draft {
+        roles: Vec<RoleTemplate>,
+        discard: Vec<RoleTemplate>,
+        actions: Vec<ActionTemplate<'a>>,
+    },
+    Call {
+        actions: Vec<ActionTemplate<'a>>,
+    },
+    Followup {
+        action: ActionTag,
+        revealed: Vec<DistrictTemplate>,
+    },
+}
+
+impl<'a> MainView<'a> {
+    pub fn from(game: &'a Game) -> Self {
+        let actions = game
+            .allowed_actions()
+            .iter()
+            .map(|act| ActionTemplate::from(*act, game))
+            .collect();
         match game.active_turn {
-            Turn::GameOver => ActionsView::SelectAction,
-            Turn::Draft(_) => ActionsView::Draft {
+            Turn::GameOver => MainView::Call { actions },
+            Turn::Draft(_) => MainView::Draft {
+                actions,
                 roles: game
                     .draft
                     .remaining
@@ -349,35 +376,21 @@ impl ActionsView {
 
             Turn::Call(_) => {
                 match &game.followup {
-                    Some(FollowupAction {
-                        action: _,
-                        revealed,
-                    }) => ActionsView::SelectDistrict(
-                        revealed
+                    Some(FollowupAction { action, revealed }) => MainView::Followup {
+                        action: *action,
+                        revealed: revealed
                             .iter()
                             .cloned()
                             .map(DistrictTemplate::from)
                             .collect(),
-                    ),
+                    },
 
-                    None => ActionsView::SelectAction,
+                    None => MainView::Call { actions },
                 }
                 //todo!();
             }
         }
     }
-}
-
-pub enum ActionsView {
-    ActionFeed, // other players or spectator view
-    Draft {
-        roles: Vec<RoleTemplate>,
-        discard: Vec<RoleTemplate>,
-    },
-    SelectDistrict(Vec<DistrictTemplate>),
-    SelectRole(Vec<RoleTemplate>),
-    SelectPlayer(Vec<PlayerName>),
-    SelectAction,
 }
 
 pub struct RoleTemplate {

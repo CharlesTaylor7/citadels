@@ -271,10 +271,11 @@ impl Game {
             p.roles.push(cs.pop().unwrap());
             p.roles.sort_by_key(|c| c.rank());
 
-            for (i, card) in game.deck.draw_many(8).enumerate() {
+            // deal out city districts randomly
+            for card in game.deck.draw_many(3) {
                 p.city.push(CityDistrict {
                     name: card,
-                    beautified: i % 2 == 0,
+                    beautified: false,
                 });
             }
         }

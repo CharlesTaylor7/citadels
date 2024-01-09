@@ -1,7 +1,7 @@
 {% extends "base.html" %} 
 {% block content %}
 <main 
-  id="main" 
+  id="page-root" 
   data-replace-url="/game" 
   data-theme="retro"
   class="
@@ -33,18 +33,18 @@
   </div>
 
   <form
-    id="main-panel"
+    id="center-panel"
     class="grow flex flex-col"
   >
     <section
-      id="actions"
+      id="main"
       class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
     >
       <h2 class="m-2 underline text-lg font-semibold">
-        {{ header }}
+        {{ main.header }}
       </h2>
-      {% match view %} 
-      {% when ActionsView::Draft with {roles, discard } %}
+      {% match main.view %} 
+      {% when MainView::Draft with { actions, roles, discard } %}
         <div class="flex flex-row flex-wrap gap-2">
           {% set input_type = "radio" %} 
           {% set disabled = false %} 
@@ -52,25 +52,38 @@
             {% include "role-card.html" %}
           {% endfor %}
         </div>
-      {% when ActionsView::SelectDistrict with (districts) %}
-      <div class="flex flex-row flex-wrap gap-2">
-        {% set input_type = "checkbox" %}
-        {% set disabled = false %}
-        {% set context = "revealed" %}
-        {% set tooltip_class = "" %}
-        {% for (index, district) in city.districts.iter().enumerate() %} 
-          {% include "district-card.html" %} 
-        {% endfor %}
-      </div>
-      {% when ActionsView::SelectAction %}
-      {% else %}
-      TODO: Else
-      {% endmatch %}
+        <div class="flex flex-row flex-wrap gap-2">
+          {% for action in actions %}
+          {% include "action.html" %}
+          {% endfor %}
+        </div>
+      {% when MainView::Followup with { action, revealed} %}
+        <div class="flex flex-row flex-wrap gap-2">
+          {% set input_type = "radio" %}
+          {% set disabled = false %}
+          {% set context = "revealed" %}
+          {% set tooltip_class = "" %}
+          {% for (index, district) in revealed.iter().enumerate() %} 
+            {% include "district-card.html" %} 
+          {% endfor %}
+        </div>
+        <div class="flex flex-row flex-wrap gap-2">
+          <button 
+            class="btn btn-secondary"
+            hx-post="/game/action"
+            name="action"
+            value="{{ action|debug }}"
+          >
+            Confirm
+          </button>
+        </div>
+      {% when MainView::Call { actions } %}
       <div class="flex flex-row flex-wrap gap-2">
         {% for action in actions %}
         {% include "action.html" %}
         {% endfor %}
       </div>
+      {% endmatch %}
     </section>
     {% include "city.html" %}
     <section
@@ -104,6 +117,7 @@
       hx-trigger="mouseleave"
       hx-get="/game/city/{{ my.name }}"
       hx-target="#city"
+      hx-swap="outerHTML"
     >
       <h2 class="m-2 underline text-lg font-semibold">Players</h2>
       <div class="italic text-sm">Hover to see more details</div>
