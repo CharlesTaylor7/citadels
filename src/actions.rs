@@ -6,6 +6,7 @@ use serde::Deserialize;
 use std::borrow::Cow;
 
 #[derive(Deserialize, Tag, Debug)]
+#[tag(serde::Deserialize)]
 #[serde(tag = "action")]
 pub enum Action {
     // single select a role, then click pick or discard
@@ -265,4 +266,11 @@ impl ActionTag {
             _ => false,
         }
     }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum ActionSubmission {
+    Complete(Action),
+    Incomplete { action: ActionTag },
 }

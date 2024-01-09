@@ -111,7 +111,7 @@ mod handlers {
     use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
     use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
     use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-    use citadels::actions::Action;
+    use citadels::actions::{Action, ActionSubmission};
     use citadels::game::Game;
     use citadels::templates::*;
     use citadels::types::PlayerName;
@@ -245,7 +245,7 @@ mod handlers {
     pub async fn game_action(
         app: State<AppState>,
         cookies: PrivateCookieJar,
-        action: axum::Json<Action>,
+        action: axum::Json<ActionSubmission>,
     ) -> Result<Response> {
         let cookie = cookies.get("player_id").ok_or("missing cookie")?;
         let mut game = app.game.lock().unwrap();
@@ -257,21 +257,28 @@ mod handlers {
             return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
         }
 
-        match game.perform(action.0) {
-            Ok(()) => {
-                let g = &game;
-                app.connections
-                    .lock()
-                    .unwrap()
-                    .broadcast_each(move |id| GameTemplate::render(g, Some(id), None));
+        info!("{:#?}", action.0);
+        match action.0 {
+            ActionSubmission::Complete(action) => {
+                //
+                match game.perform(action) {
+                    Ok(()) => {
+                        let g = &game;
+                        app.connections
+                            .lock()
+                            .unwrap()
+                            .broadcast_each(move |id| GameTemplate::render(g, Some(id), None));
 
-                debug!("Draft: {:#?}", game.draft);
-                debug!("{:#?}", game.logs);
-                debug!("Turn: {:#?}", game.active_turn);
-                debug!("Active: {:#?}", game.active_player());
+                        Ok(StatusCode::OK.into_response())
+                    }
+                    Err(error) => Err((StatusCode::BAD_REQUEST, error).into()),
+                }
+            }
+
+            ActionSubmission::Incomplete { action } => {
+                //
                 Ok(StatusCode::OK.into_response())
             }
-            Err(error) => Err((StatusCode::BAD_REQUEST, error).into()),
         }
     }
 

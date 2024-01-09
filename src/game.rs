@@ -1,4 +1,4 @@
-use crate::actions::{Action, ActionTag, MagicianAction, Resource, Select};
+use crate::actions::{Action, ActionTag, MagicianAction, Resource};
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
@@ -8,7 +8,6 @@ use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
 use rand_core::SeedableRng;
-
 use std::borrow::{Borrow, Cow};
 use std::fmt::Debug;
 
@@ -27,6 +26,17 @@ pub struct Player {
 impl Player {
     pub fn city_has(&self, name: DistrictName) -> bool {
         self.city.iter().any(|c| c.name == name)
+    }
+
+    pub fn new(id: String, name: PlayerName) -> Self {
+        Player {
+            id,
+            name,
+            gold: 2,
+            hand: Vec::new(),
+            city: Vec::new(),
+            roles: Vec::with_capacity(2),
+        }
     }
 }
 
@@ -51,20 +61,6 @@ impl CityDistrict {
         }
     }
 }
-
-impl Player {
-    pub fn new(id: String, name: PlayerName) -> Self {
-        Player {
-            id,
-            name,
-            gold: 2,
-            hand: Vec::new(),
-            city: Vec::new(),
-            roles: Vec::with_capacity(2),
-        }
-    }
-}
-
 pub struct Deck<T> {
     deck: Vec<T>,
     discard: Vec<T>,
@@ -108,13 +104,6 @@ impl<T> Deck<T> {
     pub fn discard_to_bottom(&mut self, card: T) {
         self.discard.push(card);
     }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Step {
-    GainResource,
-    Main,
-    EndOfTurn,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

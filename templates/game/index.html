@@ -47,6 +47,7 @@
         {% when ActionsView::Draft with {roles, discard } %}
           <div class="flex flex-row flex-wrap gap-2">
             {% set input_type = "radio" %} 
+            {% set disabled = false %} 
             {% for role in roles %} 
               {% include "role-card.html" %}
             {% endfor %}
@@ -54,6 +55,7 @@
         {% when ActionsView::SelectDistrict with (districts) %}
         <div class="flex flex-row flex-wrap gap-2">
           {% set input_type = "checkbox" %}
+          {% set disabled = false %}
           {% for district in districts %}
           {% include "district-card.html" %}
           {% endfor %}
@@ -78,6 +80,7 @@
         </h2>
         <div class="flex flex-row flex-wrap gap-2">
             {% let input_type = "checkbox" %}
+            {% let disabled = true %}
             {% for district in my.city %} 
               {% include "district-card.html" %} 
             {% endfor %}
@@ -92,11 +95,11 @@
           Hand
         </h2>
         <div class="flex flex-row flex-wrap gap-2">
-            {% set input_type = "" %}
+            {% set input_type = "checkbox" %}
+            {% set disabled = true %}
             {% for role in my.roles %} 
               {% include "role-card.html" %} 
             {% endfor %} 
-            {% let input_type = "checkbox" %}
             {% for district in my.hand %} 
               {% include "district-card.html" %} 
             {% endfor %}

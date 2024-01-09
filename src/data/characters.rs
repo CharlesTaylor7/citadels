@@ -14,7 +14,6 @@ pub const ROLES: [RoleData; 27] =
     , description: "Call a character you wish to kill. The killed character skips their turn."
     , reminder: ""
     }
-
   , RoleData 
     { rank: 1 
     , set: DarkCity
@@ -53,7 +52,6 @@ pub const ROLES: [RoleData; 27] =
     , description: "Name a district type and look at another player's hand. For each card of that type, take 1 of their gold and gain 1 card." 
     , reminder: "You gain cards from the deck, not their hand."
     }
-
   , RoleData 
     { rank: 2 
     , set: Citadels2016 
