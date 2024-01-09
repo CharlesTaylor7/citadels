@@ -2013,8 +2013,19 @@ html {
   text-decoration-line: underline;
 }
 
-.tooltip-max-w-100:before {
+.before\:max-w-full::before {
+  content: var(--tw-content);
   max-width: 100%;
+}
+
+.before\:whitespace-pre::before {
+  content: var(--tw-content);
+  white-space: pre;
+}
+
+.before\:content-\[attr\(data-tip\)\]::before {
+  --tw-content: attr(data-tip);
+  content: var(--tw-content);
 }
 
 .peer:checked ~ .peer-checked\:border {
@@ -2050,4 +2061,3 @@ html {
 .has-\[\:checked\]\:p-0:has(:checked) {
   padding: 0px;
 }
-
