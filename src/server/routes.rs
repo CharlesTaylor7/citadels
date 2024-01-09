@@ -239,6 +239,10 @@ async fn submit_game_action(
                     .to_html()?;
                     Ok(rendered.into_response())
                 }
+                ActionTag::Build => {
+                    let rendered = BuildMenu {}.to_html()?;
+                    Ok(rendered.into_response())
+                }
                 _ => Ok("not implemented".into_response()),
             }
         }

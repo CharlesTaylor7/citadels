@@ -1505,12 +1505,6 @@ html {
   margin-top: 0;
 }
 
-.mockup-phone .display {
-  overflow: hidden;
-  border-radius: 40px;
-  margin-top: -25px;
-}
-
 .mockup-browser .mockup-browser-toolbar .input {
   position: relative;
   margin-left: auto;
@@ -2133,12 +2127,12 @@ html {
   padding: 0.5rem;
 }
 
-.p-7 {
-  padding: 1.75rem;
-}
-
 .p-4 {
   padding: 1rem;
+}
+
+.p-7 {
+  padding: 1.75rem;
 }
 
 .px-3 {
