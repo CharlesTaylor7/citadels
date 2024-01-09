@@ -40,9 +40,9 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
         tags.push(variant);
     }
 
-    //[derive(Clone, Copy, PartialEq, Eq, std::fmt::Debug)]
     quote! {
         #trait_list
+        #[automatically_derived]
         #vis enum #tag_enum_name {
             #( #tags, )*
         }

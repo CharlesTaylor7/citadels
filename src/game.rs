@@ -979,7 +979,7 @@ impl Game {
                     return Err(format!("Too many resources, you should select {}", count).into());
                 }
 
-                let amount = self.gain_cards(count);
+                let _amount = self.gain_cards(count);
                 let player = self.active_player()?;
 
                 ActionOutput {

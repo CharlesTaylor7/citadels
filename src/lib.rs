@@ -8,5 +8,6 @@ pub mod lobby;
 pub mod logger;
 pub mod random;
 pub mod roles;
+pub mod server;
 pub mod templates;
 pub mod types;
