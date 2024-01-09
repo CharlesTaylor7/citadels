@@ -10,28 +10,33 @@
   "
 >
   <div
-    id="roles"
-    class="min-w-72 p-2 bg-neutral-content flex flex-col items-center border border-base-200"
+    id="left-panel"
+    class="flex flex-col"
   >
-    <h2 class="m-2 underline text-lg font-semibold">Roles</h2>
+    <div
+      id="roles"
+      class="min-w-72 p-2 bg-neutral-content flex flex-col items-center border border-base-200"
+    >
+      <h2 class="m-2 underline text-lg font-semibold">Roles</h2>
 
-    <div class="flex flex-col gap-2">
-      <div class="italic text-sm">Hover over a role for details</div>
-      {% for role in characters %}
-        <div
-          data-tip="{{ role.description }}"
-          class="
-            cursor-pointer
-            text-left 
-            tooltip tooltip-right tooltip-secondary
-          "
-        >
-          {{ role.rank }}. {{ role.name }}
-        </div>
-      {% endfor %}
+      <div class="flex flex-col gap-2">
+        <div class="italic text-sm">Hover over a role for details</div>
+        {% for role in characters %}
+          <div
+            data-tip="{{ role.description }}"
+            class="
+              cursor-pointer
+              text-left 
+              tooltip tooltip-right tooltip-secondary
+            "
+          >
+            {{ role.rank }}. {{ role.name }}
+          </div>
+        {% endfor %}
+      </div>
     </div>
+    {% include "logs.html" %}
   </div>
-
   <form
     id="center-panel"
     class="grow flex flex-col"

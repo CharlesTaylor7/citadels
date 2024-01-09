@@ -1,0 +1,12 @@
+<div
+  id="logs"
+  class="grow p-4 max-w-72 bg-neutral-content border border-base-200 flex flex-col items-center gap-2"
+>
+  <h2 class="m-2 underline text-lg font-semibold">Logs</h2>
+  <code class="flex flex-col text-sm">
+    {% for log in logs.iter().take(20) %}
+      {{ log }}
+      <br/>
+    {% endfor %}
+  </code>
+</div>

@@ -64,6 +64,7 @@ pub struct SelectRoleMenu<'a> {
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
+    logs: &'a [String],
     menu: MainTemplate<'a>,
     characters: Vec<RoleTemplate>,
     players: &'a [PlayerInfoTemplate<'a>],
@@ -88,6 +89,7 @@ impl<'a> GameTemplate<'a> {
             .collect();
 
         GameTemplate {
+            logs: &game.logs,
             characters: game
                 .characters
                 .iter()
@@ -392,6 +394,12 @@ impl<'a> MenuView<'a> {
             }
         }
     }
+}
+
+#[derive(Template)]
+#[template(path = "game/logs.html")]
+pub struct LogsTemplate<'a> {
+    pub logs: &'a [String],
 }
 
 pub struct RoleTemplate {

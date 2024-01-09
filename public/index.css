@@ -1969,6 +1969,10 @@ html {
   min-width: 18rem;
 }
 
+.max-w-72 {
+  max-width: 18rem;
+}
+
 .grow {
   flex-grow: 1;
 }
