@@ -320,11 +320,8 @@ impl<'a> ActionTemplate<'a> {
 
     fn text(action: ActionTag, _game: &'a Game) -> Cow<'a, str> {
         match action {
-            ActionTag::GatherResources => Cow::Borrowed("Gather resources"),
-            /*
-            ActionTag::ResourceGainGold => Cow::Borrowed("Gain 2 gold"),
-            ActionTag::ResourceGainCards => Cow::Borrowed("Draw 2 cards, pick 1"),
-            */
+            ActionTag::GatherResourceGold => Cow::Borrowed("Gain 2 gold"),
+            ActionTag::GatherResourceCards => Cow::Borrowed("Draw 2 cards, pick 1"),
             ActionTag::Build => Cow::Borrowed("Build"),
             ActionTag::Magic => Cow::Borrowed("Magic"),
             ActionTag::EndTurn => Cow::Borrowed("End turn"),

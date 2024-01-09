@@ -464,9 +464,14 @@ impl Game {
                 }
 
                 // You have to gather resources before building
-                if self.active_perform_count(ActionTag::GatherResources) < 1 {
+                if self
+                    .turn_actions
+                    .iter()
+                    .all(|act| !act.tag().is_resource_gathering())
+                {
                     // gather
-                    actions.push(ActionTag::GatherResources);
+                    actions.push(ActionTag::GatherResourceGold);
+                    actions.push(ActionTag::GatherResourceCards);
                 } else if self.active_perform_count(ActionTag::Build) < c.role.build_limit() {
                     // build
                     actions.push(ActionTag::Build)
@@ -595,9 +600,7 @@ impl Game {
                 }
             }
 
-            Action::GatherResources {
-                resource: Resource::Gold,
-            } => {
+            Action::GatherResourceGold => {
                 let player = self.active_player_mut()?;
                 let mut amount = 2;
                 let log: String;
@@ -620,9 +623,7 @@ impl Game {
                 }
             }
 
-            Action::GatherResources {
-                resource: Resource::Cards,
-            } => {
+            Action::GatherResourceCards => {
                 let mut draw_amount = 2; // roles / disricts may affect this
                 if self.active_player()?.city_has(DistrictName::Observatory) {
                     draw_amount += 1;

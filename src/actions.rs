@@ -15,9 +15,8 @@ pub enum Action {
     DraftDiscard { role: RoleName },
 
     // Call phase
-
-    // either gain gold or reveal cards
-    GatherResources { resource: Resource },
+    GatherResourceGold,
+    GatherResourceCards,
     GatherCardsPick { district: DistrictName },
 
     Build { district: DistrictName },
@@ -250,12 +249,20 @@ pub enum MagicianAction {
 }
 
 impl ActionTag {
+    pub fn is_resource_gathering(self) -> bool {
+        match self {
+            ActionTag::GatherResourceGold => true,
+            ActionTag::GatherResourceCards => true,
+            _ => false,
+        }
+    }
     pub fn is_required(self) -> bool {
         match self {
             ActionTag::Bewitch => true,
             ActionTag::TakeCrown => true,
             ActionTag::EmperorGiveCrown => true,
-            ActionTag::GatherResources => true,
+            ActionTag::GatherResourceGold => true,
+            ActionTag::GatherResourceCards => true,
 
             // followup actions are often required
             ActionTag::GatherCardsPick => true,
