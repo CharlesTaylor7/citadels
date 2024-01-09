@@ -421,21 +421,29 @@ impl Game {
             return vec![f.action];
         }
 
-        let mut actions = Vec::new();
         match self.active_turn {
-            Turn::GameOver => {}
+            Turn::GameOver => {
+                vec![]
+            }
             Turn::Draft(_) => {
                 if self.active_perform_count(ActionTag::DraftPick) == 0 {
-                    actions.push(ActionTag::DraftPick)
-                }
-                if self.players.len() == 2
-                    && self.active_perform_count(ActionTag::DraftDiscard) == 0
+                    vec![ActionTag::DraftPick]
+
+                    // the first player to draft in the two player game does not discard.
+                    // the last pick is between two cards.
+                    // the one they don't pick is automatically discarded.
+                    // So really only the middle two draft turns should show the discard button
+                } else if self.players.len() == 2
+                    && (self.draft.remaining.len() == 5 || self.draft.remaining.len() == 3)
                 {
-                    actions.push(ActionTag::DraftDiscard)
+                    vec![ActionTag::DraftDiscard]
+                } else {
+                    vec![]
                 }
             }
 
             Turn::Call(rank) => {
+                let mut actions = Vec::new();
                 let c = self.characters[rank as usize - 1].borrow();
 
                 for (n, action) in c.role.data().actions {
@@ -456,10 +464,11 @@ impl Game {
                 if actions.iter().all(|action| !action.is_required()) {
                     actions.push(ActionTag::EndTurn);
                 }
+
+                info!("Available actions: {:#?}", actions);
+                actions
             }
         }
-        info!("Available actions: {:#?}", actions);
-        actions
     }
 
     pub fn perform(&mut self, action: Action) -> Result<()> {

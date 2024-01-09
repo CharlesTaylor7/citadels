@@ -14,14 +14,20 @@ pub struct AppState {
     pub connections: Arc<Mutex<ws::Connections>>,
 }
 
+fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
+    Arc::new(Mutex::new(item))
+}
+
 impl Default for AppState {
     fn default() -> Self {
         load_dotenv!();
         Self {
             cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
-            connections: Arc::new(Mutex::new(ws::Connections::new())),
-            lobby: Arc::new(Mutex::new(Lobby::default())),
-            game: Arc::new(Mutex::new(Game::default_game())),
+            connections: new_arc_mutex(ws::Connections::new()),
+            //lobby: Arc::new(Mutex::new(Lobby::default())),
+            lobby: new_arc_mutex(Lobby::demo(vec!["Bob", "Craig"])),
+            game: new_arc_mutex(None),
+            //game: Arc::new(Mutex::new(Game::default_game())),
         }
     }
 }

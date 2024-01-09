@@ -67,6 +67,8 @@ impl RoleName {
         match self {
             Self::Queen => 5,
             Self::Emperor => 3,
+            Self::Artist => 3,
+            Self::TaxCollector => 3,
             _ => 0,
         }
     }
@@ -132,6 +134,7 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> impl Iterator<Item
     // 9th rank is optional for 4-7
     // 9th rank is required for 8
     let n = if num_players == 2 { 8 } else { 9 };
+    log::info!("Selecting {} roles for {} player game", n, num_players);
     let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
 
     for r in crate::roles::ROLES {
