@@ -1562,6 +1562,14 @@ html {
   bottom: var(--tooltip-offset);
 }
 
+.tooltip-left:before {
+  transform: translateY(-50%);
+  top: 50%;
+  left: auto;
+  right: var(--tooltip-offset);
+  bottom: auto;
+}
+
 .tooltip-right:before {
   transform: translateY(-50%);
   top: 50%;
@@ -1655,6 +1663,15 @@ html {
   left: 50%;
   right: auto;
   bottom: var(--tooltip-tail-offset);
+}
+
+.tooltip-left:after {
+  transform: translateY(-50%);
+  border-color: transparent transparent transparent var(--tooltip-color);
+  top: 50%;
+  left: auto;
+  right: calc(var(--tooltip-tail-offset) + 0.0625rem);
+  bottom: auto;
 }
 
 .tooltip-right:after {
@@ -1996,7 +2013,7 @@ html {
   text-decoration-line: underline;
 }
 
-.tooltip:before {
+.tooltip-max-w-100:before {
   max-width: 100%;
 }
 
@@ -2033,3 +2050,4 @@ html {
 .has-\[\:checked\]\:p-0:has(:checked) {
   padding: 0px;
 }
+

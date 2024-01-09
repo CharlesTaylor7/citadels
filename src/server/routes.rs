@@ -134,7 +134,7 @@ pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl Int
         app.connections
             .lock()
             .unwrap()
-            .broadcast_each(move |id| GameTemplate::render(game, Some(id), None));
+            .broadcast_each(move |id| GameTemplate::render_with(game, Some(id), None));
         return StatusCode::OK.into_response();
     }
 
@@ -150,7 +150,7 @@ pub async fn game(
     let game = app.game.lock().unwrap();
     let game = game.as_ref();
     if let Some(game) = game.as_ref() {
-        GameTemplate::render(game, id, None)
+        GameTemplate::render_with(game, id, None)
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
@@ -224,7 +224,7 @@ async fn perform_game_action(
                     app.connections
                         .lock()
                         .unwrap()
-                        .broadcast_each(move |id| GameTemplate::render(g, Some(id), None));
+                        .broadcast_each(move |id| GameTemplate::render_with(g, Some(id), None));
 
                     Ok(StatusCode::OK.into_response())
                 }
@@ -252,7 +252,7 @@ async fn game_impersonate(
 ) -> Result<Response, ErrorResponse> {
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
-    let html = GameTemplate::render(game, None, Some(body.name.borrow()))?;
+    let html = GameTemplate::render_with(game, None, Some(body.name.borrow()))?;
     app.connections.lock().unwrap().broadcast(html);
 
     Ok(StatusCode::OK.into_response())

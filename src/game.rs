@@ -7,7 +7,6 @@ use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
-use rand_core::SeedableRng;
 use std::borrow::{Borrow, Cow};
 use std::fmt::Debug;
 

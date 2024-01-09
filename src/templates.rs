@@ -23,7 +23,7 @@ pub struct GameTemplate<'a> {
 }
 
 impl<'a> GameTemplate<'a> {
-    pub fn render<'b, 'c>(
+    pub fn render_with<'b, 'c>(
         game: &'a Game,
         player_id: Option<&'b str>,
         impersonate: Option<&'c PlayerName>,

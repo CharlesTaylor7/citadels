@@ -72,13 +72,16 @@
 - [ ] Show errors inline
         - https://stackoverflow.com/a/73615279/4875161
 - [ ] Player resource summary
-    - Highlight active player
-    - hand size
-    - gold
-    - city size
-    - markers: 
+    - [x] Highlight active player
+    - [x] hand size
+    - [x] gold
+    - [x] city size
+    - [ ] markers: 
         - Crown
-    - revealed roles
+        - revealed roles
+        - completed city: gold for first,
+        - completed city: participation trophy for others
+
 
 ## QA / Playtesting
 - [ ] Manually test interactions for every role

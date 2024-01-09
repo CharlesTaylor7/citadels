@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.tooltip:before {
+.tooltip-max-w-100:before {
   max-width: 100%;
 }
+
