@@ -57,6 +57,7 @@
           {% set input_type = "checkbox" %}
           {% set disabled = false %}
           {% set context = "revealed" %}
+          {% set tooltip_class = "" %}
           {% for (index, district) in city.districts.iter().enumerate() %} 
             {% include "district-card.html" %} 
           {% endfor %}
@@ -86,6 +87,7 @@
             {% for role in my.roles %} 
               {% include "role-card.html" %} 
             {% endfor %} 
+            {% set tooltip_class = "" %}
             {% for (index, district) in my.hand.iter().enumerate() %} 
               {% include "district-card.html" %} 
             {% endfor %}

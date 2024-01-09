@@ -53,7 +53,8 @@
       {% if district.description.is_some() %}
       tooltip
       tooltip-secondary
-      tooltip-max-w-full
+      before:max-w-full
+      {{ tooltip_class }}
       {% endif %}
     "
   >

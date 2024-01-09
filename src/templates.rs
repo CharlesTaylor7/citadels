@@ -29,13 +29,19 @@ impl<'a> CityRootTemplate<'a> {
             .find(|p| p.name == *player_name)
             .ok_or(format!("no player named: {}", player_name))?;
 
+        let (tooltip_class, header) = if myself.is_some_and(|p| p.id == player.id) {
+            ("".into(), "My City".into())
+        } else {
+            (
+                "tooltip-open tooltip-bottom".into(),
+                format!("{}'s City", player_name).into(),
+            )
+        };
+
         Ok(Self {
             city: CityTemplate {
-                header: if myself.is_some_and(|p| p.name == *player_name) {
-                    "My City".into()
-                } else {
-                    format!("{}'s City", player_name).into()
-                },
+                header,
+                tooltip_class,
                 districts: player
                     .city
                     .iter()
@@ -50,7 +56,6 @@ impl<'a> CityRootTemplate<'a> {
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
     header: Cow<'a, str>,
-    dev_mode: bool,
     city: CityTemplate<'a>,
     actions: Vec<ActionTemplate<'a>>,
     view: ActionsView,
@@ -107,7 +112,6 @@ impl<'a> GameTemplate<'a> {
             players: &players,
             active_name: &active_player.name.0,
             my: player_template.borrow(),
-            dev_mode: cfg!(feature = "dev"),
         }
         .to_html()
     }
@@ -128,6 +132,7 @@ fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a 
 pub struct CityTemplate<'a> {
     header: Cow<'a, str>,
     districts: Vec<DistrictTemplate>,
+    tooltip_class: Cow<'a, str>,
 }
 
 #[derive(Template)]

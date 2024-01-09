@@ -9,6 +9,7 @@
       {% let input_type = "checkbox" %}
       {% let disabled = true %}
       {% set context = "city" %}
+      {% set tooltip_class = city.tooltip_class %}
       {% for (index, district) in city.districts.iter().enumerate() %} 
         {% include "district-card.html" %} 
       {% endfor %}
