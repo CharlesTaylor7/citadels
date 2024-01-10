@@ -8,7 +8,6 @@ use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
 use std::borrow::{Borrow, Cow};
-use std::clone;
 
 #[derive(Template)]
 #[template(path = "game/city.html")]
@@ -38,15 +37,21 @@ impl<'a> CityRootTemplate<'a> {
             )
         };
 
-        let mut columns = vec![Vec::new(); 5];
+        let mut columns = vec![Vec::new(); 4];
         for card in &player.city {
             let template = DistrictTemplate::from_city(card);
-            let index = template.suit as usize;
-
-            columns[index].push(template);
+            // unique districts get their own column each
+            if template.suit == CardSuit::Unique {
+                columns.push(vec![template]);
+            } else {
+                let index = template.suit as usize;
+                columns[index].push(template);
+            }
         }
-        for column in columns.iter_mut() {
-            column.sort_by_key(|template| template.cost);
+
+        // sort the non trivial columns
+        for index in 0..4 {
+            columns[index].sort_by_key(|template| template.cost);
         }
 
         Ok(Self {
