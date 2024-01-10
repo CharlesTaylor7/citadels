@@ -17,4 +17,36 @@
   />
   {% set asset = district.asset %}
   {% include "image-asset.html" %}
+  <code
+    class="
+      absolute top-2 left-2
+      h-8 w-8 rounded-full
+      leaded 
+      flex flex-row justify-center items-center 
+      text-secondary-content 
+      {{ district.suit|suit_bg_color }}
+    "
+  >
+    {% if district.value != "SecretVault" %}
+      {{ district.cost }} 
+    {% endif %}
+  </code>
+  <div
+    class="
+      absolute top-2
+      w-full text-center 
+      flex flex-row justify-center items-center 
+    "
+  >
+    <span class="
+        px-1
+        font-serif
+        text-sm text-secondary-content 
+        bg-blue-100
+        rounded-lg
+      "
+    >
+      {{ district.name }} 
+    </span>
+  </div>
 </label>
