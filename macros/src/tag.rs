@@ -42,12 +42,10 @@ pub use macros_impl::Tag;
 /// ```
 ///
 pub trait Tag: Sized {
-    type Tag: std::fmt::Debug + std::fmt::Display + Clone + Copy + PartialEq + Eq;
+    type Tag: std::fmt::Debug + Clone + Copy + PartialEq + Eq;
+
     fn tag(&self) -> Self::Tag;
-
-    
     // fn from_dyn(tag: Self::Tag, args: Dynamic) -> Self;
-
 }
 /*
 pub trait TagArgs {

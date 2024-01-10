@@ -1,10 +1,10 @@
 <button 
-  class="btn {{ action.class }}"
+  class="btn btn-secondary"
   hx-post="/game/action"
   hx-swap="outerHTML"
   hx-target="#menu"
   name="action"
-  value="{{ action.value }}"
+  value="{{ action|debug }}"
 >
-  {{ action.text }}
+  {{ action }}
 </button>

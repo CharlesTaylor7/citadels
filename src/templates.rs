@@ -151,7 +151,7 @@ fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a 
 
 pub struct MainTemplate<'a> {
     header: Cow<'a, str>,
-    view: MenuView<'a>,
+    view: MenuView,
 }
 
 struct MiscTemplate {
@@ -284,49 +284,14 @@ impl DistrictTemplate {
     }
 }
 
-pub struct ActionTemplate<'a> {
-    pub value: Cow<'a, str>,
-    pub text: Cow<'a, str>,
-    pub class: Cow<'a, str>,
-}
-
-impl<'a> ActionTemplate<'a> {
-    pub fn from(action: ActionTag, game: &'a Game) -> Self {
-        let value = format!("{:#?}", action);
-        Self {
-            value: Cow::Owned(value),
-            text: Self::text(action, game),
-            class: Cow::Borrowed(match action {
-                ActionTag::DraftPick => "btn-secondary",
-                ActionTag::DraftDiscard => "bg-suit-military",
-                _ => "btn-secondary",
-            }),
-        }
-    }
-
-    fn text(action: ActionTag, _game: &'a Game) -> Cow<'a, str> {
-        match action {
-            ActionTag::GatherResourceGold => Cow::Borrowed("Gain 2 gold"),
-            ActionTag::GatherResourceCards => Cow::Borrowed("Draw 2 cards, pick 1"),
-            ActionTag::Build => Cow::Borrowed("Build"),
-            ActionTag::Magic => Cow::Borrowed("Magic"),
-            ActionTag::EndTurn => Cow::Borrowed("End turn"),
-            _ => {
-                debug!("Warning: default case for {}", action);
-                Cow::Owned(format!("{:#?}", action))
-            }
-        }
-    }
-}
-
-pub enum MenuView<'a> {
+pub enum MenuView {
     Draft {
         roles: Vec<RoleTemplate>,
         discard: Vec<RoleTemplate>,
-        actions: Vec<ActionTemplate<'a>>,
+        actions: Vec<ActionTag>,
     },
     Call {
-        actions: Vec<ActionTemplate<'a>>,
+        actions: Vec<ActionTag>,
     },
     Followup {
         action: ActionTag,
@@ -334,13 +299,9 @@ pub enum MenuView<'a> {
     },
 }
 
-impl<'a> MenuView<'a> {
-    pub fn from(game: &'a Game) -> Self {
-        let actions = game
-            .allowed_actions()
-            .iter()
-            .map(|act| ActionTemplate::from(*act, game))
-            .collect();
+impl MenuView {
+    pub fn from(game: &Game) -> Self {
+        let actions = game.allowed_actions();
         match game.active_turn {
             Turn::GameOver => MenuView::Call { actions },
             Turn::Draft(_) => MenuView::Draft {
@@ -359,21 +320,18 @@ impl<'a> MenuView<'a> {
                     .collect::<Vec<_>>(),
             },
 
-            Turn::Call(_) => {
-                match &game.followup {
-                    Some(FollowupAction { action, revealed }) => MenuView::Followup {
-                        action: *action,
-                        revealed: revealed
-                            .iter()
-                            .cloned()
-                            .map(DistrictTemplate::from)
-                            .collect(),
-                    },
+            Turn::Call(_) => match &game.followup {
+                Some(FollowupAction { action, revealed }) => MenuView::Followup {
+                    action: *action,
+                    revealed: revealed
+                        .iter()
+                        .cloned()
+                        .map(DistrictTemplate::from)
+                        .collect(),
+                },
 
-                    None => MenuView::Call { actions },
-                }
-                //todo!();
-            }
+                None => MenuView::Call { actions },
+            },
         }
     }
 }

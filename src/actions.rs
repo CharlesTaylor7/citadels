@@ -275,6 +275,22 @@ impl ActionTag {
     }
 }
 
+impl std::fmt::Display for ActionTag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ActionTag::GatherResourceGold => write!(f, "Gain 2 gold"),
+            ActionTag::GatherResourceCards => write!(f, "Draw 2 cards, pick 1"),
+            ActionTag::Build => write!(f, "Build"),
+            ActionTag::Magic => write!(f, "Magic"),
+            ActionTag::EndTurn => write!(f, "End turn"),
+            _ => {
+                log::debug!("Warning: default case for {}", self);
+                write!(f, "{:#?}", self)
+            }
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum ActionSubmission {

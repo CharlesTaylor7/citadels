@@ -5,21 +5,20 @@
   <h2 class="m-2 underline text-lg font-semibold">
     {{ header }}
   </h2>
-  <div class="flex flex-row flex-wrap gap-2">
+  <div class="flex flex-row flex-wrap gap-2 items-center">
     {% set input_type = "radio" %} 
     {% set disabled = false %} 
     {% for role in roles %} 
       {% include "game/role-card.html" %}
     {% endfor %}
-  </div>
-  <div class="flex flex-row flex-wrap gap-2">
+    {% include "game/action.html" %}
     <button 
-      class="btn btn-secondary"
-      hx-post="/game/action"
-      name="action"
-      value="{{ action|debug }}"
+      class="btn btn-accent"
+      hx-get="/game/actions"
+      hx-swap="outerHTML"
+      hx-target="menu"
     >
-      {{ confirm }}
+      Cancel
     </button>
   </div>
 </section>
