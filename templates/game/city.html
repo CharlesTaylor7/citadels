@@ -1,6 +1,7 @@
 <section
   id="city"
-  class="h-[270px] overflow-x-none overflow-y-scroll p-2 bg-neutral-content flex flex-col border border-base-200"
+  data-old="h-[270px] "
+  class="h-screen overflow-x-none overflow-y-scroll p-2 bg-neutral-content flex flex-col border border-base-200"
 >
   <h2 class="header">
     {{ city.header }}
@@ -8,10 +9,19 @@
   <div class="flex flex-row flex-wrap gap-2">
       {% let input_type = "checkbox" %}
       {% let disabled = false %}
-      {% set context = "city" %}
       {% set tooltip_class = city.tooltip_class %}
-      {% for (index, district) in city.districts.iter().enumerate() %} 
-        {% include "district/square-cropped.html" %} 
+      {% for column in city.columns %} 
+        <div class="flex flex-col">
+          {% for (i, district) in column.iter().enumerate() %} 
+            <div 
+              {% if i > 0 %}
+              class="-mt-[146px]"
+              {% endif %}
+            >
+              {% include "district/square-cropped.html" %} 
+            </div>
+          {% endfor %} 
+        </div>
       {% endfor %}
   </div>
 </section>

@@ -1983,6 +1983,22 @@ html {
   margin-top: 0.75rem;
 }
 
+.-mt-7 {
+  margin-top: -1.75rem;
+}
+
+.-mt-\[150px\] {
+  margin-top: -150px;
+}
+
+.-mt-\[144px\] {
+  margin-top: -144px;
+}
+
+.-mt-\[146px\] {
+  margin-top: -146px;
+}
+
 .box-content {
   box-sizing: content-box;
 }

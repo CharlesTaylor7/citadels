@@ -8,6 +8,7 @@ use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
 use std::borrow::{Borrow, Cow};
+use std::clone;
 
 #[derive(Template)]
 #[template(path = "game/city.html")]
@@ -37,15 +38,22 @@ impl<'a> CityRootTemplate<'a> {
             )
         };
 
+        let mut columns = vec![Vec::new(); 5];
+        for card in &player.city {
+            let template = DistrictTemplate::from_city(card);
+            let index = template.suit as usize;
+
+            columns[index].push(template);
+        }
+        for column in columns.iter_mut() {
+            column.sort_by_key(|template| template.cost);
+        }
+
         Ok(Self {
             city: CityTemplate {
                 header,
                 tooltip_class,
-                districts: player
-                    .city
-                    .iter()
-                    .map(DistrictTemplate::from_city)
-                    .collect::<Vec<_>>(),
+                columns,
             },
         })
     }
@@ -81,6 +89,7 @@ pub struct MagicSwapPlayerMenu<'a> {
 #[template(path = "game/menus/magic-swap-deck.html")]
 pub struct MagicSwapDeckMenu {}
 
+#[derive(Clone)]
 pub struct ImageAssetTemplate {
     brightness: f64,
     height: f64,
@@ -214,8 +223,8 @@ struct MiscTemplate {
 
 pub struct CityTemplate<'a> {
     header: Cow<'a, str>,
-    districts: Vec<DistrictTemplate>,
     tooltip_class: Cow<'a, str>,
+    columns: Vec<Vec<DistrictTemplate>>,
 }
 
 #[derive(Template)]
@@ -305,6 +314,7 @@ impl<'a> PlayerTemplate<'a> {
     }
 }
 
+#[derive(Clone)]
 pub struct DistrictTemplate {
     pub name: &'static str,
     pub cost: usize,

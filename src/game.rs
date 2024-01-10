@@ -293,8 +293,7 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
 
-            /*
-            for card in game.deck.draw_many(7) {
+            for card in game.deck.draw_many(20) {
                 if card == DistrictName::SecretVault {
                     continue;
                 }
@@ -303,7 +302,6 @@ impl Game {
                     beautified: false,
                 });
             }
-            */
 
             // deal out hands randomly
             /*
