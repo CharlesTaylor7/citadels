@@ -1,10 +1,19 @@
-use std::fmt::Debug;
+use std::{borrow::Cow, fmt::Debug};
 
-use crate::types::CardSuit;
+use crate::{actions::ActionTag, types::CardSuit};
 
 pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
     Ok(format!("{:#?}", item))
 }
+
+pub fn class(item: &ActionTag) -> askama::Result<&'static str> {
+    let cls = match item {
+        ActionTag::EndTurn => "btn-error",
+        _ => "btn-secondary",
+    };
+    Ok(cls)
+}
+
 pub fn suit_bg_character(suit: &Option<CardSuit>) -> askama::Result<&'static str> {
     match suit.as_ref() {
         Some(suit) => suit_bg_color(suit),

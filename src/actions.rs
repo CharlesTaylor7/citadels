@@ -1,4 +1,4 @@
-use crate::game::Player;
+use crate::game::{Game, Player};
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
 use macros::tag::Tag;

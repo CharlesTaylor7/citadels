@@ -58,6 +58,7 @@ pub struct SelectRoleMenu<'a> {
     pub roles: Vec<RoleTemplate>,
     pub action: ActionTag,
     pub header: Cow<'a, str>,
+    pub context: GameContext,
 }
 
 // for building
@@ -76,6 +77,26 @@ pub struct ImageAssetTemplate {
     path: &'static str,
 }
 
+pub struct GameContext {
+    allowed_actions: Vec<ActionTag>,
+}
+
+impl GameContext {
+    pub fn from_game(game: &game::Game) -> Self {
+        Self {
+            allowed_actions: game.allowed_actions(),
+        }
+    }
+
+    pub fn enabled(&self, action: &ActionTag) -> bool {
+        self.allowed_actions.contains(action)
+    }
+
+    pub fn disabled(&self, action: &ActionTag) -> bool {
+        !self.enabled(action)
+    }
+}
+
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
@@ -87,6 +108,7 @@ pub struct GameTemplate<'a> {
     my: &'a PlayerTemplate<'a>,
     misc: MiscTemplate,
     city: CityTemplate<'a>,
+    context: GameContext,
 }
 
 impl<'a> GameTemplate<'a> {
@@ -102,8 +124,10 @@ impl<'a> GameTemplate<'a> {
             .iter()
             .map(|p| PlayerInfoTemplate::from(p, game))
             .collect();
-
+        let MenuTemplate { menu, context } = MenuTemplate::from(game);
         GameTemplate {
+            menu,
+            context,
             logs: &game.logs,
             characters: &game.characters,
             city: CityRootTemplate::from(
@@ -117,7 +141,6 @@ impl<'a> GameTemplate<'a> {
                 deck: game.deck.size(),
                 timer: None,
             },
-            menu: MenuTemplate::from(game).menu,
             players: &players,
             active_name: &active_player.name.0,
             my: player_template.borrow(),
@@ -140,10 +163,14 @@ fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a 
 #[template(path = "game/menu.html")]
 pub struct MenuTemplate<'a> {
     menu: MainTemplate<'a>,
+    context: GameContext,
 }
 impl<'a> MenuTemplate<'a> {
     pub fn from(game: &'a game::Game) -> Self {
         Self {
+            context: GameContext {
+                allowed_actions: game.allowed_actions(),
+            },
             menu: MainTemplate {
                 header: if game.active_turn.draft().is_some() {
                     Cow::Borrowed("Draft")
@@ -302,7 +329,7 @@ pub enum MenuView {
         actions: Vec<ActionTag>,
     },
     Call {
-        actions: Vec<ActionTag>,
+        abilities: Vec<ActionTag>,
     },
     Followup {
         action: ActionTag,
@@ -312,11 +339,21 @@ pub enum MenuView {
 
 impl MenuView {
     pub fn from(game: &Game) -> Self {
-        let actions = game.allowed_actions();
+        let allowed = game.allowed_actions();
+        let abilities = game
+            .allowed_actions()
+            .iter()
+            .cloned()
+            .filter(|a| {
+                !a.is_resource_gathering() && *a != ActionTag::Build && *a != ActionTag::EndTurn
+            })
+            .collect();
+        log::warn!("{:#?}", abilities);
+
         match game.active_turn {
-            Turn::GameOver => MenuView::Call { actions },
+            Turn::GameOver => MenuView::Call { abilities },
             Turn::Draft(_) => MenuView::Draft {
-                actions,
+                actions: allowed,
                 roles: game
                     .draft
                     .remaining
@@ -341,7 +378,7 @@ impl MenuView {
                         .collect(),
                 },
 
-                None => MenuView::Call { actions },
+                None => MenuView::Call { abilities },
             },
         }
     }

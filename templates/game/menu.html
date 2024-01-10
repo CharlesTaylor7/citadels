@@ -1,13 +1,44 @@
 <section
   id="menu"
-  class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
+  class="p-2 bg-neutral-content grow flex flex-col gap-2 border border-base-200"
 >
-  <h2 class="m-2 underline text-lg font-semibold">
+  <h2 class="header">
     {{ menu.header }}
   </h2>
   {% match menu.view %} 
+  {% when MenuView::Call { abilities } %}
+    <div class="grid grid-cols-2 gap-2 items-center">
+      <div class="justify-self-end">
+        Gather Resources
+      </div>
+      <div class="flex flex-row gap-2">
+        {% set action = ActionTag::GatherResourceGold %}
+        {% include "action.html" %}
+        {% set action = ActionTag::GatherResourceCards %}
+        {% include "action.html" %}
+      </div>
+      <div class="justify-self-end">
+        Build
+      </div>
+      <div>
+        {% set action = ActionTag::Build %}
+        {% include "action.html" %}
+      </div>
+      <div class="justify-self-end">
+        Abilities
+      </div>
+      <div class="flex flex-row flex-wrap gap-2">
+        {% for action in abilities %}
+          {% include "action.html" %}
+        {% endfor %}
+      </div>
+      <div></div>
+      <div class="">
+        {% set action = ActionTag::EndTurn %}
+        {% include "action.html" %}
+      <div>
+    </div>
   {% when MenuView::Draft with { actions, roles, discard } %}
-
     <div class="flex flex-row flex-wrap gap-2">
       {% set input_type = "radio" %} 
       {% set disabled = false %} 
@@ -17,7 +48,7 @@
     </div>
     <div class="flex flex-row flex-wrap gap-2">
       {% for action in actions %}
-      {% include "action.html" %}
+        {% include "action.html" %}
       {% endfor %}
     </div>
   {% when MenuView::Followup with { action, revealed} %}
@@ -37,14 +68,8 @@
         name="action"
         value="{{ action|debug }}"
       >
-        Confirm
+        Pick
       </button>
-    </div>
-  {% when MenuView::Call { actions } %}
-    <div class="flex flex-row flex-wrap gap-2">
-      {% for action in actions %}
-      {% include "action.html" %}
-      {% endfor %}
     </div>
   {% endmatch %}
 </section>

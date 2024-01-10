@@ -236,6 +236,7 @@ async fn submit_game_action(
             match action {
                 ActionTag::Assassinate => {
                     let rendered = SelectRoleMenu {
+                        context: GameContext::from_game(game),
                         roles: game
                             .characters
                             .iter()
@@ -250,6 +251,7 @@ async fn submit_game_action(
                 }
                 ActionTag::Steal => {
                     let rendered = SelectRoleMenu {
+                        context: GameContext::from_game(game),
                         roles: game
                             .characters
                             .iter()
