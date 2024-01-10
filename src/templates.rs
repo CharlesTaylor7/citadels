@@ -363,6 +363,12 @@ impl DistrictTemplate {
             DistrictName::Quarry => (1.3, 0.236, 0.5),
             DistrictName::HauntedQuarter => (1.3, 0.236, 0.4),
             DistrictName::GreatWall => (1.3, 0.236, 0.2),
+            DistrictName::WishingWell => (1.3, 0.236, 0.2),
+            DistrictName::Church => (1.3, 0.236, 0.4),
+            DistrictName::Manor => (1.3, 0.236, 0.2),
+            DistrictName::Tavern => (1.3, 0.236, 0.4),
+            DistrictName::Docks => (1.3, 0.236, 0.4),
+            DistrictName::Library => (1.0, 0.27, 0.3),
             _ => (1.3, 0.236, 0.0),
         }
     }
