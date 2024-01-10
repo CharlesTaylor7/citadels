@@ -32,7 +32,7 @@ impl<'a> CityRootTemplate<'a> {
             ("".into(), "My City".into())
         } else {
             (
-                "tooltip-open tooltip-bottom".into(),
+                "tooltip-open".into(),
                 format!("{}'s City", player_name).into(),
             )
         };

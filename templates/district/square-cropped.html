@@ -33,9 +33,17 @@
     {% endif %}
   </code>
   <div
+    data-tip="{{ district.description|def }}"
     class="
       absolute top-0 
       w-full text-center 
+      {% if district.description.is_some() %}
+      tooltip
+      {{ tooltip_class }}
+      tooltip-bottom
+      tooltip-secondary
+      before:max-w-full
+      {% endif %}
     "
   >
     <span class="
