@@ -290,6 +290,14 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
             // deal out city districts randomly
+            for i in 0..7_usize {
+                p.city.push(CityDistrict {
+                    beautified: false,
+                    name: unsafe { std::mem::transmute(i) },
+                });
+            }
+
+            /*
             for card in game.deck.draw_many(7) {
                 if card == DistrictName::SecretVault {
                     continue;
@@ -299,6 +307,7 @@ impl Game {
                     beautified: false,
                 });
             }
+            */
 
             // deal out hands randomly
             /*

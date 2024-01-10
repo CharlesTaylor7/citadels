@@ -311,13 +311,20 @@ pub struct DistrictTemplate {
     pub suit: CardSuit,
     pub description: Option<&'static str>,
     pub beautified: bool,
-    pub image_offset_x: f64,
-    pub image_offset_y: f64,
+    pub asset: ImageAssetTemplate,
 }
 
 impl DistrictTemplate {
     pub fn from(district: DistrictName) -> Self {
         let data = district.data();
+        let length = 150.0;
+        let scale = 10.0;
+        let (p_x, p_y) = Self::percentage_offset(district);
+        let offset_x = p_x * length;
+        let offset_y = p_y * length;
+
+        let full_height = length * scale / 5.0;
+        let full_width = length * (125.8 / 200.0) * (scale / 5.0);
         Self {
             name: data.display_name,
             cost: data.cost,
@@ -325,8 +332,14 @@ impl DistrictTemplate {
             suit: data.suit,
             description: data.description,
             beautified: false,
-            image_offset_x: -125.8 * (district as usize % 10) as f64,
-            image_offset_y: -200.0 * (district as usize / 10) as f64,
+            asset: ImageAssetTemplate {
+                path: "/public/districts.jpeg",
+                height: length,
+                width: length,
+                scale_percentage: scale * 100.0,
+                offset_x: -offset_x + -full_width * (district as usize % 10) as f64,
+                offset_y: -offset_y + -full_height * (district as usize / 10) as f64,
+            },
         }
     }
 
@@ -334,6 +347,12 @@ impl DistrictTemplate {
         let mut template = Self::from(district.name);
         template.beautified = district.beautified;
         template
+    }
+
+    fn percentage_offset(district: DistrictName) -> (f64, f64) {
+        match district {
+            _ => (0.25, 0.4),
+        }
     }
 }
 

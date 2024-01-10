@@ -1,0 +1,20 @@
+<label
+  class="
+    relative
+    select-none
+    cursor-pointer
+  "
+>
+  <input
+  type="{{ input_type }}"
+  class="peer hidden"
+  name="district"
+  value="{{ district.value }}"
+  {% if disabled %}
+  disabled
+  {% endif %}
+
+  />
+  {% set asset = district.asset %}
+  {% include "image-asset.html" %}
+</label>
