@@ -62,7 +62,7 @@
       {% set context = "revealed" %}
       {% set tooltip_class = "" %}
       {% for (index, district) in revealed.iter().enumerate() %} 
-        {% include "district-card.html" %} 
+        {% include "district/square-cropped.html" %} 
       {% endfor %}
     </div>
     <div class="flex flex-row flex-wrap gap-2">

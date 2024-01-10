@@ -1,6 +1,6 @@
 <section
   id="hand"
-  class="max-h-[300px] p-2 bg-neutral-content flex flex-col overflow-y-scroll border border-base-200"
+  class="min-h-[270px] max-h-[300px] p-2 bg-neutral-content flex flex-col overflow-y-scroll border border-base-200"
 >
   <h2 class="header">
     My Hand
@@ -11,7 +11,7 @@
       {% set context = "hand" %}
       {% set tooltip_class = "" %}
       {% for (index, district) in my.hand.iter().enumerate() %} 
-        {% include "district-card.html" %} 
+        {% include "district/square-cropped.html" %} 
       {% endfor %}
   </div>
 </section>
