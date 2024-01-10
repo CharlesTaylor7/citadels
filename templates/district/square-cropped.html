@@ -57,4 +57,17 @@
       {{ district.name }} 
     </span>
   </div>
+  {% if district.beautified %}
+    <div 
+        data-tip="Beautified by the Artist. Effective cost of {{ district.cost + 1 }}"
+        class="
+          absolute right-2 top-1 
+          tooltip tooltip-secondary 
+          text-2xl 
+        "
+    > 
+        ✨
+    </div>
+  {% endif %}
+ 
 </label>
