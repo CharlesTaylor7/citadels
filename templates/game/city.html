@@ -11,7 +11,7 @@
       {% let disabled = false %}
       {% set tooltip_class = city.tooltip_class %}
       {% for column in city.columns %} 
-        <div class="flex flex-col">
+        <div>
           {% for (i, district) in column.iter().enumerate() %} 
             <div 
               {% if i > 0 %}

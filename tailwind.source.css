@@ -4,8 +4,7 @@
 
 @layer components {
   .tooltip:before {
-    whitespace: pre;
-    content: attr(data-tip);
+    @apply z-20;
   }
 
   .header {
