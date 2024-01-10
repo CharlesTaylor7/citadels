@@ -1,7 +1,7 @@
 pub mod filters;
 use crate::actions::ActionTag;
 use crate::districts::DistrictName;
-use crate::game::{CityDistrict, FollowupAction, Game, Turn};
+use crate::game::{CityDistrict, FollowupAction, Game, GameRole, Turn};
 use crate::roles::RoleName;
 use crate::types::{CardSuit, PlayerName};
 use crate::{game, lobby};
@@ -83,7 +83,7 @@ pub struct ImageAssetTemplate {
 pub struct GameTemplate<'a> {
     logs: &'a [String],
     menu: MainTemplate<'a>,
-    characters: Vec<RoleTemplate>,
+    characters: &'a [GameRole],
     players: &'a [PlayerInfoTemplate<'a>],
     active_name: &'a str,
     my: &'a PlayerTemplate<'a>,
@@ -107,13 +107,7 @@ impl<'a> GameTemplate<'a> {
 
         GameTemplate {
             logs: &game.logs,
-            characters: game
-                .characters
-                .iter()
-                .map(|c| c.role)
-                .map(RoleTemplate::from)
-                .collect(),
-
+            characters: &game.characters,
             city: CityRootTemplate::from(
                 myself.map(|p| Cow::Borrowed(&p.name)).unwrap_or_default(),
                 game,
@@ -240,7 +234,11 @@ impl<'a> PlayerTemplate<'a> {
                     .cloned()
                     .map(DistrictTemplate::from)
                     .collect::<Vec<_>>(),
-                roles: p.roles.iter().cloned().map(RoleTemplate::from).collect(),
+                roles: p
+                    .roles
+                    .iter()
+                    .map(|r| RoleTemplate::from(*r, 150.0))
+                    .collect(),
             }
         } else {
             Self {
@@ -351,15 +349,13 @@ impl<'a> MenuView<'a> {
                     .draft
                     .remaining
                     .iter()
-                    .cloned()
-                    .map(RoleTemplate::from)
+                    .map(|r| RoleTemplate::from(*r, 200.0))
                     .collect::<Vec<_>>(),
                 discard: game
                     .draft
                     .faceup_discard
                     .iter()
-                    .cloned()
-                    .map(RoleTemplate::from)
+                    .map(|r| RoleTemplate::from(*r, 200.0))
                     .collect::<Vec<_>>(),
             },
 
@@ -398,8 +394,10 @@ pub struct RoleTemplate {
 }
 
 impl RoleTemplate {
-    pub fn from(role: RoleName) -> Self {
+    pub fn from(role: RoleName, height: f64) -> Self {
         let data = role.data();
+        let width = height * 155.0 / 200.0;
+        let full_height = height * 265.0 / 200.0;
         Self {
             name: role.display_name(),
             rank: data.rank,
@@ -408,11 +406,11 @@ impl RoleTemplate {
             description: data.description,
             asset: ImageAssetTemplate {
                 path: "/public/roles.jpeg",
-                height: 200.0,
-                width: 155.0,
+                height,
+                width,
                 scale_percentage: 400.0,
-                offset_x: -155.0 * (role as usize % 10) as f64,
-                offset_y: -265.0 * (role as usize / 10) as f64,
+                offset_x: -width * (role as usize % 10) as f64,
+                offset_y: -full_height * (role as usize / 10) as f64,
             },
         }
     }

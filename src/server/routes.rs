@@ -230,7 +230,7 @@ async fn submit_game_action(
                             .characters
                             .iter()
                             .filter(|c| c.role.rank() > 1)
-                            .map(|c| RoleTemplate::from(c.role))
+                            .map(|c| RoleTemplate::from(c.role, 150.0))
                             .collect(),
                         header: "Assassin".into(),
                         confirm: "Assassinate".into(),

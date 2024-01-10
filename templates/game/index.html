@@ -21,7 +21,8 @@
 
       <div class="flex flex-col gap-2">
         <div class="italic text-sm">Hover over a role for details</div>
-        {% for role in characters %}
+        {% for character in characters %}
+        {% set role = character.role.data() %}
           <div
             data-tip="{{ role.description }}"
             class="
@@ -30,7 +31,7 @@
               tooltip tooltip-right tooltip-secondary
             "
           >
-            {{ role.rank }}. {{ role.name }}
+            {{ role.rank }}. {{ role.name.display_name() }}
           </div>
         {% endfor %}
       </div>
