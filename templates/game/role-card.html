@@ -14,26 +14,9 @@
     disabled
     {% endif %}
   />
-  <svg 
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    height="200"
-    width="155" 
-    class="
-      p-1 box-content
-      rounded-xl
-      peer-checked:p-0
-      peer-checked:border
-      peer-checked:border-4
-      peer-checked:border-success
-    "
-  >
-    <image id="img" x="{{role.image_offset_x}}" y="{{role.image_offset_y}}"
-          height="400%"
-          xlink:href="/public/roles.jpeg"
-          preserveAspectRatio="xMinYMin slice"
-    />
-  </svg>
+
+  {% set asset = role.asset %}
+  {% include "image-asset.html" %}
   <div
     data-tip="{{ role.description }}"
     class="

@@ -69,6 +69,15 @@ pub struct BuildMenu {
     pub unit: (),
 }
 
+pub struct ImageAssetTemplate {
+    height: f64,
+    width: f64,
+    offset_x: f64,
+    offset_y: f64,
+    scale_percentage: f64,
+    path: &'static str,
+}
+
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
@@ -385,8 +394,7 @@ pub struct RoleTemplate {
     pub value: String,
     pub suit: Option<CardSuit>,
     pub description: &'static str,
-    pub image_offset_x: f64,
-    pub image_offset_y: f64,
+    pub asset: ImageAssetTemplate,
 }
 
 impl RoleTemplate {
@@ -398,8 +406,14 @@ impl RoleTemplate {
             value: format!("{:#?}", role),
             suit: data.suit,
             description: data.description,
-            image_offset_x: -155.0 * (role as usize % 10) as f64,
-            image_offset_y: -265.0 * (role as usize / 10) as f64,
+            asset: ImageAssetTemplate {
+                path: "/public/roles.jpeg",
+                height: 200.0,
+                width: 155.0,
+                scale_percentage: 400.0,
+                offset_x: -155.0 * (role as usize % 10) as f64,
+                offset_y: -265.0 * (role as usize / 10) as f64,
+            },
         }
     }
 }
