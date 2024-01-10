@@ -58,7 +58,7 @@
 ## UI
 - [ ] Action menus
 - [ ] Rethink daisyui theme. Maybe something more blue than beige.
-- [ ] Action log front and center
+- [x] Action log 
 - [x] Mark who's hand + city I'm looking at.
 - [ ] Point estimate for a player's city
 - [ ] Game end overlay with player scores
@@ -71,6 +71,8 @@
 
 - [ ] Show errors inline
         - https://stackoverflow.com/a/73615279/4875161
+- [ ] Show confirmation messages inline
+- [ ] Preview how much you would gain from "gain gold from suit x"
 - [ ] Player resource summary
     - [x] Highlight active player
     - [x] hand size
@@ -82,7 +84,6 @@
         - completed city: gold for first,
         - completed city: participation trophy for others
 
+- [ ] Finish out menus, and send site to Logan, William, and Brianna for review,
+- [ ] Crop each district down to a square image, and put its background image onto the square card mockups you built earlier.
 
-## QA / Playtesting
-- [ ] Manually test interactions for every role
-- [ ] For every  unique districts.

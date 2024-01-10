@@ -245,6 +245,7 @@ pub struct PlayerInfoTemplate<'a> {
     pub crowned: bool,
     pub complete_city: bool,
     pub first_complete_city: bool,
+    pub score: usize,
 }
 
 impl<'a> PlayerInfoTemplate<'a> {
@@ -260,6 +261,7 @@ impl<'a> PlayerInfoTemplate<'a> {
                 .as_ref()
                 .is_some_and(|c| c == player.name),
             complete_city: player.city.len() >= game.complete_city_size(),
+            score: game.public_score(player),
         }
     }
 }

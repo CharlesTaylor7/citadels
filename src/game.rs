@@ -272,15 +272,13 @@ impl Game {
 
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
-            /*
             // deal out city districts randomly
-            for card in game.deck.draw_many(10) {
+            for card in game.deck.draw_many(7) {
                 p.city.push(CityDistrict {
                     name: card,
                     beautified: false,
                 });
             }
-            */
 
             // deal out hands randomly
             /*
@@ -290,7 +288,7 @@ impl Game {
             */
         }
 
-        game.active_turn = Turn::Call(3);
+        game.active_turn = Turn::Call(1);
         game.start_turn().ok()?;
 
         Some(game)
