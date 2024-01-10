@@ -64,9 +64,22 @@ pub struct SelectRoleMenu<'a> {
 // for building
 #[derive(Template)]
 #[template(path = "game/menus/build.html")]
-pub struct BuildMenu {
-    pub unit: (),
+pub struct BuildMenu {}
+
+// for magician
+#[derive(Template)]
+#[template(path = "game/menus/magic.html")]
+pub struct MagicMenu {}
+
+#[derive(Template)]
+#[template(path = "game/menus/magic-swap-player.html")]
+pub struct MagicSwapPlayerMenu<'a> {
+    pub players: Vec<&'a str>,
 }
+
+#[derive(Template)]
+#[template(path = "game/menus/magic-swap-deck.html")]
+pub struct MagicSwapDeckMenu {}
 
 pub struct ImageAssetTemplate {
     height: f64,

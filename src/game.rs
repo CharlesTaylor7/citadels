@@ -283,12 +283,14 @@ impl Game {
             */
 
             // deal out hands randomly
+            /*
             for card in game.deck.draw_many(4) {
                 p.hand.push(card);
             }
+            */
         }
 
-        game.active_turn = Turn::Call(1);
+        game.active_turn = Turn::Call(3);
         game.start_turn().ok()?;
 
         Some(game)
@@ -846,9 +848,9 @@ impl Game {
                 }
             }
 
-            Action::Magic(MagicianAction::TargetDeck { discard }) => {
+            Action::Magic(MagicianAction::TargetDeck { district }) => {
                 let active = self.active_player_mut()?;
-                let discard = discard.to_vec();
+                let discard = district.to_vec();
                 let backup = active.hand.clone();
 
                 for card in discard.iter() {

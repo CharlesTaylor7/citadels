@@ -14,7 +14,7 @@ use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use http::StatusCode;
 use log::*;
 use serde::Deserialize;
-use std::borrow::Cow;
+use std::borrow::{Borrow, Cow};
 use std::mem;
 use tower_http::services::ServeDir;
 use uuid::Uuid;
@@ -33,6 +33,7 @@ pub fn get_router() -> Router {
         .route("/game/logs", get(get_game_logs))
         .route("/game", post(start))
         .route("/game/action", post(submit_game_action))
+        .route("/game/menu/:menu", get(get_game_menu))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
 }
@@ -266,12 +267,52 @@ async fn submit_game_action(
                     .to_html()?;
                     Ok(rendered.into_response())
                 }
+                ActionTag::Magic => {
+                    let rendered = MagicMenu {}.to_html()?;
+                    Ok(rendered.into_response())
+                }
                 ActionTag::Build => {
-                    let rendered = BuildMenu { unit: () }.to_html()?;
+                    let rendered = BuildMenu {}.to_html()?;
                     Ok(rendered.into_response())
                 }
                 _ => Ok("not implemented".into_response()),
             }
         }
+    }
+}
+
+async fn get_game_menu(
+    app: State<AppState>,
+    cookies: PrivateCookieJar,
+    path: Path<String>,
+) -> Result<Response> {
+    let cookie = cookies.get("player_id").ok_or("missing cookie")?;
+    let mut game = app.game.lock().unwrap();
+    let game = game.as_mut().ok_or("game hasn't started")?;
+
+    let active_player = game.active_player()?;
+
+    if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
+        return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
+    }
+
+    match path.0.borrow() {
+        "magic-swap-deck" => {
+            let rendered = MagicSwapDeckMenu {}.to_html()?;
+            Ok(rendered.into_response())
+        }
+        "magic-swap-player" => {
+            let rendered = MagicSwapPlayerMenu {
+                players: game
+                    .players
+                    .iter()
+                    .filter(|p| active_player.id != p.id)
+                    .map(|p| p.name.0.borrow())
+                    .collect::<Vec<_>>(),
+            }
+            .to_html()?;
+            Ok(rendered.into_response())
+        }
+        _ => todo!(),
     }
 }
