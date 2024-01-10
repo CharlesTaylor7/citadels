@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-tooltip:before {
+.tooltip:before {
   whitespace: pre;
   content: attr(data-tip);
+}
+
+.header {
+  @apply m-2 underline text-lg font-semibold w-full text-center;
 }

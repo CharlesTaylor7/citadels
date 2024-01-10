@@ -1,0 +1,15 @@
+<section
+  id="my-roles"
+  class="h-full overflow-x-none overflow-y-scroll p-2 bg-neutral-content flex flex-col border border-base-200"
+>
+  <h2 class="header">
+    My Roles
+  </h2>
+  <div class="flex flex-row gap-2">
+    {% set input_type = "checkbox" %}
+    {% set disabled = true %}
+    {% for role in my.roles %} 
+      {% include "role-card.html" %} 
+    {% endfor %} 
+  </div>
+</section>

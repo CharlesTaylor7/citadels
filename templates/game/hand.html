@@ -2,16 +2,13 @@
   id="hand"
   class="max-h-[300px] p-2 bg-neutral-content flex flex-col overflow-y-scroll border border-base-200"
 >
-  <h2 class="m-2 underline m-2 text-lg font-semibold w-full text-center">
+  <h2 class="header">
     My Hand
   </h2>
   <div class="flex flex-row flex-wrap w-full gap-2">
       {% set input_type = "checkbox" %}
       {% set disabled = true %}
       {% set context = "hand" %}
-      {% for role in my.roles %} 
-        {% include "role-card.html" %} 
-      {% endfor %} 
       {% set tooltip_class = "" %}
       {% for (index, district) in my.hand.iter().enumerate() %} 
         {% include "district-card.html" %} 

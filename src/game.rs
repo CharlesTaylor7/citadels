@@ -283,7 +283,7 @@ impl Game {
             */
 
             // deal out hands randomly
-            for card in game.deck.draw_many(5) {
+            for card in game.deck.draw_many(4) {
                 p.hand.push(card);
             }
         }
