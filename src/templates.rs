@@ -117,18 +117,7 @@ impl<'a> GameTemplate<'a> {
                 deck: game.deck.size(),
                 timer: None,
             },
-            menu: MainTemplate {
-                header: Cow::Borrowed({
-                    if game.active_turn.draft().is_some() {
-                        "Draft"
-                    } else if (game.followup).is_some() {
-                        "Select"
-                    } else {
-                        "Actions"
-                    }
-                }),
-                view: MenuView::from(game),
-            },
+            menu: MenuTemplate::from(game).menu,
             players: &players,
             active_name: &active_player.name.0,
             my: player_template.borrow(),
@@ -145,6 +134,30 @@ fn get_myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a
 #[cfg(not(feature = "dev"))]
 fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
     player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
+}
+
+#[derive(Template)]
+#[template(path = "game/menu.html")]
+pub struct MenuTemplate<'a> {
+    menu: MainTemplate<'a>,
+}
+impl<'a> MenuTemplate<'a> {
+    pub fn from(game: &'a game::Game) -> Self {
+        Self {
+            menu: MainTemplate {
+                header: Cow::Borrowed({
+                    if game.active_turn.draft().is_some() {
+                        "Draft"
+                    } else if (game.followup).is_some() {
+                        "Select"
+                    } else {
+                        "Actions"
+                    }
+                }),
+                view: MenuView::from(game),
+            },
+        }
+    }
 }
 
 pub struct MainTemplate<'a> {

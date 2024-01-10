@@ -16,17 +16,20 @@
     <button 
       class="btn btn-secondary"
       hx-post="/game/action"
+      hx-swap="outerHTML"
+      hx-target="#menu"
       name="action"
       value="Build"
     >
       Build 
     </button>
     <button 
-        class="btn btn-secondary"
-        hx-get="/game/actions"
-        value="Build"
-      >
-      Cancel 
+      class="btn btn-accent"
+      hx-get="/game/actions"
+      hx-swap="outerHTML"
+      hx-target="#menu"
+    >
+      Cancel
     </button>
   </div>
 </section>

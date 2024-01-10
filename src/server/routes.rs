@@ -144,10 +144,20 @@ pub async fn game(
 }
 
 pub async fn get_game_actions(
-    _app: State<AppState>,
-    _cookies: PrivateCookieJar,
+    app: State<AppState>,
+    cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
-    todo!()
+    let cookie = cookies.get("player_id").ok_or("missing cookie")?;
+    let mut game = app.game.lock().unwrap();
+    let game = game.as_mut().ok_or("game hasn't started")?;
+
+    let active_player = game.active_player()?;
+
+    if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
+        return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
+    }
+
+    MenuTemplate::from(game).to_html()
 }
 
 pub async fn get_game_city(
