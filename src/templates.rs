@@ -62,6 +62,13 @@ pub struct SelectRoleMenu<'a> {
     pub confirm: Cow<'a, str>,
 }
 
+// for building
+#[derive(Template)]
+#[template(path = "game/menus/build.html")]
+pub struct BuildMenu {
+    pub unit: (),
+}
+
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {

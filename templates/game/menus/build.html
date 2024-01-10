@@ -1,0 +1,32 @@
+<section
+  id="menu"
+  class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
+  _="
+    init
+      remove @disabled from <#hand input[name=district]/>
+      add @type=radio to <#hand input[name=district]/>
+  "
+>
+  <h2 class="m-2 underline text-lg font-semibold">
+    Build
+  </h2>
+
+  Select a district from your hand to build
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="Build"
+    >
+      Build 
+    </button>
+    <button 
+        class="btn btn-secondary"
+        hx-get="/game/actions"
+        value="Build"
+      >
+      Cancel 
+    </button>
+  </div>
+</section>
