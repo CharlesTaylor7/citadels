@@ -2,11 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-.tooltip:before {
-  whitespace: pre;
-  content: attr(data-tip);
-}
+@layer components {
+  .tooltip:before {
+    whitespace: pre;
+    content: attr(data-tip);
+  }
 
-.header {
-  @apply m-2 underline text-lg font-semibold w-full text-center;
+  .header {
+    @apply m-2 underline text-lg font-semibold w-full text-center;
+  }
 }

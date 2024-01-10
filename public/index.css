@@ -1859,6 +1859,21 @@ html {
   --tooltip-text-color: var(--fallback-sc,oklch(var(--sc)/1));
 }
 
+.tooltip:before {
+  whitespace: pre;
+  content: attr(data-tip);
+}
+
+.header {
+  margin: 0.5rem;
+  width: 100%;
+  text-align: center;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  text-decoration-line: underline;
+}
+
 .static {
   position: static;
 }
@@ -2210,21 +2225,6 @@ html {
 }
 
 .underline {
-  text-decoration-line: underline;
-}
-
-.tooltip:before {
-  whitespace: pre;
-  content: attr(data-tip);
-}
-
-.header {
-  margin: 0.5rem;
-  width: 100%;
-  text-align: center;
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-  font-weight: 600;
   text-decoration-line: underline;
 }
 
