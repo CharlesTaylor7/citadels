@@ -273,11 +273,15 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
             // deal out city districts randomly
-            for card in game.deck.draw_many(3) {
+            for card in game.deck.draw_many(8) {
                 p.city.push(CityDistrict {
                     name: card,
                     beautified: false,
                 });
+            }
+
+            for card in game.deck.draw_many(8) {
+                p.hand.push(card);
             }
         }
 
