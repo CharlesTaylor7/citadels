@@ -3,7 +3,7 @@ use crate::game::Game;
 use crate::server::state::AppState;
 use crate::templates::GameTemplate;
 use crate::templates::*;
-use crate::types::PlayerName;
+use crate::types::{Marker, PlayerName};
 use askama::Template;
 use axum::extract::{Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
@@ -232,9 +232,24 @@ async fn submit_game_action(
                             .filter(|c| c.role.rank() > 1)
                             .map(|c| RoleTemplate::from(c.role, 150.0))
                             .collect(),
-                        header: "Assassin".into(),
-                        confirm: "Assassinate".into(),
+                        header: "Select a role".into(),
                         action: ActionTag::Assassinate,
+                    }
+                    .to_html()?;
+                    Ok(rendered.into_response())
+                }
+                ActionTag::Steal => {
+                    let rendered = SelectRoleMenu {
+                        roles: game
+                            .characters
+                            .iter()
+                            .filter(|c| {
+                                c.role.rank() > 2 && c.markers.iter().all(|m| *m != Marker::Killed)
+                            })
+                            .map(|c| RoleTemplate::from(c.role, 150.0))
+                            .collect(),
+                        header: "Select a role".into(),
+                        action: ActionTag::Steal,
                     }
                     .to_html()?;
                     Ok(rendered.into_response())

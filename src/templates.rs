@@ -7,7 +7,6 @@ use crate::types::{CardSuit, PlayerName};
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
-use log::*;
 use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]
@@ -59,7 +58,6 @@ pub struct SelectRoleMenu<'a> {
     pub roles: Vec<RoleTemplate>,
     pub action: ActionTag,
     pub header: Cow<'a, str>,
-    pub confirm: Cow<'a, str>,
 }
 
 // for building

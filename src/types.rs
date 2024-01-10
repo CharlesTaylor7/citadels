@@ -26,7 +26,7 @@ pub enum CardSet {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Marker {
-    Assassinated,
+    Killed,
     Bewitched,
     Robbed,
     Threat { flowered: bool },

@@ -532,7 +532,7 @@ impl Game {
             let role = c.role.clone();
             logs.push(format!("Calling {}", c.role.display_name()));
 
-            if c.markers.iter().any(|m| *m == Marker::Assassinated) {
+            if c.markers.iter().any(|m| *m == Marker::Killed) {
                 logs.push(format!("They were killed; their turn is skipped."));
                 continue;
             }
@@ -775,7 +775,7 @@ impl Game {
                     .find(|c| c.role == *role)
                     .ok_or("target is not valid")?;
 
-                target.markers.push(Marker::Assassinated);
+                target.markers.push(Marker::Killed);
 
                 ActionOutput {
                     log: format!(
@@ -801,7 +801,7 @@ impl Game {
                 if target
                     .markers
                     .iter()
-                    .any(|marker| *marker == Marker::Assassinated)
+                    .any(|marker| *marker == Marker::Killed)
                 {
                     return Err("cannot rob from the dead".into());
                 }
@@ -1232,7 +1232,7 @@ impl Game {
         // triggered actions
         let rank = 4;
         let character = &self.characters[rank as usize - 1];
-        if character.markers.iter().any(|m| *m == Marker::Assassinated) {
+        if character.markers.iter().any(|m| *m == Marker::Killed) {
             if let Some((player, role)) = self.players.iter().find_map(|p| {
                 p.roles
                     .iter()
