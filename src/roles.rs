@@ -33,7 +33,7 @@ impl Rank {
         }
     }
     pub fn to_index(&self) -> usize {
-        *self as usize - 1
+        *self as usize
     }
 }
 
@@ -171,6 +171,12 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> impl Iterator<Item
     let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
 
     for r in crate::roles::ROLES {
+        log::info!(
+            "{} has rank {} with index {}",
+            r.name.display_name(),
+            r.rank,
+            r.rank as u8
+        );
         if r.name.enabled() && num_players >= r.name.min_player_count() {
             grouped_by_rank[r.rank.to_index()].push(r.name)
         }
