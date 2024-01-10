@@ -214,6 +214,7 @@ impl Game {
     }
 
     pub fn public_score(&self, player: &Player) -> usize {
+        log::info!("Scoring {}", player.name);
         let mut score = 0;
         let mut counts: [usize; 5] = [0, 0, 0, 0, 0];
 
@@ -222,6 +223,8 @@ impl Game {
             score += card.effective_cost();
             counts[card.name.data().suit as usize] += 1;
         }
+
+        log::info!("Total cost: {}", score);
 
         // uniques
         for card in &player.city {
@@ -245,11 +248,14 @@ impl Game {
             }
         }
 
+        log::info!("With uniques: {}", score);
+
         // one district of each type: 3 points
         if counts.iter().all(|s| *s > 0) {
             score += 3;
         }
 
+        log::info!("One of each: {}", score);
         // first_to_complete: 4
         if self
             .first_to_complete
@@ -257,10 +263,12 @@ impl Game {
             .is_some_and(|c| c == player.name)
         {
             score += 4;
+            log::info!("First: {}", score);
         }
         // other completed: 2
         else if player.city.len() >= self.complete_city_size() {
             score += 2;
+            log::info!("Complete city: {}", score);
         }
 
         score
@@ -283,6 +291,9 @@ impl Game {
             p.roles.sort_by_key(|r| r.rank());
             // deal out city districts randomly
             for card in game.deck.draw_many(7) {
+                if card == DistrictName::SecretVault {
+                    continue;
+                }
                 p.city.push(CityDistrict {
                     name: card,
                     beautified: false,
@@ -490,7 +501,7 @@ impl Game {
 
             Turn::Call(rank) => {
                 let mut actions = Vec::new();
-                let c = self.characters[rank as usize - 1].borrow();
+                let c = self.characters[rank.to_index()].borrow();
 
                 for (n, action) in c.role.data().actions {
                     if self.active_perform_count(*action) < *n {
@@ -608,7 +619,7 @@ impl Game {
                 let index = self.active_turn.draft().ok_or("not the draft")?;
 
                 Game::remove_first(&mut self.draft.remaining, *role);
-                let c = self.characters[role.rank() as usize - 1].borrow_mut();
+                let c = self.characters[role.rank().to_index()].borrow_mut();
                 c.player = Some(index);
                 let player = self.players[index.0].borrow_mut();
                 player.roles.push(*role);
