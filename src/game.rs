@@ -262,7 +262,7 @@ impl Game {
     #[cfg(feature = "dev")]
     pub fn default_game() -> Option<Game> {
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
-        // deal roles out randomly
+        // deal out roles randomly
         let mut roles: Vec<_> = game.characters.iter().map(|c| c.role).collect();
         roles.shuffle(&mut game.rng);
 
@@ -272,6 +272,7 @@ impl Game {
 
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
+            /*
             // deal out city districts randomly
             for card in game.deck.draw_many(10) {
                 p.city.push(CityDistrict {
@@ -279,8 +280,10 @@ impl Game {
                     beautified: false,
                 });
             }
+            */
 
-            for card in game.deck.draw_many(10) {
+            // deal out hands randomly
+            for card in game.deck.draw_many(5) {
                 p.hand.push(card);
             }
         }
