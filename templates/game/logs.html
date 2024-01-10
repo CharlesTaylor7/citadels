@@ -4,7 +4,7 @@
 >
   <h2 class="header">Logs</h2>
   <code class="flex flex-col text-sm">
-    {% for log in logs.iter().take(20) %}
+    {% for log in logs.iter().rev().take(20).rev() %}
       {{ log }}
       <br/>
     {% endfor %}

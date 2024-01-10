@@ -145,15 +145,15 @@ impl<'a> MenuTemplate<'a> {
     pub fn from(game: &'a game::Game) -> Self {
         Self {
             menu: MainTemplate {
-                header: Cow::Borrowed({
-                    if game.active_turn.draft().is_some() {
-                        "Draft"
-                    } else if (game.followup).is_some() {
-                        "Select"
-                    } else {
-                        "Actions"
-                    }
-                }),
+                header: if game.active_turn.draft().is_some() {
+                    Cow::Borrowed("Draft")
+                } else if (game.followup).is_some() {
+                    Cow::Borrowed("Select")
+                } else if let Ok(role) = game.active_role() {
+                    Cow::Owned(format!("{}'s Turn", role.role.display_name()))
+                } else {
+                    Cow::Borrowed("TODO")
+                },
                 view: MenuView::from(game),
             },
         }

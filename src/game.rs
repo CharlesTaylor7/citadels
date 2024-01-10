@@ -546,7 +546,7 @@ impl Game {
                     let thief = self
                         .players
                         .iter_mut()
-                        .find(|p| p.roles.iter().any(|r| *r == role))
+                        .find(|p| p.roles.iter().any(|r| *r == RoleName::Thief))
                         .unwrap();
                     thief.gold += gold;
                     let thief_name = thief.name.clone();
