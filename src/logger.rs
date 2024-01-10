@@ -1,5 +1,5 @@
 use env_logger::{fmt::Color, Env};
-use log::*;
+use log::Level;
 use std::io::Write;
 
 pub fn init() {
@@ -19,10 +19,13 @@ pub fn init() {
 
             writeln!(
                 buf,
-                "\n[{} {}:{}]\n{}\n",
-                style.value(record.level()),
-                record.file().unwrap_or("unknown"),
-                record.line().unwrap_or(0),
+                "{: <30} {}",
+                style.value(format!(
+                    "[{} {}:{}]",
+                    (record.level()),
+                    record.file().unwrap_or("unknown"),
+                    record.line().unwrap_or(0),
+                )),
                 // chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
                 record.args()
             )
