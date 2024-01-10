@@ -1999,6 +1999,10 @@ html {
   height: 100vh;
 }
 
+.h-\[500px\] {
+  height: 500px;
+}
+
 .max-h-\[300px\] {
   max-height: 300px;
 }
@@ -2279,6 +2283,11 @@ html {
 
 .underline {
   text-decoration-line: underline;
+}
+
+.brightness-150 {
+  --tw-brightness: brightness(1.5);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
 .filter {

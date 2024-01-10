@@ -82,6 +82,7 @@ pub struct MagicSwapPlayerMenu<'a> {
 pub struct MagicSwapDeckMenu {}
 
 pub struct ImageAssetTemplate {
+    brightness: f64,
     height: f64,
     width: f64,
     offset_x: f64,
@@ -317,9 +318,9 @@ pub struct DistrictTemplate {
 impl DistrictTemplate {
     pub fn from(district: DistrictName) -> Self {
         let data = district.data();
-        let length = 150.0;
+        let length = 170.0;
         let scale = 10.0;
-        let (p_x, p_y) = Self::percentage_offset(district);
+        let (brightness, p_x, p_y) = Self::customize(district);
         let offset_x = p_x * length;
         let offset_y = p_y * length;
 
@@ -333,6 +334,7 @@ impl DistrictTemplate {
             description: data.description,
             beautified: false,
             asset: ImageAssetTemplate {
+                brightness,
                 path: "/public/districts.jpeg",
                 height: length,
                 width: length,
@@ -349,9 +351,19 @@ impl DistrictTemplate {
         template
     }
 
-    fn percentage_offset(district: DistrictName) -> (f64, f64) {
+    // brightness, x, y
+    fn customize(district: DistrictName) -> (f64, f64, f64) {
         match district {
-            _ => (0.25, 0.4),
+            DistrictName::Park => (1.2, 0.27, 0.0),
+            DistrictName::Museum => (1.2, 0.27, 0.1),
+            DistrictName::IvoryTower => (1.3, 0.236, 0.1),
+            DistrictName::Statue => (1.3, 0.236, 0.1),
+            DistrictName::Market => (1.3, 0.236, 0.7),
+            DistrictName::SecretVault => (1.3, 0.236, 0.15),
+            DistrictName::Quarry => (1.3, 0.236, 0.5),
+            DistrictName::HauntedQuarter => (1.3, 0.236, 0.4),
+            DistrictName::GreatWall => (1.3, 0.236, 0.2),
+            _ => (1.3, 0.236, 0.0),
         }
     }
 }
@@ -445,6 +457,7 @@ impl RoleTemplate {
             suit: data.suit,
             description: data.description,
             asset: ImageAssetTemplate {
+                brightness: 1.0,
                 path: "/public/roles.jpeg",
                 height,
                 width,

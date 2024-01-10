@@ -242,7 +242,10 @@ impl Game {
                     .filter(|c| c.name.data().cost % 2 == 1)
                     .count(),
 
-                DistrictName::HauntedQuarter => todo!(),
+                DistrictName::HauntedQuarter => {
+                    log::warn!("Haunted quarter is not implemented");
+                    0
+                }
 
                 _ => 0,
             }
@@ -290,10 +293,16 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
             // deal out city districts randomly
-            for i in 0..7_usize {
+            for c in crate::districts::NORMAL {
                 p.city.push(CityDistrict {
                     beautified: false,
-                    name: unsafe { std::mem::transmute(i) },
+                    name: c.name,
+                });
+            }
+            for c in crate::districts::UNIQUE {
+                p.city.push(CityDistrict {
+                    beautified: false,
+                    name: c.name,
                 });
             }
 
