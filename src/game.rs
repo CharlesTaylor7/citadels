@@ -292,19 +292,6 @@ impl Game {
 
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
-            // deal out city districts randomly
-            for c in crate::districts::NORMAL {
-                p.city.push(CityDistrict {
-                    beautified: false,
-                    name: c.name,
-                });
-            }
-            for c in crate::districts::UNIQUE {
-                p.city.push(CityDistrict {
-                    beautified: false,
-                    name: c.name,
-                });
-            }
 
             /*
             for card in game.deck.draw_many(7) {
