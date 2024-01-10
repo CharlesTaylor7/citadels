@@ -8,7 +8,40 @@ use crate::{
     data::characters::ROLES,
     types::{CardSet, CardSuit},
 };
-pub type Rank = u8;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(u8)]
+pub enum Rank {
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+}
+
+impl Rank {
+    pub fn next(&self) -> Option<Rank> {
+        let index = *self as u8 + 1;
+        if index <= Rank::Nine as u8 {
+            unsafe { std::mem::transmute(index) }
+        } else {
+            None
+        }
+    }
+    pub fn to_index(&self) -> usize {
+        *self as usize - 1
+    }
+}
+
+impl std::fmt::Display for Rank {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", *self as u8 + 1)
+    }
+}
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize)]
 #[repr(usize)]
@@ -80,7 +113,7 @@ impl RoleName {
     pub fn can_be_discarded_faceup(self) -> bool {
         // rank 4 cards cannot be discarded faceup during the draft.
         // see rulebook page 3
-        self.data().rank != 4
+        self.data().rank != Rank::Four
     }
 
     pub fn build_limit(self) -> usize {
@@ -139,7 +172,7 @@ pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> impl Iterator<Item
 
     for r in crate::roles::ROLES {
         if r.name.enabled() && num_players >= r.name.min_player_count() {
-            grouped_by_rank[(r.rank - 1) as usize].push(r.name)
+            grouped_by_rank[r.rank.to_index()].push(r.name)
         }
     }
 

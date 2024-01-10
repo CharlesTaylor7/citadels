@@ -78,6 +78,7 @@
     - [x] hand size
     - [x] gold
     - [x] city size
+    - [x] score
     - [ ] markers: 
         - Crown
         - revealed roles

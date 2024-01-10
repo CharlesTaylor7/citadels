@@ -2,7 +2,7 @@ pub mod filters;
 use crate::actions::ActionTag;
 use crate::districts::DistrictName;
 use crate::game::{CityDistrict, FollowupAction, Game, GameRole, Turn};
-use crate::roles::RoleName;
+use crate::roles::{Rank, RoleName};
 use crate::types::{CardSuit, PlayerName};
 use crate::{game, lobby};
 use askama::Template;
@@ -255,7 +255,7 @@ impl<'a> PlayerInfoTemplate<'a> {
             gold: player.gold,
             hand_size: player.hand.len(),
             city_size: player.city.len(),
-            crowned: game.crowned == player.name,
+            crowned: game.crowned == player.index,
             first_complete_city: game
                 .first_to_complete
                 .as_ref()
@@ -407,7 +407,7 @@ pub struct LogsTemplate<'a> {
 
 pub struct RoleTemplate {
     pub name: String,
-    pub rank: u8,
+    pub rank: Rank,
     pub value: String,
     pub suit: Option<CardSuit>,
     pub description: &'static str,

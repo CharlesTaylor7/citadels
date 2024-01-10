@@ -1,5 +1,6 @@
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::game::Game;
+use crate::roles::Rank;
 use crate::server::state::AppState;
 use crate::templates::GameTemplate;
 use crate::templates::*;
@@ -241,7 +242,7 @@ async fn submit_game_action(
                         roles: game
                             .characters
                             .iter()
-                            .filter(|c| c.role.rank() > 1)
+                            .filter(|c| c.role.rank() > Rank::One)
                             .map(|c| RoleTemplate::from(c.role, 150.0))
                             .collect(),
                         header: "Select a role".into(),
@@ -257,7 +258,8 @@ async fn submit_game_action(
                             .characters
                             .iter()
                             .filter(|c| {
-                                c.role.rank() > 2 && c.markers.iter().all(|m| *m != Marker::Killed)
+                                c.role.rank() > Rank::Two
+                                    && c.markers.iter().all(|m| *m != Marker::Killed)
                             })
                             .map(|c| RoleTemplate::from(c.role, 150.0))
                             .collect(),
