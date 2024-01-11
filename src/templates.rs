@@ -55,15 +55,28 @@ impl<'a> CityRootTemplate<'a> {
                 col.iter()
                     .enumerate()
                     .map(|(i, card)| DistrictTemplate::from_city(i, card))
-                    .collect()
+                    .collect::<Vec<_>>()
             })
-            .collect();
+            .collect::<Vec<_>>();
+        let margin_bottom = columns
+            .iter()
+            .flat_map(|col| col.last())
+            .map(|t| t.pos.y)
+            .min_by(|a, b| {
+                if a < b {
+                    std::cmp::Ordering::Less
+                } else {
+                    std::cmp::Ordering::Greater
+                }
+            })
+            .unwrap_or(0.0);
 
         Ok(Self {
             city: CityTemplate {
                 header,
                 tooltip_class,
                 columns,
+                margin_bottom,
             },
         })
     }
@@ -140,8 +153,8 @@ pub struct GameTemplate<'a> {
     active_name: &'a str,
     my: &'a PlayerTemplate<'a>,
     misc: MiscTemplate,
-    city: CityTemplate<'a>,
     context: GameContext,
+    city: CityTemplate<'a>,
 }
 
 impl<'a> GameTemplate<'a> {
@@ -235,6 +248,7 @@ pub struct CityTemplate<'a> {
     header: Cow<'a, str>,
     tooltip_class: Cow<'a, str>,
     columns: Vec<Vec<DistrictTemplate>>,
+    margin_bottom: f64,
 }
 
 #[derive(Template)]
