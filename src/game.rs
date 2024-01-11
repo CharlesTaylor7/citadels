@@ -111,16 +111,18 @@ impl<T> Deck<T> {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Turn {
+    GameOver,
     Draft(PlayerIndex),
     Call(Rank),
-    GameOver,
 }
 
+/*
 impl Default for Turn {
     fn default() -> Self {
         Turn::Call(Rank::One)
     }
 }
+*/
 
 impl Turn {
     pub fn draft(&self) -> Option<PlayerIndex> {
@@ -268,20 +270,25 @@ impl Game {
         score
     }
 
-    #[cfg(feature = "dev")]
     pub fn default_game() -> Option<Game> {
+        if cfg!(not(feature = "dev")) {
+            return None;
+        }
+
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
+
         // deal out roles randomly
         let mut roles: Vec<_> = game.characters.iter().map(|c| c.role).collect();
         roles.shuffle(&mut game.rng);
 
-        for (i, role) in roles.iter().enumerate().take(6) {
+        for (i, role) in roles.iter().enumerate() {
             let index = i % 3;
             game.players[index].roles.push(*role);
             game.characters[role.rank().to_index()].player = Some(PlayerIndex(index));
         }
 
         for p in game.players.iter_mut() {
+            p.gold = 20;
             p.roles.sort_by_key(|r| r.rank());
 
             for card in game.deck.draw_many(7) {
@@ -295,15 +302,16 @@ impl Game {
             }
         }
 
-        game.active_turn = Turn::Call(Rank::Nine);
-        game.start_turn().ok()?;
+        // game over!
+        if true {
+            game.first_to_complete = Some(PlayerIndex(0));
+            game.active_turn = Turn::GameOver;
+        } else {
+            game.active_turn = Turn::Call(Rank::Nine);
+            game.start_turn().ok()?;
+        }
 
         Some(game)
-    }
-
-    #[cfg(not(feature = "dev"))]
-    pub fn default_game() -> Option<Game> {
-        None
     }
 
     pub fn active_role(&self) -> Result<&GameRole> {
@@ -1166,9 +1174,10 @@ impl Game {
     }
 
     fn end_turn(&mut self) -> Result<()> {
+        log::info!("ending turn");
         self.turn_actions.clear();
 
-        match std::mem::take(&mut self.active_turn) {
+        match std::mem::replace(&mut self.active_turn, Turn::GameOver) {
             Turn::GameOver => {}
             Turn::Draft(index) => {
                 // advance turn

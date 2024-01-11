@@ -1,7 +1,7 @@
 pub mod filters;
 use crate::actions::ActionTag;
 use crate::districts::DistrictName;
-use crate::game::{CityDistrict, FollowupAction, Game, GameRole, Turn};
+use crate::game::{CityDistrict, FollowupAction, Game, GameRole, PlayerIndex, Turn};
 use crate::roles::{Rank, RoleName};
 use crate::types::{CardSuit, PlayerName};
 use crate::{game, lobby};
@@ -17,28 +17,23 @@ pub struct CityRootTemplate<'a> {
 
 impl<'a> CityRootTemplate<'a> {
     pub fn from(
-        player_name: Cow<'a, PlayerName>,
         game: &'a Game,
-        active_id: Option<&'a str>,
+        target: game::PlayerIndex,
+        my_id: Option<&'a str>,
     ) -> Result<Self, String> {
-        let myself = get_myself(game, active_id);
-        let player = game
-            .players
-            .iter()
-            .find(|p| p.name == *player_name)
-            .ok_or(format!("no player named: {}", player_name))?;
+        let myself = get_myself(game, my_id);
 
-        let (tooltip_class, header) = if myself.is_some_and(|p| p.id == player.id) {
+        let (tooltip_class, header) = if myself.is_some_and(|p| p.index == target) {
             ("".into(), "My City".into())
         } else {
             (
                 "tooltip-open".into(),
-                format!("{}'s City", player_name).into(),
+                format!("{}'s City", game.players[target.0].name).into(),
             )
         };
 
         let mut columns = vec![Vec::new(); 5];
-        for card in player.city.iter() {
+        for card in game.players[target.0].city.iter() {
             //let template = DistrictTemplate::from_city(index, card);
             // unique districts get their own column each
             columns[card.name.data().suit as usize].push(card);
@@ -147,23 +142,22 @@ impl GameContext {
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
     logs: &'a [String],
-    menu: MainTemplate<'a>,
     characters: &'a [GameRole],
+    context: GameContext,
     players: &'a [PlayerInfoTemplate<'a>],
-    active_name: &'a str,
     my: &'a PlayerTemplate<'a>,
     misc: MiscTemplate,
-    context: GameContext,
     city: CityTemplate<'a>,
+    menu: MainTemplate<'a>,
+    end: GameEndTemplate<'a>,
 }
 
 impl<'a> GameTemplate<'a> {
-    pub fn render_with<'b, 'c>(
+    pub fn render_with(
         game: &'a Game,
-        player_id: Option<&'b str>,
+        my_id: Option<&'a str>,
     ) -> axum::response::Result<Html<String>> {
-        let active_player = game.active_player()?;
-        let myself = get_myself(game, player_id);
+        let myself = get_myself(game, my_id);
         let player_template = PlayerTemplate::from(myself);
         let players: Vec<_> = game
             .players
@@ -171,15 +165,19 @@ impl<'a> GameTemplate<'a> {
             .map(|p| PlayerInfoTemplate::from(p, game))
             .collect();
         let MenuTemplate { menu, context } = MenuTemplate::from(game);
+        log::info!("{:#?}", game.active_turn);
         GameTemplate {
             menu,
             context,
             logs: &game.logs,
             characters: &game.characters,
             city: CityRootTemplate::from(
-                myself.map(|p| Cow::Borrowed(&p.name)).unwrap_or_default(),
                 game,
-                player_id,
+                myself
+                    .map(|p| p.index)
+                    .or(game.active_player_index().ok())
+                    .unwrap_or(PlayerIndex(0)),
+                my_id,
             )?
             .city,
             misc: MiscTemplate {
@@ -188,21 +186,28 @@ impl<'a> GameTemplate<'a> {
                 timer: None,
             },
             players: &players,
-            active_name: &active_player.name.0,
             my: player_template.borrow(),
+            end: GameEndTemplate {
+                hidden: game.active_turn != Turn::GameOver,
+                players: game
+                    .players
+                    .iter()
+                    .map(|p| (p.name.0.borrow(), game.total_score(p)))
+                    .collect(),
+            },
         }
         .to_html()
     }
 }
 
-#[cfg(feature = "dev")]
-fn get_myself<'a, 'b>(game: &'a Game, _player_id: Option<&'b str>) -> Option<&'a game::Player> {
-    game.active_player().ok()
-}
-
-#[cfg(not(feature = "dev"))]
-fn get_myself<'a, 'b>(game: &'a Game, player_id: Option<&'b str>) -> Option<&'a game::Player> {
-    player_id.and_then(|id| game.players.iter().find(|p| p.id == id))
+fn get_myself<'a>(game: &'a Game, myself: Option<&'a str>) -> Option<&'a game::Player> {
+    if cfg!(feature = "dev") {
+        game.active_player().ok()
+    } else if let Some(id) = myself {
+        game.players.iter().find(|p| p.id == id)
+    } else {
+        None
+    }
 }
 
 #[derive(Template)]
@@ -272,6 +277,7 @@ pub enum GamePhase {
 
 /// Just the public player info
 pub struct PlayerInfoTemplate<'a> {
+    pub active: bool,
     pub name: &'a str,
     pub gold: usize,
     pub hand_size: usize,
@@ -285,6 +291,7 @@ pub struct PlayerInfoTemplate<'a> {
 impl<'a> PlayerInfoTemplate<'a> {
     pub fn from(player: &'a game::Player, game: &'a Game) -> Self {
         Self {
+            active: game.active_player_index().is_ok_and(|i| i == player.index),
             name: player.name.0.borrow(),
             gold: player.gold,
             hand_size: player.hand.len(),
@@ -527,6 +534,17 @@ impl RoleTemplate {
             },
         }
     }
+}
+
+#[derive(Template)]
+#[template(path = "game/end.html")]
+pub struct GameEndRootTemplate<'a> {
+    pub end: GameEndTemplate<'a>,
+}
+
+pub struct GameEndTemplate<'a> {
+    pub hidden: bool,
+    pub players: Vec<(&'a str, usize)>,
 }
 
 pub trait MyTemplate {

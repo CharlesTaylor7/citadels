@@ -1,0 +1,37 @@
+<dialog
+  open
+  id="game-end"
+  style="z-index: 1001;"
+  class="
+    bg-[rgba(30,30,30,0.5)]
+    absolute
+    h-screen
+    w-full
+    flex
+    flex-row
+    items-center
+    justify-center
+    {% if end.hidden %}
+      hidden
+    {% endif %}
+  "
+>
+  {% if !end.hidden %}
+    <div class="
+        h-96
+        w-96
+        opacity-100
+        rounded-lg
+        border border-base-200
+        bg-neutral-content
+        flex flex-col gap-2
+      "
+    >
+      {% for (name, score) in end.players %}
+        <div>
+          {{ name }}: {{ score }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</dialog>

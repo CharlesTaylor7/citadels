@@ -170,7 +170,12 @@ pub async fn get_game_city(
     let id = cookie.as_ref().map(|c| c.value());
     let game = app.game.lock().unwrap();
     if let Some(game) = game.as_ref() {
-        CityRootTemplate::from(Cow::Owned(path.0), game, id)?.to_html()
+        let p = game
+            .players
+            .iter()
+            .find(|p| p.name == path.0)
+            .ok_or("no player with that name")?;
+        CityRootTemplate::from(game, p.index, id)?.to_html()
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
