@@ -59,6 +59,7 @@
     <div class="flex flex-row flex-wrap gap-2">
       {% set input_type = "radio" %}
       {% set disabled = false %}
+      {% set draggable = false %}
       {% set context = "revealed" %}
       {% set tooltip_class = "" %}
       {% for (index, district) in revealed.iter().enumerate() %} 

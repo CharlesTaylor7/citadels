@@ -23,6 +23,11 @@
         }
       });
     </script>
+    <style>
+      .dragging {
+        /* z-index: 10; */
+      }
+    </style>
     <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
     <script>
       interact('.draggable')
@@ -46,6 +51,7 @@
 
             // call this function on every dragend event
             end (event) {
+              event.target.classList.remove("dragging");
               let textEl = event.target.querySelector('p')
 
               if (textEl) {
@@ -60,10 +66,11 @@
         })
 
       function dragMoveListener (event) {
-        var target = event.target
+        let target = event.target
+        target.classList.add("dragging");
         // keep the dragged position in the data-x/data-y attributes
-        var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
-        var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+        let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+        let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
 
         // translate the element
         target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'

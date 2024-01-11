@@ -8,20 +8,13 @@
   </h2>
   <div class="flex flex-row flex-wrap gap-2">
       {% let input_type = "checkbox" %}
-      {% let disabled = false %}
+      {% let disabled = true %}
+      {% let draggable = true %}
       {% set tooltip_class = city.tooltip_class %}
       {% for column in city.columns %} 
-        <div>
           {% for (i, district) in column.iter().enumerate() %} 
-            <div 
-              {% if i > 0 %}
-              class="-mt-[146px]"
-              {% endif %}
-            >
               {% include "district/square-cropped.html" %} 
-            </div>
           {% endfor %} 
-        </div>
       {% endfor %}
   </div>
 </section>
