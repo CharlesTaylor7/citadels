@@ -4,6 +4,7 @@ use crate::districts::DistrictName;
 use crate::game::{CityDistrict, FollowupAction, Game, GameRole, PlayerIndex, Turn};
 use crate::roles::{Rank, RoleName};
 use crate::types::CardSuit;
+use crate::types::Marker;
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
@@ -228,12 +229,12 @@ impl<'a> MenuTemplate<'a> {
             menu: MainTemplate {
                 header: if game.active_turn.draft().is_some() {
                     Cow::Borrowed("Draft")
-                } else if (game.followup).is_some() {
+                } else if game.followup.is_some() {
                     Cow::Borrowed("Select")
                 } else if let Ok(role) = game.active_role() {
                     Cow::Owned(format!("{}'s Turn", role.role.display_name()))
                 } else {
-                    Cow::Borrowed("TODO")
+                    Cow::Borrowed("Game over")
                 },
                 view: MenuView::from(game),
             },

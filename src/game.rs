@@ -116,14 +116,6 @@ pub enum Turn {
     Call(Rank),
 }
 
-/*
-impl Default for Turn {
-    fn default() -> Self {
-        Turn::Call(Rank::One)
-    }
-}
-*/
-
 impl Turn {
     pub fn draft(&self) -> Option<PlayerIndex> {
         if let Turn::Draft(index) = self {
@@ -288,28 +280,12 @@ impl Game {
         }
 
         for p in game.players.iter_mut() {
-            p.gold = 20;
             p.roles.sort_by_key(|r| r.rank());
-
-            for card in game.deck.draw_many(7) {
-                if card == DistrictName::SecretVault {
-                    continue;
-                }
-                p.city.push(CityDistrict {
-                    name: card,
-                    beautified: true,
-                });
-            }
         }
 
         // game over!
-        if true {
-            game.first_to_complete = Some(PlayerIndex(0));
-            game.active_turn = Turn::GameOver;
-        } else {
-            game.active_turn = Turn::Call(Rank::Nine);
-            game.start_turn().ok()?;
-        }
+        game.active_turn = Turn::Call(Rank::One);
+        game.start_turn().ok()?;
 
         Some(game)
     }

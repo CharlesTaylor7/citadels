@@ -38,7 +38,7 @@
 
 
 ## UI
-- [ ] Game end overlay with player scores
+- [x] Game end overlay with player scores
 - [ ] Action menus
     - [x] Assassin
     - [x] Thief
@@ -48,7 +48,7 @@
     - [ ] Navigator
 
 - [ ] button labels
-- [ ] Roles
+- Roles
     - [ ] Unmask player as turn proceeds
     - [ ] Collapsible section of the actions taken
     - [ ] Markers:
