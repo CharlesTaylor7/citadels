@@ -13,7 +13,6 @@ use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use http::StatusCode;
-use log::*;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::mem;
@@ -214,7 +213,7 @@ async fn submit_game_action(
         return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
     }
 
-    info!("{:#?}", action.0);
+    log::info!("{:#?}", action.0);
     match action.0 {
         ActionSubmission::Complete(action) => {
             //

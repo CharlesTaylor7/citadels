@@ -4,7 +4,6 @@ use crate::lobby::{self, Lobby};
 use crate::random::Prng;
 use crate::roles::{Rank, RoleName};
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
-use log::*;
 use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut, Cow};
@@ -496,7 +495,7 @@ impl Game {
                     actions.push(ActionTag::EndTurn);
                 }
 
-                info!("Available actions: {:#?}", actions);
+                log::info!("Available actions: {:#?}", actions);
                 actions
             }
         }
@@ -513,9 +512,9 @@ impl Game {
         self.followup = followup;
 
         let tag = action.tag();
-        info!("{:#?}", log);
+        log::info!("{:#?}", log);
         if self.followup.is_some() {
-            info!("followup: {:#?}", self.followup);
+            log::info!("followup: {:#?}", self.followup);
         }
         self.turn_actions.push(action);
         self.logs.push(log);
@@ -575,7 +574,7 @@ impl Game {
         }
 
         for item in logs {
-            info!("{}", item);
+            log::info!("{}", item);
             self.logs.push(item);
         }
 

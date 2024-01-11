@@ -4,7 +4,6 @@ use axum::extract::State;
 use axum::response::{ErrorResponse, Html};
 use axum::Error;
 use futures::stream::StreamExt;
-use log::*;
 use std::collections::hash_map::HashMap;
 use tokio;
 use tokio::sync::mpsc;
@@ -34,7 +33,7 @@ impl Connections {
                 Ok(html) => {
                     let _ = ws.send(Ok(Message::Text(html.0.clone())));
                 }
-                Err(e) => debug!("{:#?}", e),
+                Err(e) => log::debug!("{:#?}", e),
             }
         }
     }
@@ -52,7 +51,7 @@ pub async fn handle_socket(state: State<AppState>, player_id: String, socket: We
         .0
         .insert(player_id, chan_sender);
 
-    info!("WS - connected");
+    log::info!("WS - connected");
 
     while let Some(Ok(msg)) = ws_recv.next().await {
         if process_message(msg).is_err() {
@@ -64,22 +63,22 @@ pub async fn handle_socket(state: State<AppState>, player_id: String, socket: We
 fn process_message(msg: Message) -> Result<(), ()> {
     match msg {
         Message::Text(t) => {
-            debug!("WS - client sent str: {t:?}");
+            log::debug!("WS - client sent str: {t:?}");
         }
         Message::Binary(d) => {
-            debug!("WS - client sent {} bytes: {:?}", d.len(), d);
+            log::debug!("WS - client sent {} bytes: {:?}", d.len(), d);
         }
         Message::Close(_) => {
-            debug!("WS - closed connection");
+            log::debug!("WS - closed connection");
             return Err(());
         }
 
         // axum automatically replies to ping
         Message::Ping(_) => {
-            trace!("WS - Ping")
+            log::trace!("WS - Ping")
         }
         Message::Pong(_) => {
-            trace!("WS - Pong")
+            log::trace!("WS - Pong")
         }
     }
     Ok(())
