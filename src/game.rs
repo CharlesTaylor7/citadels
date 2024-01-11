@@ -190,7 +190,7 @@ pub struct Game {
     pub followup: Option<FollowupAction>,
     pub turn_actions: Vec<Action>,
     pub logs: Vec<String>,
-    pub first_to_complete: Option<PlayerName>,
+    pub first_to_complete: Option<PlayerIndex>,
 }
 
 impl Game {
@@ -214,7 +214,6 @@ impl Game {
     }
 
     pub fn public_score(&self, player: &Player) -> usize {
-        log::info!("Scoring {}", player.name);
         let mut score = 0;
         let mut counts: [usize; 5] = [0, 0, 0, 0, 0];
 
@@ -223,8 +222,6 @@ impl Game {
             score += card.effective_cost();
             counts[card.name.data().suit as usize] += 1;
         }
-
-        log::info!("Total cost: {}", score);
 
         // uniques
         for card in &player.city {
@@ -251,27 +248,22 @@ impl Game {
             }
         }
 
-        log::info!("With uniques: {}", score);
-
         // one district of each type: 3 points
         if counts.iter().all(|s| *s > 0) {
             score += 3;
         }
 
-        log::info!("One of each: {}", score);
         // first_to_complete: 4
         if self
             .first_to_complete
             .as_ref()
-            .is_some_and(|c| c == player.name)
+            .is_some_and(|c| *c == player.index)
         {
             score += 4;
-            log::info!("First: {}", score);
         }
         // other completed: 2
         else if player.city.len() >= self.complete_city_size() {
             score += 2;
-            log::info!("Complete city: {}", score);
         }
 
         score
@@ -293,25 +285,18 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
 
-            for (i, card) in game.deck.draw_many(10).enumerate() {
+            for card in game.deck.draw_many(7) {
                 if card == DistrictName::SecretVault {
                     continue;
                 }
                 p.city.push(CityDistrict {
                     name: card,
-                    beautified: true, //i % 2 == 0,
+                    beautified: true,
                 });
             }
-
-            // deal out hands randomly
-            /*
-            for card in game.deck.draw_many(4) {
-                p.hand.push(card);
-            }
-            */
         }
 
-        game.active_turn = Turn::Call(Rank::One);
+        game.active_turn = Turn::Call(Rank::Nine);
         game.start_turn().ok()?;
 
         Some(game)
@@ -429,25 +414,6 @@ impl Game {
         let i = self.rng.gen_range(0..self.draft.remaining.len());
         self.draft.initial_discard = Some(self.draft.remaining.remove(i));
     }
-
-    /*
-    pub fn active_player_index(&self) -> Result<usize> {
-        let option = match &self.active_turn {
-            Turn::GameOver => None,
-            Turn::Draft(index) => self
-                .players
-                .iter()
-                .enumerate()
-                .find(move |(i, p)| p.name == *name),
-            Turn::Call(rank) => self
-                .players
-                .iter()
-                .enumerate()
-                .find(|(i, p)| p.roles.iter().any(|role| role.rank() == *rank)),
-        };
-        option.map(|(i, _)| i).ok_or("no active player".into())
-    }
-    */
 
     pub fn active_player_index(&self) -> Result<PlayerIndex> {
         match &self.active_turn {
@@ -785,7 +751,8 @@ impl Game {
                 if player.city.len() >= self.complete_city_size()
                     && self.first_to_complete.is_none()
                 {
-                    self.first_to_complete = Some(player.name.clone());
+                    log::info!("{} is the first to complete their city", player.name);
+                    self.first_to_complete = Some(player.index);
                 }
 
                 ActionOutput {
@@ -1293,6 +1260,7 @@ impl Game {
 
         // GAME OVER
         if self.first_to_complete.is_some() {
+            self.active_turn = Turn::GameOver;
             return;
         }
 

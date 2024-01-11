@@ -293,7 +293,7 @@ impl<'a> PlayerInfoTemplate<'a> {
             first_complete_city: game
                 .first_to_complete
                 .as_ref()
-                .is_some_and(|c| c == player.name),
+                .is_some_and(|c| *c == player.index),
             complete_city: player.city.len() >= game.complete_city_size(),
             score: game.public_score(player),
         }
@@ -454,8 +454,8 @@ impl MenuView {
                 !a.is_resource_gathering() && *a != ActionTag::Build && *a != ActionTag::EndTurn
             })
             .collect();
-        log::warn!("{:#?}", abilities);
 
+        log::info!("{:#?}", game.active_turn);
         match game.active_turn {
             Turn::GameOver => MenuView::Call { abilities },
             Turn::Draft(_) => MenuView::Draft {
