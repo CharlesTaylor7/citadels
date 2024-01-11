@@ -7,7 +7,7 @@ use crate::types::{CardSuit, PlayerName};
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
-use std::borrow::{Borrow, Cow};
+use std::borrow::{Borrow, BorrowMut, Cow};
 
 #[derive(Template)]
 #[template(path = "game/city.html")]
@@ -37,22 +37,27 @@ impl<'a> CityRootTemplate<'a> {
             )
         };
 
-        let mut columns = vec![Vec::new(); 4];
-        for card in &player.city {
-            let template = DistrictTemplate::from_city(card);
+        let mut columns = vec![Vec::new(); 5];
+        for card in player.city.iter() {
+            //let template = DistrictTemplate::from_city(index, card);
             // unique districts get their own column each
-            if template.suit == CardSuit::Unique {
-                columns.push(vec![template]);
-            } else {
-                let index = template.suit as usize;
-                columns[index].push(template);
-            }
+            columns[card.name.data().suit as usize].push(card);
         }
 
         // sort the non trivial columns
-        for index in 0..4 {
-            columns[index].sort_by_key(|template| template.cost);
+        for col in columns.iter_mut() {
+            col.sort_by_key(|d| d.name.data().cost);
         }
+
+        let columns = columns
+            .iter()
+            .map(|col| {
+                col.iter()
+                    .enumerate()
+                    .map(|(i, card)| DistrictTemplate::from_city(i, card))
+                    .collect()
+            })
+            .collect();
 
         Ok(Self {
             city: CityTemplate {
@@ -328,6 +333,14 @@ pub struct DistrictTemplate {
     pub description: Option<&'static str>,
     pub beautified: bool,
     pub asset: ImageAssetTemplate,
+    pub pos: Position,
+}
+
+#[derive(Clone, Default)]
+pub struct Position {
+    pub x: f64,
+    pub y: f64,
+    pub z: isize,
 }
 
 impl DistrictTemplate {
@@ -348,6 +361,7 @@ impl DistrictTemplate {
             suit: data.suit,
             description: data.description,
             beautified: false,
+            pos: Position::default(),
             asset: ImageAssetTemplate {
                 brightness,
                 path: "/public/districts.jpeg",
@@ -360,9 +374,10 @@ impl DistrictTemplate {
         }
     }
 
-    pub fn from_city(district: &CityDistrict) -> Self {
+    pub fn from_city(index: usize, district: &CityDistrict) -> Self {
         let mut template = Self::from(district.name);
         template.beautified = district.beautified;
+        template.pos.y = -146.0 * index as f64;
         template
     }
 

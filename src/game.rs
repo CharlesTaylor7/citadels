@@ -44,7 +44,7 @@ impl Player {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CityDistrict {
     pub name: DistrictName,
     pub beautified: bool,

@@ -30,18 +30,16 @@
     </style>
     <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
     <script>
-      interact('.draggable')
+      interact('#city .draggable')
         .draggable({
           // enable inertial throwing
           inertia: true,
           // keep the element within the area of it's parent
           modifiers: [
-            /*
             interact.modifiers.restrictRect({
-              restriction: 'parent',
+              restriction: '#city',
               endOnly: true
             })
-            */
           ],
           // enable autoScroll
           autoScroll: true,

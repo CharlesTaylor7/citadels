@@ -45,7 +45,7 @@
   {% when MenuView::Draft with { actions, roles, discard } %}
     <div class="flex flex-row flex-wrap gap-2">
       {% set input_type = "radio" %} 
-      {% set disabled = false %} 
+      {% set enabled = true %} 
       {% for role in roles %} 
         {% include "role-card.html" %}
       {% endfor %}
@@ -58,7 +58,7 @@
   {% when MenuView::Followup with { action, revealed} %}
     <div class="flex flex-row flex-wrap gap-2">
       {% set input_type = "radio" %}
-      {% set disabled = false %}
+      {% set enabled = true %} 
       {% set draggable = false %}
       {% set context = "revealed" %}
       {% set tooltip_class = "" %}

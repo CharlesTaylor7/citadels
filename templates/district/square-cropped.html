@@ -7,33 +7,25 @@
     select-none
     cursor-pointer
   "
+  data-x="{{ district.pos.x }}px"
+  data-y="{{ district.pos.y }}px"
+  style="
+    z-index: {{ district.pos.z }};
+    transform: translate({{ district.pos.x }}px, {{ district.pos.y }}px);
+  "
 >
   <input
   type="{{ input_type }}"
   class="peer hidden"
   name="district"
   value="{{ district.value }}"
-  {% if disabled %}
+  {% if !enabled %}
   disabled
   {% endif %}
 
   />
   {% set asset = district.asset %}
   {% include "image-asset.html" %}
-  <code
-    class="
-      absolute top-2 left-2
-      h-6 w-6 rounded-full
-      leaded 
-      flex flex-row justify-center items-center 
-      text-secondary-content 
-      {{ district.suit|suit_bg_color }}
-    "
-  >
-    {% if district.value != "SecretVault" %}
-      {{ district.cost }} 
-    {% endif %}
-  </code>
   <div
     data-tip="{{ district.description|def }}"
     class="
@@ -59,6 +51,20 @@
       {{ district.name }} 
     </span>
   </div>
+  <code
+    class="
+      absolute top-2 left-2
+      h-6 w-6 rounded-full
+      leaded 
+      flex flex-row justify-center items-center 
+      text-secondary-content 
+      {{ district.suit|suit_bg_color }}
+    "
+  >
+    {% if district.value != "SecretVault" %}
+      {{ district.cost }} 
+    {% endif %}
+  </code>
   {% if district.beautified %}
     <div 
         data-tip="Beautified by the Artist. Effective cost of {{ district.cost + 1 }}"
