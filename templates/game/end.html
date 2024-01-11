@@ -15,23 +15,52 @@
       hidden
     {% endif %}
   "
+  _="init enableDrag('#game-end')"
 >
   {% if !end.hidden %}
     <div class="
-        h-96
-        w-96
+        draggable
+        flex flex-col items-center
+        gap-2
+        py-2
+        px-4
         opacity-100
         rounded-lg
         border border-base-200
         bg-neutral-content
-        flex flex-col gap-2
       "
     >
-      {% for (name, score) in end.players %}
-        <div>
-          {{ name }}: {{ score }}
-        </div>
-      {% endfor %}
+      <h2 class="header">Scores</h2>
+      <div class="border border-base-300 rounded-2xl" >
+        <table className="border-separate border-spacing-0">
+          <tbody>
+            {% for (i, (name, score)) in end.players.iter().enumerate() %}
+              <tr>
+                <td
+                  class="
+                    border-base-300 p-4 
+                    {% if i > 0 %}
+                    border-t
+                    {% endif %}
+                  "
+                >
+                  {{ name }}
+                </td>
+                <td 
+                  class="
+                    border-base-300 p-4 border-l
+                    {% if i > 0 %}
+                    border-t
+                    {% endif %}
+                  " 
+                >
+                  {{ score }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   {% endif %}
 </dialog>
