@@ -88,7 +88,7 @@ pub struct SelectRoleMenu<'a> {
     pub roles: Vec<RoleTemplate>,
     pub action: ActionTag,
     pub header: Cow<'a, str>,
-    pub context: GameContext,
+    pub context: GameContext<'a>,
 }
 
 // for building
@@ -147,13 +147,15 @@ pub struct ImageAssetTemplate {
     path: &'static str,
 }
 
-pub struct GameContext {
+pub struct GameContext<'a> {
+    game: &'a Game,
     allowed_actions: Vec<ActionTag>,
 }
 
-impl GameContext {
-    pub fn from_game(game: &game::Game) -> Self {
+impl<'a> GameContext<'a> {
+    pub fn from_game(game: &'a game::Game) -> Self {
         Self {
+            game,
             allowed_actions: game.allowed_actions(),
         }
     }
@@ -165,6 +167,12 @@ impl GameContext {
     pub fn disabled(&self, action: &ActionTag) -> bool {
         !self.enabled(action)
     }
+
+    pub fn label(&self, action: &'a ActionTag) -> Cow<'a, str> {
+        self.game
+            .active_player()
+            .map_or("".into(), |p| action.label(p))
+    }
 }
 
 #[derive(Template)]
@@ -172,7 +180,7 @@ impl GameContext {
 pub struct GameTemplate<'a> {
     characters: &'a [GameRole],
     active_role: Option<RoleName>,
-    context: GameContext,
+    context: GameContext<'a>,
     players: &'a [PlayerInfoTemplate<'a>],
     my: &'a PlayerTemplate<'a>,
     misc: MiscTemplate,
@@ -245,7 +253,7 @@ fn get_myself<'a>(game: &'a Game, myself: Option<&'a str>) -> Option<&'a game::P
 #[template(path = "game/menu.html")]
 pub struct MenuTemplate<'a> {
     menu: MainTemplate<'a>,
-    context: GameContext,
+    context: GameContext<'a>,
 }
 impl<'a> MenuTemplate<'a> {
     pub fn from(game: &'a game::Game, my_id: Option<&'a str>) -> Self {
@@ -269,6 +277,7 @@ impl<'a> MenuTemplate<'a> {
 
         Self {
             context: GameContext {
+                game,
                 allowed_actions: game.allowed_actions(),
             },
             menu: MainTemplate {

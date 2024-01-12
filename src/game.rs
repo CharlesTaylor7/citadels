@@ -26,6 +26,15 @@ pub struct Player {
 }
 
 impl Player {
+    pub fn count_suit_for_resource_gain(&self, suit: CardSuit) -> usize {
+        self.city
+            .iter()
+            .filter(|c| {
+                c.name.data().suit == CardSuit::Religious || c.name == DistrictName::SchoolOfMagic
+            })
+            .count()
+    }
+
     pub fn has_role(&self, role: RoleName) -> bool {
         self.roles.iter().any(|r| *r == role)
     }
@@ -1014,14 +1023,7 @@ impl Game {
 
             Action::ResourcesFromReligion { gold, cards } => {
                 let player = self.active_player()?;
-                let count = player
-                    .city
-                    .iter()
-                    .filter(|c| {
-                        c.name.data().suit == CardSuit::Religious
-                            || c.name == DistrictName::SchoolOfMagic
-                    })
-                    .count();
+                let count = player.count_suit_for_resource_gain(CardSuit::Religious);
                 if gold + cards < count {
                     return Err(format!("Too few resources, you should select {}", count).into());
                 }
@@ -1136,12 +1138,7 @@ impl Game {
 
     fn gain_gold_for_suit(&mut self, suit: CardSuit) -> ActionResult {
         let player = self.active_player_mut()?;
-        let amount = player
-            .city
-            .iter()
-            .filter(|c| c.name.data().suit == suit || c.name == DistrictName::SchoolOfMagic)
-            .count();
-
+        let amount = player.count_suit_for_resource_gain(suit);
         player.gold += amount;
 
         Ok(ActionOutput {

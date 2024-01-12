@@ -322,34 +322,78 @@ impl ActionTag {
             _ => false,
         }
     }
-}
 
-impl std::fmt::Display for ActionTag {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    pub fn label(&self, player: &Player) -> Cow<'_, str> {
         match self {
-            ActionTag::GatherResourceGold => write!(f, "Resource: 2 gold"),
-            ActionTag::GatherResourceCards => write!(f, "Resource: Pick a card"),
-            ActionTag::Build => write!(f, "Build"),
-            ActionTag::Magic => write!(f, "Magic"),
-            ActionTag::WarlordDestroy => write!(f, "Destroy"),
-            ActionTag::EndTurn => write!(f, "End turn"),
-            ActionTag::GoldFromTrade => write!(f, "Gold from Trade"),
-            ActionTag::GoldFromReligion => write!(f, "Gold from Religious"),
-            ActionTag::GoldFromNobility => write!(f, "Gold from Nobility"),
-            ActionTag::GoldFromMilitary => write!(f, "Gold from Military"),
-            ActionTag::CardsFromNobility => write!(f, "Cards from Nobility"),
-            ActionTag::ArchitectGainCards => write!(f, "Gain 2 extra cards"),
-            ActionTag::TakeCrown => write!(f, "Take Crown"),
+            ActionTag::GatherResourceGold => {
+                let mut n = 2;
+                if player.city_has(DistrictName::GoldMine) {
+                    n += 1;
+                }
+                format!("Resource: Gain {} gold", n).into()
+            }
+
+            ActionTag::GatherResourceCards => {
+                let has_lib = player.city_has(DistrictName::Library);
+                let has_ob = player.city_has(DistrictName::Observatory);
+                match (has_lib, has_ob) {
+                    (true, true) => "Resource: Draw 3 cards",
+                    (true, false) => "Resource: Draw 2 cards",
+                    (false, true) => "Resource: Draw 3 cards, pick 1",
+                    (false, false) => "Resource: Draw 2 cards, pick 1",
+                }
+                .into()
+            }
+
+            ActionTag::Build => "Build".into(),
+            ActionTag::EndTurn => "End turn".into(),
+            ActionTag::GoldFromTrade => {
+                let suit = CardSuit::Trade;
+                let count = player.count_suit_for_resource_gain(suit);
+                format!("Gain {} gold from {}", count, suit).into()
+            }
+            ActionTag::GoldFromReligion => {
+                let suit = CardSuit::Religious;
+                let count = player.count_suit_for_resource_gain(suit);
+                format!("Gain {} gold from {}", count, suit).into()
+            }
+
+            ActionTag::GoldFromMilitary => {
+                let suit = CardSuit::Military;
+                let count = player.count_suit_for_resource_gain(suit);
+                format!("Gain {} gold from {}", count, suit).into()
+            }
+
+            ActionTag::GoldFromNobility => {
+                let suit = CardSuit::Noble;
+                let count = player.count_suit_for_resource_gain(suit);
+                format!("Gain {} gold from {}", count, suit).into()
+            }
+
+            ActionTag::CardsFromNobility => {
+                let suit = CardSuit::Noble;
+                let count = player.count_suit_for_resource_gain(suit);
+                format!("Gain {} cards from {}", count, suit).into()
+            }
+
+            ActionTag::Assassinate => "Assassinate".into(),
+            ActionTag::Steal => "Steal".into(),
+            ActionTag::Magic => "Magic".into(),
+            ActionTag::TakeCrown => "Take Crown".into(),
+            ActionTag::MerchantGainOneGold => "Gain 1 extra gold".into(),
+            ActionTag::ArchitectGainCards => "Gain 2 extra cards".into(),
+            ActionTag::WarlordDestroy => "Destroy".into(),
+            ActionTag::Beautify => "Beautify".into(),
+            /*
+            ActionTag::CardsFromNobility => write!(f, "Cards from Noble"),
+            */
             _ => {
-                log::debug!("Warning: default case for {}", self);
-                write!(f, "{:#?}", self)
+                log::debug!("Warning: default case for {:#?}", self);
+                format!("{:#?}", self).into()
             }
         }
     }
 }
-
-#[derive(Deserialize, Debug)]
-pub enum Never {}
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
