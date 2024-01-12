@@ -12,7 +12,8 @@
   "
   type="button"
   hx-get="/game/city/{{ player.name }}"
-  hx-trigger="mouseenter"
+  hx-sync="#city:abort"
+  hx-trigger="mouseenter throttle:1s"
   hx-target="#city"
   hx-swap="outerHTML"
 >

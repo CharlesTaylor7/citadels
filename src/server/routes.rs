@@ -101,14 +101,6 @@ pub async fn register(
 }
 
 pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-    let mut game = app.game.lock().unwrap();
-    if game.is_some() {
-        return (
-            StatusCode::BAD_REQUEST,
-            "can't overwrite a game in progress",
-        )
-            .into_response();
-    }
     let mut lobby = app.lobby.lock().unwrap();
     if lobby.players.len() < 2 {
         return (StatusCode::BAD_REQUEST, "too few players to start a game").into_response();
@@ -118,18 +110,26 @@ pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl Int
         return (StatusCode::BAD_REQUEST, "too many players to start a game").into_response();
     }
 
+    let mut game = app.game.lock().unwrap();
+    if game.is_some() {
+        return (
+            StatusCode::BAD_REQUEST,
+            "can't overwrite a game in progress",
+        )
+            .into_response();
+    }
+
     // Start the game, and remove all players from the lobby
     *game = Some(Game::start(mem::take(&mut lobby)));
 
-    if let Some(game) = app.game.lock().unwrap().as_ref() {
+    if let Some(game) = game.as_ref() {
         app.connections
             .lock()
             .unwrap()
             .broadcast_each(move |id| GameTemplate::render_with(game, Some(id)));
         return StatusCode::OK.into_response();
     }
-
-    StatusCode::BAD_REQUEST.into_response()
+    unreachable!()
 }
 
 pub async fn game(

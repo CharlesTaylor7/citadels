@@ -1,7 +1,7 @@
 <div
   id="players"
-  class="p-2 bg-neutral-content border border-base-200 flex flex-col items-center gap-2"
-  hx-trigger="mouseleave"
+  class="p-2 bg-neutral-content border border-base-200 flex flex-col items-center"
+  hx-trigger="mouseleave throttle:1s"
   hx-get="/game/city/{{ my.name }}"
   hx-target="#city"
   hx-swap="outerHTML"

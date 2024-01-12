@@ -11,6 +11,6 @@
   }
 
   .header {
-    @apply mb-2 underline text-lg font-semibold w-full text-center;
+    @apply underline text-lg font-semibold w-full text-center;
   }
 }
