@@ -3,10 +3,10 @@ use std::fmt::{self, Debug, Display};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub enum CardSuit {
-    Noble,
-    Religious,
     Trade,
+    Religious,
     Military,
+    Noble,
     Unique,
 }
 
