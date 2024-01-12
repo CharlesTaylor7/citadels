@@ -44,6 +44,7 @@
     - [x] Thief
     - [x] Magician
     - [ ] Warlord
+    - [ ] Artist
 
 - [ ] button labels
 - Roles
@@ -67,8 +68,8 @@
     - [x] Crown
     - [x] completed city: gold for first,
     - [x] completed city: participation trophy for others
+- [ ] Move card headers above district cards.
 
-- [x] Crop each district down to a square image, and put its background image onto the square card mockups you built earlier.
 
 ## Future Work
 - [ ] Linebreaks, italics and bolds in card descriptions.

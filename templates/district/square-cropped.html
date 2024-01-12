@@ -1,11 +1,16 @@
 <label
   class="
+    select-none
+    cursor-pointer
+    p-1 box-content
+    rounded-2xl
+    has-[:checked]:p-0
+    has-[:checked]:border
+    has-[:checked]:border-4
+    has-[:checked]:border-success
     {% if draggable %}
     draggable
     {% endif %}
-    relative
-    select-none
-    cursor-pointer
   "
   data-x="{{ district.pos.x }}px"
   data-y="{{ district.pos.y }}px"
@@ -14,6 +19,57 @@
     transform: translate({{ district.pos.x }}px, {{ district.pos.y }}px);
   "
 >
+  <div class="rounded-t-xl relative h-10 bg-neutral">
+    <div
+      data-tip="{{ district.description|def }}"
+      class="
+        absolute top-1 
+        w-full text-center 
+        {% if district.description.is_some() %}
+        tooltip
+        tooltip-bottom
+        tooltip-secondary
+        before:w-[calc(100%-8px)]
+        {% endif %}
+      "
+    >
+      <span class="
+          px-2
+          font-serif
+          text-base text-neutral-content
+          rounded-lg
+        "
+      >
+        {{ district.name }} 
+      </span>
+    </div>
+    <code
+      class="
+        absolute top-2 left-2
+        h-6 w-6 rounded-full
+        leaded 
+        flex flex-row justify-center items-center 
+        text-secondary-content 
+        {{ district.suit|suit_bg_color }}
+      "
+    >
+      {% if district.value != "SecretVault" %}
+        {{ district.cost }} 
+      {% endif %}
+    </code>
+    {% if district.beautified %}
+      <div 
+          data-tip="Beautified"
+          class="
+            absolute right-2 top-1 
+            tooltip tooltip-secondary 
+            text-2xl 
+          "
+      > 
+          ✨
+      </div>
+    {% endif %}
+  </div>
   <input
     type="{{ input_type }}"
     class="peer hidden"
@@ -24,56 +80,18 @@
     {% endif %}
   />
   {% set asset = district.asset %}
-  {% include "image-asset.html" %}
-  <div
-    data-tip="{{ district.description|def }}"
-    class="
-      absolute top-0 
-      w-full text-center 
-      {% if district.description.is_some() %}
-      tooltip
-      {{ tooltip_class }}
-      tooltip-bottom
-      tooltip-secondary
-      before:w-[calc(100%-8px)]
-      {% endif %}
-    "
+  <svg 
+    class="rounded-b-xl"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="{{ asset.height }}"
+    width="{{ asset.width }}"
+    style="filter: brightness({{ asset.brightness }})"
   >
-    <span class="
-        px-2
-        font-serif
-        text-sm text-secondary-content 
-        bg-blue-100
-        rounded-lg
-      "
-    >
-      {{ district.name }} 
-    </span>
-  </div>
-  <code
-    class="
-      absolute top-2 left-2
-      h-6 w-6 rounded-full
-      leaded 
-      flex flex-row justify-center items-center 
-      text-secondary-content 
-      {{ district.suit|suit_bg_color }}
-    "
-  >
-    {% if district.value != "SecretVault" %}
-      {{ district.cost }} 
-    {% endif %}
-  </code>
-  {% if district.beautified %}
-    <div 
-        data-tip="Beautified"
-        class="
-          absolute right-2 top-1 
-          tooltip tooltip-secondary 
-          text-2xl 
-        "
-    > 
-        ✨
-    </div>
-  {% endif %}
+    <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
+          height="{{ asset.scale_percentage }}%"
+          xlink:href="{{ asset.path }}"
+          preserveAspectRatio="xMinYMin slice"
+    />
+  </svg>
 </label>

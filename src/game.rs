@@ -311,7 +311,7 @@ impl Game {
 
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
-            for card in game.deck.draw_many(8) {
+            for card in game.deck.draw_many(4) {
                 p.city.push(CityDistrict {
                     name: card,
                     beautified: true,

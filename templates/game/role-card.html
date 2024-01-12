@@ -16,7 +16,27 @@
   />
 
   {% set asset = role.asset %}
-  {% include "image-asset.html" %}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="{{ asset.height }}"
+    width="{{ asset.width }}"
+    style="filter: brightness({{ asset.brightness }})"
+    class="
+      p-1 box-content
+      rounded-xl
+      peer-checked:p-0
+      peer-checked:border
+      peer-checked:border-4
+      peer-checked:border-success
+    "
+  >
+    <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
+          height="{{ asset.scale_percentage }}%"
+          xlink:href="{{ asset.path }}"
+          preserveAspectRatio="xMinYMin slice"
+    />
+  </svg>
   <div
     data-tip="{{ role.description }}"
     class="
