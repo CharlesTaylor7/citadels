@@ -21,18 +21,6 @@
     - [ ] Show errors inline
         - https://stackoverflow.com/a/73615279/4875161
 
-- Player resource summary
-    - [ ] revealed roles
-    - [x] Highlight active player
-    - [x] hand size
-    - [x] gold
-    - [x] city size
-    - [x] score
-    - [x] Crown
-    - [x] completed city: gold for first,
-    - [x] completed city: participation trophy for others
-
-
 ## Future Work
 - [ ] Linebreaks, italics and bolds in card descriptions.
 - [ ] Rethink daisyui theme. Maybe something more blue than beige.

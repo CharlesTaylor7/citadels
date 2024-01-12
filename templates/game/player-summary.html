@@ -36,6 +36,13 @@
       <div>
         Score:
       </div>
+      {% for i in 0..player.roles.len() %}
+        <div>
+          Role {{ i + 1 }}:
+        </div>
+      {% endfor %}
+      <div>
+      </div>
       <div>
         {% if player.crowned %}
           <span 
@@ -75,6 +82,15 @@
       <div>
         {{ player.score }}
       </div>
+      {% for (active, role) in player.roles %}
+        <div 
+          {% if active %}
+          class="underline"
+          {% endif %}
+        >
+          {{ role }}
+        </div>
+      {% endfor %}
     </div>
   </div>
 </div>

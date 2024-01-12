@@ -311,21 +311,9 @@ impl Game {
 
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
-
-            p.hand.clear();
-
-            for card in crate::districts::UNIQUE.iter().take(1) {
-                p.city.push(CityDistrict {
-                    name: card.name,
-                    beautified: false,
-                })
-            }
         }
 
-        game.first_to_complete = Some(PlayerIndex(1));
-
-        // game over!
-        game.active_turn = Turn::Call(Rank::Eight);
+        game.active_turn = Turn::Call(Rank::One);
         game.start_turn().ok()?;
 
         Some(game)
@@ -586,7 +574,7 @@ impl Game {
             self.call_next();
             return self.start_turn();
         }
-
+        c.revealed = true;
         let player = self.players[c.player.unwrap().0].borrow_mut();
         c.logs
             .push(format!("{} started their turn.", player.name).into());

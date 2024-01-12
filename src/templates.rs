@@ -317,11 +317,25 @@ pub struct PlayerInfoTemplate<'a> {
     pub crowned: bool,
     pub complete_city: bool,
     pub first_complete_city: bool,
-    pub revealed_roles: Vec<RoleName>,
+    pub roles: Vec<(bool, Cow<'a, str>)>,
 }
 
 impl<'a> PlayerInfoTemplate<'a> {
     pub fn from(player: &'a game::Player, game: &'a Game) -> Self {
+        let count = player.roles.len();
+        let mut roles = Vec::with_capacity(count);
+        for role in player.roles.iter() {
+            if game.characters[role.rank().to_index()].revealed {
+                roles.push((
+                    game.active_role().is_ok_and(|c| c.role == *role),
+                    format!("{role:?}").into(),
+                ));
+            }
+        }
+        for _ in roles.len()..count {
+            roles.push((false, "?".into()));
+        }
+
         Self {
             active: game.active_player_index().is_ok_and(|i| i == player.index),
             name: player.name.0.borrow(),
@@ -335,7 +349,7 @@ impl<'a> PlayerInfoTemplate<'a> {
                 .is_some_and(|c| *c == player.index),
             complete_city: player.city.len() >= game.complete_city_size(),
             score: game.public_score(player),
-            revealed_roles: player.roles.iter().filter_map(|role| Some(role)),
+            roles,
         }
     }
 }

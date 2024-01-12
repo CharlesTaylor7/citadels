@@ -2052,6 +2052,10 @@ html {
   height: 100vh;
 }
 
+.min-h-\[158px\] {
+  min-height: 158px;
+}
+
 .min-h-\[218px\] {
   min-height: 218px;
 }
