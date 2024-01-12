@@ -158,7 +158,7 @@ pub async fn get_game_actions(
         return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
     }
 
-    MenuTemplate::from(game).to_html()
+    MenuTemplate::from(game, Some(cookie.value())).to_html()
 }
 
 pub async fn get_game_city(

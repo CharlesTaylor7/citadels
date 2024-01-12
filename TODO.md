@@ -33,7 +33,8 @@
 - [ ] More Districts 
 
 
-## Issues
-- [ ] role markers appear in wrong place
-- [ ] draft shows you more info than it should when its not your turn
+## Severe Issues
+
+## Minor Issues
 - [ ] button labels are showing defaults in many places
+- [ ] Center draft cards

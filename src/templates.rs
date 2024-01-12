@@ -193,7 +193,7 @@ impl<'a> GameTemplate<'a> {
             .iter()
             .map(|p| PlayerInfoTemplate::from(p, game))
             .collect();
-        let MenuTemplate { menu, context } = MenuTemplate::from(game);
+        let MenuTemplate { menu, context } = MenuTemplate::from(game, my_id);
         log::info!("{:#?}", game.active_turn);
         let mut scores = game
             .players
@@ -248,22 +248,32 @@ pub struct MenuTemplate<'a> {
     context: GameContext,
 }
 impl<'a> MenuTemplate<'a> {
-    pub fn from(game: &'a game::Game) -> Self {
+    pub fn from(game: &'a game::Game, my_id: Option<&'a str>) -> Self {
+        let myself = get_myself(game, my_id);
+        let my_turn =
+            myself.is_some_and(|p1| game.active_player().is_ok_and(|p2| p1.index == p2.index));
+
+        let header = if !my_turn {
+            format!(
+                "{}'s Turn",
+                game.active_player().map_or("nobody", |p| &p.name.0)
+            )
+            .into()
+        } else if game.active_turn.draft().is_some() {
+            ("Draft").into()
+        } else if let Ok(c) = game.active_role() {
+            (format!("{}'s Turn", c.role.display_name())).into()
+        } else {
+            ("Game over").into()
+        };
+
         Self {
             context: GameContext {
                 allowed_actions: game.allowed_actions(),
             },
             menu: MainTemplate {
-                header: if game.active_turn.draft().is_some() {
-                    Cow::Borrowed("Draft")
-                } else if game.followup.is_some() {
-                    Cow::Borrowed("Select")
-                } else if let Ok(role) = game.active_role() {
-                    Cow::Owned(format!("{}'s Turn", role.role.display_name()))
-                } else {
-                    Cow::Borrowed("Game over")
-                },
-                view: MenuView::from(game),
+                header,
+                view: MenuView::from(game, myself),
             },
         }
     }
@@ -498,6 +508,9 @@ impl DistrictTemplate {
 }
 
 pub enum MenuView {
+    Logs {
+        logs: Vec<Cow<'static, str>>,
+    },
     Draft {
         roles: Vec<RoleTemplate>,
         discard: Vec<RoleTemplate>,
@@ -513,7 +526,14 @@ pub enum MenuView {
 }
 
 impl MenuView {
-    pub fn from(game: &Game) -> Self {
+    pub fn from(game: &Game, myself: Option<&game::Player>) -> Self {
+        let my_turn =
+            myself.is_some_and(|p1| game.active_player().is_ok_and(|p2| p1.index == p2.index));
+        if !my_turn {
+            return MenuView::Logs {
+                logs: game.active_role().map_or(vec![], |c| c.logs.clone()),
+            };
+        }
         let allowed = game.allowed_actions();
         let abilities = game
             .allowed_actions()
