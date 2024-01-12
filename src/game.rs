@@ -1,5 +1,5 @@
 use crate::actions::{Action, ActionTag, MagicianAction, Resource};
-use crate::districts::DistrictName;
+use crate::districts::{DistrictName, NORMAL};
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
 use crate::roles::{Rank, RoleName};
@@ -311,13 +311,25 @@ impl Game {
 
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
-            for card in game.deck.draw_many(4) {
+
+            p.hand.clear();
+
+            for card in crate::districts::NORMAL {
                 p.city.push(CityDistrict {
-                    name: card,
-                    beautified: true,
-                });
+                    name: card.name,
+                    beautified: false,
+                })
+            }
+            for card in crate::districts::UNIQUE {
+                if card.name.enabled() {
+                    p.city.push(CityDistrict {
+                        name: card.name,
+                        beautified: true,
+                    })
+                }
             }
         }
+
         game.first_to_complete = Some(PlayerIndex(1));
 
         // game over!

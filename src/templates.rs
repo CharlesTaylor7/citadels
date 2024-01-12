@@ -425,7 +425,7 @@ impl DistrictTemplate {
     pub fn from_city(index: usize, district: &CityDistrict) -> Self {
         let mut template = Self::from(district.name);
         template.beautified = district.beautified;
-        template.pos.y = -146.0 * index as f64;
+        template.pos.y = -185.0 * index as f64;
         template
     }
 
@@ -444,7 +444,7 @@ impl DistrictTemplate {
             DistrictName::Palace => (1.3, 0.236, 0.3),
             DistrictName::Prison => (1.3, 0.236, 0.3),
             DistrictName::Baracks => (1.3, 0.236, 0.3),
-            DistrictName::Cathedral => (1.3, 0.236, 0.3),
+            DistrictName::Cathedral => (1.3, 0.236, 0.7),
             DistrictName::Monastery => (1.3, 0.236, 0.7),
             DistrictName::Harbor => (1.3, 0.236, 0.7),
 
@@ -455,7 +455,7 @@ impl DistrictTemplate {
             DistrictName::HauntedQuarter => (1.3, 0.236, 0.4),
             DistrictName::GreatWall => (1.3, 0.236, 0.2),
             DistrictName::WishingWell => (1.3, 0.236, 0.2),
-            DistrictName::Park => (1.2, 0.27, 0.0),
+            DistrictName::Park => (1.2, 0.25, 0.0),
             DistrictName::Museum => (1.2, 0.27, 0.1),
             DistrictName::IvoryTower => (1.3, 0.236, 0.1),
             _ => (1.3, 0.236, 0.0),
