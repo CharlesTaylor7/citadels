@@ -321,7 +321,7 @@ impl Game {
                 })
             }
             for card in crate::districts::UNIQUE {
-                if card.name.enabled() {
+                if !card.name.enabled() {
                     p.city.push(CityDistrict {
                         name: card.name,
                         beautified: true,

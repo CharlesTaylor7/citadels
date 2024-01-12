@@ -23,25 +23,28 @@
     <div
       data-tip="{{ district.description|def }}"
       class="
-        absolute top-1 
+        absolute top-2
+        leaded
         w-full text-center 
+        font-serif
+        text-base text-neutral-content
         {% if district.description.is_some() %}
         tooltip
         tooltip-bottom
         tooltip-secondary
         before:w-full
         {% endif %}
+        
+        {% if district.value == "SchoolOfMagic" %}
+        ml-2
+        {% else if district.value == "ImperialTreasury" %}
+        ml-4
+        {% else if district.value == "HauntedQuarter" %}
+        ml-3
+        {% endif %}
       "
     >
-      <span class="
-          px-2
-          font-serif
-          text-base text-neutral-content
-          rounded-lg
-        "
-      >
-        {{ district.name }} 
-      </span>
+      {{ district.name }} 
     </div>
     <code
       class="

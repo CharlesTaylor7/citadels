@@ -1984,8 +1984,16 @@ html {
   top: 0.5rem;
 }
 
+.top-0\.5 {
+  top: 0.125rem;
+}
+
 .m-2 {
   margin: 0.5rem;
+}
+
+.m-1 {
+  margin: 0.25rem;
 }
 
 .mr-3 {
@@ -2000,12 +2008,36 @@ html {
   margin-top: 0.25rem;
 }
 
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.-ml-1 {
+  margin-left: -0.25rem;
+}
+
+.ml-4 {
+  margin-left: 1rem;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.ml-3 {
+  margin-left: 0.75rem;
+}
+
 .box-content {
   box-sizing: content-box;
 }
 
 .block {
   display: block;
+}
+
+.inline {
+  display: inline;
 }
 
 .flex {
@@ -2078,6 +2110,10 @@ html {
 
 .h-10 {
   height: 2.5rem;
+}
+
+.h-9 {
+  height: 2.25rem;
 }
 
 .w-20 {
