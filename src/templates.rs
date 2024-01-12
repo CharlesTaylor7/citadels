@@ -144,6 +144,7 @@ impl GameContext {
 pub struct GameTemplate<'a> {
     logs: &'a [Cow<'static, str>],
     characters: &'a [GameRole],
+    active_role: Option<RoleName>,
     context: GameContext,
     players: &'a [PlayerInfoTemplate<'a>],
     my: &'a PlayerTemplate<'a>,
@@ -178,6 +179,7 @@ impl<'a> GameTemplate<'a> {
             logs: game.logs.borrow(),
             menu,
             context,
+            active_role: game.active_role().ok().map(|role| role.role),
             //logs: &game.logs,
             characters: &game.characters,
             city: CityRootTemplate::from(

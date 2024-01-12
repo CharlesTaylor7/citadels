@@ -8,6 +8,6 @@
   }
 
   .header {
-    @apply m-2 underline text-lg font-semibold w-full text-center;
+    @apply mb-2 underline text-lg font-semibold w-full text-center;
   }
 }

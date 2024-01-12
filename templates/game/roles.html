@@ -1,50 +1,60 @@
 
 <div
   id="roles"
-  class="min-w-72 p-2 bg-neutral-content flex flex-col items-center border border-base-200"
+  class="grow w-72 p-2 bg-neutral-content flex flex-col border border-base-200"
 >
   <h2 class="header">Roles</h2>
   <div class="flex flex-col gap-2">
     <div class="italic text-sm">Hover for details. Click for logs</div>
     {% for character in characters %}
     {% set role = character.role.data() %}
-      <div>
-        <span
+      <details
+        {% if Some(role.name) == active_role.as_ref() %}
+        open
+        {% endif %}
+      >
+        <summary 
           data-tip="{{ role.description }}"
           class="
-            cursor-pointer
-            text-left 
+            text-left
+            text-wrap
+            block
             tooltip tooltip-right tooltip-secondary
+            {% if character.logs.len() > 0 %}
+              cursor-pointer
+            {% endif %}
           "
         >
-          {{ role.rank }}. {{ role.name.display_name() }}
-        </span>
-        {% for marker in character.markers %}
-          {% match marker %} 
-          {% when Marker::Killed %}            
-            <span 
-              data-tip="Killed by the Assassin"
-              class="tooltip tooltip-right tooltip-secondary text-xl"
-            > 
-              ☠️
-            </span>
-          {% when Marker::Robbed %}
-            <span 
-              data-tip="Robbed by the Thief"
-              class="tooltip tooltip-right tooltip-secondary text-xl"
-            > 
-              💸
-            </span>
-          {% else %}
-          {% endmatch %}
-        {% endfor %}
-      </div>
-      <code class="text-sm">
-        {% for log in character.logs %}
-          {{ log }}
-          <br>
-        {% endfor %}
-      </code>
+          <span class="" >
+            {{ role.rank }}. {{ role.name.display_name() }}
+          </span>
+          {% for marker in character.markers %}
+            {% match marker %} 
+            {% when Marker::Killed %}            
+              <span 
+                data-tip="Killed by the Assassin"
+                class="tooltip tooltip-right tooltip-secondary text-xl"
+              > 
+                ☠️
+              </span>
+            {% when Marker::Robbed %}
+              <span 
+                data-tip="Robbed by the Thief"
+                class="tooltip tooltip-right tooltip-secondary text-xl"
+              > 
+                💸
+              </span>
+            {% else %}
+            {% endmatch %}
+          {% endfor %}
+        </summary>
+        <code class="text-sm">
+          {% for log in character.logs %}
+            {{ log }}
+            <br>
+          {% endfor %}
+        </code>
+      </details>
     {% endfor %}
   </div>
 </div>
