@@ -559,7 +559,6 @@ impl Game {
 
     fn start_turn(&mut self) -> Result<()> {
         let c = self.active_role_mut();
-        log::info!("{:#?}", c);
         if c.is_none() {
             return Ok(());
         }
@@ -569,8 +568,7 @@ impl Game {
 
         log::info!("Calling {}", c.role.display_name());
         if c.markers.iter().any(|m| *m == Marker::Killed) {
-            c.logs
-                .push("They were killed; their turn is skipped.".into());
+            c.logs.push("They were killed!".into());
 
             *c_ref = c;
             self.call_next();
@@ -600,8 +598,8 @@ impl Game {
             thief.gold += gold;
             c.logs.push(
                 format!(
-                    "They were robbed; the Thief ({}) takes their gold.",
-                    thief.name,
+                    "The Thief ({}) takes all {} of their gold!",
+                    thief.name, gold
                 )
                 .into(),
             );
@@ -684,20 +682,15 @@ impl Game {
                     self.active_player_mut()?.hand.append(&mut drawn);
 
                     ActionOutput {
-                        log: format!(
-                            "{} is gathering cards. With their library they kept all {} cards.",
-                            self.active_player()?.name,
-                            draw_amount
-                        ),
+                        log: format!("They gathered cards. With the aid of their library they kept all {} cards.", draw_amount),
                         followup: None,
                     }
                 } else {
                     ActionOutput {
                         log: format!(
-                        "{} is gathering cards. They revealed {} cards from the top of the deck.",
-                        self.active_player()?.name,
-                        draw_amount
-                    ),
+                            "They revealed {} cards from the top of the deck.",
+                            draw_amount
+                        ),
                         followup: if drawn.len() > 0 {
                             Some(FollowupAction {
                                 action: ActionTag::GatherCardsPick,
@@ -721,9 +714,8 @@ impl Game {
                 for remaining in revealed {
                     self.deck.discard_to_bottom(remaining);
                 }
-                let player = self.active_player()?;
                 ActionOutput {
-                    log: format!("{} picked {} card(s).", player.name, 1),
+                    log: "They picked a card.".into(),
                     followup: None,
                 }
             }
