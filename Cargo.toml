@@ -30,7 +30,6 @@ serde = { version = "1.0.195", features = ["serde_derive"] }
 serde_json = "1.0.111"
 
 [features]
-default = ["dev"]
 dev = []
 
 # https://old.reddit.com/r/rust/comments/gvrgca/this_is_a_neat_trick_for_getting_good_runtime/

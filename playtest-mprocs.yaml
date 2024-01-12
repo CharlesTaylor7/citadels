@@ -1,6 +1,6 @@
 procs:
   Server:
-    shell: RUST_BACKTRACE=1 cargo build --no-default-features; cargo run
+    shell: RUST_BACKTRACE=1 cargo watch -x build -x run 
 
   Ngrok:
     shell: ngrok start --all
