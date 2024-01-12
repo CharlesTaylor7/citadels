@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer components {
+  .tooltip {
+    display: block;
+  }
   .tooltip:before {
     @apply z-20;
   }

@@ -19,22 +19,26 @@
     transform: translate({{ district.pos.x }}px, {{ district.pos.y }}px);
   "
 >
-  <div class="rounded-t-xl relative h-10 bg-neutral">
+  <div 
+    data-tip="{{ district.description|def }}"
+    class="
+      w-full
+      rounded-t-xl relative h-10 bg-neutral
+      {% if district.description.is_some() %}
+      tooltip
+      tooltip-bottom
+      tooltip-secondary
+      before:w-full
+      {% endif %}
+    "
+  >
     <div
-      data-tip="{{ district.description|def }}"
       class="
         absolute top-2
         leaded
         w-full text-center 
         font-serif
         text-base text-neutral-content
-        {% if district.description.is_some() %}
-        tooltip
-        tooltip-bottom
-        tooltip-secondary
-        before:w-full
-        {% endif %}
-        
         {% if district.value == "SchoolOfMagic" %}
         ml-2
         {% else if district.value == "ImperialTreasury" %}
@@ -60,7 +64,7 @@
         {{ district.cost }} 
       {% endif %}
     </code>
-    {% if district.beautified %}
+    {% if !district.beautified %}
       <div 
           data-tip="Beautified"
           class="
