@@ -6,6 +6,7 @@
 ## TODO
 - [ ] Lobby
     - [x] html escape names. Askama does this by default.
+    - [ ] Make some characters illegal: commas, whitespace
     - [ ] Enforce unique names in a game
     - [ ] Trim spaces around a name before storing.
     - [ ] Impose username character limit

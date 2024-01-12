@@ -206,7 +206,7 @@ pub const ROLES: [RoleData; 27] =
     , name: Warlord
     , set: Base
     , suit: Some(Military)
-    , actions: &[(1, GoldFromMilitary), (1, Destroy)]
+    , actions: &[(1, GoldFromMilitary), (1, WarlordDestroy)]
     , description: "Destroy 1 district by paying 1 fewer gold than its cost. Gain 1 gold for each of your MILITARY districts."
     , reminder: "You cannot target a completed city. You cannot target the Bishop's city."
     }

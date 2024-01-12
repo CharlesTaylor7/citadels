@@ -1,4 +1,4 @@
-use crate::actions::{ActionSubmission, ActionTag};
+use crate::actions::{Action, ActionSubmission, ActionTag};
 use crate::game::Game;
 use crate::roles::Rank;
 use crate::server::state::AppState;
@@ -235,58 +235,54 @@ async fn submit_game_action(
                 Err(error) => Err((StatusCode::BAD_REQUEST, error).into()),
             }
         }
-
-        ActionSubmission::Incomplete { action } => {
-            //
-            match action {
-                ActionTag::Assassinate => {
-                    let rendered = SelectRoleMenu {
-                        context: GameContext::from_game(game),
-                        roles: game
-                            .characters
-                            .iter()
-                            .filter(|c| c.role.rank() > Rank::One)
-                            .map(|c| RoleTemplate::from(c.role, 150.0))
-                            .collect(),
-                        header: "Select a role".into(),
-                        action: ActionTag::Assassinate,
-                    }
-                    .to_html()?;
-                    Ok(rendered.into_response())
+        ActionSubmission::Incomplete { action } => match action {
+            ActionTag::Assassinate => {
+                let rendered = SelectRoleMenu {
+                    context: GameContext::from_game(game),
+                    roles: game
+                        .characters
+                        .iter()
+                        .filter(|c| c.role.rank() > Rank::One)
+                        .map(|c| RoleTemplate::from(c.role, 150.0))
+                        .collect(),
+                    header: "Select a role".into(),
+                    action: ActionTag::Assassinate,
                 }
-                ActionTag::Steal => {
-                    let rendered = SelectRoleMenu {
-                        context: GameContext::from_game(game),
-                        roles: game
-                            .characters
-                            .iter()
-                            .filter(|c| {
-                                c.role.rank() > Rank::Two
-                                    && c.markers.iter().all(|m| *m != Marker::Killed)
-                            })
-                            .map(|c| RoleTemplate::from(c.role, 150.0))
-                            .collect(),
-                        header: "Select a role".into(),
-                        action: ActionTag::Steal,
-                    }
-                    .to_html()?;
-                    Ok(rendered.into_response())
-                }
-                ActionTag::Magic => {
-                    let rendered = MagicMenu {}.to_html()?;
-                    Ok(rendered.into_response())
-                }
-                ActionTag::Build => {
-                    let rendered = BuildMenu {}.to_html()?;
-                    Ok(rendered.into_response())
-                }
-                ActionTag::Destroy => {
-                    let rendered = WarlordMenu::from_game(game).to_html()?;
-                    Ok(rendered.into_response())
-                }
-                _ => Ok("not implemented".into_response()),
+                .to_html()?;
+                Ok(rendered.into_response())
             }
-        }
+            ActionTag::Steal => {
+                let rendered = SelectRoleMenu {
+                    context: GameContext::from_game(game),
+                    roles: game
+                        .characters
+                        .iter()
+                        .filter(|c| {
+                            c.role.rank() > Rank::Two
+                                && c.markers.iter().all(|m| *m != Marker::Killed)
+                        })
+                        .map(|c| RoleTemplate::from(c.role, 150.0))
+                        .collect(),
+                    header: "Select a role".into(),
+                    action: ActionTag::Steal,
+                }
+                .to_html()?;
+                Ok(rendered.into_response())
+            }
+            ActionTag::Magic => {
+                let rendered = MagicMenu {}.to_html()?;
+                Ok(rendered.into_response())
+            }
+            ActionTag::Build => {
+                let rendered = BuildMenu {}.to_html()?;
+                Ok(rendered.into_response())
+            }
+            ActionTag::WarlordDestroy => {
+                let rendered = WarlordMenu::from_game(game).to_html()?;
+                Ok(rendered.into_response())
+            }
+            _ => Ok("not implemented".into_response()),
+        },
     }
 }
 

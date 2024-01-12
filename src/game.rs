@@ -1,4 +1,4 @@
-use crate::actions::{Action, ActionTag, MagicianAction, Resource};
+use crate::actions::{Action, ActionTag, CityDistrictTarget, MagicianAction, Resource};
 use crate::districts::{DistrictName, NORMAL};
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
@@ -314,19 +314,11 @@ impl Game {
 
             p.hand.clear();
 
-            for card in crate::districts::NORMAL {
+            for card in game.deck.draw_many(3) {
                 p.city.push(CityDistrict {
-                    name: card.name,
+                    name: card,
                     beautified: false,
                 })
-            }
-            for card in crate::districts::UNIQUE {
-                if !card.name.enabled() {
-                    p.city.push(CityDistrict {
-                        name: card.name,
-                        beautified: true,
-                    })
-                }
             }
         }
 
@@ -907,7 +899,7 @@ impl Game {
                 }
             }
 
-            Action::Destroy(target) => {
+            Action::WarlordDestroy { district: target } => {
                 if target.district == DistrictName::Keep {
                     return Err("cannot destroy the Keep".into());
                 }
@@ -957,7 +949,9 @@ impl Game {
                 }
             }
 
-            Action::Beautify { district } => {
+            Action::Beautify {
+                district: CityDistrictTarget { district, .. },
+            } => {
                 let player = self.active_player_mut()?;
 
                 if player.gold < 1 {

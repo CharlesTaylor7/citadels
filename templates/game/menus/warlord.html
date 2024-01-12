@@ -9,6 +9,7 @@
     Warlord
   </h2>
 
+  {% let enabled = true %}
   {% for city in cities %}
     {% include "game/city.html" %}
   {% endfor %}
@@ -20,7 +21,7 @@
       hx-swap="outerHTML"
       hx-target="#menu"
       name="action"
-      value="Destroy"
+      value="{{ ActionTag::WarlordDestroy.borrow()|debug }}"
     >
       Destroy
     </button>

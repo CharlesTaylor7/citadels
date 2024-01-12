@@ -18,6 +18,9 @@
     z-index: {{ district.pos.z }};
     transform: translate({{ district.pos.x }}px, {{ district.pos.y }}px);
   "
+  _="on click
+    log event.target
+  "
 >
   <div 
     data-tip="{{ district.description|def }}"
@@ -64,7 +67,7 @@
         {{ district.cost }} 
       {% endif %}
     </code>
-    {% if !district.beautified %}
+    {% if district.beautified %}
       <div 
           data-tip="Beautified"
           class="

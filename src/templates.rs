@@ -49,12 +49,13 @@ impl<'a> CityTemplate<'a> {
             col.sort_by_key(|d| d.name.data().cost);
         }
 
+        let name = &game.players[target.0].name.0;
         let columns = columns
             .iter()
             .map(|col| {
                 col.iter()
                     .enumerate()
-                    .map(|(i, card)| DistrictTemplate::from_city(i, card))
+                    .map(|(i, card)| DistrictTemplate::from_city(name, i, card))
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
@@ -422,10 +423,11 @@ impl DistrictTemplate {
         }
     }
 
-    pub fn from_city(index: usize, district: &CityDistrict) -> Self {
+    pub fn from_city(player_name: &str, index: usize, district: &CityDistrict) -> Self {
         let mut template = Self::from(district.name);
         template.beautified = district.beautified;
         template.pos.y = -185.0 * index as f64;
+        template.value = format!("{},{},{}", template.value, player_name, district.beautified);
         template
     }
 

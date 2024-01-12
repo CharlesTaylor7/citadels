@@ -10,9 +10,9 @@
     style="margin-bottom: {{ city.margin_bottom }}px"
   >
     <div class="flex flex-row flex-wrap gap-2">
-        {% let input_type = "checkbox" %}
-        {% let enabled = true %}
+        {% let input_type = "radio" %}
         {% let draggable = true %}
+        {% set enabled = true %}
         {% set tooltip_class = city.tooltip_class %}
         {% for column in city.columns %} 
           <div class="flex flex-col">

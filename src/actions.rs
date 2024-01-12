@@ -1,3 +1,5 @@
+pub mod deserializer;
+use crate::actions::deserializer::*;
 use crate::game::{Game, Player};
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
@@ -11,15 +13,23 @@ use std::borrow::Cow;
 pub enum Action {
     // single select a role, then click pick or discard
     // Draft Phase
-    DraftPick { role: RoleName },
-    DraftDiscard { role: RoleName },
+    DraftPick {
+        role: RoleName,
+    },
+    DraftDiscard {
+        role: RoleName,
+    },
 
     // Call phase
     GatherResourceGold,
     GatherResourceCards,
-    GatherCardsPick { district: DistrictName },
+    GatherCardsPick {
+        district: DistrictName,
+    },
 
-    Build { district: DistrictName },
+    Build {
+        district: DistrictName,
+    },
     // Happens automatically when no actions are left.
     // Turn can end early if requested
     EndTurn,
@@ -40,8 +50,12 @@ pub enum Action {
     // If the character is killed it happens at the end of the round.
     TakeCrown,
 
-    Assassinate { role: RoleName },
-    Steal { role: RoleName },
+    Assassinate {
+        role: RoleName,
+    },
+    Steal {
+        role: RoleName,
+    },
 
     // select 1 player, or select many cards from hand
     Magic(MagicianAction),
@@ -50,10 +64,15 @@ pub enum Action {
     // may destroy own district
     // may not destroy from any completed city
     // may not destroy from bishop's city
-    Destroy(CityDistrictTarget),
+    WarlordDestroy {
+        #[serde(deserialize_with = "deserialize_city_district_target")]
+        district: CityDistrictTarget,
+    },
 
-    // must be one of your district cities
-    Beautify { district: DistrictName },
+    Beautify {
+        #[serde(deserialize_with = "deserialize_city_district_target")]
+        district: CityDistrictTarget,
+    },
 
     // Patrician
     CardsFromNobility,
@@ -65,50 +84,73 @@ pub enum Action {
     // The action is required.
     // If bewitched, the witch assigns the crown.
     // If killed, the action occurs at the end of the round, and no resources are taken.
-    EmperorGiveCrown { player: PlayerName },
+    EmperorGiveCrown {
+        player: PlayerName,
+    },
 
     // Abbot
-    ResourcesFromReligion { gold: usize, cards: usize },
+    ResourcesFromReligion {
+        gold: usize,
+        cards: usize,
+    },
 
     // Abbot
     // player arg to break a tie amongst the richest.
-    TakeFromRich { player: Option<PlayerName> },
+    TakeFromRich {
+        player: Option<PlayerName>,
+    },
 
     // Cardinal
     CardsFromReligion,
 
     // Witch
-    Bewitch { role: RoleName },
+    Bewitch {
+        role: RoleName,
+    },
 
     // Magistrate
-    SendWarrants { warrant: [Warrant; 3] },
+    SendWarrants {
+        warrant: [Warrant; 3],
+    },
 
     // Blackmailer
-    Threaten { threat: [Threat; 2] },
+    Threaten {
+        threat: [Threat; 2],
+    },
 
     // Marshal
-    Seize(CityDistrictTarget),
+    Seize {
+        #[serde(deserialize_with = "deserialize_city_district_target")]
+        district: CityDistrictTarget,
+    },
 
     // Tax Collector collects from the tax pool
     CollectTaxes,
 
     // Diplomat
-    ExchangeCityDistricts { exchange: [CityDistrictTarget; 2] },
+    ExchangeCityDistricts, //{ exchange: [CityDistrictTarget; 2], },
 
     // Spy
-    Spy { player: PlayerName, suit: CardSuit },
+    Spy {
+        player: PlayerName,
+        suit: CardSuit,
+    },
 
     // can happen during turn, or at end of round if king was killed
     QueenGainGold,
 
     // 4 gold or 4 cards
-    NavigatorGain { resource: Resource },
+    NavigatorGain {
+        resource: Resource,
+    },
 
     // take 1 card at random from each player
     SeerTake,
     // distribute 1 card to each player that you took from.
     // note: if an opponent has no cards initially, they get no card back from you.
-    SeerDistribute { seer: Vec<SeerTarget> },
+    SeerDistribute {
+        seer: Vec<SeerTarget>,
+    },
 
     // reveals 7 cards
     ScholarReveal,
@@ -116,20 +158,27 @@ pub enum Action {
     // shuffles the rest into the deck.
     // Note: shuffle the _entire_ deck.
     // Usually cards are discarded to the bottom of the deck.
-    ScholarPick { district: DistrictName },
+    ScholarPick {
+        district: DistrictName,
+    },
 
     // action
     // Reveals a players hand
-    WizardPeek { player: PlayerName },
+    WizardPeek {
+        player: PlayerName,
+    },
     // picks out of revealed hand
     // gets the option to build the picked card or to add to hand
-    WizardPick { district: DistrictName, build: bool },
+    WizardPick {
+        district: DistrictName,
+        build: bool,
+    },
 }
 
 // cardinal is complicated. I think I will add optional fields to the build action
 // witch is complicated
 
-#[derive(Deserialize, Debug)]
+#[derive(Debug)]
 pub struct CityDistrictTarget {
     pub player: PlayerName,
     pub district: DistrictName,
@@ -282,7 +331,7 @@ impl std::fmt::Display for ActionTag {
             ActionTag::GatherResourceCards => write!(f, "Resource: Pick a card"),
             ActionTag::Build => write!(f, "Build"),
             ActionTag::Magic => write!(f, "Magic"),
-            ActionTag::Destroy => write!(f, "Destroy"),
+            ActionTag::WarlordDestroy => write!(f, "Destroy"),
             ActionTag::EndTurn => write!(f, "End turn"),
             ActionTag::GoldFromTrade => write!(f, "Gold from Trade"),
             ActionTag::GoldFromReligion => write!(f, "Gold from Religious"),
@@ -298,6 +347,9 @@ impl std::fmt::Display for ActionTag {
         }
     }
 }
+
+#[derive(Deserialize, Debug)]
+pub enum Never {}
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
