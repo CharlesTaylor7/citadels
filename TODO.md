@@ -34,7 +34,6 @@
 
 
 ## Severe Issues
-- [ ] Can restart game in progress
 - [ ] Can embed lobby view into game view
 - [ ] Click draft pick with nothing selected shows "not implemented"
 - [ ] No user feedback when a submission fails

@@ -99,24 +99,27 @@ pub async fn register(
 
     cookies.add(Cookie::new("username", args.username.clone()))
 }
-pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-    {
-        let mut game = app.game.lock().unwrap();
-        if game.is_some() {
-            return (
-                StatusCode::BAD_REQUEST,
-                "can't overwrite a game in progress",
-            )
-                .into_response();
-        }
-        let mut lobby = app.lobby.lock().unwrap();
-        if lobby.players.is_empty() {
-            return (StatusCode::BAD_REQUEST, "can't start an empty game").into_response();
-        }
 
-        // Start the game, and remove all players from the lobby
-        *game = Some(Game::start(mem::take(&mut lobby)));
+pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+    let mut game = app.game.lock().unwrap();
+    if game.is_some() {
+        return (
+            StatusCode::BAD_REQUEST,
+            "can't overwrite a game in progress",
+        )
+            .into_response();
     }
+    let mut lobby = app.lobby.lock().unwrap();
+    if lobby.players.len() < 2 {
+        return (StatusCode::BAD_REQUEST, "too few players to start a game").into_response();
+    }
+
+    if lobby.players.len() > 8 {
+        return (StatusCode::BAD_REQUEST, "too many players to start a game").into_response();
+    }
+
+    // Start the game, and remove all players from the lobby
+    *game = Some(Game::start(mem::take(&mut lobby)));
 
     if let Some(game) = app.game.lock().unwrap().as_ref() {
         app.connections
