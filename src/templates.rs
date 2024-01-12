@@ -314,10 +314,10 @@ pub struct PlayerInfoTemplate<'a> {
     pub hand_size: usize,
     pub city_size: usize,
     pub score: usize,
-
     pub crowned: bool,
     pub complete_city: bool,
     pub first_complete_city: bool,
+    pub revealed_roles: Vec<RoleName>,
 }
 
 impl<'a> PlayerInfoTemplate<'a> {
@@ -335,6 +335,7 @@ impl<'a> PlayerInfoTemplate<'a> {
                 .is_some_and(|c| *c == player.index),
             complete_city: player.city.len() >= game.complete_city_size(),
             score: game.public_score(player),
+            revealed_roles: player.roles.iter().filter_map(|role| Some(role)),
         }
     }
 }
