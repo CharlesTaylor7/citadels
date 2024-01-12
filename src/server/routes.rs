@@ -175,7 +175,7 @@ pub async fn get_game_city(
             .iter()
             .find(|p| p.name == path.0)
             .ok_or("no player with that name")?;
-        CityRootTemplate::from(game, p.index, id)?.to_html()
+        CityRootTemplate::from(game, p.index, id).to_html()
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
@@ -221,7 +221,6 @@ async fn submit_game_action(
     log::info!("{:#?}", action.0);
     match action.0 {
         ActionSubmission::Complete(action) => {
-            //
             match game.perform(action) {
                 Ok(()) => {
                     // TODO: broadcast other
@@ -279,6 +278,10 @@ async fn submit_game_action(
                 }
                 ActionTag::Build => {
                     let rendered = BuildMenu {}.to_html()?;
+                    Ok(rendered.into_response())
+                }
+                ActionTag::Destroy => {
+                    let rendered = WarlordMenu::from_game(game).to_html()?;
                     Ok(rendered.into_response())
                 }
                 _ => Ok("not implemented".into_response()),

@@ -15,14 +15,13 @@
   "
 >
   <input
-  type="{{ input_type }}"
-  class="peer hidden"
-  name="district"
-  value="{{ district.value }}"
-  {% if !enabled %}
-  disabled
-  {% endif %}
-
+    type="{{ input_type }}"
+    class="peer hidden"
+    name="district"
+    value="{{ district.value }}"
+    {% if !enabled %}
+    disabled
+    {% endif %}
   />
   {% set asset = district.asset %}
   {% include "image-asset.html" %}
@@ -67,7 +66,7 @@
   </code>
   {% if district.beautified %}
     <div 
-        data-tip="Beautified by the Artist. Effective cost of {{ district.cost + 1 }}"
+        data-tip="Beautified"
         class="
           absolute right-2 top-1 
           tooltip tooltip-secondary 

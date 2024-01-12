@@ -278,11 +278,19 @@ impl ActionTag {
 impl std::fmt::Display for ActionTag {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ActionTag::GatherResourceGold => write!(f, "Gain 2 gold"),
-            ActionTag::GatherResourceCards => write!(f, "Draw 2 cards, pick 1"),
+            ActionTag::GatherResourceGold => write!(f, "Resource: 2 gold"),
+            ActionTag::GatherResourceCards => write!(f, "Resource: Pick a card"),
             ActionTag::Build => write!(f, "Build"),
             ActionTag::Magic => write!(f, "Magic"),
+            ActionTag::Destroy => write!(f, "Destroy"),
             ActionTag::EndTurn => write!(f, "End turn"),
+            ActionTag::GoldFromTrade => write!(f, "Gold from Trade"),
+            ActionTag::GoldFromReligion => write!(f, "Gold from Religious"),
+            ActionTag::GoldFromNobility => write!(f, "Gold from Nobility"),
+            ActionTag::GoldFromMilitary => write!(f, "Gold from Military"),
+            ActionTag::CardsFromNobility => write!(f, "Cards from Nobility"),
+            ActionTag::ArchitectGainCards => write!(f, "Gain 2 extra cards"),
+            ActionTag::TakeCrown => write!(f, "Take Crown"),
             _ => {
                 log::debug!("Warning: default case for {}", self);
                 write!(f, "{:#?}", self)

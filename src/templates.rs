@@ -3,8 +3,8 @@ use crate::actions::ActionTag;
 use crate::districts::DistrictName;
 use crate::game::{CityDistrict, FollowupAction, Game, GameRole, PlayerIndex, Turn};
 use crate::roles::{Rank, RoleName};
-use crate::types::CardSuit;
 use crate::types::Marker;
+use crate::types::{CardSuit, PlayerName};
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
@@ -17,11 +17,15 @@ pub struct CityRootTemplate<'a> {
 }
 
 impl<'a> CityRootTemplate<'a> {
-    pub fn from(
-        game: &'a Game,
-        target: game::PlayerIndex,
-        my_id: Option<&'a str>,
-    ) -> Result<Self, String> {
+    pub fn from(game: &'a Game, target: game::PlayerIndex, my_id: Option<&'a str>) -> Self {
+        Self {
+            city: CityTemplate::from(game, target, my_id),
+        }
+    }
+}
+
+impl<'a> CityTemplate<'a> {
+    pub fn from(game: &'a Game, target: game::PlayerIndex, my_id: Option<&'a str>) -> Self {
         let myself = get_myself(game, my_id);
 
         let (tooltip_class, header) = if myself.is_some_and(|p| p.index == target) {
@@ -67,14 +71,12 @@ impl<'a> CityRootTemplate<'a> {
             })
             .unwrap_or(0.0);
 
-        Ok(Self {
-            city: CityTemplate {
-                header,
-                tooltip_class,
-                columns,
-                margin_bottom,
-            },
-        })
+        Self {
+            header,
+            tooltip_class,
+            columns,
+            margin_bottom,
+        }
     }
 }
 
@@ -103,10 +105,31 @@ pub struct MagicMenu {}
 pub struct MagicSwapPlayerMenu<'a> {
     pub players: Vec<&'a str>,
 }
-
 #[derive(Template)]
 #[template(path = "game/menus/magic-swap-deck.html")]
 pub struct MagicSwapDeckMenu {}
+
+#[derive(Template)]
+#[template(path = "game/menus/warlord.html")]
+pub struct WarlordMenu<'a> {
+    pub cities: Vec<CityTemplate<'a>>,
+}
+
+impl<'a> WarlordMenu<'a> {
+    pub fn from_game(game: &'a game::Game) -> Self {
+        Self {
+            cities: game
+                .players
+                .iter()
+                .filter(|p| {
+                    game.active_player_index().is_ok_and(|i| i != p.index)
+                        && !p.has_role(RoleName::Bishop)
+                })
+                .map(|p| CityTemplate::from(&game, p.index, None))
+                .collect::<Vec<_>>(),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct ImageAssetTemplate {
@@ -179,15 +202,14 @@ impl<'a> GameTemplate<'a> {
             context,
             active_role: game.active_role().ok().map(|role| role.role),
             characters: &game.characters,
-            city: CityRootTemplate::from(
+            city: CityTemplate::from(
                 game,
                 myself
                     .map(|p| p.index)
                     .or(game.active_player_index().ok())
                     .unwrap_or(PlayerIndex(0)),
                 my_id,
-            )?
-            .city,
+            ),
             misc: MiscTemplate {
                 round: game.round,
                 deck: game.deck.size(),
@@ -423,7 +445,8 @@ impl DistrictTemplate {
             DistrictName::Prison => (1.3, 0.236, 0.3),
             DistrictName::Baracks => (1.3, 0.236, 0.3),
             DistrictName::Cathedral => (1.3, 0.236, 0.3),
-            DistrictName::Monastery => (1.3, 0.236, 0.3),
+            DistrictName::Monastery => (1.3, 0.236, 0.7),
+            DistrictName::Harbor => (1.3, 0.236, 0.7),
 
             DistrictName::Statue => (1.3, 0.236, 0.1),
             DistrictName::DragonGate => (1.5, 0.236, 0.4),

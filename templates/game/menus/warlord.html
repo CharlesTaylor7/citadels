@@ -1,0 +1,36 @@
+<section
+  id="menu"
+  class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
+  _="
+    init add .hidden to #city
+  "
+>
+  <h2 class="m-2 underline text-lg font-semibold">
+    Warlord
+  </h2>
+
+  {% for city in cities %}
+    {% include "game/city.html" %}
+  {% endfor %}
+
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      hx-swap="outerHTML"
+      hx-target="#menu"
+      name="action"
+      value="Destroy"
+    >
+      Destroy
+    </button>
+    <button 
+      class="btn btn-accent"
+      hx-get="/game/actions"
+      hx-swap="outerHTML"
+      hx-target="#menu"
+    >
+      Cancel
+    </button>
+  </div>
+</section>

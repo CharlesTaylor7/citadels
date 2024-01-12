@@ -26,6 +26,10 @@ pub struct Player {
 }
 
 impl Player {
+    pub fn has_role(&self, role: RoleName) -> bool {
+        self.roles.iter().any(|r| *r == role)
+    }
+
     pub fn cleanup_round(&mut self) {
         self.roles.clear();
     }
@@ -317,7 +321,7 @@ impl Game {
         game.first_to_complete = Some(PlayerIndex(1));
 
         // game over!
-        game.active_turn = Turn::Call(Rank::One);
+        game.active_turn = Turn::Call(Rank::Eight);
         game.start_turn().ok()?;
 
         Some(game)
@@ -1149,10 +1153,7 @@ impl Game {
 
         Ok(ActionOutput {
             followup: None,
-            log: format!(
-                "{} gained {} gold from their {} districts",
-                player.name, amount, suit
-            ),
+            log: format!("They gained {} gold from their {} districts", amount, suit),
         })
     }
 
@@ -1167,14 +1168,10 @@ impl Game {
         // they may have drawn less cards then the number of districts
         // if the deck was low on cards.
         let amount = self.gain_cards(count);
-        let player = self.active_player()?;
 
         Ok(ActionOutput {
             followup: None,
-            log: format!(
-                "{} gained {} cards from their {} districts",
-                player.name, amount, suit
-            ),
+            log: format!("They gained {} cards from their {} districts", amount, suit),
         })
     }
 

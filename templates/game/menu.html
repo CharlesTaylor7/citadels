@@ -1,7 +1,12 @@
 <section
   id="menu"
   class="grow flex flex-col p-2 bg-neutral-content gap-2 border border-base-200"
-  _="init add @disabled to <#main-panel input/>"
+  _="
+    init 
+      add @disabled to <#main-panel input/>
+      remove .hidden from #city
+    end
+  "
 >
   <h2 class="header">
     {{ menu.header }}
