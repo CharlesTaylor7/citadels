@@ -2475,6 +2475,11 @@ html {
   width: calc(100% - 8px);
 }
 
+.before\:w-full::before {
+  content: var(--tw-content);
+  width: 100%;
+}
+
 .before\:max-w-full::before {
   content: var(--tw-content);
   max-width: 100%;
