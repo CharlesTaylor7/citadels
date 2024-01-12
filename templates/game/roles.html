@@ -39,6 +39,12 @@
           {% endmatch %}
         {% endfor %}
       </div>
+      <code class="text-sm">
+        {% for log in character.logs %}
+          {{ log }}
+          <br>
+        {% endfor %}
+      </code>
     {% endfor %}
   </div>
 </div>
