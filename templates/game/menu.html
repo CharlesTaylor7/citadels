@@ -65,8 +65,8 @@
       {% set input_type = "radio" %}
       {% set enabled = true %} 
       {% set draggable = false %}
-      {% set tooltip_class = "" %}
-      {% for (index, district) in revealed.iter().enumerate() %} 
+      {% set district_tooltip_class = "" %}
+      {% for district in revealed %} 
         {% include "district/square-cropped.html" %} 
       {% endfor %}
     </div>

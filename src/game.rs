@@ -314,9 +314,9 @@ impl Game {
 
             p.hand.clear();
 
-            for card in game.deck.draw_many(3) {
+            for card in crate::districts::UNIQUE.iter().take(1) {
                 p.city.push(CityDistrict {
-                    name: card,
+                    name: card.name,
                     beautified: false,
                 })
             }

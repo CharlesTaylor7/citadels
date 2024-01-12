@@ -74,7 +74,7 @@ impl<'a> CityTemplate<'a> {
 
         Self {
             header,
-            tooltip_class,
+            district_tooltip_class: tooltip_class,
             columns,
             margin_bottom,
         }
@@ -282,7 +282,7 @@ struct MiscTemplate {
 
 pub struct CityTemplate<'a> {
     header: Cow<'a, str>,
-    tooltip_class: Cow<'a, str>,
+    district_tooltip_class: Cow<'a, str>,
     columns: Vec<Vec<DistrictTemplate>>,
     margin_bottom: f64,
 }
