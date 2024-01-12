@@ -345,8 +345,6 @@ impl ActionTag {
                 .into()
             }
 
-            ActionTag::Build => "Build".into(),
-            ActionTag::EndTurn => "End turn".into(),
             ActionTag::GoldFromTrade => {
                 let suit = CardSuit::Trade;
                 let count = player.count_suit_for_resource_gain(suit);
@@ -376,6 +374,10 @@ impl ActionTag {
                 format!("Gain {} cards from {}", count, suit).into()
             }
 
+            ActionTag::DraftPick => "Pick".into(),
+            ActionTag::DraftDiscard => "Discard".into(),
+            ActionTag::Build => "Build".into(),
+            ActionTag::EndTurn => "End turn".into(),
             ActionTag::Assassinate => "Assassinate".into(),
             ActionTag::Steal => "Steal".into(),
             ActionTag::Magic => "Magic".into(),
