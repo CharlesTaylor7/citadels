@@ -277,10 +277,17 @@ async fn submit_game_action(
                 let rendered = BuildMenu {}.to_html()?;
                 Ok(rendered.into_response())
             }
+
             ActionTag::WarlordDestroy => {
                 let rendered = WarlordMenu::from_game(game).to_html()?;
                 Ok(rendered.into_response())
             }
+
+            ActionTag::Beautify => {
+                let rendered = BeautifyMenu {}.to_html()?;
+                Ok(rendered.into_response())
+            }
+
             _ => Ok("not implemented".into_response()),
         },
     }

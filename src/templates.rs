@@ -3,8 +3,8 @@ use crate::actions::ActionTag;
 use crate::districts::DistrictName;
 use crate::game::{CityDistrict, FollowupAction, Game, GameRole, PlayerIndex, Turn};
 use crate::roles::{Rank, RoleName};
+use crate::types::CardSuit;
 use crate::types::Marker;
-use crate::types::{CardSuit, PlayerName};
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
@@ -115,6 +115,10 @@ pub struct MagicSwapDeckMenu {}
 pub struct WarlordMenu<'a> {
     pub cities: Vec<CityTemplate<'a>>,
 }
+
+#[derive(Template)]
+#[template(path = "game/menus/beautify.html")]
+pub struct BeautifyMenu;
 
 impl<'a> WarlordMenu<'a> {
     pub fn from_game(game: &'a game::Game) -> Self {
