@@ -12,20 +12,18 @@
   {% include "end.html" %}
   <div
     id="left-panel"
-    class="flex flex-col"
+    class="w-72 flex flex-col"
   >
     {% include "roles.html" %}
+    {% include "my-roles.html" %}
   </div>
   <form
     id="center-panel"
     class="grow flex flex-col"
   >
     {% include "city.html" %}
+    {% include "menu.html" %}
     {% include "hand.html" %}
-    <div class="flex flex-row">
-      {% include "my-roles.html" %}
-      {% include "menu.html" %}
-    </div>
   </form>
   <div
     id="right-panel"

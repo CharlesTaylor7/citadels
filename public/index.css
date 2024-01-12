@@ -2152,6 +2152,10 @@ html {
   gap: 0.75rem;
 }
 
+.overflow-x-scroll {
+  overflow-x: scroll;
+}
+
 .overflow-y-scroll {
   overflow-y: scroll;
 }
