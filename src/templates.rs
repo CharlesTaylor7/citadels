@@ -142,7 +142,7 @@ impl GameContext {
 #[derive(Template)]
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
-    logs: &'a [String],
+    logs: &'a [Cow<'static, str>],
     characters: &'a [GameRole],
     context: GameContext,
     players: &'a [PlayerInfoTemplate<'a>],
@@ -175,9 +175,10 @@ impl<'a> GameTemplate<'a> {
         scores.sort_by_key(|(_, score)| -(*score as isize));
 
         GameTemplate {
+            logs: game.logs.borrow(),
             menu,
             context,
-            logs: &game.logs,
+            //logs: &game.logs,
             characters: &game.characters,
             city: CityRootTemplate::from(
                 game,

@@ -26,6 +26,10 @@ pub struct Player {
 }
 
 impl Player {
+    pub fn cleanup_round(&mut self) {
+        self.roles.clear();
+    }
+
     pub fn city_has(&self, name: DistrictName) -> bool {
         self.city.iter().any(|c| c.name == name)
     }
@@ -109,7 +113,7 @@ impl<T> Deck<T> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Turn {
     GameOver,
     Draft(PlayerIndex),
@@ -161,6 +165,28 @@ pub struct GameRole {
     pub markers: Vec<Marker>,
     pub player: Option<PlayerIndex>,
     pub revealed: bool,
+    pub logs: Vec<Cow<'static, str>>,
+}
+
+impl Default for GameRole {
+    fn default() -> Self {
+        Self {
+            role: RoleName::Spy,
+            markers: Vec::with_capacity(0),
+            revealed: false,
+            player: None,
+            logs: Vec::with_capacity(0),
+        }
+    }
+}
+
+impl GameRole {
+    pub fn cleanup_round(&mut self) {
+        self.markers.clear();
+        self.player = None;
+        self.revealed = false;
+        self.logs.clear();
+    }
 }
 
 pub type ActionResult = Result<ActionOutput>;
@@ -182,8 +208,8 @@ pub struct Game {
     pub draft: Draft,
     pub followup: Option<FollowupAction>,
     pub turn_actions: Vec<Action>,
-    pub logs: Vec<String>,
     pub first_to_complete: Option<PlayerIndex>,
+    pub logs: Vec<Cow<'static, str>>,
 }
 
 impl Game {
@@ -292,10 +318,12 @@ impl Game {
 
     pub fn active_role(&self) -> Result<&GameRole> {
         let rank = self.active_turn.call().ok_or("not the call phase")?;
-        self.characters
-            .iter()
-            .find(|c| c.role.rank() == rank)
-            .ok_or("no active role".into())
+        Ok(self.characters[rank.to_index()].borrow())
+    }
+
+    pub fn active_role_mut(&mut self) -> Option<&mut GameRole> {
+        let rank = self.active_turn.call()?;
+        Some(self.characters[rank.to_index()].borrow_mut())
     }
 
     pub fn start(lobby: Lobby) -> Game {
@@ -349,6 +377,7 @@ impl Game {
                 markers: Vec::with_capacity(2),
                 player: None,
                 revealed: false,
+                logs: Vec::new(),
             })
             .collect();
 
@@ -360,11 +389,11 @@ impl Game {
             draft: Draft::default(),
             deck: Deck::new(deck),
             active_turn: Turn::Draft(crowned),
+            logs: Vec::new(),
             crowned,
             characters,
             followup: None,
             turn_actions: Vec::new(),
-            logs: Vec::with_capacity(1000),
             first_to_complete: None,
         };
         game.begin_draft();
@@ -501,7 +530,9 @@ impl Game {
             log::info!("followup: {:#?}", self.followup);
         }
         self.turn_actions.push(action);
-        self.logs.push(log);
+        if let Some(role) = self.active_role_mut() {
+            role.logs.push(log.into());
+        }
 
         if tag == ActionTag::EndTurn
             || self
@@ -510,57 +541,65 @@ impl Game {
                 .all(|action| *action == ActionTag::EndTurn)
         {
             self.end_turn()?;
-            self.start_turn()?;
         }
 
         Ok(())
     }
 
     fn start_turn(&mut self) -> Result<()> {
-        let mut logs = Vec::new();
-        while let Ok(c) = self.active_role() {
-            let role = c.role.clone();
-            logs.push(format!("Calling {}", c.role.display_name()));
+        let c = self.active_role_mut();
+        log::info!("{:#?}", c);
+        if c.is_none() {
+            return Ok(());
+        }
+        let c_ref = c.unwrap();
+        c_ref
+            .logs
+            .push(dbg!(format!("Calling {}", c_ref.role.display_name()).into()));
 
-            if c.markers.iter().any(|m| *m == Marker::Killed) {
-                logs.push(format!("They were killed; their turn is skipped."));
-                continue;
-            }
+        let mut c = std::mem::replace(c_ref, GameRole::default());
+        if c.markers.iter().any(|m| *m == Marker::Killed) {
+            c.logs
+                .push("They were killed; their turn is skipped.".into());
 
-            if let Ok(player) = self.active_player() {
-                logs.push(format!("{} started their turn.", player.name));
-
-                if c.markers.iter().any(|m| *m == Marker::Robbed) {
-                    let gold = player.gold;
-                    self.active_player_mut().unwrap().gold = 0;
-                    let thief = self
-                        .players
-                        .iter_mut()
-                        .find(|p| p.roles.iter().any(|r| *r == role))
-                        .unwrap();
-                    thief.gold += gold;
-                    let thief_name = thief.name.clone();
-
-                    logs.push(format!(
-                        "{} ({}) was robbed; they forfeit all their gold to {}.",
-                        role.display_name(),
-                        self.active_player().unwrap().name,
-                        thief_name
-                    ));
-                }
-
-                break;
-            }
-
-            logs.push(format!("no one responded"));
-
-            self.end_turn()?;
+            *c_ref = c;
+            self.call_next();
+            return self.start_turn();
         }
 
-        for item in logs {
-            log::info!("{}", item);
-            self.logs.push(item);
+        if c.player.is_none() {
+            c.logs.push("no one responded".into());
+
+            *c_ref = c;
+            self.call_next();
+            return self.start_turn();
         }
+
+        let player = self.players[c.player.unwrap().0].borrow_mut();
+        c.logs
+            .push(format!("{} started their turn.", player.name).into());
+
+        if c.markers.iter().any(|m| *m == Marker::Robbed) {
+            let gold = player.gold;
+            player.gold = 0;
+            let thief = self.characters[RoleName::Thief.rank().to_index()]
+                .player
+                .unwrap();
+
+            let name = player.name.clone();
+            self.players[thief.0].gold += gold;
+            c.logs.push(
+                format!(
+                    "{} ({}) was robbed; they forfeit all their gold to {}.",
+                    c.role.display_name(),
+                    name,
+                    self.players[thief.0].name,
+                )
+                .into(),
+            );
+        }
+
+        *self.active_role_mut().unwrap() = c;
 
         Ok(())
     }
@@ -1153,7 +1192,7 @@ impl Game {
         log::info!("ending turn");
         self.turn_actions.clear();
 
-        match std::mem::replace(&mut self.active_turn, Turn::GameOver) {
+        match self.active_turn {
             Turn::GameOver => {}
             Turn::Draft(index) => {
                 // advance turn
@@ -1186,28 +1225,37 @@ impl Game {
                     self.draft.remaining.push(initial);
                 }
             }
-            Turn::Call(rank) => {
+            Turn::Call(_) => {
                 if let Ok(player) = self.active_player() {
                     let gains_gold = player.gold == 0 && player.city_has(DistrictName::PoorHouse);
                     let gains_cards = player.hand.len() == 0 && player.city_has(DistrictName::Park);
-
+                    let name = self.active_player().unwrap().name.clone();
                     if gains_gold {
                         self.active_player_mut().unwrap().gold += 1;
-                        self.logs.push(format!(
-                            "{} gains 1 gold from their Poor House.",
-                            self.active_player().unwrap().name,
-                        ));
+                        self.active_role_mut()
+                            .unwrap()
+                            .logs
+                            .push(format!("{} gains 1 gold from their Poor House.", name,).into());
                     }
 
                     if gains_cards {
                         self.gain_cards(2);
-                        self.logs.push(format!(
-                            "{} gains 2 cards from their Park.",
-                            self.active_player().unwrap().name,
-                        ));
+                        self.active_role_mut()
+                            .unwrap()
+                            .logs
+                            .push(format!("{} gains 2 cards from their Park.", name).into());
                     }
                 }
+                self.call_next();
+            }
+        }
+        self.start_turn()?;
+        Ok(())
+    }
 
+    fn call_next(&mut self) {
+        match self.active_turn {
+            Turn::Call(rank) => {
                 let o = self.characters.last().and_then(|c| {
                     rank.next()
                         .and_then(|r| if r <= c.role.rank() { Some(r) } else { None })
@@ -1218,8 +1266,8 @@ impl Game {
                     self.end_round();
                 };
             }
+            _ => {}
         }
-        Ok(())
     }
 
     pub fn end_round(&mut self) {
@@ -1230,11 +1278,14 @@ impl Game {
             if let Some(index) = character.player {
                 if character.role == RoleName::King || character.role == RoleName::Patrician {
                     self.crowned = index;
-                    self.logs.push(format!(
-                        "{}'s heir {} crowned.",
-                        character.role.display_name(),
-                        self.players[index.0].name
-                    ));
+                    self.logs.push(
+                        format!(
+                            "{}'s heir {} crowned.",
+                            character.role.display_name(),
+                            self.players[index.0].name
+                        )
+                        .into(),
+                    );
                 }
                 if character.role == RoleName::Emperor {
                     todo!();
@@ -1255,11 +1306,10 @@ impl Game {
 
     fn cleanup_round(&mut self) {
         for character in self.characters.iter_mut() {
-            character.markers.clear();
-            character.player = None;
+            character.cleanup_round();
         }
         for player in self.players.iter_mut() {
-            player.roles.clear();
+            player.cleanup_round();
         }
 
         self.draft.clear();
