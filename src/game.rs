@@ -553,11 +553,10 @@ impl Game {
             return Ok(());
         }
         let c_ref = c.unwrap();
-        c_ref
-            .logs
-            .push(dbg!(format!("Calling {}", c_ref.role.display_name()).into()));
 
         let mut c = std::mem::replace(c_ref, GameRole::default());
+
+        log::info!("Calling {}", c.role.display_name());
         if c.markers.iter().any(|m| *m == Marker::Killed) {
             c.logs
                 .push("They were killed; their turn is skipped.".into());
@@ -568,7 +567,7 @@ impl Game {
         }
 
         if c.player.is_none() {
-            c.logs.push("no one responded".into());
+            c.logs.push("No one responded".into());
 
             *c_ref = c;
             self.call_next();
@@ -586,14 +585,12 @@ impl Game {
                 .player
                 .unwrap();
 
-            let name = player.name.clone();
-            self.players[thief.0].gold += gold;
+            let thief = &mut self.players[thief.0];
+            thief.gold += gold;
             c.logs.push(
                 format!(
-                    "{} ({}) was robbed; they forfeit all their gold to {}.",
-                    c.role.display_name(),
-                    name,
-                    self.players[thief.0].name,
+                    "They were robbed; the Thief ({}) takes their gold.",
+                    thief.name,
                 )
                 .into(),
             );
@@ -778,11 +775,7 @@ impl Game {
                 }
 
                 ActionOutput {
-                    log: format!(
-                        "{} built a {}.",
-                        self.active_player()?.name,
-                        district.display_name
-                    ),
+                    log: format!("They built a {}.", district.display_name),
                     followup: None,
                 }
             }
@@ -790,14 +783,8 @@ impl Game {
             Action::TakeCrown => {
                 self.crowned = self.active_player_index()?;
 
-                let active = self.active_role()?;
-                let player = self.active_player()?;
                 ActionOutput {
-                    log: format!(
-                        "The {} ({}) took the crown.",
-                        active.role.display_name(),
-                        player.name,
-                    ),
+                    log: format!("They took the crown.",),
                     followup: None,
                 }
             }
@@ -869,12 +856,8 @@ impl Game {
 
                 ActionOutput {
                     log: format!(
-                        "The Magician ({}) swapped their hand of {} cards with {}'s hand of {} cards.",
-                        self.active_player()?.name,
-                        hand_count,
-                        player,
-                        target_count,
-
+                        "They swapped their hand of {} cards with {}'s hand of {} cards.",
+                        hand_count, player, target_count,
                     ),
                     followup: None,
                 }
