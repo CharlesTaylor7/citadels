@@ -286,10 +286,11 @@ pub struct PlayerInfoTemplate<'a> {
     pub gold: usize,
     pub hand_size: usize,
     pub city_size: usize,
+    pub score: usize,
+
     pub crowned: bool,
     pub complete_city: bool,
     pub first_complete_city: bool,
-    pub score: usize,
 }
 
 impl<'a> PlayerInfoTemplate<'a> {

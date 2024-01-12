@@ -36,8 +36,32 @@
       <div>
         Score:
       </div>
+      <div>
+        {% if player.crowned %}
+          <span 
+            data-tip="The Crown. They will draft first next round."
+            class="tooltip tooltip-left tooltip-secondary text-2xl"
+          > 
+              👑
+          </span>
+        {% endif %}
+        {% if player.first_complete_city %}
+          <span 
+            data-tip="First completed city.&#10;Worth 4 extra points at the end of the game."
+            class="tooltip tooltip-left tooltip-secondary text-2xl"
+          > 
+            🥇 
+          </span>
+        {% else if player.complete_city %}
+          <span
+            data-tip="Completed city, but not first.&#10;Worth 2 extra points at the end of the game."
+            class="tooltip tooltip-left tooltip-secondary text-2xl"
+          >
+            🥈
+          </span>
+        {% endif %}
+      </div>
     </div>
-
     <div class="flex flex-col">
       <div>
         {{ player.gold }}

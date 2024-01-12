@@ -44,14 +44,12 @@
     - [x] Thief
     - [x] Magician
     - [ ] Warlord
-    - [ ] Scholar
-    - [ ] Navigator
 
 - [ ] button labels
 - Roles
-    - [ ] Unmask player as turn proceeds
-    - [ ] Collapsible section of the actions taken
-    - [ ] Markers:
+    - [x] Unmask player as turn proceeds
+    - [x] Collapsible section of the actions taken
+    - [x] Markers:
         - Killed
         - Robbed
 
@@ -65,11 +63,10 @@
     - [x] gold
     - [x] city size
     - [x] score
-    - [ ] markers: 
-        - Crown
-        - revealed roles
-        - completed city: gold for first,
-        - completed city: participation trophy for others
+    - [ ] revealed roles
+    - [x] Crown
+    - [x] completed city: gold for first,
+    - [x] completed city: participation trophy for others
 
 - [x] Crop each district down to a square image, and put its background image onto the square card mockups you built earlier.
 

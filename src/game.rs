@@ -306,9 +306,15 @@ impl Game {
         }
 
         for p in game.players.iter_mut() {
-            p.gold = 20;
             p.roles.sort_by_key(|r| r.rank());
+            for card in game.deck.draw_many(8) {
+                p.city.push(CityDistrict {
+                    name: card,
+                    beautified: true,
+                });
+            }
         }
+        game.first_to_complete = Some(PlayerIndex(1));
 
         // game over!
         game.active_turn = Turn::Call(Rank::One);
