@@ -4,7 +4,7 @@
 
 @layer components {
   .tooltip {
-    display: block;
+    display: revert;
   }
   .tooltip:before {
     @apply z-20;

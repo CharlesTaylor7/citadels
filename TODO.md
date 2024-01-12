@@ -3,6 +3,7 @@
  - 19/30 unique districts
  - 9/30 base game characters + Artist
 
+## Ideas
 - Lobby
     - [x] html escape names. Askama does this by default.
     - [ ] Make some characters illegal: commas, whitespace
@@ -30,3 +31,9 @@
     - [_] Scholar
     - [_] Abbot
 - [ ] More Districts 
+
+
+## Issues
+- [ ] role markers appear in wrong place
+- [ ] draft shows you more info than it should when its not your turn
+- [ ] button labels are showing defaults in many places

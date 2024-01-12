@@ -1927,7 +1927,7 @@ html {
 }
 
 .tooltip {
-  display: block;
+  display: revert;
 }
 
 .tooltip:before {

@@ -311,6 +311,13 @@ impl Game {
 
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
+
+            for card in game.deck.draw_many(4) {
+                p.city.push(CityDistrict {
+                    name: card,
+                    beautified: false,
+                });
+            }
         }
 
         game.active_turn = Turn::Call(Rank::One);
