@@ -306,6 +306,7 @@ impl Game {
         }
 
         for p in game.players.iter_mut() {
+            p.gold = 20;
             p.roles.sort_by_key(|r| r.rank());
         }
 

@@ -15,6 +15,7 @@
     class="w-72 flex flex-col"
   >
     {% include "roles.html" %}
+    {% include "my-stash.html" %}
     {% include "my-roles.html" %}
   </div>
   <form
@@ -29,57 +30,8 @@
     id="right-panel"
     class="flex flex-col"
   >
-    <div
-      id="players"
-      class="p-2 bg-neutral-content border border-base-200 flex flex-col items-center gap-2"
-      hx-trigger="mouseleave"
-      hx-get="/game/city/{{ my.name }}"
-      hx-target="#city"
-      hx-swap="outerHTML"
-    >
-      <h2 class="header">Players</h2>
-      <div class="italic text-sm">Hover to see more details</div>
-      <div class="flex flex-col gap-2">
-        {% for player in players %}
-        {% include "player-summary.html" %}
-        {% endfor %}
-      </div>
-    </div>
-    <div
-      id="misc"
-      class="grow px-4 bg-neutral-content border border-base-200 flex flex-col items-center gap-2 text-base"
-    >
-      <h2 class="header">Info</h2>
-      <div class="flex flex-row justify-center gap-3" >
-        <div class="flex flex-col" >
-          <div>
-            Round: 
-          </div>
-          <div>
-            Deck: 
-          </div>
-          {% if misc.timer.is_some() %}
-          <div>
-            Timer: 
-          </div>
-          {% endif %}
-        </div>
-        <div class="flex flex-col">
-          <div>
-            {{ misc.round }}
-          </div>
-          <div>
-            {{ misc.deck }}
-          </div>
-          {% match misc.timer %}
-          {% when Some with (timer) %}
-            <div>
-              {{ timer }}
-            </div>
-          {% else %}
-          {% endmatch %}
-        </div>
-      </div>
-    </div>
+    {% include "players.html" %}
+    {% include "misc.html" %}
+  </div>
 </main>
 {% endblock %}
