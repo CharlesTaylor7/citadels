@@ -141,7 +141,7 @@ impl RoleName {
             // 4
             Self::Patrician => true,
             // 7
-            Self::Scholar => false,
+            Self::Scholar => true,
             Self::Navigator => false,
             // everything else
             _ => false,
