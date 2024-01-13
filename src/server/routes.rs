@@ -206,6 +206,15 @@ pub async fn get_ws(
     }
 }
 
+fn bad_request(err: Cow<'static, str>) -> ErrorResponse {
+    (
+        StatusCode::BAD_REQUEST,
+        [("HX-Retarget", "#errors"), ("HX-Reswap", "innerHTML")],
+        err,
+    )
+        .into()
+}
+
 async fn submit_game_action(
     app: State<AppState>,
     cookies: PrivateCookieJar,
@@ -218,7 +227,7 @@ async fn submit_game_action(
     let active_player = game.active_player()?;
 
     if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
-        return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
+        return Err(bad_request("not your turn!".into()));
     }
 
     log::info!("{:#?}", action.0);
@@ -235,7 +244,7 @@ async fn submit_game_action(
 
                     Ok(StatusCode::OK.into_response())
                 }
-                Err(error) => Err((StatusCode::BAD_REQUEST, error).into()),
+                Err(error) => Err(bad_request(error)),
             }
         }
         ActionSubmission::Incomplete { action } => match action {
@@ -291,7 +300,7 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
 
-            _ => Ok("not implemented".into_response()),
+            _ => Err(bad_request("missing selection".into())),
         },
     }
 }

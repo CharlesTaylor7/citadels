@@ -414,7 +414,7 @@ impl<'a> PlayerTemplate<'a> {
 #[derive(Clone)]
 pub struct DistrictTemplate {
     pub name: &'static str,
-    pub cost: usize,
+    pub cost: Option<usize>,
     pub value: String,
     pub suit: CardSuit,
     pub description: Option<&'static str>,
@@ -443,7 +443,11 @@ impl DistrictTemplate {
         let full_width = length * (125.8 / 200.0) * (scale / 5.0);
         Self {
             name: data.display_name,
-            cost: data.cost,
+            cost: if district == DistrictName::SecretVault {
+                None
+            } else {
+                Some(data.cost)
+            },
             value: format!("{:#?}", district),
             suit: data.suit,
             description: data.description,

@@ -261,7 +261,6 @@ pub const UNIQUE: [DistrictData; 30] = [
         cost: 4,
         description: Some("If you choose to draw cards when gathering resources, draw 3 cards instead of 2."),
     },
-
     DistrictData {
         name: DistrictName::Library,
         suit: Unique,

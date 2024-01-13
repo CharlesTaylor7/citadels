@@ -337,10 +337,10 @@ impl ActionTag {
                 let has_lib = player.city_has(DistrictName::Library);
                 let has_ob = player.city_has(DistrictName::Observatory);
                 match (has_lib, has_ob) {
-                    (true, true) => "Resource: Draw 3 cards",
-                    (true, false) => "Resource: Draw 2 cards",
-                    (false, true) => "Resource: Draw 3 cards, pick 1",
-                    (false, false) => "Resource: Draw 2 cards, pick 1",
+                    (true, true) => "Resource: Draw 3",
+                    (true, false) => "Resource: Draw 2",
+                    (false, true) => "Resource: Draw 3, pick 1",
+                    (false, false) => "Resource: Draw 2, pick 1",
                 }
                 .into()
             }

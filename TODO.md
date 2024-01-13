@@ -34,13 +34,10 @@
 
 
 ## Severe Issues
-- [ ] Click draft pick with nothing selected shows "not implemented"
 - [ ] No user feedback when a submission fails
 
 ## Minor Issues
 - [ ] Can embed lobby view into game view
-- [ ] button labels are showing defaults in many places
-- [ ] Center draft cards
 - [ ] no confirmation messages
 - [ ] inconsistent log format and tenses
 - [ ] Observatory is not noted, but library is.

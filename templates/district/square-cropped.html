@@ -64,9 +64,11 @@
         {{ district.suit|suit_bg_color }}
       "
     >
-      {% if district.value != "SecretVault" %}
-        {{ district.cost }} 
-      {% endif %}
+    {% match district.cost %}
+    {% when Some with (cost) %}
+        {{ cost }} 
+    {% else %}
+    {% endmatch %}
     </code>
     {% if district.beautified %}
       <div 

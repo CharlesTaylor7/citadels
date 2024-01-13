@@ -251,7 +251,9 @@ impl Game {
 
         // total costs
         for card in &player.city {
-            score += card.effective_cost();
+            if card.name != DistrictName::SecretVault {
+                score += card.effective_cost();
+            }
             counts[card.name.data().suit as usize] += 1;
         }
 
