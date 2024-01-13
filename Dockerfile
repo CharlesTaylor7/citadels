@@ -19,7 +19,7 @@ RUN sed -i 's#dummy.rs#src/main.rs#' Cargo.toml
 COPY .env .env
 COPY templates/ templates/
 COPY src/ src/
-RUN cargo build --features=dev
+RUN cargo build 
 # RUN cargo build --release --features=dev
 
 # new layer for smaller image
