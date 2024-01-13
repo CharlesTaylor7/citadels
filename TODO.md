@@ -4,6 +4,10 @@
  - 9/30 base game characters + Artist
 
 ## Ideas
+- Game Configuration
+    - [ ] Pick roles
+    - [ ] Pick unique districts
+
 - Lobby
     - [x] html escape names. Askama does this by default.
     - [ ] Make some characters illegal: commas, whitespace
@@ -15,7 +19,6 @@
     - [x] Deterministic rng
     - [ ] Write to file
     - [ ] Restore from file
-
 - UX
     - [x] Better labels, e.g. "gain n gold from suit x"
     - [ ] Show confirmation messages inline
@@ -45,8 +48,7 @@
 
 ## Playtest feedback
 - [ ] Keep role logs open, instead of just the active role.
-	- Open them all at the start of a round.
-	- Close them individually at option.
+	- [ ] Open them all at the start of a round.
 	- When sending logs, send them as oob-swaps so they don't close the open ones.
 - [ ] Take crown action, can't actually be taken. This should be a required action for the king and patrician.
 - [ ] Notification bell for start of turn.

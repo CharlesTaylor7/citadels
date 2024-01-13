@@ -7,11 +7,7 @@
     <div class="italic text-sm">Hover for details. Click for logs</div>
     {% for character in characters %}
     {% set role = character.role.data() %}
-      <details
-        {% if Some(role.name) == active_role.as_ref() %}
-        open
-        {% endif %}
-      >
+      <details open>
         <summary 
           data-tip="{{ role.description }}"
           class="
