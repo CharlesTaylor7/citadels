@@ -94,7 +94,7 @@ pub const ROLES: [RoleData; 27] =
     , name: King
     , set: Base
     , suit: Some(Noble)
-    , actions: &[(1, GoldFromNobility)]
+    , actions: &[(1, TakeCrown), (1, GoldFromNobility)]
     , description: "Take the crown. Gain 1 gold for each of your NOBLE districts."
     , reminder: ""
     }
@@ -112,7 +112,7 @@ pub const ROLES: [RoleData; 27] =
     , name: Patrician
     , set: Citadels2016
     , suit: Some(Noble)
-    , actions: &[(1, CardsFromNobility)]
+    , actions: &[(1, TakeCrown), (1, CardsFromNobility)]
     , description: "Take the crown. Gain 1 card for each of your NOBLE districts."
     , reminder: ""
     }
