@@ -386,6 +386,8 @@ impl ActionTag {
             ActionTag::ArchitectGainCards => "Gain 2 extra cards".into(),
             ActionTag::WarlordDestroy => "Destroy".into(),
             ActionTag::Beautify => "Beautify".into(),
+            ActionTag::ScholarReveal => "Draw 7, pick 1".into(),
+            ActionTag::ScholarPick => "Pick".into(),
             /*
             ActionTag::CardsFromNobility => write!(f, "Cards from Noble"),
             */
