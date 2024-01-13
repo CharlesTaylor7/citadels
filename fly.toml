@@ -6,6 +6,10 @@
 app = "citadels"
 primary_region = "iad"
 
+[mounts]
+  source = "citadels_data"
+  destination = "/volume"
+
 [[services]]
   internal_port = 8080
   protocol = "tcp"

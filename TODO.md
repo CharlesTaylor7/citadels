@@ -17,7 +17,7 @@
     - [ ] Restore from file
 
 - UX
-    - [ ] Better labels, e.g. "gain n gold from suit x"
+    - [x] Better labels, e.g. "gain n gold from suit x"
     - [ ] Show confirmation messages inline
     - [ ] Show errors inline
         - https://stackoverflow.com/a/73615279/4875161
@@ -36,8 +36,26 @@
 ## Severe Issues
 - [ ] No user feedback when a submission fails
 
+
 ## Minor Issues
 - [ ] Can embed lobby view into game view
 - [ ] no confirmation messages
 - [ ] inconsistent log format and tenses
 - [ ] Observatory is not noted, but library is.
+
+## Playtest feedback
+- [ ] Keep role logs open, instead of just the active role.
+	- Open them all at the start of a round.
+	- Close them individually at option.
+	- When sending logs, send them as oob-swaps so they don't close the open ones.
+- [ ] Take crown action, can't actually be taken. This should be a required action for the king and patrician.
+- [ ] Notification bell for start of turn.
+- [ ] role and district description should have dedicated info icon for bringing up their tooltips.
+- [ ] click instead of hover to view someone's city. Persist the state, don't restore your city on hover back.
+	- this makes it work for ipad better, and makes it so players can inspect a city more closely.
+- [ ] Collect gold for suit, always counts blue instead of the correct suit.
+- [ ] Make it possible to save a set of roles to use, for config.
+- [ ] Bishop should only protect your city when revealed, not if killed.
+- [ ] Nerfed Asssassin idea: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
+- [ ] Warlord menu should make it obvious the cost to destroy from the great wallled city is higher.
+- Liked the layout fit on 1 screen, with no scrolling, liked the scholar.
