@@ -16,6 +16,7 @@ use http::StatusCode;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::mem;
+use time::Duration;
 use tower_http::services::ServeDir;
 use uuid::Uuid;
 
@@ -42,12 +43,14 @@ pub async fn index() -> impl IntoResponse {
     Redirect::to("/lobby")
 }
 
-pub async fn get_lobby(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
-    let player_id = cookies.get("player_id").map(|c| c.value().to_owned());
-    let cookies = cookies.add(Cookie::new(
-        "player_id",
-        player_id.unwrap_or_else(|| Uuid::new_v4().to_string()),
-    ));
+pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
+    let player_id = cookies.get("player_id");
+
+    if player_id.is_none() {
+        let id = Uuid::new_v4().to_string();
+        let cookie = Cookie::build(("player_id", id)).max_age(Duration::WEEK);
+        cookies = cookies.add(cookie);
+    }
 
     if app.game.lock().unwrap().is_some() {
         return (cookies, Redirect::to("/game")).into_response();
