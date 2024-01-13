@@ -1,4 +1,4 @@
-use crate::actions::{Action, ActionSubmission, ActionTag};
+use crate::actions::{ActionSubmission, ActionTag};
 use crate::game::Game;
 use crate::roles::Rank;
 use crate::server::state::AppState;

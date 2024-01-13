@@ -8,7 +8,7 @@ use crate::types::Marker;
 use crate::{game, lobby};
 use askama::Template;
 use axum::response::Html;
-use std::borrow::{Borrow, BorrowMut, Cow};
+use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]
 #[template(path = "game/city.html")]
