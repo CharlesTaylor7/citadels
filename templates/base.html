@@ -14,7 +14,7 @@
     <script>
       Idiomorph.defaults.head = 'none';
       htmx.config.defaultSwapStyle = 'none';
-      // htmx.logAll();
+      htmx.logAll();
       document.addEventListener("htmx:wsAfterMessage", (event) => {
         let node = event.detail.elt.querySelector("[data-replace-url]");
         let url = node.dataset.replaceUrl;
