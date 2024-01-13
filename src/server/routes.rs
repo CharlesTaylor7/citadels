@@ -47,6 +47,7 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
     let player_id = cookies.get("player_id");
 
     if player_id.is_none() {
+        log::info!("Setting new player_id cookie with 1 week expiry");
         let id = Uuid::new_v4().to_string();
         let cookie = Cookie::build(("player_id", id)).max_age(Duration::WEEK);
         cookies = cookies.add(cookie);
