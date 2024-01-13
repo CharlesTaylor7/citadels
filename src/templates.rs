@@ -130,7 +130,7 @@ impl<'a> WarlordMenu<'a> {
                     game.active_player_index().is_ok_and(|i| i != p.index)
                         && !p.has_role(RoleName::Bishop)
                 })
-                .map(|p| CityTemplate::from(&game, p.index, None))
+                .map(|p| CityTemplate::from(game, p.index, None))
                 .collect::<Vec<_>>(),
         }
     }

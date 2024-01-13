@@ -1,6 +1,6 @@
 pub mod deserializer;
 use crate::actions::deserializer::*;
-use crate::game::{Player};
+use crate::game::Player;
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
 use macros::tag::Tag;
