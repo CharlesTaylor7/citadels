@@ -1,5 +1,5 @@
 use crate::actions::{Action, ActionTag, CityDistrictTarget, MagicianAction, Resource};
-use crate::districts::{DistrictName, NORMAL};
+use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
 use crate::roles::{Rank, RoleName};
@@ -29,9 +29,7 @@ impl Player {
     pub fn count_suit_for_resource_gain(&self, suit: CardSuit) -> usize {
         self.city
             .iter()
-            .filter(|c| {
-                c.name.data().suit == CardSuit::Religious || c.name == DistrictName::SchoolOfMagic
-            })
+            .filter(|c| c.name.data().suit == suit || c.name == DistrictName::SchoolOfMagic)
             .count()
     }
 
