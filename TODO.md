@@ -55,13 +55,14 @@
     - [x] audio tag, with ws event listener
     - [ ] Server needs to send an html element with data-ring-bell, but only once when the turn begins
     - [ ] Server shuffles audio files to send.
-
 - [ ] role and district description should have dedicated info icon for bringing up their tooltips.
 - [ ] click instead of hover to view someone's city. Persist the state, don't restore your city on hover back.
 	- this makes it work for ipad better, and makes it so players can inspect a city more closely.
-- [x] Collect gold for suit, always counts blue instead of the correct suit.
 - [ ] Make it possible to save a set of roles to use, for config.
-- [x] Bishop should only protect your city when revealed, not if killed.
 - [ ] Nerfed Asssassin idea: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
 - [ ] Warlord menu should make it obvious the cost to destroy from the great wallled city is higher.
 - [ ] Detect when building is impossible.
+### Bugs
+- [x] Collect gold for suit, always counts blue instead of the correct suit.
+- [x] Bishop should only protect your city when revealed, not if killed.
+- [x] Warlord can destroy own city district.
