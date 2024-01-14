@@ -1,5 +1,6 @@
 use serde::de;
-use serde::Deserialize;
+use serde::ser;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use crate::{districts::DistrictName, types::PlayerName};
@@ -7,6 +8,13 @@ use crate::{districts::DistrictName, types::PlayerName};
 use super::CityDistrictTarget;
 
 struct Visitor;
+
+pub fn serialize_city_district_target<S: ser::Serializer>(
+    item: &CityDistrictTarget,
+    s: S,
+) -> Result<S::Ok, S::Error> {
+    format!("{:?},{},{}", item.district, item.player, item.beautified).serialize(s)
+}
 
 pub fn deserialize_city_district_target<'de, D>(
     deserializer: D,

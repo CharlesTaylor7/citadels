@@ -1,11 +1,11 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::types::CardSet;
 use crate::types::CardSet::*;
 use crate::types::CardSuit;
 use crate::types::CardSuit::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(usize)]
 pub enum DistrictName {
     Temple,

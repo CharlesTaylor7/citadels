@@ -1,7 +1,8 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::borrow::Borrow;
 use std::fmt::{self, Debug, Display};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub enum CardSuit {
     Trade,
     Religious,
@@ -36,8 +37,14 @@ pub enum Marker {
 pub type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
-#[derive(Default, Debug, PartialEq, Eq, Clone, Deserialize)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct PlayerName(pub String);
+
+impl Borrow<str> for PlayerName {
+    fn borrow(&self) -> &str {
+        self.0.borrow()
+    }
+}
 
 impl PlayerName {
     pub fn from(str: String) -> Self {

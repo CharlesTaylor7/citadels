@@ -1,6 +1,6 @@
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 use crate::{
@@ -43,7 +43,7 @@ impl std::fmt::Display for Rank {
     }
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize, Serialize)]
 #[repr(usize)]
 /// Laid out in the order of the asset file for their images
 pub enum RoleName {

@@ -353,8 +353,8 @@ impl Game {
         if cfg!(not(feature = "dev")) {
             return None;
         }
-
-        let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
+        let lobby = Lobby::demo(vec!["Alph", "Brittany", "Charlie"]);
+        let mut game = Game::start(lobby, SeedableRng::from_entropy());
 
         // deal out roles randomly
         let mut roles: Vec<_> = game.characters.iter().collect();
@@ -395,10 +395,8 @@ impl Game {
         Some(self.characters.get_mut(rank))
     }
 
-    pub fn start(lobby: Lobby) -> Game {
+    pub fn start(lobby: Lobby, mut rng: Prng) -> Game {
         let Lobby { mut players } = lobby;
-
-        let mut rng = Prng::from_entropy();
 
         // randomize the seating order
         players.shuffle(&mut rng);
@@ -710,21 +708,18 @@ impl Game {
             }
 
             Action::GatherResourceGold => {
-                let player = self.active_player_mut()?;
+                let active = self.active_player_index()?;
                 let mut amount = 2;
                 let log: String;
 
-                if player.city_has(DistrictName::GoldMine) {
+                if self.players[active.0].city_has(DistrictName::GoldMine) {
                     amount += 1;
-                    log = format!(
-                        "{} gathered {} gold, (1 extra from their Gold Mine)",
-                        player.name, amount
-                    );
+                    log = "They gathered 3 gold. (1 extra from their Gold Mine).".into();
                 } else {
-                    log = format!("{} gathered {} gold.", player.name, amount);
+                    log = "They gathered 2 gold.".into();
                 }
 
-                player.gold += amount;
+                self.players[active.0].gold += amount;
 
                 ActionOutput {
                     log,

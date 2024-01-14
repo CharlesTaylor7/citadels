@@ -3,7 +3,7 @@ use std::fmt::Debug;
 
 // My game's deterministic prng to allow restarting the game from the seed
 type RngImpl = rand_xoshiro::Xoshiro256PlusPlus;
-type Seed = <RngImpl as SeedableRng>::Seed;
+pub type Seed = <RngImpl as SeedableRng>::Seed;
 
 pub struct Prng {
     #[allow(dead_code)]

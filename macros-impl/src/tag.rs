@@ -42,11 +42,12 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
 
     quote! {
         #trait_list
-        #[automatically_derived]
+        #[repr(usize)]
         #vis enum #tag_enum_name {
             #( #tags, )*
         }
 
+        #[automatically_derived]
         impl Tag for #enum_name {
             type Tag = #tag_enum_name;
             fn tag(&self) -> Self::Tag {

@@ -13,6 +13,7 @@ use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use http::StatusCode;
+use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::mem;
@@ -124,7 +125,10 @@ pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl Int
     }
 
     // Start the game, and remove all players from the lobby
-    *game = Some(Game::start(mem::take(&mut lobby)));
+    *game = Some(Game::start(
+        mem::take(&mut lobby),
+        SeedableRng::from_entropy(),
+    ));
 
     if let Some(game) = game.as_ref() {
         app.connections

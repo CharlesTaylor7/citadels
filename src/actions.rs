@@ -4,12 +4,13 @@ use crate::game::Player;
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
 use macros::tag::Tag;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
-#[derive(Deserialize, Tag, Debug)]
+#[derive(Serialize, Deserialize, Tag, Debug)]
 #[tag(serde::Deserialize)]
 #[serde(tag = "action")]
+#[allow(non_snake_case)]
 pub enum Action {
     // single select a role, then click pick or discard
     // Draft Phase
@@ -65,17 +66,33 @@ pub enum Action {
     // may not destroy from any completed city
     // may not destroy from bishop's city
     WarlordDestroy {
-        #[serde(deserialize_with = "deserialize_city_district_target")]
+        #[serde(
+            serialize_with = "serialize_city_district_target",
+            deserialize_with = "deserialize_city_district_target"
+        )]
         district: CityDistrictTarget,
     },
 
     Beautify {
-        #[serde(deserialize_with = "deserialize_city_district_target")]
+        #[serde(
+            serialize_with = "serialize_city_district_target",
+            deserialize_with = "deserialize_city_district_target"
+        )]
         district: CityDistrictTarget,
     },
 
     // Patrician
     CardsFromNobility,
+
+    // reveals 7 cards
+    ScholarReveal,
+    // picks 1 of them
+    // shuffles the rest into the deck.
+    // Note: shuffle the _entire_ deck.
+    // Usually cards are discarded to the bottom of the deck.
+    ScholarPick {
+        district: DistrictName,
+    },
 
     // LATER
 
@@ -120,7 +137,10 @@ pub enum Action {
 
     // Marshal
     Seize {
-        #[serde(deserialize_with = "deserialize_city_district_target")]
+        #[serde(
+            serialize_with = "serialize_city_district_target",
+            deserialize_with = "deserialize_city_district_target"
+        )]
         district: CityDistrictTarget,
     },
 
@@ -152,16 +172,6 @@ pub enum Action {
         seer: Vec<SeerTarget>,
     },
 
-    // reveals 7 cards
-    ScholarReveal,
-    // picks 1 of them
-    // shuffles the rest into the deck.
-    // Note: shuffle the _entire_ deck.
-    // Usually cards are discarded to the bottom of the deck.
-    ScholarPick {
-        district: DistrictName,
-    },
-
     // action
     // Reveals a players hand
     WizardPeek {
@@ -185,7 +195,10 @@ pub enum Action {
     // unaffected by great wall, and bishop.
     // can't destroy the keep.
     Armory {
-        #[serde(deserialize_with = "deserialize_city_district_target")]
+        #[serde(
+            serialize_with = "serialize_city_district_target",
+            deserialize_with = "deserialize_city_district_target"
+        )]
         district: CityDistrictTarget,
     },
     // store a card from hand under museum for 1 point at the end of game.
@@ -239,25 +252,25 @@ impl CityDistrictTarget {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Resource {
     Gold,
     Cards,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SeerTarget {
     pub player: PlayerName,
     pub district: DistrictName,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Warrant {
     pub role: RoleName,
     pub signed: bool,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Threat {
     pub role: RoleName,
     pub flowered: bool,
@@ -295,7 +308,7 @@ pub struct Threat {
 //
 //
 //
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Select<T> {
     One(T),
@@ -325,7 +338,7 @@ impl<T: Clone> Select<T> {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum MagicianAction {
     TargetPlayer { player: PlayerName },

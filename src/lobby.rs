@@ -1,6 +1,7 @@
 use crate::types::{PlayerId, PlayerName};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Player {
     pub id: PlayerId,
     pub name: PlayerName,
