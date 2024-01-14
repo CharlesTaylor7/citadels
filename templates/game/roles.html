@@ -45,7 +45,9 @@
           class="cursor-pointer text-sm"
           _="on click remove @open from closest <details/>"
         >
-          <code >
+          <code id="{{ role.name|debug }}-log"
+            _="init call me.scrollIntoView({behavior: 'smooth'})"
+          >
             {% for log in character.logs %}
               {{ log }}
               <br>
