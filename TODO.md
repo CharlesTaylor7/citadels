@@ -52,6 +52,10 @@
 	- When sending logs, send them as oob-swaps so they don't close the open ones.
 - [x] Take crown action, can't actually be taken. This should be a required action for the king and patrician.
 - [ ] Notification bell for start of turn.
+    - [x] audio tag, with ws event listener
+    - [ ] Server needs to send an html element with data-ring-bell, but only once when the turn begins
+    - [ ] Server shuffles audio files to send.
+
 - [ ] role and district description should have dedicated info icon for bringing up their tooltips.
 - [ ] click instead of hover to view someone's city. Persist the state, don't restore your city on hover back.
 	- this makes it work for ipad better, and makes it so players can inspect a city more closely.
