@@ -27,6 +27,7 @@
       });
     </script>
     <script>
+      // https://developers.google.com/youtube/iframe_api_reference
       var tag = document.createElement('script');
       tag.src = "https://www.youtube.com/iframe_api";
 
@@ -79,33 +80,42 @@
         })
       }
       function enableDragon() {
-        interact("#dragon").draggable({
-          inertia: true,
-          autoScroll: true,
-          listeners: {
-            move(event) {
-
-              let target = event.target;
-              target.classList.add("dragging");
-
-              let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
-              let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
-
-              target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
-              target.setAttribute('data-x', x)
-              target.setAttribute('data-y', y)
-            },
-            end(event) {
-              window.mrBrightside.playVideo()
-
-              let target = event.target;
-              let z = (parseInt(window.z) || 1);
-              window.z = z + 1;
-              target.style['z-index'] = z;
-              target.classList.remove("dragging");
+        interact("#my-stash")
+          .dropzone({
+            accept: "#dragon",
+            ondrop: function(event) {
+              window.mrBrightside.pauseVideo();
             }
-          }
-        })
+          });
+        interact("#dragon")
+          .draggable({
+            inertia: true,
+            autoScroll: true,
+            listeners: {
+              move(event) {
+                if (event.dragLeave?.id == "my-stash") {
+                  window.mrBrightside.playVideo();
+                }
+                let target = event.target;
+                target.classList.add("dragging");
+
+                let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+                let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+
+                target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+                target.setAttribute('data-x', x)
+                target.setAttribute('data-y', y)
+              },
+              end(event) {
+
+                let target = event.target;
+                let z = (parseInt(window.z) || 1);
+                window.z = z + 1;
+                target.style['z-index'] = z;
+                target.classList.remove("dragging");
+              }
+            }
+          });
       }
       function enableDrag(parent) {
         interact(`${parent} .draggable`)

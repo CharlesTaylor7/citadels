@@ -71,5 +71,5 @@
 
 
 ## Cleo's easter eggs
-- [ ] DRagging the dragon out of his section play's Mr. Brightside. Putting him back pauses it.
+- [x] Dragging the dragon out of his section play's Mr. Brightside. Putting him back pauses it.
 
