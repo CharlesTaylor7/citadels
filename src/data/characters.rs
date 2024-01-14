@@ -264,8 +264,8 @@ mod tests {
     #[test]
     pub fn test_role_names_align_with_character_data() {
         for (index, c) in ROLES.iter().enumerate() {
-            assert_eq!(c.name as usize, index);
-            assert_eq!(c.rank as usize, index / 3 + 1);
+            assert_eq!(c.name as usize, index, "name");
+            assert_eq!(c.rank as usize, index / 3, "rank");
         }
     }
 }
