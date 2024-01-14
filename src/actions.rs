@@ -114,7 +114,7 @@ pub enum Action {
     },
 
     // Blackmailer
-    Threaten {
+    Blackmail {
         threat: [Threat; 2],
     },
 
@@ -173,7 +173,42 @@ pub enum Action {
         district: DistrictName,
         build: bool,
     },
+
+    // district actions
+    // 2 gold -> 3 cards
+    Smithy,
+    // 1 card -> 2 gold
+    Laboratory {
+        district: DistrictName,
+    },
+    // destroy self, to destroy a district.
+    // unaffected by great wall, and bishop.
+    // can't destroy the keep.
+    Armory {
+        #[serde(deserialize_with = "deserialize_city_district_target")]
+        district: CityDistrictTarget,
+    },
+    // store a card from hand under museum for 1 point at the end of game.
+    Museum {
+        district: DistrictName,
+    },
+    Theater {
+        role: RoleName,
+        player: PlayerName,
+    },
 }
+
+/// optional build modifiers:
+/// - cardinal
+/// - framework
+/// - thieve's den
+///
+/// Just special build rules
+/// - stables
+/// - Monument
+///
+/// Navigator + stables = no build
+/// Magistrate + stables =  can build again.
 
 // cardinal is complicated. I think I will add optional fields to the build action
 // witch is complicated

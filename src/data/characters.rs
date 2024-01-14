@@ -58,7 +58,7 @@ pub const ROLES: [RoleData; 27] =
     , name: RoleName::Blackmailer
     , set: Citadels2016 
     , suit: None 
-    , actions: &[(2, Threaten)]
+    , actions: &[(2, ActionTag::Blackmail)]
     , description: "Assign threats facedown to character cards. A threatened player can bribe you (half their gold rounded down) to remove their threat. If you reveal the flower, you take all their gold." 
     , reminder: "There are two threat markers, 1 flowered, and 1 normal. Revealing the normal marker has no effect. A threatened player must gather resources first on their turn and then decide whether to bribe the blackmailer. If not bribed, the blackmailer then decides if they want to reveal the marker. The cost of bribery is 0, if the player has only 1 gold."
     }

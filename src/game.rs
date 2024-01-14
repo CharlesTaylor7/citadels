@@ -544,11 +544,11 @@ impl Game {
 
             Turn::Call(rank) => {
                 let mut actions = Vec::new();
-                let c = self.characters.get(rank).borrow();
+                let c = self.characters.get(rank);
 
                 for (n, action) in c.role.data().actions {
                     if self.active_perform_count(*action) < *n {
-                        actions.push(*action)
+                        actions.push(*action);
                     }
                 }
 
@@ -563,8 +563,21 @@ impl Game {
                     actions.push(ActionTag::GatherResourceCards);
                 } else if self.active_perform_count(ActionTag::Build) < c.role.build_limit() {
                     // build
+                    actions.push(ActionTag::Build);
+                }
+                /*
+                let active = self.active_player_index().unwrap();
+                else if self
+                    .active_role()
+                    .is_ok_and(|c| c.role != RoleName::Navigator)
+                    && self.players[active.0]
+                        .hand
+                        .iter()
+                        .any(|c| *c == DistrictName::Stables)
+                {
                     actions.push(ActionTag::Build)
                 }
+                */
 
                 if actions.iter().all(|action| !action.is_required()) {
                     actions.push(ActionTag::EndTurn);
@@ -1109,10 +1122,28 @@ impl Game {
             Action::SendWarrants { .. } => {
                 todo!()
             }
-            Action::Threaten { .. } => {
+            Action::Blackmail { .. } => {
                 todo!()
             }
             Action::ExchangeCityDistricts { .. } => {
+                todo!()
+            }
+
+            Action::Armory { .. } => {
+                todo!()
+            }
+            Action::Smithy { .. } => {
+                todo!()
+            }
+            Action::Theater { .. } => {
+                todo!()
+            }
+
+            Action::Museum { .. } => {
+                todo!()
+            }
+
+            Action::Laboratory { .. } => {
                 todo!()
             }
 

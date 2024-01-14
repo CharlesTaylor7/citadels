@@ -179,7 +179,6 @@ impl<'a> GameContext<'a> {
 #[template(path = "game/index.html")]
 pub struct GameTemplate<'a> {
     characters: &'a [GameRole],
-    active_role: Option<RoleName>,
     context: GameContext<'a>,
     players: &'a [PlayerInfoTemplate<'a>],
     my: &'a PlayerTemplate<'a>,
@@ -213,7 +212,6 @@ impl<'a> GameTemplate<'a> {
         GameTemplate {
             menu,
             context,
-            active_role: game.active_role().ok().map(|role| role.role),
             characters: &game.characters.0,
             city: CityTemplate::from(
                 game,

@@ -8,6 +8,7 @@
 - [ ] OOB swaps and updates targeted only at the players and screen elements that need to change. The current logic just liberally pushes a full page to everyone which wipes client state, like the opened logs, and the position(s) of dragged items.
 - [ ] Regression Tests / e2e tests. the Logical bugs, like the inability to take the crown or collect gold from non-blue districts could have been caught easily by tests.
 - [ ] Backup game state to db, by storing rng seed, and the action log.
+- [ ] Where do destroyed districts go? they ought to get discarded, but I don't think I implemented it properly.
 
 
 ## Ideas

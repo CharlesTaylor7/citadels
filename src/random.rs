@@ -6,6 +6,7 @@ type RngImpl = rand_xoshiro::Xoshiro256PlusPlus;
 type Seed = <RngImpl as SeedableRng>::Seed;
 
 pub struct Prng {
+    #[allow(dead_code)]
     seed: Seed,
     rng: RngImpl,
 }
