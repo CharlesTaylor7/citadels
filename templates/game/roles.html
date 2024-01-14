@@ -9,12 +9,10 @@
     {% set role = character.role.data() %}
       <details open>
         <summary 
-          data-tip="{{ role.description }}"
           class="
             text-left
             text-wrap
             block
-            tooltip tooltip-right tooltip-secondary
             {% if character.logs.len() > 0 %}
               cursor-pointer
             {% endif %}
