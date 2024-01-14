@@ -61,7 +61,7 @@
 	- this makes it work for ipad better, and makes it so players can inspect a city more closely.
 - [x] Collect gold for suit, always counts blue instead of the correct suit.
 - [ ] Make it possible to save a set of roles to use, for config.
-- [ ] Bishop should only protect your city when revealed, not if killed.
+- [x] Bishop should only protect your city when revealed, not if killed.
 - [ ] Nerfed Asssassin idea: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
 - [ ] Warlord menu should make it obvious the cost to destroy from the great wallled city is higher.
 - [ ] Detect when building is impossible.

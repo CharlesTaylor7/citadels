@@ -33,10 +33,6 @@ impl Player {
             .count()
     }
 
-    pub fn has_role(&self, role: RoleName) -> bool {
-        self.roles.iter().any(|r| *r == role)
-    }
-
     pub fn cleanup_round(&mut self) {
         self.roles.clear();
     }
@@ -224,6 +220,9 @@ pub struct Game {
 }
 
 impl Game {
+    pub fn has_revealed_role(&self, player: &Player, role: RoleName) -> bool {
+        player.roles.iter().any(|r| *r == role) && self.characters[role.rank().to_index()].revealed
+    }
     pub fn complete_city_size(&self) -> usize {
         if self.players.len() <= 3 {
             8

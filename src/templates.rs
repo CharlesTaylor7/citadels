@@ -127,8 +127,8 @@ impl<'a> WarlordMenu<'a> {
                 .players
                 .iter()
                 .filter(|p| {
-                    game.active_player_index().is_ok_and(|i| i != p.index)
-                        && !p.has_role(RoleName::Bishop)
+                    !game.has_revealed_role(p, RoleName::Bishop)
+                        && game.active_player_index().is_ok_and(|i| i != p.index)
                 })
                 .map(|p| CityTemplate::from(game, p.index, None))
                 .collect::<Vec<_>>(),
