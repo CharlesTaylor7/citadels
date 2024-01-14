@@ -14,7 +14,7 @@
     <script>
       Idiomorph.defaults.head = 'none';
       htmx.config.defaultSwapStyle = 'none';
-      htmx.logAll();
+      // htmx.logAll();
       document.addEventListener("htmx:wsAfterMessage", (event) => {
         let node = event.detail.elt.querySelector("[data-replace-url]");
         let url = node.dataset.replaceUrl;
@@ -26,9 +26,32 @@
         }
       });
     </script>
+    <script>
+      var tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+      function onYouTubeIframeAPIReady() {
+        window.mrBrightside = new YT.Player(
+          'mr-brightside', 
+          {
+            videoId: 'gGdGFtwCNBE',
+            playerVars: {
+              playsinline: 1,
+              start: 3,
+            },
+          }
+        );
+      }
+    </script>
     <style>
       .dragging {
         z-index: 1000 !important; 
+      }
+      iframe {
+        display: none;
       }
     </style>
     <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
@@ -51,6 +74,35 @@
               })
 
               Object.assign(event.target.dataset, { x, y })
+            }
+          }
+        })
+      }
+      function enableDragon() {
+        interact("#dragon").draggable({
+          inertia: true,
+          autoScroll: true,
+          listeners: {
+            move(event) {
+
+              let target = event.target;
+              target.classList.add("dragging");
+
+              let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+              let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+
+              target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+              target.setAttribute('data-x', x)
+              target.setAttribute('data-y', y)
+            },
+            end(event) {
+              window.mrBrightside.playVideo()
+
+              let target = event.target;
+              let z = (parseInt(window.z) || 1);
+              window.z = z + 1;
+              target.style['z-index'] = z;
+              target.classList.remove("dragging");
             }
           }
         })
@@ -99,11 +151,15 @@
   >
     {% block content %} 
     {% endblock %}
-      <audio
-        id="bell"
-        src="/public/audio/cow.mp3"
-        preload="auto"
-      >
-      </audio>
+    <audio
+      class="hidden"
+      id="bell"
+      src="/public/audio/cow.mp3"
+      preload="auto"
+    >
+    </audio>
+
+    <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+    <div id="mr-brightside"></div>
   </body>
 </html>

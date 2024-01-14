@@ -4,6 +4,9 @@
  - 9/30 base game characters + Artist
 
 ## Ideas
+- [ ] Nerfed Asssassin idea: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
+- [ ] Make it possible to save a set of roles to use, for config.
+- [ ] Detect when building is impossible.
 - Game Configuration
     - [ ] Pick roles
     - [ ] Pick unique districts
@@ -50,19 +53,23 @@
 - [ ] Keep role logs open, instead of just the active role.
 	- [x] Open them all at the start of a round.
 	- When sending logs, send them as oob-swaps so they don't close the open ones.
-- [x] Take crown action, can't actually be taken. This should be a required action for the king and patrician.
 - [ ] Notification bell for start of turn.
     - [x] audio tag, with ws event listener
     - [ ] Server needs to send an html element with data-ring-bell, but only once when the turn begins
     - [ ] Server shuffles audio files to send.
 - [ ] role and district description should have dedicated info icon for bringing up their tooltips.
-- [ ] click instead of hover to view someone's city. Persist the state, don't restore your city on hover back.
 	- this makes it work for ipad better, and makes it so players can inspect a city more closely.
-- [ ] Make it possible to save a set of roles to use, for config.
-- [ ] Nerfed Asssassin idea: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
 - [ ] Warlord menu should make it obvious the cost to destroy from the great wallled city is higher.
-- [ ] Detect when building is impossible.
-### Bugs
+### Done
 - [x] Collect gold for suit, always counts blue instead of the correct suit.
 - [x] Bishop should only protect your city when revealed, not if killed.
 - [x] Warlord can destroy own city district.
+- [x] click instead of hover to view someone's city. Persist the state, don't restore your city on hover back.
+- [x] Take crown action, can't actually be taken. This should be a required action for the king and patrician.
+
+
+
+
+## Cleo's easter eggs
+- [ ] DRagging the dragon out of his section play's Mr. Brightside. Putting him back pauses it.
+
