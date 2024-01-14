@@ -127,7 +127,7 @@ impl<'a> WarlordMenu<'a> {
                 .players
                 .iter()
                 .filter(|p| {
-                    !game.has_revealed_role(p, RoleName::Bishop)
+                    !game.characters.has_revealed_role(p, RoleName::Bishop)
                         && game.active_player_index().is_ok_and(|i| i != p.index)
                 })
                 .map(|p| CityTemplate::from(game, p.index, None))
@@ -214,7 +214,7 @@ impl<'a> GameTemplate<'a> {
             menu,
             context,
             active_role: game.active_role().ok().map(|role| role.role),
-            characters: &game.characters,
+            characters: &game.characters.0,
             city: CityTemplate::from(
                 game,
                 myself
@@ -344,7 +344,7 @@ impl<'a> PlayerInfoTemplate<'a> {
         let count = player.roles.len();
         let mut roles = Vec::with_capacity(count);
         for role in player.roles.iter() {
-            if game.characters[role.rank().to_index()].revealed {
+            if game.characters.get(role.rank()).revealed {
                 roles.push((
                     game.active_role().is_ok_and(|c| c.role == *role),
                     format!("{role:?}").into(),

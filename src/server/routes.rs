@@ -257,7 +257,7 @@ async fn submit_game_action(
                     context: GameContext::from_game(game),
                     roles: game
                         .characters
-                        .iter()
+                        .iter_c()
                         .filter(|c| c.role.rank() > Rank::One)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
@@ -272,7 +272,7 @@ async fn submit_game_action(
                     context: GameContext::from_game(game),
                     roles: game
                         .characters
-                        .iter()
+                        .iter_c()
                         .filter(|c| {
                             c.role.rank() > Rank::Two
                                 && c.markers.iter().all(|m| *m != Marker::Killed)

@@ -2,7 +2,7 @@ use crate::actions::{Action, ActionTag, CityDistrictTarget, MagicianAction, Reso
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
-use crate::roles::{Rank, RoleName};
+use crate::roles::{self, Rank, RoleName};
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use macros::tag::Tag;
 use rand::prelude::*;
@@ -209,7 +209,7 @@ pub struct Game {
     pub round: usize,
     pub deck: Deck<DistrictName>,
     pub players: Vec<Player>,
-    pub characters: Vec<GameRole>,
+    pub characters: Characters,
     pub crowned: PlayerIndex,
     pub active_turn: Turn,
     pub draft: Draft,
@@ -219,10 +219,59 @@ pub struct Game {
     pub logs: Vec<Cow<'static, str>>,
 }
 
-impl Game {
-    pub fn has_revealed_role(&self, player: &Player, role: RoleName) -> bool {
-        player.roles.iter().any(|r| *r == role) && self.characters[role.rank().to_index()].revealed
+#[derive(Debug)]
+pub struct Characters(pub Vec<GameRole>);
+
+impl Characters {
+    pub fn next(&self, rank: Rank) -> Option<Rank> {
+        self.0.last().and_then(|c| {
+            rank.next()
+                .and_then(|r| if r <= c.role.rank() { Some(r) } else { None })
+        })
     }
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn iter_c(&self) -> impl Iterator<Item = &GameRole> + '_ {
+        self.0.iter()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = RoleName> + '_ {
+        self.0.iter().map(|c| c.role)
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut GameRole> + '_ {
+        self.0.iter_mut()
+    }
+
+    pub fn new(roles: impl Iterator<Item = RoleName>) -> Self {
+        Self(
+            roles
+                .map(|role| GameRole {
+                    role,
+                    player: None,
+                    revealed: false,
+                    markers: vec![],
+                    logs: vec![],
+                })
+                .collect(),
+        )
+    }
+    pub fn get(&self, rank: Rank) -> &GameRole {
+        &self.0[rank.to_index()]
+    }
+
+    pub fn get_mut(&mut self, rank: Rank) -> &mut GameRole {
+        &mut self.0[rank.to_index()]
+    }
+
+    pub fn has_revealed_role(&self, player: &Player, role: RoleName) -> bool {
+        player.roles.iter().any(|r| *r == role) && self.get(role.rank()).revealed
+    }
+}
+
+impl Game {
     pub fn complete_city_size(&self) -> usize {
         if self.players.len() <= 3 {
             8
@@ -304,18 +353,17 @@ impl Game {
         if cfg!(not(feature = "dev")) {
             return None;
         }
-        return None;
 
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
 
         // deal out roles randomly
-        let mut roles: Vec<_> = game.characters.iter().map(|c| c.role).collect();
+        let mut roles: Vec<_> = game.characters.iter().collect();
         roles.shuffle(&mut game.rng);
 
         for (i, role) in roles.iter().enumerate() {
             let index = i % 3;
             game.players[index].roles.push(*role);
-            game.characters[role.rank().to_index()].player = Some(PlayerIndex(index));
+            game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
         }
 
         for p in game.players.iter_mut() {
@@ -338,12 +386,12 @@ impl Game {
 
     pub fn active_role(&self) -> Result<&GameRole> {
         let rank = self.active_turn.call().ok_or("not the call phase")?;
-        Ok(self.characters[rank.to_index()].borrow())
+        Ok(self.characters.get(rank))
     }
 
     pub fn active_role_mut(&mut self) -> Option<&mut GameRole> {
         let rank = self.active_turn.call()?;
-        Some(self.characters[rank.to_index()].borrow_mut())
+        Some(self.characters.get_mut(rank))
     }
 
     pub fn start(lobby: Lobby) -> Game {
@@ -391,16 +439,7 @@ impl Game {
                 p.hand.push(district);
             }
         });
-        let characters = crate::roles::select(&mut rng, players.len())
-            .map(|role| GameRole {
-                role,
-                markers: Vec::with_capacity(2),
-                player: None,
-                revealed: false,
-                logs: Vec::new(),
-            })
-            .collect();
-
+        let characters = Characters::new(roles::select(&mut rng, players.len()));
         let crowned = PlayerIndex(0);
         let mut game = Game {
             rng,
@@ -423,7 +462,7 @@ impl Game {
     pub fn begin_draft(&mut self) {
         self.round += 1;
         self.active_turn = Turn::Draft(self.crowned);
-        self.draft.remaining = self.characters.iter().map(|c| c.role).collect();
+        self.draft.remaining = self.characters.iter().collect();
 
         // discard cards face up in 4+ player game
         if self.players.len() >= 4 {
@@ -451,7 +490,9 @@ impl Game {
         match &self.active_turn {
             Turn::GameOver => Err("game over".into()),
             Turn::Draft(index) => Ok(*index),
-            Turn::Call(rank) => self.characters[rank.to_index()]
+            Turn::Call(rank) => self
+                .characters
+                .get(*rank)
                 .player
                 .ok_or(format!("no player with rank {}", rank).into()),
         }
@@ -502,7 +543,7 @@ impl Game {
 
             Turn::Call(rank) => {
                 let mut actions = Vec::new();
-                let c = self.characters[rank.to_index()].borrow();
+                let c = self.characters.get(rank).borrow();
 
                 for (n, action) in c.role.data().actions {
                     if self.active_perform_count(*action) < *n {
@@ -599,9 +640,7 @@ impl Game {
         if c.markers.iter().any(|m| *m == Marker::Robbed) {
             let gold = player.gold;
             player.gold = 0;
-            let thief = self.characters[RoleName::Thief.rank().to_index()]
-                .player
-                .unwrap();
+            let thief = self.characters.get(RoleName::Thief.rank()).player.unwrap();
 
             let thief = &mut self.players[thief.0];
             thief.gold += gold;
@@ -625,7 +664,7 @@ impl Game {
                 let index = self.active_turn.draft().ok_or("not the draft")?;
 
                 Game::remove_first(&mut self.draft.remaining, *role);
-                let c = self.characters[role.rank().to_index()].borrow_mut();
+                let c = self.characters.get_mut(role.rank());
                 c.player = Some(index);
                 let player = self.players[index.0].borrow_mut();
                 player.roles.push(*role);
@@ -914,12 +953,12 @@ impl Game {
                 let targeted_player = self
                     .players
                     .iter_mut()
-                    .find(|p| p.city.len() < complete_size && p.name == target.player)
+                    .find(|p| {
+                        p.name == target.player
+                            && !self.characters.has_revealed_role(p, RoleName::Bishop)
+                            && p.city.len() < complete_size
+                    })
                     .ok_or("invalid player target")?;
-
-                if targeted_player.roles.iter().any(|r| *r == RoleName::Bishop) {
-                    return Err("cannot target the Bishop's city".into());
-                }
 
                 let city_index = targeted_player
                     .city
@@ -1234,10 +1273,7 @@ impl Game {
     fn call_next(&mut self) {
         match self.active_turn {
             Turn::Call(rank) => {
-                let o = self.characters.last().and_then(|c| {
-                    rank.next()
-                        .and_then(|r| if r <= c.role.rank() { Some(r) } else { None })
-                });
+                let o = self.characters.next(rank);
                 if let Some(rank) = o {
                     self.active_turn = Turn::Call(rank);
                 } else {
@@ -1251,7 +1287,7 @@ impl Game {
     pub fn end_round(&mut self) {
         // triggered actions
         let rank = Rank::Four;
-        let character = &self.characters[rank.to_index()];
+        let character = &self.characters.get(rank);
         if character.markers.iter().any(|m| *m == Marker::Killed) {
             if let Some(index) = character.player {
                 if character.role == RoleName::King || character.role == RoleName::Patrician {
