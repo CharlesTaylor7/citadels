@@ -305,6 +305,7 @@ impl Game {
         if cfg!(not(feature = "dev")) {
             return None;
         }
+        return None;
 
         let mut game = Game::start(Lobby::demo(vec!["Alph", "Brittany", "Charlie"]));
 
