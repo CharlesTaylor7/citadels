@@ -4,7 +4,7 @@
     <title>Citadels</title>
     <meta charset="utf-8" />
     <link name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="shortcut icon" href="/public/favicon.ico" />
+    <link rel="shortcut icon" href="/public/htmx.png" />
     <link rel="stylesheet" href="/public/index.css" />
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
@@ -13,6 +13,35 @@
     <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.js"></script>
     <script>
       Idiomorph.defaults.head = 'none';
+      console.log(Idiomorph.defaults.callbacks);
+
+
+      Idiomorph.defaults.callbacks.beforeNodeAdded = (node) => {
+        console.log("attr", node.id)
+        if (node.id == 'mr-brightside') {
+          return false
+        }
+      }
+
+      Idiomorph.defaults.callbacks.beforeAttributeUpdated = (node) => {
+        console.log("attr", node.id)
+        if (node.id == 'mr-brightside') {
+          return false
+        }
+      }
+      Idiomorph.defaults.callbacks.beforeNodeMorphed = (node) => {
+        console.log("morph", node.id)
+        if (node.id == 'mr-brightside') {
+          return false
+        }
+      };
+      Idiomorph.defaults.callbacks.beforeNodeRemoved = (node) => {
+        console.log("remove", node.id)
+        if (node.id == 'mr-brightside') {
+          return false
+        }
+      };
+
       htmx.config.defaultSwapStyle = 'none';
       // htmx.logAll();
       document.addEventListener("htmx:wsAfterMessage", (event) => {
@@ -35,7 +64,7 @@
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
       function onYouTubeIframeAPIReady() {
-        window.mrBrightside = new YT.Player(
+        window.player = new YT.Player(
           'mr-brightside', 
           {
             videoId: 'gGdGFtwCNBE',
@@ -45,13 +74,17 @@
             },
           }
         );
+        const el = document.querySelector("#mr-brightside");
+
+        el.setAttribute("im-preserve", "true");
+        el.setAttribute("hx-preserve", "true");
       }
     </script>
     <style>
       .dragging {
         z-index: 1000 !important; 
       }
-      iframe {
+      #mr-brightside {
         display: none;
       }
     </style>
@@ -84,7 +117,8 @@
           .dropzone({
             accept: "#dragon",
             ondrop: function(event) {
-              window.mrBrightside.pauseVideo();
+              window.player.pauseVideo();
+              //document.querySelector("#mr-brightside").dataset.ytPlayer.pauseVideo();
             }
           });
         interact("#dragon")
@@ -94,7 +128,9 @@
             listeners: {
               move(event) {
                 if (event.dragLeave?.id == "my-stash") {
-                  window.mrBrightside.playVideo();
+                  window.player.playVideo();
+                 // console.log(document.querySelector("#mr-brightside").dataset['ytPlayer'])
+                  //.dataset.ytPlayer.playVideo();
                 }
                 let target = event.target;
                 target.classList.add("dragging");
@@ -168,8 +204,6 @@
       preload="auto"
     >
     </audio>
-
-    <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
     <div id="mr-brightside"></div>
   </body>
 </html>

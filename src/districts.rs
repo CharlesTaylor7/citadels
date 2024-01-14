@@ -142,6 +142,7 @@ impl DistrictName {
             Self::Statue => true,
             Self::Basilica => true,
             Self::Capitol => true,
+            Self::Smithy => true,
 
             _ => false,
         }
