@@ -13,7 +13,6 @@
   >
     {% include "roles.html" %}
     {% include "my-stash.html" %}
-    {% include "my-roles.html" %}
   </div>
   <form
     id="center-panel"
@@ -22,7 +21,12 @@
     {% let enabled = false %}
     {% include "city.html" %}
     {% include "menu.html" %}
-    {% include "hand.html" %}
+    <div
+      class="flex flex-row"
+    >
+      {% include "hand.html" %}
+      {% include "my-roles.html" %}
+    </div>
   </form>
   <div
     id="right-panel"

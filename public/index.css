@@ -2069,6 +2069,14 @@ html {
   min-height: 218px;
 }
 
+.min-h-\[264px\] {
+  min-height: 264px;
+}
+
+.min-h-\[268px\] {
+  min-height: 268px;
+}
+
 .w-20 {
   width: 5rem;
 }
@@ -2093,8 +2101,32 @@ html {
   min-width: 9rem;
 }
 
+.min-w-\[140px\] {
+  min-width: 140px;
+}
+
+.min-w-\[270px\] {
+  min-width: 270px;
+}
+
 .max-w-72 {
   max-width: 18rem;
+}
+
+.max-w-\[158px\] {
+  max-width: 158px;
+}
+
+.max-w-\[350px\] {
+  max-width: 350px;
+}
+
+.max-w-\[250px\] {
+  max-width: 250px;
+}
+
+.max-w-\[270px\] {
+  max-width: 270px;
 }
 
 .grow {

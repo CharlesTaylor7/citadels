@@ -67,9 +67,5 @@
 - [x] click instead of hover to view someone's city. Persist the state, don't restore your city on hover back.
 - [x] Take crown action, can't actually be taken. This should be a required action for the king and patrician.
 
-
-
-
 ## Cleo's easter eggs
 - [x] Dragging the dragon out of his section play's Mr. Brightside. Putting him back pauses it.
-

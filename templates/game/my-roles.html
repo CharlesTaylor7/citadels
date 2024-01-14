@@ -1,11 +1,14 @@
 <section
   id="my-roles"
-  class="p-2 bg-neutral-content flex flex-col border border-base-200"
+  class="
+    min-w-[140px] max-w-[270px] min-h-[268px] 
+    p-2 bg-neutral-content flex flex-col border border-base-200
+  "
 >
   <h2 class="header">
     My Roles
   </h2>
-  <div class="min-h-[158px] flex flex-row gap-2 overflow-x-scroll overflow-y-none">
+  <div class="flex flex-row gap-2 overflow-x-scroll overflow-y-none">
     {% set input_type = "checkbox" %}
     {% set enabled = false %}
     {% for role in my.roles %} 
