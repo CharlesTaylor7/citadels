@@ -105,7 +105,7 @@ pub async fn register(
     cookies.add(Cookie::new("username", args.username.clone()))
 }
 
-pub async fn start(app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+pub async fn start(app: State<AppState>) -> impl IntoResponse {
     let mut lobby = app.lobby.lock().unwrap();
     if lobby.players.len() < 2 {
         return (StatusCode::BAD_REQUEST, "too few players to start a game").into_response();

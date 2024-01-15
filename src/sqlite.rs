@@ -4,13 +4,13 @@ use crate::game::Game;
 use crate::random::{Prng, Seed};
 use crate::{game, lobby};
 use rand_core::SeedableRng;
-use rusqlite::{Connection, Result, Statement};
+use rusqlite::{Connection, Result};
 
 use crate::actions::Action;
 
 pub struct DbLog {
     conn: Connection,
-    game_id: String,
+    game_id: usize,
 }
 impl Debug for DbLog {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -28,7 +28,7 @@ impl DbLog {
 
         let players = serde_json::to_string(players).map_err(|e| e.to_string())?;
         let conn = Connection::open(path).unwrap();
-        let game_id: String = conn
+        let game_id: usize = conn
             .prepare("INSERT INTO games (seed, players) VALUES (?1, ?2) RETURNING (id)")
             .map_err(|e| e.to_string())?
             .query_row((seed, players), |row| row.get("id"))
@@ -37,14 +37,14 @@ impl DbLog {
         Ok(Self { game_id, conn })
     }
 
-    fn append(&mut self, game_id: &str, action: &Action) -> Result<()> {
+    pub fn append(&mut self, action: &Action) -> Result<()> {
         self.conn
             .prepare_cached("INSERT INTO actions (game_id, data) VALUES (?1, ?2)")?
-            .execute((game_id, serde_json::to_string(action).unwrap()))?;
+            .execute((self.game_id, serde_json::to_string(action).unwrap()))?;
         Ok(())
     }
 
-    fn restore(game_id: &str) -> game::Result<Game> {
+    pub fn restore(game_id: &str) -> game::Result<Game> {
         let path = format!("{}/volume/games.db", env!("CARGO_MANIFEST_DIR"));
         let conn = Connection::open(path).unwrap();
         let (players, seed): (String, Seed) = conn
@@ -69,9 +69,13 @@ impl DbLog {
             })
             .collect::<game::Result<Vec<Action>>>()?;
 
+        // disable db_log while replaying the game up to the current point.
+        let db_log = game.db_log.take();
         for action in actions {
+            log::info!("{:?}", action);
             game.perform(action)?;
         }
+        game.db_log = db_log;
 
         Ok(game)
     }

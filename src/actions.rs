@@ -7,7 +7,7 @@ use macros::tag::Tag;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
-#[derive(Serialize, Deserialize, Tag, Debug)]
+#[derive(Serialize, Deserialize, Tag, Debug, Clone)]
 #[tag(serde::Deserialize)]
 #[serde(tag = "action")]
 #[allow(non_snake_case)]
@@ -226,7 +226,7 @@ pub enum Action {
 // cardinal is complicated. I think I will add optional fields to the build action
 // witch is complicated
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CityDistrictTarget {
     pub player: PlayerName,
     pub district: DistrictName,
@@ -252,25 +252,25 @@ impl CityDistrictTarget {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Resource {
     Gold,
     Cards,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SeerTarget {
     pub player: PlayerName,
     pub district: DistrictName,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Warrant {
     pub role: RoleName,
     pub signed: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Threat {
     pub role: RoleName,
     pub flowered: bool,
@@ -308,7 +308,7 @@ pub struct Threat {
 //
 //
 //
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum Select<T> {
     One(T),
@@ -338,7 +338,7 @@ impl<T: Clone> Select<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum MagicianAction {
     TargetPlayer { player: PlayerName },

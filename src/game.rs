@@ -218,7 +218,7 @@ pub struct Game {
     pub turn_actions: Vec<Action>,
     pub first_to_complete: Option<PlayerIndex>,
     pub logs: Vec<Cow<'static, str>>,
-    pub db_log: DbLog,
+    pub db_log: Option<DbLog>,
 }
 
 #[derive(Debug)]
@@ -355,6 +355,7 @@ impl Game {
         if cfg!(not(feature = "dev")) {
             return None;
         }
+        return None;
         let lobby = Lobby::demo(vec!["Alph", "Brittany", "Charlie"]);
         let mut game = Game::start(lobby, SeedableRng::from_entropy());
 
@@ -400,7 +401,9 @@ impl Game {
     pub fn start(lobby: Lobby, mut rng: Prng) -> Game {
         let Lobby { mut players } = lobby;
 
-        let db_log = DbLog::new(&players, rng.seed).unwrap();
+        let db_log = DbLog::new(&players, rng.seed)
+            .map_err(|e| log::error!("{}", e))
+            .ok();
 
         // randomize the seating order
         players.shuffle(&mut rng);
@@ -607,7 +610,7 @@ impl Game {
         if self.followup.is_some() {
             log::info!("followup: {:#?}", self.followup);
         }
-        self.turn_actions.push(action);
+        self.turn_actions.push(action.clone());
         if let Some(role) = self.active_role_mut() {
             role.logs.push(log.into());
         }
@@ -619,6 +622,10 @@ impl Game {
                 .all(|action| *action == ActionTag::EndTurn)
         {
             self.end_turn()?;
+        }
+
+        if let Some(log) = self.db_log.as_mut() {
+            log.append(&action);
         }
 
         Ok(())
