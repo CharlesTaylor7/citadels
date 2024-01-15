@@ -45,13 +45,5 @@ fn main() -> Result<()> {
         (), // empty list of parameters.
     )?;
 
-    conn.prepare("SELECT * FROM games")?
-        .query_map([], |row| {
-            println!("{:#?}", row);
-            Ok(())
-        })?
-        .collect::<Vec<_>>();
-
-    //conn.execute("INSERT INTO game () VALUES ()", ())?;
     Ok(())
 }

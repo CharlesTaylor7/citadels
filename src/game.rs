@@ -3,6 +3,7 @@ use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
 use crate::roles::{self, Rank, RoleName};
+use crate::sqlite::DbLog;
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use macros::tag::Tag;
 use rand::prelude::*;
@@ -217,6 +218,7 @@ pub struct Game {
     pub turn_actions: Vec<Action>,
     pub first_to_complete: Option<PlayerIndex>,
     pub logs: Vec<Cow<'static, str>>,
+    pub db_log: DbLog,
 }
 
 #[derive(Debug)]
@@ -398,6 +400,8 @@ impl Game {
     pub fn start(lobby: Lobby, mut rng: Prng) -> Game {
         let Lobby { mut players } = lobby;
 
+        let db_log = DbLog::new(&players, rng.seed).unwrap();
+
         // randomize the seating order
         players.shuffle(&mut rng);
 
@@ -443,6 +447,7 @@ impl Game {
         let mut game = Game {
             rng,
             players,
+            db_log,
             round: 0,
             draft: Draft::default(),
             deck: Deck::new(deck),

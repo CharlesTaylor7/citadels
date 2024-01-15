@@ -1,23 +1,29 @@
+use std::fmt::Debug;
+
 use crate::game::Game;
 use crate::random::{Prng, Seed};
-use crate::types::PlayerName;
 use crate::{game, lobby};
 use rand_core::SeedableRng;
 use rusqlite::{Connection, Result, Statement};
 
 use crate::actions::Action;
 
-pub struct GameLog {
+pub struct DbLog {
     conn: Connection,
     game_id: String,
 }
+impl Debug for DbLog {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "db_log omitted")
+    }
+}
 
-impl GameLog {
+impl DbLog {
     // https://www.sqlite.org/docs.html
     // https://www.sqlite.org/wal.html
     // https://news.ycombinator.com/item?id=33975635
     // https://github.com/rusqlite/rusqlite
-    fn new(seed: Seed, players: &[lobby::Player]) -> game::Result<Self> {
+    pub fn new(players: &[lobby::Player], seed: Seed) -> game::Result<Self> {
         let path = format!("{}/volume/games.db", env!("CARGO_MANIFEST_DIR"));
 
         let players = serde_json::to_string(players).map_err(|e| e.to_string())?;
