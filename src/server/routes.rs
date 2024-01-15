@@ -3,7 +3,10 @@ use crate::game::Game;
 use crate::lobby::Lobby;
 use crate::roles::Rank;
 use crate::server::state::AppState;
-use crate::templates::GameTemplate;
+use crate::templates::game::menu::*;
+use crate::templates::game::menus::*;
+use crate::templates::game::*;
+use crate::templates::lobby::*;
 use crate::templates::*;
 use crate::types::{Marker, PlayerName};
 use askama::Template;
@@ -261,13 +264,13 @@ async fn submit_game_action(
         ActionSubmission::Incomplete { action } => match action {
             ActionTag::Assassinate => {
                 let rendered = SelectRoleMenu {
-                    context: GameContext::from_game(game),
                     roles: game
                         .characters
                         .iter_c()
                         .filter(|c| c.role.rank() > Rank::One)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
+                    context: GameContext::from_game(game),
                     header: "Select a role".into(),
                     action: ActionTag::Assassinate,
                 }
@@ -276,7 +279,6 @@ async fn submit_game_action(
             }
             ActionTag::Steal => {
                 let rendered = SelectRoleMenu {
-                    context: GameContext::from_game(game),
                     roles: game
                         .characters
                         .iter_c()
@@ -286,6 +288,7 @@ async fn submit_game_action(
                         })
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
+                    context: GameContext::from_game(game),
                     header: "Select a role".into(),
                     action: ActionTag::Steal,
                 }
