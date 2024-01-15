@@ -130,7 +130,7 @@ impl DistrictName {
     }
 
     pub fn enabled(self) -> bool {
-        // 24
+        // 25
         match self {
             Self::GreatWall => true,
             Self::Keep => true,
@@ -160,8 +160,8 @@ impl DistrictName {
             Self::Smithy => true,
             Self::Monument => true,
             Self::HauntedQuarter => true,
+            Self::Armory => true,
 
-            Self::Armory => false,
             Self::Framework => false,
             Self::Necropolis => false,
             Self::ThievesDen => false,

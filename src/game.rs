@@ -785,7 +785,7 @@ impl Game {
             }
 
             Action::GatherResourceCards => {
-                let mut draw_amount = 2; // roles / disricts may affect this
+                let mut draw_amount = 2;
                 if self.active_player()?.city_has(DistrictName::Observatory) {
                     draw_amount += 1;
                 }
@@ -1228,7 +1228,6 @@ impl Game {
             Action::Seize { .. } => {
                 todo!()
             }
-
             Action::TakeFromRich { .. } => {
                 todo!()
             }
@@ -1239,10 +1238,6 @@ impl Game {
                 todo!()
             }
             Action::ExchangeCityDistricts { .. } => {
-                todo!()
-            }
-
-            Action::Armory { .. } => {
                 todo!()
             }
 
