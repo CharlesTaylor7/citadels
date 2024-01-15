@@ -2,7 +2,7 @@ use crate::actions::{Action, ActionTag, CityDistrictTarget, MagicianAction, Reso
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::random::Prng;
-use crate::roles::{self, Rank, RoleName};
+use crate::roles::{Rank, RoleName};
 use crate::sqlite::DbLog;
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use macros::tag::Tag;
