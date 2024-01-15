@@ -387,9 +387,13 @@ impl Game {
         if cfg!(not(feature = "dev")) {
             return None;
         }
-        return None;
         let lobby = Lobby::demo(vec!["Alph", "Brittany", "Charlie"]);
-        let mut game = Game::start(lobby, SeedableRng::from_entropy());
+        let roles = lobby
+            .config
+            .select(&mut rand::thread_rng(), lobby.players.len())
+            .collect::<Vec<_>>();
+
+        let mut game = Game::start(lobby.players, roles, SeedableRng::from_entropy());
 
         // deal out roles randomly
         let mut roles: Vec<_> = game.characters.iter().collect();
@@ -430,10 +434,8 @@ impl Game {
         Some(self.characters.get_mut(rank))
     }
 
-    pub fn start(lobby: Lobby, mut rng: Prng) -> Game {
-        let Lobby { mut players } = lobby;
-
-        let db_log = DbLog::new(&players, rng.seed)
+    pub fn start(mut players: Vec<lobby::Player>, roles: Vec<RoleName>, mut rng: Prng) -> Game {
+        let db_log = DbLog::new(rng.seed, &players, &roles)
             .map_err(|e| log::error!("{}", e))
             .ok();
 
@@ -477,7 +479,7 @@ impl Game {
                 p.hand.push(district);
             }
         });
-        let characters = Characters::new(roles::select(&mut rng, players.len()));
+        let characters = Characters::new(roles.into_iter());
         let crowned = PlayerIndex(0);
         let mut game = Game {
             rng,

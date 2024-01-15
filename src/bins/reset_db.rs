@@ -26,10 +26,11 @@ fn main() -> Result<()> {
     conn.execute(
         "CREATE TABLE games (
             id         INTEGER PRIMARY KEY,
-            timestamp  TEXT DEFAULT now,
-            complete   INTEGER DEFAULT 0,
             seed       BLOB,
-            players    TEXT
+            players    TEXT,
+            roles      TEXT,
+            complete   INTEGER DEFAULT 0,
+            timestamp  TEXT DEFAULT now
 
         )",
         (), // empty list of parameters.

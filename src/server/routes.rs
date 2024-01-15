@@ -1,5 +1,6 @@
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::game::Game;
+use crate::lobby::Lobby;
 use crate::roles::Rank;
 use crate::server::state::AppState;
 use crate::templates::GameTemplate;
@@ -17,6 +18,7 @@ use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::mem;
+use std::ops::{Deref, DerefMut};
 use time::Duration;
 use tower_http::services::ServeDir;
 use uuid::Uuid;
@@ -123,12 +125,13 @@ pub async fn start(app: State<AppState>) -> impl IntoResponse {
         )
             .into_response();
     }
+    let Lobby { players, config } = mem::take(lobby.deref_mut());
+    let roles = config
+        .select(&mut rand::thread_rng(), players.len())
+        .collect::<Vec<_>>();
 
     // Start the game, and remove all players from the lobby
-    *game = Some(Game::start(
-        mem::take(&mut lobby),
-        SeedableRng::from_entropy(),
-    ));
+    *game = Some(Game::start(players, roles, SeedableRng::from_entropy()));
 
     if let Some(game) = game.as_ref() {
         app.connections

@@ -43,7 +43,7 @@ impl std::fmt::Display for Rank {
     }
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize, Serialize, Hash)]
 #[repr(usize)]
 /// Laid out in the order of the asset file for their images
 pub enum RoleName {
@@ -85,6 +85,10 @@ pub enum RoleName {
 }
 
 impl RoleName {
+    pub fn iter() -> impl Iterator<Item = RoleName> {
+        (0..27).map(|i: usize| unsafe { std::mem::transmute(i) })
+    }
+
     pub fn rank(self) -> Rank {
         self.data().rank
     }
@@ -138,11 +142,18 @@ impl RoleName {
             Self::Warlord => true,
             Self::Artist => true,
             // Bonus
+            // 1
+            Self::Magistrate => true,
+            // 3
+            // Seer
+            // Wizard
             // 4
             Self::Patrician => true,
             // 7
             Self::Scholar => true,
-            Self::Navigator => false,
+            // Self::Navigator => true,
+            // 9
+            //Self::TaxCollector => true,
             // everything else
             _ => false,
         }
@@ -159,24 +170,4 @@ pub struct RoleData {
     pub description: &'static str,
     pub reminder: &'static str,
     pub actions: &'static [(usize, ActionTag)],
-}
-
-pub fn select<T: RngCore>(rng: &mut T, num_players: usize) -> impl Iterator<Item = RoleName> + '_ {
-    // 9th rank is disallowed for 2
-    // 9th rank is required for 3
-    // 9th rank is optional for 4-7
-    // 9th rank is required for 8
-    let n = if num_players == 2 { 8 } else { 9 };
-    log::info!("Selecting {} roles for {} player game", n, num_players);
-    let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
-
-    for r in crate::roles::ROLES {
-        if r.name.enabled() && num_players >= r.name.min_player_count() {
-            grouped_by_rank[r.rank.to_index()].push(r.name)
-        }
-    }
-
-    grouped_by_rank
-        .into_iter()
-        .filter_map(|roles| roles.choose(rng).cloned())
 }

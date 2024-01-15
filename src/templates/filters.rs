@@ -1,6 +1,6 @@
+use crate::actions::ActionTag;
+use crate::types::CardSuit;
 use std::fmt::Debug;
-
-use crate::{actions::ActionTag, types::CardSuit};
 
 pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
     Ok(format!("{:#?}", item))

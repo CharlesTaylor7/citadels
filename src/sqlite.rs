@@ -2,6 +2,7 @@ use std::fmt::Debug;
 
 use crate::game::Game;
 use crate::random::{Prng, Seed};
+use crate::roles::RoleName;
 use crate::{game, lobby};
 use rand_core::SeedableRng;
 use rusqlite::{Connection, Result};
@@ -23,15 +24,16 @@ impl DbLog {
     // https://www.sqlite.org/wal.html
     // https://news.ycombinator.com/item?id=33975635
     // https://github.com/rusqlite/rusqlite
-    pub fn new(players: &[lobby::Player], seed: Seed) -> game::Result<Self> {
+    pub fn new(seed: Seed, players: &[lobby::Player], roles: &[RoleName]) -> game::Result<Self> {
         let path = format!("{}/volume/games.db", env!("CARGO_MANIFEST_DIR"));
 
         let players = serde_json::to_string(players).map_err(|e| e.to_string())?;
+        let roles = serde_json::to_string(roles).map_err(|e| e.to_string())?;
         let conn = Connection::open(path).unwrap();
         let game_id: usize = conn
-            .prepare("INSERT INTO games (seed, players) VALUES (?1, ?2) RETURNING (id)")
+            .prepare("INSERT INTO games (seed, players, roles) VALUES (?1, ?2, ?3) RETURNING (id)")
             .map_err(|e| e.to_string())?
-            .query_row((seed, players), |row| row.get("id"))
+            .query_row((seed, players, roles), |row| row.get("id"))
             .map_err(|e| e.to_string())?;
 
         Ok(Self { game_id, conn })
@@ -47,17 +49,21 @@ impl DbLog {
     pub fn restore(game_id: &str) -> game::Result<Game> {
         let path = format!("{}/volume/games.db", env!("CARGO_MANIFEST_DIR"));
         let conn = Connection::open(path).unwrap();
-        let (players, seed): (String, Seed) = conn
-            .prepare("SELECT seed FROM games WHERE games.id = ?1")
+        let (seed, players, roles): (Seed, String, String) = conn
+            .prepare("SELECT seed, players, roles FROM games WHERE games.id = ?1")
             .map_err(|e| e.to_string())?
-            .query_row([game_id], |row| Ok((row.get("players")?, row.get("seed")?)))
+            .query_row([game_id], |row| {
+                Ok((row.get("seed")?, row.get("players")?, row.get("roles")?))
+            })
             .map_err(|e| e.to_string())?;
 
         let players: Vec<lobby::Player> =
             serde_json::from_str(&players).map_err(|e| e.to_string())?;
 
+        let roles: Vec<RoleName> = serde_json::from_str(&roles).map_err(|e| e.to_string())?;
+
         let rng = Prng::from_seed(seed);
-        let mut game = Game::start(lobby::Lobby { players }, rng);
+        let mut game = Game::start(players, roles, rng);
         let actions: Vec<Action> = conn
             .prepare("SELECT data FROM actions WHERE actions.game_id = ?1")
             .map_err(|e| e.to_string())?
