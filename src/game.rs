@@ -1159,7 +1159,25 @@ impl Game {
                 active.gold -= 2;
                 self.gain_cards(3);
                 ActionOutput {
-                    log: "They used their Smithy to forge 2 gold into 3 cards".into(),
+                    log: "At the Smithy, they forged 2 gold into 3 cards".into(),
+                    followup: None,
+                }
+            }
+
+            Action::Laboratory { district } => {
+                let active = self.active_player_mut()?;
+                let (index, _) = active
+                    .hand
+                    .iter()
+                    .enumerate()
+                    .find(|(_, name)| *name == district)
+                    .ok_or("district not in hand")?;
+                let card = active.hand.remove(index);
+                active.gold += 2;
+                self.deck.discard_to_bottom(card);
+
+                ActionOutput {
+                    log: "At the Laboratory, they transmuted 1 card into 2 gold".into(),
                     followup: None,
                 }
             }
@@ -1183,10 +1201,6 @@ impl Game {
                     log: "They tucked a card face down under their Museum.".into(),
                     followup: None,
                 }
-            }
-
-            Action::Laboratory { .. } => {
-                todo!()
             }
 
             Action::ScholarReveal => {
