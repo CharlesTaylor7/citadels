@@ -76,6 +76,24 @@ impl Default for GameConfig {
 }
 
 impl GameConfig {
+    pub fn base_set() -> Self {
+        let base = [
+            RoleName::Assassin,
+            RoleName::Thief,
+            RoleName::Magician,
+            RoleName::King,
+            RoleName::Bishop,
+            RoleName::Merchant,
+            RoleName::Architect,
+            RoleName::Warlord,
+            RoleName::Artist,
+        ];
+        let mut roles = HashMap::with_capacity(9);
+        for r in base {
+            roles.insert(r, RoleConfig::Always);
+        }
+        Self { roles }
+    }
     pub fn config(&self, role: &RoleName) -> RoleConfig {
         self.roles.get(role).map_or(RoleConfig::default(), |r| *r)
     }

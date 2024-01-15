@@ -5,10 +5,9 @@ use crate::game::{FollowupAction, Game, Player, Turn};
 use crate::templates::filters;
 use crate::templates::{DistrictTemplate, RoleTemplate};
 
-
 use askama::Template;
 
-use std::borrow::{Cow};
+use std::borrow::Cow;
 
 #[derive(Template)]
 #[template(path = "game/menu.html")]

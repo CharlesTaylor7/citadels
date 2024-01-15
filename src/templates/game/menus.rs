@@ -1,11 +1,9 @@
 use crate::actions::ActionTag;
 
-
-use crate::roles::{RoleName};
+use crate::roles::RoleName;
 use crate::templates::{filters, RoleTemplate};
 
-
-use crate::{game};
+use crate::game;
 use askama::Template;
 
 use std::borrow::{Borrow, Cow};

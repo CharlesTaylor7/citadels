@@ -3,12 +3,11 @@ pub mod game;
 pub mod lobby;
 
 use crate::districts::DistrictName;
-use crate::game::{CityDistrict};
+use crate::game::CityDistrict;
 use crate::roles::{Rank, RoleName};
 use crate::types::CardSuit;
 use askama::Template;
 use axum::response::Html;
-
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum GamePhase {
