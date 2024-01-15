@@ -1150,9 +1150,20 @@ impl Game {
             Action::Armory { .. } => {
                 todo!()
             }
-            Action::Smithy { .. } => {
-                todo!()
+
+            Action::Smithy => {
+                let active = self.active_player_mut()?;
+                if active.gold < 2 {
+                    return Err("not enough gold".into());
+                }
+                active.gold -= 2;
+                self.gain_cards(3);
+                ActionOutput {
+                    log: "They used their Smithy to forge 2 gold into 3 cards".into(),
+                    followup: None,
+                }
             }
+
             Action::Theater { .. } => {
                 todo!()
             }
