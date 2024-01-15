@@ -314,6 +314,11 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
 
+            ActionTag::SendWarrants => {
+                let rendered = SendWarrantsMenu::from_game(game).to_html()?;
+                Ok(rendered.into_response())
+            }
+
             _ => Err(bad_request("missing selection".into())),
         },
     }
