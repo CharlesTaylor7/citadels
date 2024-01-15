@@ -1013,7 +1013,7 @@ impl Game {
                     .find(|p| {
                         p.name == target.player
                             && !self.characters.has_revealed_role(p, RoleName::Bishop)
-                            && p.city.len() < complete_size
+                            && p.city_size() < complete_size
                     })
                     .ok_or("invalid player target")?;
 
@@ -1030,7 +1030,14 @@ impl Game {
                     })
                     .ok_or("does not exist in the targeted player's city")?;
 
-                let destroy_cost = target.effective_cost(targeted_player) - 1;
+                let mut destroy_cost = target.district.data().cost - 1;
+                if target.beautified {
+                    destroy_cost += 1;
+                }
+                if targeted_player.city_has(DistrictName::GreatWall) {
+                    destroy_cost += 1;
+                }
+
                 if available_gold < destroy_cost {
                     return Err("not enough gold to destroy".into());
                 }
@@ -1052,6 +1059,65 @@ impl Game {
                     log: format!(
                         "The Warlord ({}) destroyed {}'s {}.",
                         self.active_player()?.name,
+                        target.player,
+                        target.district.data().display_name,
+                    ),
+                    followup: None,
+                }
+            }
+
+            Action::Armory { district: target } => {
+                if target.district == DistrictName::Keep {
+                    return Err("cannot destroy the Keep".into());
+                }
+
+                let complete_size = self.complete_city_size();
+                let targeted_player = self
+                    .players
+                    .iter_mut()
+                    .find(|p| p.name == target.player && p.city_size() < complete_size)
+                    .ok_or("player does not exist or cannot destroy from complete city")?;
+
+                let city_index = targeted_player
+                    .city
+                    .iter()
+                    .enumerate()
+                    .find_map(|(i, c)| {
+                        if c.name == target.district && c.beautified == target.beautified {
+                            Some(i)
+                        } else {
+                            None
+                        }
+                    })
+                    .ok_or("does not exist in the targeted player's city")?;
+
+                targeted_player.city.remove(city_index);
+                let active_player = self.active_player_mut()?;
+                //Game::remove_first(&mut
+                let (city_index, _) = active_player
+                    .city
+                    .iter()
+                    .enumerate()
+                    .find(|(_, d)| d.name == DistrictName::Armory)
+                    .unwrap();
+
+                active_player.city.remove(city_index);
+                self.deck.discard_to_bottom(DistrictName::Armory);
+
+                if target.district == DistrictName::Museum {
+                    let mut to_discard = std::mem::replace(&mut self.museum, vec![]);
+                    to_discard.push(DistrictName::Museum);
+                    to_discard.shuffle(&mut self.rng);
+                    for card in to_discard {
+                        self.deck.discard_to_bottom(card);
+                    }
+                } else {
+                    self.deck.discard_to_bottom(target.district);
+                }
+
+                ActionOutput {
+                    log: format!(
+                        "They sacrificed their Armory to destroy {}'s {}.",
                         target.player,
                         target.district.data().display_name,
                     ),

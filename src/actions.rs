@@ -233,24 +233,7 @@ pub struct CityDistrictTarget {
     pub beautified: bool,
 }
 
-impl CityDistrictTarget {
-    pub fn effective_cost(&self, player: &Player) -> usize {
-        let mut cost = self.district.data().cost;
-        if self.beautified {
-            cost += 1;
-        }
-
-        if player
-            .city
-            .iter()
-            .any(|city| city.name == DistrictName::GreatWall)
-        {
-            cost += 1;
-        }
-
-        cost
-    }
-}
+impl CityDistrictTarget {}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Resource {
