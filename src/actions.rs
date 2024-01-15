@@ -127,12 +127,14 @@ pub enum Action {
 
     // Magistrate
     SendWarrants {
-        warrant: [Warrant; 3],
+        signed: RoleName,
+        unsigned: [RoleName; 2],
     },
 
     // Blackmailer
     Blackmail {
-        threat: [Threat; 2],
+        active: RoleName,
+        empty: RoleName,
     },
 
     // Marshal

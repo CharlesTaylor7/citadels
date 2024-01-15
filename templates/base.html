@@ -11,11 +11,9 @@
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
     <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.js"></script>
+    <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
     <script>
       Idiomorph.defaults.head = 'none';
-      console.log(Idiomorph.defaults.callbacks);
-
-
       Idiomorph.defaults.callbacks.beforeNodeAdded = (node) => {
         console.log("attr", node.id)
         if (node.id == 'mr-brightside') {
@@ -63,30 +61,7 @@
         display: none;
       }
     </style>
-    <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
     <script>
-      function enableResize(el, edges) {
-        interact(el)
-        .resizable({
-          edges,
-          listeners: {
-            move(event) {
-              let { x, y } = event.target.dataset
-
-              x = (parseFloat(x) || 0) + event.deltaRect.left
-              y = (parseFloat(y) || 0) + event.deltaRect.top
-
-              Object.assign(event.target.style, {
-                width: `${event.rect.width}px`,
-                height: `${event.rect.height}px`,
-                transform: `translate(${x}px, ${y}px)`
-              })
-
-              Object.assign(event.target.dataset, { x, y })
-            }
-          }
-        })
-      }
       function enableDragon() {
         // https://developers.google.com/youtube/iframe_api_reference
         const tag = document.createElement('script');
@@ -106,6 +81,9 @@
               },
             }
           );
+          let el = document.querySelector("#mr-brightside");
+          el.setAttribute("hx-preserve", "");
+          el.setAttribute("im-preserve", "");
         }
 
         interact("#my-stash")
@@ -113,7 +91,6 @@
             accept: "#dragon",
             ondrop: function(event) {
               window.player.pauseVideo();
-              //document.querySelector("#mr-brightside").dataset.ytPlayer.pauseVideo();
             }
           });
         interact("#dragon")
@@ -124,8 +101,6 @@
               move(event) {
                 if (event.dragLeave?.id == "my-stash") {
                   window.player.playVideo();
-                 // console.log(document.querySelector("#mr-brightside").dataset['ytPlayer'])
-                  //.dataset.ytPlayer.playVideo();
                 }
                 let target = event.target;
                 target.classList.add("dragging");
@@ -138,7 +113,6 @@
                 target.setAttribute('data-y', y)
               },
               end(event) {
-
                 let target = event.target;
                 let z = (parseInt(window.z) || 1);
                 window.z = z + 1;

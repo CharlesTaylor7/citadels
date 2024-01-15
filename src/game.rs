@@ -1173,20 +1173,12 @@ impl Game {
                 }
             }
 
-            Action::SeerTake { .. } => {
-                todo!()
-            }
+            Action::SeerTake { .. } => return Err("Not implemented".into()),
 
-            Action::SeerDistribute { .. } => {
-                todo!()
-            }
+            Action::SeerDistribute { .. } => return Err("Not implemented".into()),
 
-            Action::WizardPeek { .. } => {
-                todo!()
-            }
-            Action::WizardPick { .. } => {
-                todo!()
-            }
+            Action::WizardPeek { .. } => return Err("Not implemented".into()),
+            Action::WizardPick { .. } => return Err("Not implemented".into()),
 
             Action::ResourcesFromReligion { gold, cards } => {
                 let player = self.active_player()?;
@@ -1210,36 +1202,16 @@ impl Game {
                     ),
                 }
             }
-            Action::EmperorGiveCrown { .. } => {
-                todo!()
-            }
-            Action::QueenGainGold { .. } => {
-                todo!()
-            }
-            Action::Spy { .. } => {
-                todo!()
-            }
-            Action::CollectTaxes { .. } => {
-                todo!()
-            }
-            Action::Bewitch { .. } => {
-                todo!()
-            }
-            Action::Seize { .. } => {
-                todo!()
-            }
-            Action::TakeFromRich { .. } => {
-                todo!()
-            }
-            Action::SendWarrants { .. } => {
-                todo!()
-            }
-            Action::Blackmail { .. } => {
-                todo!()
-            }
-            Action::ExchangeCityDistricts { .. } => {
-                todo!()
-            }
+            Action::EmperorGiveCrown { .. } => return Err("Not implemented".into()),
+            Action::QueenGainGold { .. } => return Err("Not implemented".into()),
+            Action::Spy { .. } => return Err("Not implemented".into()),
+            Action::CollectTaxes { .. } => return Err("Not implemented".into()),
+            Action::Bewitch { .. } => return Err("Not implemented".into()),
+            Action::Seize { .. } => return Err("Not implemented".into()),
+            Action::TakeFromRich { .. } => return Err("Not implemented".into()),
+            Action::SendWarrants { .. } => return Err("Not implemented".into()),
+            Action::Blackmail { .. } => return Err("Not implemented".into()),
+            Action::ExchangeCityDistricts { .. } => return Err("Not implemented".into()),
 
             Action::Smithy => {
                 let active = self.active_player_mut()?;
@@ -1272,9 +1244,7 @@ impl Game {
                 }
             }
 
-            Action::Theater { .. } => {
-                todo!()
-            }
+            Action::Theater { .. } => return Err("Not implemented".into()),
 
             Action::Museum { district } => {
                 let active = self.active_player_mut()?;

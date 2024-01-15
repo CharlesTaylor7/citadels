@@ -66,7 +66,7 @@ impl SendWarrantsMenu {
                 .characters
                 .iter()
                 .skip(1)
-                .map(|r| RoleTemplate::from(r, 150.0))
+                .map(|r| RoleTemplate::from(r, 160.0))
                 .collect::<Vec<_>>(),
         }
     }

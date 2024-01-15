@@ -136,7 +136,6 @@ impl GameConfig {
                     }
                     RoleConfig::Never => {}
                 }
-                grouped_by_rank[r.rank.to_index()].push(r.name)
             }
         }
 
