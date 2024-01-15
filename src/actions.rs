@@ -436,9 +436,11 @@ impl ActionTag {
             ActionTag::Beautify => "Beautify".into(),
             ActionTag::ScholarReveal => "Draw 7, pick 1".into(),
             ActionTag::ScholarPick => "Pick".into(),
-            /*
-            ActionTag::CardsFromNobility => write!(f, "Cards from Noble"),
-            */
+            ActionTag::Museum => "Museum".into(),
+            ActionTag::Smithy => "Smithy".into(),
+            ActionTag::Theater => "Theater".into(),
+            ActionTag::Armory => "Armory".into(),
+            ActionTag::Laboratory => "Laboratory".into(),
             _ => {
                 log::debug!("Warning: default case for {:#?}", self);
                 format!("{:#?}", self).into()

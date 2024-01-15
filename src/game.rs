@@ -623,7 +623,11 @@ impl Game {
         }
 
         if let Some(log) = self.db_log.as_mut() {
-            log.append(&action);
+            if let Err(err) = log.append(&action) {
+                log::error!("{}", err);
+                log::info!("Disabling db action log");
+                self.db_log = None;
+            }
         }
 
         Ok(())
