@@ -55,31 +55,6 @@
         }
       });
     </script>
-    <script>
-      // https://developers.google.com/youtube/iframe_api_reference
-      var tag = document.createElement('script');
-      tag.src = "https://www.youtube.com/iframe_api";
-
-      var firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-      function onYouTubeIframeAPIReady() {
-        window.player = new YT.Player(
-          'mr-brightside', 
-          {
-            videoId: 'gGdGFtwCNBE',
-            playerVars: {
-              playsinline: 1,
-              start: 3,
-            },
-          }
-        );
-        const el = document.querySelector("#mr-brightside");
-
-        el.setAttribute("im-preserve", "true");
-        el.setAttribute("hx-preserve", "true");
-      }
-    </script>
     <style>
       .dragging {
         z-index: 1000 !important; 
@@ -113,6 +88,26 @@
         })
       }
       function enableDragon() {
+        // https://developers.google.com/youtube/iframe_api_reference
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = function() {
+          window.player = new YT.Player(
+            'mr-brightside', 
+            {
+              videoId: 'gGdGFtwCNBE',
+              playerVars: {
+                playsinline: 1,
+                start: 3,
+              },
+            }
+          );
+        }
+
         interact("#my-stash")
           .dropzone({
             accept: "#dragon",
