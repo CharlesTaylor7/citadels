@@ -27,6 +27,18 @@ pub struct Player {
 }
 
 impl Player {
+    pub fn city_size(&self) -> usize {
+        self.city
+            .iter()
+            .map(|d| {
+                if d.name == DistrictName::Monument {
+                    2
+                } else {
+                    1
+                }
+            })
+            .sum()
+    }
     pub fn count_suit_for_resource_gain(&self, suit: CardSuit) -> usize {
         self.city
             .iter()
@@ -346,7 +358,7 @@ impl Game {
             score += 4;
         }
         // other completed: 2
-        else if player.city.len() >= self.complete_city_size() {
+        else if player.city_size() >= self.complete_city_size() {
             score += 2;
         }
 
@@ -835,13 +847,17 @@ impl Game {
                     return Err("cannot build duplicate".into());
                 }
 
+                if district.name == DistrictName::Monument && player.city.len() >= 5 {
+                    return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
+                }
+
                 Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
                 player.gold -= cost;
                 player.city.push(CityDistrict::from(district.name));
 
                 // trigger end game
                 let player = self.active_player()?;
-                if player.city.len() >= self.complete_city_size()
+                if player.city_size() >= self.complete_city_size()
                     && self.first_to_complete.is_none()
                 {
                     log::info!("{} is the first to complete their city", player.name);

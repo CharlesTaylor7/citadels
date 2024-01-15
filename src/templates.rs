@@ -128,7 +128,7 @@ impl<'a> WarlordMenu<'a> {
                 .iter()
                 .filter(|p| {
                     !game.characters.has_revealed_role(p, RoleName::Bishop)
-                        && p.city.len() <= game.complete_city_size()
+                        && p.city_size() < game.complete_city_size()
                 })
                 .map(|p| CityTemplate::from(game, p.index, None))
                 .collect::<Vec<_>>(),
@@ -364,7 +364,7 @@ impl<'a> PlayerInfoTemplate<'a> {
                 .first_to_complete
                 .as_ref()
                 .is_some_and(|c| *c == player.index),
-            complete_city: player.city.len() >= game.complete_city_size(),
+            complete_city: player.city_size() >= game.complete_city_size(),
             score: game.public_score(player),
             roles,
         }
