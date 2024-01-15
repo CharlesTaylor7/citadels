@@ -49,6 +49,14 @@ pub struct WarlordMenu<'a> {
 #[template(path = "game/menus/beautify.html")]
 pub struct BeautifyMenu;
 
+#[derive(Template)]
+#[template(path = "game/menus/send-warrants.html")]
+pub struct SendWarrantsMenu;
+
+#[derive(Template)]
+#[template(path = "game/menus/reveal-warrant.html")]
+pub struct RevealWarrantMenu;
+
 impl<'a> WarlordMenu<'a> {
     pub fn from_game(game: &'a game::Game) -> Self {
         Self {
