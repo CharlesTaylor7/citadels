@@ -307,15 +307,38 @@ impl Game {
     }
 
     pub fn public_score(&self, player: &Player) -> usize {
+        if player.city_has(DistrictName::HauntedQuarter) {
+            [
+                CardSuit::Religious,
+                CardSuit::Military,
+                CardSuit::Trade,
+                CardSuit::Noble,
+                CardSuit::Unique,
+            ]
+            .iter()
+            .map(|s| self.public_score_impl(player, Some(*s)))
+            .max()
+            .unwrap()
+        } else {
+            self.public_score_impl(player, None)
+        }
+    }
+    fn public_score_impl(&self, player: &Player, haunted: Option<CardSuit>) -> usize {
         let mut score = 0;
         let mut counts: [usize; 5] = [0, 0, 0, 0, 0];
+
+        if let Some(suit) = haunted {
+            counts[suit as usize] += 1;
+        }
 
         // total costs
         for card in &player.city {
             if card.name != DistrictName::SecretVault {
                 score += card.effective_cost();
             }
-            counts[card.name.data().suit as usize] += 1;
+            if card.name != DistrictName::HauntedQuarter {
+                counts[card.name.data().suit as usize] += 1;
+            }
         }
 
         // uniques
@@ -334,11 +357,6 @@ impl Game {
                     .iter()
                     .filter(|c| c.name.data().cost % 2 == 1)
                     .count(),
-
-                DistrictName::HauntedQuarter => {
-                    log::warn!("Haunted quarter is not implemented");
-                    0
-                }
 
                 _ => 0,
             }

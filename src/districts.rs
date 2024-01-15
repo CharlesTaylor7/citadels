@@ -415,7 +415,7 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Theater",
         cost: 6,
-        description: Some( "At the end of each selection phase, you may exchange your chosen  character card with an opponent's character card.")
+        description: Some("At the end of each selection phase, you may exchange your chosen character card with an opponent's character card.")
     },
 
     DistrictData {
@@ -424,7 +424,7 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Stables",
         cost: 2,
-        description: Some( "Building the Stables does not count toward your building limit for the turn.")
+        description: Some("Building the Stables does not count toward your building limit for the turn.")
     },
 
     DistrictData {
