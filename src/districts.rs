@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::actions::ActionTag;
 use crate::types::CardSet;
 use crate::types::CardSet::*;
 use crate::types::CardSuit;
@@ -117,8 +118,19 @@ impl DistrictName {
         }
     }
 
+    pub fn action(self) -> Option<ActionTag> {
+        match self {
+            DistrictName::Smithy => Some(ActionTag::Smithy),
+            DistrictName::Theater => Some(ActionTag::Theater),
+            DistrictName::Museum => Some(ActionTag::Museum),
+            DistrictName::Laboratory => Some(ActionTag::Laboratory),
+            DistrictName::Armory => Some(ActionTag::Armory),
+            _ => None,
+        }
+    }
+
     pub fn enabled(self) -> bool {
-        // 19
+        // 20
         match self {
             Self::GreatWall => true,
             Self::Keep => true,
@@ -142,7 +154,7 @@ impl DistrictName {
             Self::Statue => true,
             Self::Basilica => true,
             Self::Capitol => true,
-            Self::Smithy => true,
+            Self::Museum => true,
 
             _ => false,
         }

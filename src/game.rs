@@ -217,6 +217,7 @@ pub struct Game {
     pub followup: Option<FollowupAction>,
     pub turn_actions: Vec<Action>,
     pub first_to_complete: Option<PlayerIndex>,
+    pub museum: Vec<DistrictName>,
     pub logs: Vec<Cow<'static, str>>,
     pub db_log: Option<DbLog>,
 }
@@ -315,6 +316,7 @@ impl Game {
                 DistrictName::Capitol if counts.iter().any(|c| *c >= 3) => 3,
                 DistrictName::IvoryTower if 1 == counts[CardSuit::Unique as usize] => 5,
                 DistrictName::WishingWell => counts[CardSuit::Unique as usize],
+                DistrictName::Museum => self.museum.len(),
                 DistrictName::Basilica => player
                     .city
                     .iter()
@@ -460,6 +462,7 @@ impl Game {
             characters,
             followup: None,
             turn_actions: Vec::new(),
+            museum: Vec::new(),
             first_to_complete: None,
         };
         game.begin_draft();
@@ -558,6 +561,14 @@ impl Game {
                     }
                 }
 
+                for card in self.active_player().iter().flat_map(|p| &p.city) {
+                    if let Some(action) = card.name.action() {
+                        if self.active_perform_count(action) < 1 {
+                            actions.push(action);
+                        }
+                    }
+                }
+
                 // You have to gather resources before building
                 if self
                     .turn_actions
@@ -571,19 +582,6 @@ impl Game {
                     // build
                     actions.push(ActionTag::Build);
                 }
-                /*
-                let active = self.active_player_index().unwrap();
-                else if self
-                    .active_role()
-                    .is_ok_and(|c| c.role != RoleName::Navigator)
-                    && self.players[active.0]
-                        .hand
-                        .iter()
-                        .any(|c| *c == DistrictName::Stables)
-                {
-                    actions.push(ActionTag::Build)
-                }
-                */
 
                 if actions.iter().all(|action| !action.is_required()) {
                     actions.push(ActionTag::EndTurn);
@@ -1001,7 +999,16 @@ impl Game {
 
                 targeted_player.city.remove(city_index);
                 self.active_player_mut()?.gold -= destroy_cost;
-                self.deck.discard_to_bottom(target.district);
+                if target.district == DistrictName::Museum {
+                    let mut to_discard = std::mem::replace(&mut self.museum, vec![]);
+                    to_discard.push(target.district);
+                    to_discard.shuffle(&mut self.rng);
+                    for card in to_discard {
+                        self.deck.discard_to_bottom(card);
+                    }
+                } else {
+                    self.deck.discard_to_bottom(target.district);
+                }
 
                 ActionOutput {
                     log: format!(
@@ -1146,8 +1153,21 @@ impl Game {
                 todo!()
             }
 
-            Action::Museum { .. } => {
-                todo!()
+            Action::Museum { district } => {
+                let active = self.active_player_mut()?;
+                let (index, _) = active
+                    .hand
+                    .iter()
+                    .enumerate()
+                    .find(|(_, name)| *name == district)
+                    .ok_or("district not in hand")?;
+                let card = active.hand.remove(index);
+                self.museum.push(card);
+
+                ActionOutput {
+                    log: "They tucked a card face down under their Museum.".into(),
+                    followup: None,
+                }
             }
 
             Action::Laboratory { .. } => {

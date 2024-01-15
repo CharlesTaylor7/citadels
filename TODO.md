@@ -10,7 +10,6 @@
     - 
 - [ ] Backup game state to db, by storing rng seed, and the action log.
 - [ ] regression testing through saving action logs to sqlite.
-
 - [ ] Where do destroyed districts go? they ought to get discarded, but I don't think I implemented it properly.
 - [ ] Show all abilities but greyed out as the turn progresses.
 
