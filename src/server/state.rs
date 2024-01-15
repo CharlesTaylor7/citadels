@@ -23,7 +23,7 @@ impl Default for AppState {
         load_dotenv!();
         Self {
             cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
-            connections: new_arc_mutex(ws::Connections::new()),
+            connections: new_arc_mutex(ws::Connections::default()),
             lobby: new_arc_mutex(Lobby::demo(vec!["A", "B"])),
             game: new_arc_mutex(Game::default_game()),
         }

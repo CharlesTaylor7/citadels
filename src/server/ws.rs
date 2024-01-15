@@ -11,13 +11,10 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
 
+#[derive(Default)]
 pub struct Connections(HashMap<String, WebSocketSink>);
 
 impl Connections {
-    pub fn new() -> Self {
-        Self(HashMap::new())
-    }
-
     pub fn broadcast(&mut self, html: Html<String>) {
         self.0.values_mut().for_each(|ws| {
             let _ = ws.send(Ok(Message::Text(html.0.clone())));

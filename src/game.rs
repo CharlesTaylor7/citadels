@@ -769,14 +769,12 @@ impl Game {
             Action::GatherResourceGold => {
                 let active = self.active_player_index()?;
                 let mut amount = 2;
-                let log: String;
-
-                if self.players[active.0].city_has(DistrictName::GoldMine) {
+                let log = if self.players[active.0].city_has(DistrictName::GoldMine) {
                     amount += 1;
-                    log = "They gathered 3 gold. (1 extra from their Gold Mine).".into();
+                    "They gathered 3 gold. (1 extra from their Gold Mine).".into()
                 } else {
-                    log = "They gathered 2 gold.".into();
-                }
+                    "They gathered 2 gold.".into()
+                };
 
                 self.players[active.0].gold += amount;
 
@@ -907,7 +905,7 @@ impl Game {
                 self.crowned = self.active_player_index()?;
 
                 ActionOutput {
-                    log: format!("They took the crown.",),
+                    log: "They took the crown.".into(),
                     followup: None,
                 }
             }
