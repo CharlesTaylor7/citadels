@@ -714,6 +714,19 @@ impl Game {
         Ok(())
     }
 
+    fn discard_district(&mut self, district: DistrictName) {
+        if district == DistrictName::Museum {
+            let mut to_discard = std::mem::replace(&mut self.museum, vec![]);
+            to_discard.push(DistrictName::Museum);
+            to_discard.shuffle(&mut self.rng);
+            for card in to_discard {
+                self.deck.discard_to_bottom(card);
+            }
+        } else {
+            self.deck.discard_to_bottom(district);
+        }
+    }
+
     fn perform_action(&mut self, action: &Action) -> ActionResult {
         Ok(match action {
             Action::DraftPick { role } => {
@@ -1044,16 +1057,7 @@ impl Game {
 
                 targeted_player.city.remove(city_index);
                 self.active_player_mut()?.gold -= destroy_cost;
-                if target.district == DistrictName::Museum {
-                    let mut to_discard = std::mem::replace(&mut self.museum, vec![]);
-                    to_discard.push(target.district);
-                    to_discard.shuffle(&mut self.rng);
-                    for card in to_discard {
-                        self.deck.discard_to_bottom(card);
-                    }
-                } else {
-                    self.deck.discard_to_bottom(target.district);
-                }
+                self.discard_district(target.district);
 
                 ActionOutput {
                     log: format!(
@@ -1104,16 +1108,7 @@ impl Game {
                 active_player.city.remove(city_index);
                 self.deck.discard_to_bottom(DistrictName::Armory);
 
-                if target.district == DistrictName::Museum {
-                    let mut to_discard = std::mem::replace(&mut self.museum, vec![]);
-                    to_discard.push(DistrictName::Museum);
-                    to_discard.shuffle(&mut self.rng);
-                    for card in to_discard {
-                        self.deck.discard_to_bottom(card);
-                    }
-                } else {
-                    self.deck.discard_to_bottom(target.district);
-                }
+                self.discard_district(target.district);
 
                 ActionOutput {
                     log: format!(
