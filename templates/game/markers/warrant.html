@@ -5,6 +5,14 @@
 <div
   class="draggable"
 >
+  <input
+    data-warrant
+    class="peer hidden"
+    type="checkbox"
+    name="{% if signed %}signed{% else %}unsigned{% endif %}"
+    value=""
+
+  />
   <svg
     xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -18,10 +26,4 @@
           preserveAspectRatio="xMinYMin slice"
     />
   </svg>
-  <input
-    class="hidden"
-    type="checkbox"
-    name="{% if signed %}signed{% else %}unsigned{% endif %}"
-    value=""
-  />
 </div>
