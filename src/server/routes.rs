@@ -18,7 +18,7 @@ use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::mem;
-use std::ops::{DerefMut};
+use std::ops::DerefMut;
 use time::Duration;
 use tower_http::services::ServeDir;
 use uuid::Uuid;

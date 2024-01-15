@@ -415,6 +415,7 @@ impl ActionTag {
             ActionTag::TakeCrown => "Take Crown".into(),
             ActionTag::MerchantGainOneGold => "Gain 1 extra gold".into(),
             ActionTag::ArchitectGainCards => "Gain 2 extra cards".into(),
+            ActionTag::SendWarrants => "Send Warrants".into(),
             ActionTag::WarlordDestroy => "Destroy".into(),
             ActionTag::Beautify => "Beautify".into(),
             ActionTag::ScholarReveal => "Draw 7, pick 1".into(),
