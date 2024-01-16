@@ -313,7 +313,6 @@ dependencies = [
  "load-dotenv",
  "log",
  "macros",
- "nom",
  "rand",
  "rand_core",
  "rand_xoshiro",

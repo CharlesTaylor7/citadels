@@ -30,7 +30,7 @@ pub enum Marker {
     Killed,
     Bewitched,
     Robbed,
-    Threat { flowered: bool },
+    Blackmail { flowered: bool },
     Warrant { signed: bool },
 }
 

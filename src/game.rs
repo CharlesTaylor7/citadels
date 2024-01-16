@@ -9,6 +9,7 @@ use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut, Cow};
 use std::fmt::Debug;
+use std::ops::RangeBounds;
 
 pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
 
@@ -1218,8 +1219,91 @@ impl Game {
             Action::Bewitch { .. } => return Err("Not implemented".into()),
             Action::Seize { .. } => return Err("Not implemented".into()),
             Action::TakeFromRich { .. } => return Err("Not implemented".into()),
-            Action::SendWarrants { .. } => return Err("Not implemented".into()),
-            Action::Blackmail { .. } => return Err("Not implemented".into()),
+            Action::SendWarrants { signed, unsigned } => {
+                let mut roles = Vec::with_capacity(3);
+                roles.push(signed);
+                for role in unsigned {
+                    if roles.iter().any(|r| *r == role) {
+                        return Err("cannot assign duplicate warrants".into());
+                    }
+                    roles.push(role);
+                }
+                if roles.iter().any(|role| role.rank() == Rank::One) {
+                    return Err("cannot assign warrant to self".into());
+                }
+                roles.sort_by_key(|r| r.rank());
+
+                self.characters
+                    .get_mut(signed.rank())
+                    .markers
+                    .push(Marker::Warrant { signed: true });
+
+                for role in unsigned {
+                    self.characters
+                        .get_mut(role.rank())
+                        .markers
+                        .push(Marker::Warrant { signed: false });
+                }
+                ActionOutput {
+                    log: format!(
+                        "Magistrate sends warrants to the {}, the {}, and the {}.",
+                        roles[0].display_name(),
+                        roles[1].display_name(),
+                        roles[2].display_name()
+                    )
+                    .into(),
+                    followup: None,
+                }
+            }
+            Action::Blackmail { flowered, unmarked } => {
+                if flowered == unmarked {
+                    return Err("cannot blackmail the same role twice".into());
+                }
+                if flowered.rank() < Rank::Three || unmarked.rank() < Rank::Three {
+                    return Err("can only blackmail rank 3 or higher".into());
+                }
+
+                if self
+                    .characters
+                    .get(flowered.rank())
+                    .markers
+                    .iter()
+                    .any(|m| *m == Marker::Killed || *m == Marker::Bewitched)
+                {
+                    return Err("cannot blackmail the killed or bewitched".into());
+                }
+                if self
+                    .characters
+                    .get(unmarked.rank())
+                    .markers
+                    .iter()
+                    .any(|m| *m == Marker::Killed || *m == Marker::Bewitched)
+                {
+                    return Err("cannot blackmail the killed or bewitched".into());
+                }
+
+                self.characters
+                    .get_mut(flowered.rank())
+                    .markers
+                    .push(Marker::Blackmail { flowered: true });
+
+                self.characters
+                    .get_mut(unmarked.rank())
+                    .markers
+                    .push(Marker::Blackmail { flowered: false });
+                let mut roles = vec![flowered, unmarked];
+                roles.sort_by_key(|r| r.rank());
+
+                ActionOutput {
+                    log: format!(
+                        "The Blackmailer sends blackmail to the {} and the {}",
+                        roles[0].display_name(),
+                        roles[1].display_name(),
+                    )
+                    .into(),
+                    followup: None,
+                }
+            }
             Action::ExchangeCityDistricts { .. } => return Err("Not implemented".into()),
 
             Action::Smithy => {
