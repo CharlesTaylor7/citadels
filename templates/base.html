@@ -113,7 +113,53 @@
           const x = left + width / 2;
           const y = top + height / 2;
           return { x, y};
-        };
+        }
+
+        function enableThreats() {
+          interact('#menu [data-dropzone]').dropzone({
+            ondrop(event) {
+              let dropzone = event.currentTarget;
+              let draggable = event.relatedTarget;
+              let center1 = getCenter(dropzone);
+              let center2 = getCenter(draggable);
+              let dx = center1.x - center2.x;
+              let dy = center1.y - center2.y;
+              let x = parseFloat(draggable.dataset.x) + dx;
+              let y = parseFloat(draggable.dataset.y) + dy;
+              draggable.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+              draggable.setAttribute('data-x', x)
+              draggable.setAttribute('data-y', y)
+              let el = event.relatedTarget.querySelector('input');
+              el.checked = true;
+              el.value = event.currentTarget.dataset.role;
+              if (document.querySelectorAll('#menu [data-threat]:checked').length == 2) {
+                document.querySelector('#confirm').removeAttribute('disabled')
+              }
+            }
+          });
+
+          interact('#menu .draggable')
+            .draggable({
+              modifiers: [
+                interact.modifiers.restrictRect({
+                  restriction: '#menu',
+                }),
+              ],
+              listeners: {
+                move(event) {
+                  if (event.dragLeave) {
+                    let el = event.currentTarget.querySelector('input').checked = false;
+                    if (document.querySelectorAll('#menu [data-threat]:checked').length < 2) {
+                      document.querySelector('#confirm').setAttribute('disabled', '')
+                    }
+                  }
+                  window.defaultDragMove(event);
+                },
+                end: window.defaultDragEnd,
+              }
+            });
+        }
+
 
         function enableWarrants() {
           interact('#menu [data-dropzone]').dropzone({
