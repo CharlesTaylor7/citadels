@@ -284,7 +284,9 @@ async fn submit_game_action(
                         .iter_c()
                         .filter(|c| {
                             c.role.rank() > Rank::Two
-                                && c.markers.iter().all(|m| *m != Marker::Killed)
+                                && c.markers
+                                    .iter()
+                                    .all(|m| *m != Marker::Killed && *m != Marker::Bewitched)
                         })
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),

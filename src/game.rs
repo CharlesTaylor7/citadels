@@ -947,6 +947,15 @@ impl Game {
                 {
                     return Err("cannot rob from the dead".into());
                 }
+
+                if target
+                    .markers
+                    .iter()
+                    .any(|marker| *marker == Marker::Bewitched)
+                {
+                    return Err("cannot rob from the bewitched".into());
+                }
+
                 target.markers.push(Marker::Robbed);
 
                 ActionOutput {

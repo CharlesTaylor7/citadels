@@ -4,6 +4,7 @@ use crate::roles::RoleName;
 use crate::templates::{filters, RoleTemplate};
 
 use crate::game;
+use crate::types::Marker;
 use askama::Template;
 
 use std::borrow::{Borrow, Cow};
@@ -73,7 +74,7 @@ impl SendWarrantsMenu {
 }
 
 #[derive(Template)]
-#[template(path = "game/menus/send-threats.html")]
+#[template(path = "game/menus/send-blackmail.html")]
 pub struct BlackmailMenu {
     roles: Vec<RoleTemplate>,
 }
@@ -82,9 +83,14 @@ impl BlackmailMenu {
         Self {
             roles: game
                 .characters
-                .iter()
+                .iter_c()
                 .skip(2)
-                .map(|r| RoleTemplate::from(r, 160.0))
+                .filter(|c| {
+                    c.markers
+                        .iter()
+                        .all(|m| *m != Marker::Bewitched && *m != Marker::Killed)
+                })
+                .map(|c| RoleTemplate::from(c.role, 160.0))
                 .collect::<Vec<_>>(),
         }
     }
