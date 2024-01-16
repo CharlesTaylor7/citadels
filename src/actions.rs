@@ -133,8 +133,8 @@ pub enum Action {
 
     // Blackmailer
     Blackmail {
-        active: RoleName,
-        empty: RoleName,
+        flowered: RoleName,
+        unmarked: RoleName,
     },
 
     // Marshal
