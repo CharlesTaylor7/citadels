@@ -1,5 +1,15 @@
- ## Feature set
- - 19/30 unique districts
+## Goals
+- Support all characters and roles
+- Make it fun
+- Easter eggs
+- Bots?
+- Stable, well tested.
+- Learn htmx, practice web dev
+- Learn how to setup OAuth?
+
+
+## Feature set
+ - 25/30 unique districts
  - 11/27 game characters.
  - Dragon
 

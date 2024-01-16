@@ -123,7 +123,6 @@ pub struct GameTemplate<'a> {
     misc: MiscTemplate,
     city: CityTemplate<'a>,
     menu: MainTemplate<'a>,
-    end: GameEndTemplate<'a>,
 }
 
 impl<'a> GameTemplate<'a> {
@@ -140,13 +139,6 @@ impl<'a> GameTemplate<'a> {
             .collect();
         let MenuTemplate { menu, context } = MenuTemplate::from(game, my_id);
         log::info!("{:#?}", game.active_turn);
-        let mut scores = game
-            .players
-            .iter()
-            .map(|p| (p.name.0.borrow(), game.total_score(p)))
-            .collect::<Vec<_>>();
-        scores.sort_by_key(|(_, score)| -(*score as isize));
-
         GameTemplate {
             menu,
             context,
@@ -166,10 +158,6 @@ impl<'a> GameTemplate<'a> {
             },
             players: &players,
             my: player_template.borrow(),
-            end: GameEndTemplate {
-                hidden: game.active_turn != Turn::GameOver,
-                players: scores,
-            },
         }
         .to_html()
     }
@@ -191,8 +179,18 @@ pub struct GameEndRootTemplate<'a> {
 }
 
 pub struct GameEndTemplate<'a> {
-    pub hidden: bool,
     pub players: Vec<(&'a str, usize)>,
+}
+impl<'a> GameEndTemplate<'a> {
+    pub fn from_game(game: &'a Game) -> Self {
+        let mut scores = game
+            .players
+            .iter()
+            .map(|p| (p.name.0.borrow(), game.total_score(p)))
+            .collect::<Vec<_>>();
+        scores.sort_by_key(|(_, score)| -(*score as isize));
+        Self { players: scores }
+    }
 }
 
 struct MiscTemplate {
