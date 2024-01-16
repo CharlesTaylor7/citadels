@@ -912,12 +912,10 @@ impl Game {
             }
 
             Action::Assassinate { role } => {
-                let target = self
-                    .characters
-                    .iter_mut()
-                    .find(|c| c.role == *role)
-                    .ok_or("target is not valid")?;
-
+                if role.rank() == Rank::One {
+                    return Err("cannot kill self".into());
+                }
+                let target = self.characters.get_mut(role.rank());
                 target.markers.push(Marker::Killed);
 
                 ActionOutput {
@@ -935,11 +933,7 @@ impl Game {
                     return Err("target rank is too low".into());
                 }
 
-                let target = self
-                    .characters
-                    .iter_mut()
-                    .find(|c| c.role == *role)
-                    .ok_or("target is not valid")?;
+                let target = self.characters.get_mut(role.rank());
 
                 if target
                     .markers
