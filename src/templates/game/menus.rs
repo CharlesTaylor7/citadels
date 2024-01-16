@@ -50,14 +50,14 @@ pub struct WarlordMenu<'a> {
 pub struct BeautifyMenu;
 
 #[derive(Template)]
+#[template(path = "game/menus/reveal-warrant.html")]
+pub struct RevealWarrantMenu;
+
+#[derive(Template)]
 #[template(path = "game/menus/send-warrants.html")]
 pub struct SendWarrantsMenu {
     roles: Vec<RoleTemplate>,
 }
-
-#[derive(Template)]
-#[template(path = "game/menus/reveal-warrant.html")]
-pub struct RevealWarrantMenu;
 
 impl SendWarrantsMenu {
     pub fn from_game(game: &game::Game) -> Self {
@@ -66,6 +66,24 @@ impl SendWarrantsMenu {
                 .characters
                 .iter()
                 .skip(1)
+                .map(|r| RoleTemplate::from(r, 160.0))
+                .collect::<Vec<_>>(),
+        }
+    }
+}
+
+#[derive(Template)]
+#[template(path = "game/menus/send-threats.html")]
+pub struct BlackmailMenu {
+    roles: Vec<RoleTemplate>,
+}
+impl BlackmailMenu {
+    pub fn from_game(game: &game::Game) -> Self {
+        Self {
+            roles: game
+                .characters
+                .iter()
+                .skip(2)
                 .map(|r| RoleTemplate::from(r, 160.0))
                 .collect::<Vec<_>>(),
         }

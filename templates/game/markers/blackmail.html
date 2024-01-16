@@ -1,0 +1,29 @@
+{% let w_to_h = 321.0 / 390.0 %}
+{% let h = 100.0 %}
+{% let scale = 2.5 %}
+{% let w = w_to_h * h %}
+<div
+  class="draggable"
+>
+  <input
+    data-blackmail
+    class="peer hidden"
+    type="checkbox"
+    name="{% if laced %}laced{% else %}empty{% endif %}"
+    value=""
+
+  />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="{{ h }}"
+    width="{{ w }}"
+    class="rounded-lg"
+  >
+    <image id="img" x="-30" y="-70"
+          height="{{scale * 100.0}}%"
+          xlink:href="{% if laced %}/public/laced-threat.png{% else %}/public/unlaced-threat.png{% endif %}"
+          preserveAspectRatio="xMinYMin slice"
+    />
+  </svg>
+</div>

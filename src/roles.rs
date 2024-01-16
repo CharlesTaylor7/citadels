@@ -130,6 +130,7 @@ impl RoleName {
 
     pub fn enabled(self) -> bool {
         match self {
+            // base
             Self::Assassin => true,
             Self::Thief => true,
             Self::Magician => true,
@@ -139,9 +140,10 @@ impl RoleName {
             Self::Architect => true,
             Self::Warlord => true,
             Self::Artist => true,
-            // Bonus
+            // Extra
             // 1
             Self::Magistrate => true,
+            Self::Blackmailer => true,
             // 3
             // Seer
             // Wizard

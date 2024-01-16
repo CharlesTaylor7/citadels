@@ -115,7 +115,7 @@
           return { x, y};
         }
 
-        function enableThreats() {
+        function enableBlackmail() {
           interact('#menu [data-dropzone]').dropzone({
             ondrop(event) {
               let dropzone = event.currentTarget;
@@ -132,7 +132,7 @@
               let el = event.relatedTarget.querySelector('input');
               el.checked = true;
               el.value = event.currentTarget.dataset.role;
-              if (document.querySelectorAll('#menu [data-threat]:checked').length == 2) {
+              if (document.querySelectorAll('#menu [data-blackmail]:checked').length == 2) {
                 document.querySelector('#confirm').removeAttribute('disabled')
               }
             }
@@ -149,7 +149,7 @@
                 move(event) {
                   if (event.dragLeave) {
                     let el = event.currentTarget.querySelector('input').checked = false;
-                    if (document.querySelectorAll('#menu [data-threat]:checked').length < 2) {
+                    if (document.querySelectorAll('#menu [data-blackmail]:checked').length < 2) {
                       document.querySelector('#confirm').setAttribute('disabled', '')
                     }
                   }

@@ -418,7 +418,7 @@ impl Game {
             */
         }
 
-        game.active_turn = Turn::Call(Rank::One);
+        game.active_turn = Turn::Call(Rank::Two);
         game.start_turn().ok()?;
 
         Some(game)

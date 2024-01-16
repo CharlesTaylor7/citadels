@@ -63,7 +63,10 @@ pub struct GameConfig {
 
 impl Default for GameConfig {
     fn default() -> Self {
-        let mut roles = HashMap::from([(RoleName::Magistrate, RoleConfig::Always)]);
+        let mut roles = HashMap::from([
+            (RoleName::Magistrate, RoleConfig::Always),
+            (RoleName::Blackmailer, RoleConfig::Always),
+        ]);
 
         for role in RoleName::iter() {
             if !role.enabled() {

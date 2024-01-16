@@ -1,0 +1,46 @@
+<section
+  id="menu"
+  class="p-2 bg-neutral-content grow flex flex-col items-center border border-base-200"
+  _="init enableBlackmail()"
+>
+  <h2 class="m-2 underline text-lg font-semibold">
+    Blackmail
+  </h2>
+  <div class="flex flex-row flex-wrap gap-2 items-center">
+    {% set input_type = "checkbox" %} 
+    {% set enabled = false %} 
+    {% for role in roles %} 
+      {% include "game/role-card.html" %}
+    {% endfor %}
+  </div>
+  <div class="flex flex-row flex-wrap gap-2 items-center">
+    {% set laced = true %}
+    {% include "game/markers/blackmail.html" %}
+    {% set laced = false %}
+    {% include "game/markers/blackmail.html" %}
+  </div>
+  <h3 class="italic text-sm">Drag blackmail to roles</h3>
+  <div class="m-2 flex flex-row flex-wrap gap-2 items-center">
+    {% set action = ActionTag::Blackmail %}
+    <button 
+      id="confirm"
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      hx-swap="outerHTML"
+      hx-target="#menu"
+      name="action"
+      value="{{ action|debug }}"
+      disabled
+    >
+      Confirm 
+    </button>
+    <button 
+      class="btn btn-accent"
+      hx-get="/game/actions"
+      hx-swap="outerHTML"
+      hx-target="#menu"
+    >
+      Cancel
+    </button>
+  </div>
+</section>
