@@ -1,5 +1,17 @@
-## 0.2.0
+## 0.3.0 (pending)
 
+UI:
+    - # of "normal" Builds performed / available builds is shown
+
+Roles:
+    - Magistrate (1) 
+        - needs reveal menu
+        - needs logic for reveal
+    - Blackmailer (2) 
+        - needs reveal menu
+        - needs logic for reveal
+
+## 0.2.0
 UI changes:
     - End Turn no longer uses a window alert
     - End Turn is no longer automatic
@@ -10,13 +22,7 @@ New roles:
     - Tax Collector (9)
     - Queen (9)
     - Navigator (7) 
-    - Magistrate (1) 
-        - needs reveal menu
-        - needs logic for reveal
-    - Blackmailer (2) 
-        - needs reveal menu
-        - needs logic for reveal
-
+    
 New Unique districts:
     - Museum 
     - Laboratory 
