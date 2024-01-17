@@ -2,7 +2,7 @@
 # cache dependencies by building first with an empty main 
 
 FROM rust:1.75-slim-buster as builder
-RUN apt update && apt install libsqlite3-dev -y
+RUN apt-get update && apt-get install libsqlite3-dev -y
 RUN mkdir -p /app
 WORKDIR /app
 
@@ -25,7 +25,7 @@ RUN cargo build --bin citadels
 
 # new layer for smaller image
 FROM debian:buster-slim as runner
-RUN apt update && apt install libsqlite3-0 -y
+RUN apt-get update && apt-get install libsqlite3-0 -y
 WORKDIR /app
 # COPY --from=builder /app/target/release/citadels /app/citadels
 COPY --from=builder /app/target/debug/citadels /app/citadels

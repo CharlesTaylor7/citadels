@@ -1,19 +1,10 @@
 ## Citadels
-This is an online implementation of the multiplayer Citadels game
+This is a web app for playing the card game [Citadels](https://boardgamegeek.com/boardgame/478/citadels).
 
 ## Dev commands
-
 For most commands: use mprocs.
 
-How to release:
-1. Bump the version in the Cargo.toml
-2. Bump the version in fly.toml
-3. Update changelog.
-4. Git tag the release. 
-5. Run: `fly deploy`
-
 ## Logging
-
 The logger offers five levels:
     - error
     - warn
@@ -26,9 +17,7 @@ This is excessive, and I will try to stick to 3:
     - debug
     - info
 
-
 ### Installing deps
-
 
 To install a new dep:
 1. Comment out the 2nd line from .cargo/config.toml. So it looks like:
@@ -39,7 +28,6 @@ To install a new dep:
 
 You might think this is a lot of friction for adding deps. This is a good thing. Vendoring deps makes it so that the docker image can build more readily, and makes our codebase more resistant to supply chain attacks. 
 The friction makes me think twice before adding a new dep.
-
 
 
 ## Tech Stack 
@@ -58,6 +46,15 @@ Evaluating:
     - sqlite for two use cases:
         - game backups via action logs
         - saving preferred game configuration
-    
 
+## Releases
 
+How to release:
+- Bump the version in fly.toml
+- Update changelog
+- Git tag the release 
+- Run: `fly deploy`
+
+## Secret management
+In prod use `fly secret`.
+In dev, use the .env file.
