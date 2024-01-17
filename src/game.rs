@@ -636,7 +636,7 @@ impl Game {
                     // gather
                     actions.push(ActionTag::GatherResourceGold);
                     actions.push(ActionTag::GatherResourceCards);
-                } else {
+                } else if self.active_role().unwrap().role != RoleName::Navigator {
                     // build
                     actions.push(ActionTag::Build);
                 }

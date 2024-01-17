@@ -10,7 +10,6 @@ New roles:
     - Tax Collector (9)
     - Queen (9)
     - Navigator (7) 
-        - needs menu
     - Magistrate (1) 
         - needs reveal menu
         - needs logic for reveal
