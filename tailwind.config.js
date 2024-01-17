@@ -9,6 +9,9 @@ module.exports = {
   },
   theme: {
     extend: {
+       backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
       colors: {
         'suit-trade': "rgb(104, 189, 126)",
         'suit-military': "var(--fallback-p,oklch(var(--p)/var(--tw-bg-opacity)))",

@@ -106,12 +106,12 @@
     />
   </svg>
   <div 
-    class="absolute"
-    style="top: 40px; height: {{ asset.height }}px"
+    class="absolute top-10"
+    style="height: {{ asset.height }}px"
   >
     <div class="flex flex-row flex-wrap gap-0 justify-center items-center h-full">
     {% for item in district.artifacts %}
-      <div class="draggable text-4xl">{{ item }} </div>
+      <div class="rounded-full leaded h-10 w-10 draggable text-4xl bg-gradient-radial from-indigo-500 text-center">{{ item }} </div>
     {% endfor %}
   </div>
   </div>
