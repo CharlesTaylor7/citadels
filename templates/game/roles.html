@@ -40,6 +40,16 @@
             {% else %}
             {% endmatch %}
           {% endfor %}
+          {% if role.name == RoleName::TaxCollector %}
+          {% for _ in 0..context.game.tax_collector %}
+            <span 
+              data-tip="Taxes"
+              class="tooltip tooltip-bottom tooltip-secondary text-xl"
+            > 
+              💰 
+            </span>
+          {% endfor %}
+          {% endif %}
         </summary>
         <div 
           class="cursor-pointer text-sm"

@@ -914,7 +914,9 @@ impl Game {
                 if self.active_role().unwrap().role == RoleName::Alchemist {
                     self.alchemist += cost;
                 }
-                if self.characters.has_tax_collector() {
+                if self.active_role().unwrap().role != RoleName::TaxCollector
+                    && self.characters.has_tax_collector()
+                {
                     let player = self.active_player_mut()?;
                     if player.gold > 0 {
                         player.gold -= 1;

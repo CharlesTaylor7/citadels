@@ -66,6 +66,8 @@ impl Default for GameConfig {
         let mut roles = HashMap::from([
             (RoleName::Magistrate, RoleConfig::Always),
             (RoleName::Blackmailer, RoleConfig::Always),
+            (RoleName::TaxCollector, RoleConfig::Always),
+            (RoleName::Alchemist, RoleConfig::Always),
         ]);
 
         for role in RoleName::iter() {
