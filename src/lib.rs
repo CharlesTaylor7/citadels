@@ -6,6 +6,7 @@ pub mod districts;
 pub mod game;
 pub mod lobby;
 pub mod logger;
+pub mod museum;
 pub mod random;
 pub mod roles;
 pub mod server;

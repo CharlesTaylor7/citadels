@@ -1,6 +1,7 @@
 use crate::actions::{Action, ActionTag, CityDistrictTarget, MagicianAction, Resource};
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
+use crate::museum::Museum;
 use crate::random::Prng;
 use crate::roles::{Rank, RoleName};
 use crate::sqlite::DbLog;
@@ -248,7 +249,7 @@ pub struct Game {
     pub logs: Vec<Cow<'static, str>>,
     pub db_log: Option<DbLog>,
     // card specific metadata
-    pub museum: Vec<DistrictName>,
+    pub museum: Museum,
     pub alchemist: usize,
     pub tax_collector: usize,
 }
@@ -374,7 +375,7 @@ impl Game {
                 DistrictName::Capitol if counts.iter().any(|c| *c >= 3) => 3,
                 DistrictName::IvoryTower if 1 == counts[CardSuit::Unique as usize] => 5,
                 DistrictName::WishingWell => counts[CardSuit::Unique as usize],
-                DistrictName::Museum => self.museum.len(),
+                DistrictName::Museum => self.museum.cards().len(),
                 DistrictName::Basilica => player
                     .city
                     .iter()
@@ -431,6 +432,10 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
 
+            p.city.push(CityDistrict {
+                name: DistrictName::Museum,
+                beautified: true,
+            });
             /*
             for card in game.deck.draw_many(4) {
                 p.city.push(CityDistrict {
@@ -520,7 +525,7 @@ impl Game {
             logs: Vec::new(),
             followup: None,
             turn_actions: Vec::new(),
-            museum: Vec::new(),
+            museum: Museum::default(),
             first_to_complete: None,
         };
         game.begin_draft();
@@ -739,7 +744,8 @@ impl Game {
 
     fn discard_district(&mut self, district: DistrictName) {
         if district == DistrictName::Museum {
-            let mut to_discard = std::mem::replace(&mut self.museum, vec![]);
+            let museum = std::mem::replace(&mut self.museum, Museum::default());
+            let mut to_discard = museum.into_cards();
             to_discard.push(DistrictName::Museum);
             to_discard.shuffle(&mut self.rng);
             for card in to_discard {
@@ -1449,7 +1455,7 @@ impl Game {
                     .find(|(_, name)| *name == district)
                     .ok_or("district not in hand")?;
                 let card = active.hand.remove(index);
-                self.museum.push(card);
+                self.museum.tuck(card);
 
                 ActionOutput {
                     log: "They tucked a card face down under their Museum.".into(),

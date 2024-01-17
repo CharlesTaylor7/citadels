@@ -11,6 +11,10 @@ Roles:
         - needs reveal menu
         - needs logic for reveal
 
+Districts:
+    - Museum 
+        - needs menu and UI
+
 ## 0.2.0
 UI changes:
     - End Turn no longer uses a window alert
@@ -24,7 +28,6 @@ New roles:
     - Navigator (7) 
     
 New Unique districts:
-    - Museum 
     - Laboratory 
     - Smithy 
     - Monument 
