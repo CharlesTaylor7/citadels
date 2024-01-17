@@ -1,7 +1,10 @@
-use std::{collections::HashMap, hash::Hasher};
+use std::{
+    collections::HashMap, hash::Hasher, intrinsics::atomic_cxchgweak_acqrel_seqcst, ops::Deref,
+};
 
 use crate::{
     districts::{self, DistrictName},
+    game::{Characters, GameRole},
     roles::RoleName,
     types::{PlayerId, PlayerName},
 };
@@ -113,8 +116,14 @@ impl GameConfig {
             districts: HashMap::default(),
         }
     }
-    pub fn config(&self, role: &RoleName) -> ConfigOption {
+    pub fn role(&self, role: &RoleName) -> ConfigOption {
         self.roles.get(role).map_or(ConfigOption::default(), |r| *r)
+    }
+
+    pub fn district(&self, district: &DistrictName) -> ConfigOption {
+        self.districts
+            .get(district)
+            .map_or(ConfigOption::default(), |r| *r)
     }
 
     /// If multiple roles are marked as "Always", either of them could be picked.
@@ -122,7 +131,7 @@ impl GameConfig {
     /// Its up to the server route to check for these error states, when the user updates their
     /// config.
     /// Here its assumed the config is valid.
-    pub fn select<'a, T: RngCore>(
+    pub fn select_roles<'a, T: RngCore>(
         &self,
         rng: &'a mut T,
         num_players: usize,
@@ -137,7 +146,7 @@ impl GameConfig {
 
         for r in crate::data::characters::ROLES {
             if num_players >= r.name.min_player_count() {
-                match self.config(&r.name) {
+                match self.role(&r.name) {
                     ConfigOption::Always => {
                         let group = &mut grouped_by_rank[r.rank.to_index()];
                         group.clear();
@@ -147,7 +156,7 @@ impl GameConfig {
                         let group = &mut grouped_by_rank[r.rank.to_index()];
                         let is_locked = group
                             .get(0)
-                            .is_some_and(|r| self.config(r) == ConfigOption::Always);
+                            .is_some_and(|r| self.role(r) == ConfigOption::Always);
 
                         if !is_locked {
                             group.push(r.name);
@@ -158,8 +167,30 @@ impl GameConfig {
             }
         }
 
-        grouped_by_rank
-            .into_iter()
-            .filter_map(|roles| roles.choose(rng).cloned())
+        grouped_by_rank.into_iter().map(|roles| {
+            *roles
+                .choose(rng)
+                .expect("there should be a role for each rank")
+        })
+    }
+
+    pub fn select_unique_districts<T: RngCore>(
+        &self,
+        rng: &mut T,
+    ) -> impl Iterator<Item = DistrictName> + '_ {
+        let mut always = Vec::with_capacity(14);
+        let mut sometimes = Vec::with_capacity(14);
+        for d in crate::districts::UNIQUE {
+            match self.district(&d.name) {
+                ConfigOption::Always => always.push(d.name),
+                ConfigOption::Sometimes => sometimes.push(d.name),
+                ConfigOption::Never => {}
+            }
+        }
+
+        if always.len() < 14 {
+            sometimes.shuffle(rng);
+        }
+        always.into_iter().chain(sometimes).take(14)
     }
 }

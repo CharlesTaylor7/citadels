@@ -13,7 +13,6 @@ Roles:
 
 Districts:
     - Museum 
-        - needs menu and UI
 
 ## 0.2.0
 UI changes:

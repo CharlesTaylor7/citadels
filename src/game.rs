@@ -10,6 +10,7 @@ use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut, Cow};
 use std::fmt::Debug;
+use std::iter::repeat;
 
 pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
 
@@ -342,7 +343,7 @@ impl Game {
             .iter()
             .map(|s| self.public_score_impl(player, Some(*s)))
             .max()
-            .unwrap()
+            .expect("Suit array is not empty")
         } else {
             self.public_score_impl(player, None)
         }
@@ -412,12 +413,7 @@ impl Game {
             return None;
         }
         let lobby = Lobby::demo(vec!["Alph", "Brittany", "Charlie"]);
-        let roles = lobby
-            .config
-            .select(&mut rand::thread_rng(), lobby.players.len())
-            .collect::<Vec<_>>();
-
-        let mut game = Game::start(lobby.players, roles, SeedableRng::from_entropy());
+        let mut game = Game::start(lobby, SeedableRng::from_entropy());
 
         // deal out roles randomly
         let mut roles: Vec<_> = game.characters.iter().collect();
@@ -432,11 +428,11 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
 
+            /*
             p.city.push(CityDistrict {
                 name: DistrictName::Museum,
                 beautified: true,
             });
-            /*
             for card in game.deck.draw_many(4) {
                 p.city.push(CityDistrict {
                     name: card,
@@ -446,6 +442,7 @@ impl Game {
             */
         }
 
+        /*
         game.museum.tuck(DistrictName::Keep);
         game.museum.tuck(DistrictName::Library);
         game.museum.tuck(DistrictName::Temple);
@@ -453,7 +450,8 @@ impl Game {
         game.museum.tuck(DistrictName::Palace);
         game.museum.tuck(DistrictName::Smithy);
         game.museum.tuck(DistrictName::Docks);
-        game.active_turn = Turn::Call(Rank::Seven);
+        */
+        game.active_turn = Turn::Call(Rank::One);
         game.start_turn().ok()?;
 
         Some(game)
@@ -469,8 +467,12 @@ impl Game {
         Some(self.characters.get_mut(rank))
     }
 
-    pub fn start(mut players: Vec<lobby::Player>, roles: Vec<RoleName>, mut rng: Prng) -> Game {
-        let db_log = DbLog::new(rng.seed, &players, &roles)
+    pub fn start(lobby: Lobby, mut rng: Prng) -> Game {
+        let Lobby {
+            mut players,
+            config,
+        } = lobby;
+        let db_log = DbLog::new(rng.seed, &players)
             .map_err(|e| log::error!("{}", e))
             .ok();
 
@@ -484,19 +486,10 @@ impl Game {
             .map(|(index, lobby::Player { id, name })| Player::new(PlayerIndex(index), id, name))
             .collect();
 
-        let mut unique_districts: Vec<DistrictName> = crate::districts::UNIQUE
-            .iter()
-            .filter_map(|d| if d.name.enabled() { Some(d.name) } else { None })
-            .collect();
-        unique_districts.shuffle(&mut rng);
-
         let mut deck: Vec<DistrictName> = crate::districts::NORMAL
             .iter()
-            .flat_map(|district| {
-                let n = district.name.multiplicity();
-                std::iter::repeat(district.name).take(n)
-            })
-            .chain(unique_districts.into_iter().take(14))
+            .flat_map(|district| repeat(district.name).take(district.name.multiplicity()))
+            .chain(config.select_unique_districts(&mut rng))
             .collect();
         deck.shuffle(&mut rng);
 
@@ -514,7 +507,8 @@ impl Game {
                 p.hand.push(district);
             }
         });
-        let characters = Characters::new(roles.into_iter());
+
+        let characters = Characters::new(config.select_roles(&mut rng, players.len()));
         let crowned = PlayerIndex(0);
         let mut game = Game {
             rng,

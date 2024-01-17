@@ -10,11 +10,7 @@ use std::borrow::{Borrow, BorrowMut};
 
 fn start_with_entropy(lobby: Vec<&str>) -> Game {
     let lobby = Lobby::demo(lobby);
-    let config = GameConfig::base_set();
-    let roles = config
-        .select(rand::thread_rng().borrow_mut(), lobby.players.len())
-        .collect();
-    Game::start(lobby.players, roles, SeedableRng::from_entropy())
+    Game::start(lobby, SeedableRng::from_entropy())
 }
 
 #[test]

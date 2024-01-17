@@ -136,13 +136,11 @@ pub async fn start(app: State<AppState>) -> impl IntoResponse {
         )
             .into_response();
     }
-    let Lobby { players, config } = mem::take(lobby.deref_mut());
-    let roles = config
-        .select(&mut rand::thread_rng(), players.len())
-        .collect::<Vec<_>>();
-
     // Start the game, and remove all players from the lobby
-    *game = Some(Game::start(players, roles, SeedableRng::from_entropy()));
+    *game = Some(Game::start(
+        mem::take(lobby.deref_mut()),
+        SeedableRng::from_entropy(),
+    ));
 
     if let Some(game) = game.as_ref() {
         app.connections
