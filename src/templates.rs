@@ -2,8 +2,10 @@ pub mod filters;
 pub mod game;
 pub mod lobby;
 
+use std::borrow::Cow;
+
 use crate::districts::DistrictName;
-use crate::game::CityDistrict;
+use crate::game::{CityDistrict, Game};
 use crate::roles::{Rank, RoleName};
 use crate::types::CardSuit;
 use askama::Template;
@@ -16,7 +18,7 @@ pub enum GamePhase {
 }
 
 #[derive(Clone)]
-pub struct DistrictTemplate {
+pub struct DistrictTemplate<'a> {
     pub name: &'static str,
     pub cost: Option<usize>,
     pub value: String,
@@ -25,6 +27,7 @@ pub struct DistrictTemplate {
     pub beautified: bool,
     pub asset: ImageAssetTemplate,
     pub pos: Position,
+    pub artifacts: Cow<'a, [&'static str]>,
 }
 
 #[derive(Clone, Default)]
@@ -34,7 +37,7 @@ pub struct Position {
     pub z: isize,
 }
 
-impl DistrictTemplate {
+impl<'a> DistrictTemplate<'a> {
     pub fn from(district: DistrictName) -> Self {
         let data = district.data();
         let length = 170.0;
@@ -57,6 +60,7 @@ impl DistrictTemplate {
             description: data.description,
             beautified: false,
             pos: Position::default(),
+            artifacts: Cow::Owned(vec![]),
             asset: ImageAssetTemplate {
                 brightness,
                 path: "/public/districts.jpeg",
@@ -69,11 +73,20 @@ impl DistrictTemplate {
         }
     }
 
-    pub fn from_city(player_name: &str, index: usize, district: &CityDistrict) -> Self {
+    pub fn from_city(
+        game: &'a Game,
+        player_name: &str,
+        index: usize,
+        district: &CityDistrict,
+    ) -> Self {
         let mut template = Self::from(district.name);
         template.beautified = district.beautified;
         template.pos.y = -185.0 * index as f64;
         template.value = format!("{},{},{}", template.value, player_name, district.beautified);
+
+        if district.name == DistrictName::Museum {
+            template.artifacts = game.museum.artifacts().into();
+        }
         template
     }
 

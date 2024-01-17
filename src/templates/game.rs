@@ -58,7 +58,7 @@ impl<'a> CityTemplate<'a> {
             .map(|col| {
                 col.iter()
                     .enumerate()
-                    .map(|(i, card)| DistrictTemplate::from_city(name, i, card))
+                    .map(|(i, card)| DistrictTemplate::from_city(game, name, i, card))
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
@@ -202,7 +202,7 @@ struct MiscTemplate {
 pub struct CityTemplate<'a> {
     header: Cow<'a, str>,
     district_tooltip_class: Cow<'a, str>,
-    columns: Vec<Vec<DistrictTemplate>>,
+    columns: Vec<Vec<DistrictTemplate<'a>>>,
     margin_bottom: f64,
 }
 
@@ -217,7 +217,7 @@ pub struct LogsTemplate<'a> {
 pub struct PlayerTemplate<'a> {
     pub name: &'a str,
     pub gold: usize,
-    pub hand: Vec<DistrictTemplate>,
+    pub hand: Vec<DistrictTemplate<'a>>,
     pub roles: Vec<RoleTemplate>,
 }
 

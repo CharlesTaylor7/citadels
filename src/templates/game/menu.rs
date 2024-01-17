@@ -50,10 +50,10 @@ impl<'a> MenuTemplate<'a> {
 
 pub struct MainTemplate<'a> {
     pub header: Cow<'a, str>,
-    pub view: MenuView,
+    pub view: MenuView<'a>,
 }
 
-pub enum MenuView {
+pub enum MenuView<'a> {
     Logs {
         logs: Vec<Cow<'static, str>>,
     },
@@ -67,12 +67,12 @@ pub enum MenuView {
     },
     Followup {
         action: ActionTag,
-        revealed: Vec<DistrictTemplate>,
+        revealed: Vec<DistrictTemplate<'a>>,
     },
 }
 
-impl MenuView {
-    pub fn from(game: &Game, myself: Option<&Player>) -> Self {
+impl<'a> MenuView<'a> {
+    pub fn from(game: &'a Game, myself: Option<&'a Player>) -> Self {
         let my_turn =
             myself.is_some_and(|p1| game.active_player().is_ok_and(|p2| p1.index == p2.index));
         if !my_turn {
