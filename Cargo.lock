@@ -307,10 +307,10 @@ dependencies = [
  "askama",
  "axum",
  "axum-extra",
+ "dotenv",
  "env_logger",
  "futures",
  "http 1.0.0",
- "load-dotenv",
  "log",
  "macros",
  "rand",
@@ -816,15 +816,6 @@ name = "linux-raw-sys"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4cd1a83af159aa67994778be9070f0ae1bd732942279cabb14f86f986a21456"
-
-[[package]]
-name = "load-dotenv"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71abcf6d8da2a6c163554a61cdbca2438bbe9e687a9c5ebeee12e9af42864b54"
-dependencies = [
- "dotenv",
-]
 
 [[package]]
 name = "log"

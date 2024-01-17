@@ -18,11 +18,11 @@ fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
 
 impl Default for AppState {
     fn default() -> Self {
-        load_dotenv::load_dotenv!();
+        let key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
         Self {
-            cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
+            cookie_signing_key: cookie::Key::from(key.as_bytes()),
             connections: new_arc_mutex(ws::Connections::default()),
-            lobby: new_arc_mutex(Lobby::demo(vec!["A", "B"])),
+            lobby: new_arc_mutex(Lobby::default()),
             game: new_arc_mutex(Game::default_game()),
         }
     }

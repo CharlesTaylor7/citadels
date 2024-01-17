@@ -48,13 +48,20 @@ Evaluating:
         - saving preferred game configuration
 
 ## Releases
-
 How to release:
 - Bump the version in fly.toml
-- Update changelog
-- Git tag the release 
 - Run: `fly deploy`
+- Update changelog
+- git commit changes
+- Git tag the release 
 
 ## Secret management
+
+Script to generate a new signing key:
+```js
+require('crypto').randomBytes(64).toString('hex')
+```
 In prod use `fly secret`.
 In dev, use the .env file.
+
+Non secret env vars can go in fly.toml

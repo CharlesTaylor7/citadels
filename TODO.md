@@ -4,6 +4,8 @@
 - Easter eggs
 - Stable, well tested.
 - Learn htmx, practice web dev
+- apply 12 factor app principles:
+    https://www.12factor.net/
 
 
 ## Feature set
