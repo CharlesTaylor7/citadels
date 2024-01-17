@@ -9,6 +9,7 @@ use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut, Cow};
 use std::fmt::Debug;
+use std::ops::RangeBounds;
 
 pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
 
@@ -201,15 +202,6 @@ impl Default for GameRole {
 }
 
 impl GameRole {
-    pub fn has_warrant(&self) -> bool {
-        self.markers.iter().any(|m| {
-            if let Marker::Warrant { .. } = m {
-                true
-            } else {
-                false
-            }
-        })
-    }
     pub fn cleanup_round(&mut self) {
         self.markers.clear();
         self.player = None;
@@ -226,12 +218,6 @@ pub struct ActionOutput {
 }
 
 #[derive(Debug)]
-pub enum ResponseAction {
-    Warrant,
-    Blackmail,
-}
-
-#[derive(Debug)]
 pub struct Game {
     rng: Prng,
     pub round: usize,
@@ -242,7 +228,6 @@ pub struct Game {
     pub active_turn: Turn,
     pub draft: Draft,
     pub followup: Option<FollowupAction>,
-    pub pause_for_response: Option<ResponseAction>,
     pub turn_actions: Vec<Action>,
     pub first_to_complete: Option<PlayerIndex>,
     pub museum: Vec<DistrictName>,
@@ -502,13 +487,12 @@ impl Game {
             players,
             db_log,
             round: 0,
-            crowned,
-            characters,
-            pause_for_response: None,
             draft: Draft::default(),
             deck: Deck::new(deck),
             active_turn: Turn::Draft(crowned),
             logs: Vec::new(),
+            crowned,
+            characters,
             followup: None,
             turn_actions: Vec::new(),
             museum: Vec::new(),
@@ -910,10 +894,6 @@ impl Game {
                 {
                     log::info!("{} is the first to complete their city", player.name);
                     self.first_to_complete = Some(player.index);
-                }
-
-                if self.active_role().unwrap().has_warrant() {
-                    self.pause_for_response = Some(ResponseAction::Warrant);
                 }
 
                 ActionOutput {
