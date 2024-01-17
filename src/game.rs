@@ -879,6 +879,10 @@ impl Game {
                 }
             }
             Action::Build { district } => {
+                if self.active_role().unwrap().role == RoleName::Navigator {
+                    return Err("The navigator is not allowed to build.".into());
+                }
+
                 if self
                     .turn_actions
                     .iter()
@@ -887,16 +891,17 @@ impl Game {
                     return Err("Must gather resources before building".into());
                 }
 
-                if district.data().suit == CardSuit::Trade
-                    && self.active_role().unwrap().role == RoleName::Trader
-                {
-                } else if self
-                    .turn_actions
-                    .iter()
-                    .filter(|a| a.tag() == ActionTag::Build)
-                    .count()
-                    >= self.active_role().unwrap().role.build_limit()
-                {
+                let within_build_limit = *district == DistrictName::Stables
+                    || (district.data().suit == CardSuit::Trade
+                        && self.active_role().unwrap().role == RoleName::Trader)
+                    || self
+                        .turn_actions
+                        .iter()
+                        .filter(|a| a.tag() == ActionTag::Build)
+                        .count()
+                        < self.active_role().unwrap().role.build_limit();
+
+                if !within_build_limit {
                     return Err(format!(
                         "With your role, you cannot build more than {} time(s), this turn.",
                         self.active_role().unwrap().role.display_name()

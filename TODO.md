@@ -18,11 +18,11 @@
 - [ ] OOB swaps and updates targeted only at the players and screen elements that need to change. The current logic just liberally pushes a full page to everyone which wipes client state, like the opened logs, and the position(s) of dragged items.
 - [ ] Restore game state from lobby
 
-
 ## Ideas
 - [ ] Nerfed Asssassin idea: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
 - [ ] Make it possible to save a set of roles to use, for config.
 - [ ] Detect when building is impossible.
+
 - Game Configuration
     - [ ] Pick roles
     - [ ] Pick unique districts
@@ -44,13 +44,8 @@
     - [ ] Show confirmation messages inline
     - [ ] Show errors inline
         - https://stackoverflow.com/a/73615279/4875161
-- [ ] Quickcheck tests
-
-- [ ] Linebreaks, italics and bolds in card descriptions.
-- [ ] No user feedback when a submission fails
-- [ ] no confirmation messages
-- [ ] inconsistent log format and tenses
-- [ ] Observatory is not noted, but library is.
+    - [ ] Provide user feedback when a submission fails
+    - [ ] Make log format and tenses consistent
 
 
 ## Playtest feedback
@@ -61,15 +56,7 @@
 - [ ] role and district description should have dedicated info icon for bringing up their tooltips.
 - [ ] Warlord menu should make it obvious the cost to destroy from the great wallled city is higher.
 
-### Done
-- [x] Collect gold for suit, always counts blue instead of the correct suit.
-- [x] Bishop should only protect your city when revealed, not if killed.
-- [x] Warlord can destroy own city district.
-- [x] click instead of hover to view someone's city. Persist the state, don't restore your city on hover back.
-- [x] Take crown action, can't actually be taken. This should be a required action for the king and patrician.
-- [x] Keep role logs open, instead of just the active role.
-	- [x] Open them all at the start of a round.
-	- When sending logs, send them as oob-swaps 
 
 ## Cleo's easter eggs
 - [x] Dragging the dragon out of his section play's Mr. Brightside. Putting him back pauses it.
+    - [ ] Need to send ws updates as oob swaps so as to not disrupt the video player dom state.

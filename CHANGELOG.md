@@ -5,11 +5,12 @@ UI changes:
     - End Turn is no longer automatic
 
 New roles:
-    - Alchemist
-    - Tax Collector
-    - Trader (wip)
-    - Magistrate (wip)
-    - Blackmailer (wip)
+    - Alchemist (6)
+    - Trader (6)
+    - Tax Collector (9)
+    - Navigator (7) (wip)
+    - Magistrate (1) (wip) 
+    - Blackmailer (2) (wip)
 
 New Unique districts:
     - Museum 
@@ -18,6 +19,7 @@ New Unique districts:
     - Monument 
     - HauntedQuarter 
     - Armory 
+    - Stables
 
 ## 0.1.1
 Bugfixes:

@@ -67,7 +67,7 @@ impl Default for GameConfig {
             (RoleName::Magistrate, RoleConfig::Always),
             (RoleName::Blackmailer, RoleConfig::Always),
             (RoleName::TaxCollector, RoleConfig::Always),
-            (RoleName::Alchemist, RoleConfig::Always),
+            (RoleName::Trader, RoleConfig::Always),
         ]);
 
         for role in RoleName::iter() {

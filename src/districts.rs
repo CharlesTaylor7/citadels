@@ -162,11 +162,11 @@ impl DistrictName {
             Self::HauntedQuarter => true,
             Self::Armory => true,
 
+            Self::Stables => true,
             Self::Framework => false,
             Self::Necropolis => false,
             Self::ThievesDen => false,
             Self::Theater => false,
-            Self::Stables => false,
 
             _ => false,
         }
