@@ -30,11 +30,11 @@ impl DbLog {
         let players = serde_json::to_string(players).map_err(|e| e.to_string())?;
         let conn = Connection::open(path).unwrap();
         let game_id: usize = conn
-            .prepare("INSERT INTO games (seed, players) VALUES (?1, ?2, ?3) RETURNING (id)")
+            .prepare("INSERT INTO games (seed, players) VALUES (?1, ?2) RETURNING (id)")
             .map_err(|e| e.to_string())?
             .query_row((seed, players), |row| row.get("id"))
             .map_err(|e| e.to_string())?;
-
+        log::info!("game_id: {}", game_id);
         Ok(Self { game_id, conn })
     }
 

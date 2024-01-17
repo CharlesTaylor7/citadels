@@ -409,6 +409,7 @@ impl Game {
     }
 
     pub fn default_game() -> Option<Game> {
+        return None;
         if cfg!(not(feature = "dev")) {
             return None;
         }

@@ -99,12 +99,21 @@ pub struct Register {
 pub async fn register(
     app: State<AppState>,
     cookies: PrivateCookieJar,
-    args: axum::Json<Register>,
-) -> impl IntoResponse {
+    json: axum::Json<Register>,
+) -> Result<Response, ErrorResponse> {
+    let username = json.username.trim();
+    if username.len() == 0 {
+        return Err("username cannot be empty".into());
+    }
+
+    if username.chars().any(|c| !c.is_ascii_alphanumeric()) {
+        return Err("username can only contain letter a-z, A-Z, or digits".into());
+    }
+
     let cookie = cookies.get("player_id").unwrap();
     let player_id = cookie.value();
     let mut lobby = app.lobby.lock().unwrap();
-    lobby.register(player_id, &args.username);
+    lobby.register(player_id, username);
 
     let html = Html(
         LobbyPlayersTemplate {
@@ -115,7 +124,9 @@ pub async fn register(
     );
     app.connections.lock().unwrap().broadcast(html);
 
-    cookies.add(Cookie::new("username", args.username.clone()))
+    Ok(cookies
+        .add(Cookie::new("username", username.to_owned()))
+        .into_response())
 }
 
 pub async fn start(app: State<AppState>) -> impl IntoResponse {
