@@ -245,9 +245,12 @@ pub struct Game {
     pub pause_for_response: Option<ResponseAction>,
     pub turn_actions: Vec<Action>,
     pub first_to_complete: Option<PlayerIndex>,
-    pub museum: Vec<DistrictName>,
     pub logs: Vec<Cow<'static, str>>,
     pub db_log: Option<DbLog>,
+    // card specific metadata
+    pub museum: Vec<DistrictName>,
+    pub alchemist: usize,
+    pub tax_collector: usize,
 }
 
 #[derive(Debug)]
@@ -501,9 +504,11 @@ impl Game {
             rng,
             players,
             db_log,
-            round: 0,
             crowned,
             characters,
+            round: 0,
+            alchemist: 0,
+            tax_collector: 0,
             pause_for_response: None,
             draft: Draft::default(),
             deck: Deck::new(deck),
@@ -902,6 +907,9 @@ impl Game {
                 Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
                 player.gold -= cost;
                 player.city.push(CityDistrict::from(district.name));
+                if self.active_role().unwrap().role == RoleName::Alchemist {
+                    self.alchemist += cost;
+                }
 
                 // trigger end game
                 let player = self.active_player()?;
@@ -1516,6 +1524,16 @@ impl Game {
                             .unwrap()
                             .logs
                             .push(format!("{} gains 2 cards from their Park.", name).into());
+                    }
+
+                    let refund = self.alchemist;
+                    if refund > 0 {
+                        self.alchemist = 0;
+                        self.active_player_mut().unwrap().gold += refund;
+                        self.active_role_mut().unwrap().logs.push(
+                            format!("The Alchemist is refunded {} gold spent building.", refund)
+                                .into(),
+                        );
                     }
                 }
                 self.call_next();
