@@ -2,8 +2,6 @@ use crate::server::ws;
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::cookie;
-use load_dotenv::load_dotenv;
-
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]
@@ -20,7 +18,7 @@ fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
 
 impl Default for AppState {
     fn default() -> Self {
-        load_dotenv!();
+        load_dotenv::load_dotenv!();
         Self {
             cookie_signing_key: cookie::Key::from(env!("COOKIE_SIGNING_KEY").as_bytes()),
             connections: new_arc_mutex(ws::Connections::default()),

@@ -1,6 +1,6 @@
 procs:
   Server:
-    shell: RUST_BACKTRACE=1 cargo watch --features="dev" -c -x run
+    shell: VERSION=0.2.0 RUST_BACKTRACE=1 cargo watch --features="dev" -c -x run
 
   # Tailwind 3 & daisyUI 4 are installed globally 
   Tailwind:

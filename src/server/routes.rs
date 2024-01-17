@@ -31,6 +31,7 @@ pub fn get_router() -> Router {
 
     Router::new()
         .route("/", get(index))
+        .route("/version", get(get_version))
         .route("/lobby", get(get_lobby))
         .route("/lobby/register", post(register))
         .route("/ws", get(get_ws))
@@ -47,6 +48,12 @@ pub fn get_router() -> Router {
 
 pub async fn index() -> impl IntoResponse {
     Redirect::to("/lobby")
+}
+
+pub async fn get_version() -> impl IntoResponse {
+    std::env::var("VERSION")
+        .map_or(Cow::Borrowed("dev"), Cow::Owned)
+        .into_response()
 }
 
 pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
