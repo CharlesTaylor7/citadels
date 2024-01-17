@@ -331,7 +331,7 @@ pub const UNIQUE: [DistrictData; 30] = [
         name: DistrictName::Museum,
         suit: Unique,
         set: DarkCity,
-        display_name: "Mueseum",
+        display_name: "Museum",
         cost: 4,
         description: Some("Once per turn, assign 1 card from your hand facedown under the Museum. At the end of the game, score 1 extra point for each card under the Museum.")
     },
