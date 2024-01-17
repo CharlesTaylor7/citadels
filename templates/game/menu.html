@@ -45,7 +45,6 @@
           hx-post="/game/action"
           hx-swap="outerHTML"
           hx-target="#menu"
-          hx-confirm="End turn early?"
           name="action"
           value="{{ action|debug }}"
           {% if context.disabled(action) %}

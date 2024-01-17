@@ -140,15 +140,14 @@ impl RoleName {
             Self::Architect => true,
             Self::Warlord => true,
             Self::Artist => true,
-
             // working
             Self::Patrician => true,
             Self::Scholar => true,
-            // Needs QA
             Self::Alchemist => true,
-            // WIP
             Self::TaxCollector => true,
+            // WIP
             Self::Magistrate => true,
+            Self::Trader => true,
             Self::Blackmailer => true,
             // Self::Seer => true,
             // Self::Wizard => true,
