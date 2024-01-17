@@ -1658,6 +1658,26 @@ impl Game {
                 if character.role == RoleName::Emperor {
                     todo!();
                 }
+
+                if self.characters.len() >= 9 {
+                    let n = self.players.len();
+                    let ninth = self.characters.get(Rank::Nine);
+                    let p2 = index;
+                    if ninth.role == RoleName::Queen
+                        && ninth
+                            .player
+                            .is_some_and(|p1| ((p1.0 + 1) % n == p2.0 || (p2.0 + 1) % n == p1.0))
+                    {
+                        self.players[ninth.player.unwrap().0].gold += 3;
+                        self.logs.push(
+                            format!(
+                                "The Queen is seated next to the dead {}; they gain 3 gold.",
+                                character.role.display_name()
+                            )
+                            .into(),
+                        );
+                    }
+                }
             }
         }
 

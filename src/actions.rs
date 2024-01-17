@@ -428,6 +428,7 @@ impl ActionTag {
             ActionTag::Armory => "Armory".into(),
             ActionTag::Laboratory => "Laboratory".into(),
             ActionTag::NavigatorGain => "Navigator".into(),
+            ActionTag::QueenGainGold => "Queen".into(),
             _ => {
                 log::debug!("Warning: default case for {:#?}", self);
                 format!("{:#?}", self).into()
