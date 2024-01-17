@@ -222,7 +222,7 @@ pub type ActionResult = Result<ActionOutput>;
 
 pub struct ActionOutput {
     pub followup: Option<FollowupAction>,
-    pub log: String,
+    pub log: Cow<'static, str>,
 }
 
 #[derive(Debug)]
@@ -762,7 +762,7 @@ impl Game {
                 player.roles.push(*role);
 
                 ActionOutput {
-                    log: format!("{} drafted a role.", player.name),
+                    log: format!("{} drafted a role.", player.name).into(),
                     followup: None,
                 }
             }
@@ -774,7 +774,8 @@ impl Game {
 
                 self.draft.remaining.remove(i);
                 ActionOutput {
-                    log: format!("{} discarded a role face down.", self.active_player()?.name),
+                    log: format!("{} discarded a role face down.", self.active_player()?.name)
+                        .into(),
                     followup: None,
                 }
             }
@@ -782,7 +783,7 @@ impl Game {
             Action::EndTurn => {
                 // this is handled after the logs are updated.
                 ActionOutput {
-                    log: format!("{} ended their turn.", self.active_player()?.name),
+                    log: format!("{} ended their turn.", self.active_player()?.name).into(),
                     followup: None,
                 }
             }
@@ -817,7 +818,7 @@ impl Game {
                     self.active_player_mut()?.hand.append(&mut drawn);
 
                     ActionOutput {
-                        log: format!("They gathered cards. With the aid of their library they kept all {} cards.", draw_amount),
+                        log: format!("They gathered cards. With the aid of their library they kept all {} cards.", draw_amount).into(),
                         followup: None,
                     }
                 } else {
@@ -825,7 +826,8 @@ impl Game {
                         log: format!(
                             "They revealed {} cards from the top of the deck.",
                             draw_amount
-                        ),
+                        )
+                        .into(),
                         followup: if drawn.len() > 0 {
                             Some(FollowupAction {
                                 action: ActionTag::GatherCardsPick,
@@ -866,7 +868,7 @@ impl Game {
                 let player = self.active_player_mut()?;
                 player.gold += 1;
                 ActionOutput {
-                    log: format!("The Merchant ({}) gained 1 extra gold.", player.name),
+                    log: format!("The Merchant ({}) gained 1 extra gold.", player.name).into(),
                     followup: None,
                 }
             }
@@ -874,7 +876,7 @@ impl Game {
                 self.gain_cards(2);
                 let player = self.active_player()?;
                 ActionOutput {
-                    log: format!("The Architect ({}) gained 2 extra cards.", player.name),
+                    log: format!("The Architect ({}) gained 2 extra cards.", player.name).into(),
                     followup: None,
                 }
             }
@@ -964,7 +966,7 @@ impl Game {
                 }
 
                 ActionOutput {
-                    log: format!("They built a {}.", district.display_name),
+                    log: format!("They built a {}.", district.display_name).into(),
                     followup: None,
                 }
             }
@@ -990,7 +992,8 @@ impl Game {
                         "The Assassin ({}) killed the {}; Their turn will be skipped.",
                         self.active_player()?.name,
                         role.display_name(),
-                    ),
+                    )
+                    .into(),
                     followup: None,
                 }
             }
@@ -1025,7 +1028,7 @@ impl Game {
                         "The Thief ({}) robbed the {}; Their gold will be taken at the start of their turn.",
                         self.active_player()?.name,
                         role.display_name(),
-                    ),
+                    ).into(),
                     followup: None,
                 }
             }
@@ -1050,7 +1053,8 @@ impl Game {
                     log: format!(
                         "They swapped their hand of {} cards with {}'s hand of {} cards.",
                         hand_count, player, target_count,
-                    ),
+                    )
+                    .into(),
                     followup: None,
                 }
             }
@@ -1079,7 +1083,8 @@ impl Game {
                         self.active_player()?.name,
                         discard.len(),
                         discard.len(),
-                    ),
+                    )
+                    .into(),
                     followup: None,
                 }
             }
@@ -1136,7 +1141,8 @@ impl Game {
                         self.active_player()?.name,
                         target.player,
                         target.district.data().display_name,
-                    ),
+                    )
+                    .into(),
                     followup: None,
                 }
             }
@@ -1186,7 +1192,8 @@ impl Game {
                         "They sacrificed their Armory to destroy {}'s {}.",
                         target.player,
                         target.district.data().display_name,
-                    ),
+                    )
+                    .into(),
                     followup: None,
                 }
             }
@@ -1214,7 +1221,8 @@ impl Game {
                         "The Artist ({}) beautified their {}.",
                         self.active_player()?.name,
                         district.data().display_name,
-                    ),
+                    )
+                    .into(),
                     followup: None,
                 }
             }
@@ -1227,7 +1235,8 @@ impl Game {
                     log: format!(
                         "The Navigator ({}) gained 4 extra cards.",
                         self.active_player()?.name
-                    ),
+                    )
+                    .into(),
                     followup: None,
                 }
             }
@@ -1239,7 +1248,7 @@ impl Game {
                 player.gold += 4;
 
                 ActionOutput {
-                    log: format!("The Navigator ({}) gained 4 extra gold.", player.name),
+                    log: format!("The Navigator ({}) gained 4 extra gold.", player.name).into(),
                     followup: None,
                 }
             }
@@ -1270,7 +1279,8 @@ impl Game {
                     log: format!(
                         "The Abbot ({}) gained {} gold and {} cards from their Religious districts",
                         player.name, gold, cards
-                    ),
+                    )
+                    .into(),
                 }
             }
             Action::CollectTaxes => {
@@ -1278,12 +1288,34 @@ impl Game {
                 self.active_player_mut()?.gold += taxes;
                 self.tax_collector = 0;
                 ActionOutput {
-                    log: format!("The Tax Collector collects {} gold in taxes.", taxes),
+                    log: format!("The Tax Collector collects {} gold in taxes.", taxes).into(),
                     followup: None,
                 }
             }
             Action::EmperorGiveCrown { .. } => return Err("Not implemented".into()),
-            Action::QueenGainGold { .. } => return Err("Not implemented".into()),
+            Action::QueenGainGold => {
+                let active = self.active_player_index()?;
+                let left = PlayerIndex((active.0 + self.players.len() - 1) % self.players.len());
+                let right = PlayerIndex((active.0 + 1) % self.players.len());
+                let c = self.characters.get(Rank::Four);
+                let log = if c.revealed && c.player.is_some_and(|p| p == left || p == right) {
+                    self.players[active.0].gold += 3;
+                    format!(
+                        "The Queen is seated next to the {}, and gains 3 gold.",
+                        c.role.display_name()
+                    )
+                } else {
+                    format!(
+                        "The Queen is not seated next to the {}.",
+                        c.role.display_name()
+                    )
+                };
+                ActionOutput {
+                    log: log.into(),
+                    followup: None,
+                }
+            }
+
             Action::Spy { .. } => return Err("Not implemented".into()),
             Action::Bewitch { .. } => return Err("Not implemented".into()),
             Action::Seize { .. } => return Err("Not implemented".into()),
@@ -1433,7 +1465,8 @@ impl Game {
                         "The Scholar ({}) is choosing from the top {} cards of the deck.",
                         self.active_player()?.name,
                         drawn.len(),
-                    ),
+                    )
+                    .into(),
                     followup: Some(FollowupAction {
                         action: ActionTag::ScholarPick,
                         revealed: drawn,
@@ -1457,7 +1490,8 @@ impl Game {
                     log: format!(
                         "The Scholar ({}) picked a card, discarded the rest and shuffled the deck.",
                         self.active_player()?.name,
-                    ),
+                    )
+                    .into(),
                     followup: None,
                 }
             }
@@ -1493,7 +1527,7 @@ impl Game {
 
         Ok(ActionOutput {
             followup: None,
-            log: format!("They gained {} gold from their {} districts", amount, suit),
+            log: format!("They gained {} gold from their {} districts", amount, suit).into(),
         })
     }
 
@@ -1511,7 +1545,7 @@ impl Game {
 
         Ok(ActionOutput {
             followup: None,
-            log: format!("They gained {} cards from their {} districts", amount, suit),
+            log: format!("They gained {} cards from their {} districts", amount, suit).into(),
         })
     }
 

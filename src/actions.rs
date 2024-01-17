@@ -427,6 +427,7 @@ impl ActionTag {
             ActionTag::Theater => "Theater".into(),
             ActionTag::Armory => "Armory".into(),
             ActionTag::Laboratory => "Laboratory".into(),
+            ActionTag::NavigatorGain => "Navigator".into(),
             _ => {
                 log::debug!("Warning: default case for {:#?}", self);
                 format!("{:#?}", self).into()
