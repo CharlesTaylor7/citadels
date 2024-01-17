@@ -326,6 +326,11 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
 
+            ActionTag::NavigatorGain => {
+                let rendered = NavigatorMenu {}.to_html()?;
+                Ok(rendered.into_response())
+            }
+
             _ => Err(bad_request("missing selection".into())),
         },
     }

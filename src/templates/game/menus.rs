@@ -51,6 +51,10 @@ pub struct WarlordMenu<'a> {
 pub struct BeautifyMenu;
 
 #[derive(Template)]
+#[template(path = "game/menus/navigator.html")]
+pub struct NavigatorMenu;
+
+#[derive(Template)]
 #[template(path = "game/menus/reveal-warrant.html")]
 pub struct RevealWarrantMenu;
 

@@ -8,6 +8,7 @@ New roles:
     - Alchemist (6)
     - Trader (6)
     - Tax Collector (9)
+    - Queen (9)
     - Navigator (7) 
         - needs menu
     - Magistrate (1) 

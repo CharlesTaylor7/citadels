@@ -1,0 +1,40 @@
+<section
+  id="menu"
+  class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
+>
+  <h2 class="m-2 underline text-lg font-semibold">
+    Navigator
+  </h2>
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      hx-swap="outerHTML"
+      hx-target="#menu"
+      hx-vals='{ "resource": "Gold"}'
+      name="action"
+      value="NavigatorGain"
+    >
+      Gain 4 gold
+    </button>
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      hx-swap="outerHTML"
+      hx-target="#menu"
+      hx-vals='{ "resource": "Cards"}'
+      name="action"
+      value="NavigatorGain"
+    >
+      Gain 4 cards
+    </button>
+    <button 
+      class="btn btn-accent"
+      hx-get="/game/actions"
+      hx-swap="outerHTML"
+      hx-target="#menu"
+    >
+      Cancel
+    </button>
+  </div>
+</section>

@@ -140,20 +140,45 @@ impl RoleName {
             Self::Architect => true,
             Self::Warlord => true,
             Self::Artist => true,
+
             // working
             Self::Patrician => true,
             Self::Scholar => true,
             Self::Alchemist => true,
             Self::TaxCollector => true,
-            // WIP
-            Self::Magistrate => true,
+            Self::Queen => true,
             Self::Trader => true,
+            // needs menu
+            // seems really strong, but also makes you a target for the thief/magician
+            Self::Navigator => true,
+
+            // shake up the assassin + thief meta
+            Self::Magistrate => true,
             Self::Blackmailer => true,
-            // Self::Seer => true,
-            // Self::Wizard => true,
-            // Self::Navigator => true,
-            // everything else
-            _ => false,
+
+            // Marshal and diplomat seem stronger than warlord.
+            // Stealing strong uniques seems more fun than destroying them
+            Self::Marshal => false,
+            Self::Diplomat => false,
+
+            // seem fun, require some menuing
+            Self::Seer => false,
+            Self::Wizard => false,
+            Self::Spy => false,
+
+            // Abilities are ok
+            // Makes the rank 8 character a lot better
+            // bishop blocking is really huge in 2-3 player games.
+            Self::Abbot => false,
+
+            // Seems really unfun for a 3 player game.
+            // The king making aspect only really works in a larger game where you can guarantee
+            // you will be picking 2nd or 3rd. In a 3 player game, its just not a good pick.
+            Self::Emperor => false,
+
+            // Complicated
+            Self::Witch => false,
+            Self::Cardinal => false,
         }
     }
 }
