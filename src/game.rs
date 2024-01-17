@@ -303,6 +303,10 @@ impl Characters {
     pub fn has_revealed_role(&self, player: &Player, role: RoleName) -> bool {
         player.roles.iter().any(|r| *r == role) && self.get(role.rank()).revealed
     }
+
+    pub fn has_tax_collector(&self) -> bool {
+        self.0.get(Rank::Nine.to_index()).map(|c| c.role) == Some(RoleName::TaxCollector)
+    }
 }
 
 impl Game {
@@ -910,6 +914,13 @@ impl Game {
                 if self.active_role().unwrap().role == RoleName::Alchemist {
                     self.alchemist += cost;
                 }
+                if self.characters.has_tax_collector() {
+                    let player = self.active_player_mut()?;
+                    if player.gold > 0 {
+                        player.gold -= 1;
+                        self.tax_collector += 1;
+                    }
+                }
 
                 // trigger end game
                 let player = self.active_player()?;
@@ -1234,10 +1245,18 @@ impl Game {
                     ),
                 }
             }
+            Action::CollectTaxes => {
+                let taxes = self.tax_collector;
+                self.active_player_mut()?.gold += taxes;
+                self.tax_collector = 0;
+                ActionOutput {
+                    log: format!("The Tax Collector collects {} gold in taxes.", taxes),
+                    followup: None,
+                }
+            }
             Action::EmperorGiveCrown { .. } => return Err("Not implemented".into()),
             Action::QueenGainGold { .. } => return Err("Not implemented".into()),
             Action::Spy { .. } => return Err("Not implemented".into()),
-            Action::CollectTaxes { .. } => return Err("Not implemented".into()),
             Action::Bewitch { .. } => return Err("Not implemented".into()),
             Action::Seize { .. } => return Err("Not implemented".into()),
             Action::TakeFromRich { .. } => return Err("Not implemented".into()),

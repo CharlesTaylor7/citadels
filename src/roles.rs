@@ -147,12 +147,12 @@ impl RoleName {
             // Needs QA
             Self::Alchemist => true,
             // WIP
+            Self::TaxCollector => true,
             Self::Magistrate => true,
             Self::Blackmailer => true,
             // Self::Seer => true,
             // Self::Wizard => true,
             // Self::Navigator => true,
-            // Self::TaxCollector => true,
             // everything else
             _ => false,
         }
