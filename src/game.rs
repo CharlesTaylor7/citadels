@@ -446,6 +446,13 @@ impl Game {
             */
         }
 
+        game.museum.tuck(DistrictName::Keep);
+        game.museum.tuck(DistrictName::Library);
+        game.museum.tuck(DistrictName::Temple);
+        game.museum.tuck(DistrictName::Park);
+        game.museum.tuck(DistrictName::Palace);
+        game.museum.tuck(DistrictName::Smithy);
+        game.museum.tuck(DistrictName::Docks);
         game.active_turn = Turn::Call(Rank::Seven);
         game.start_turn().ok()?;
 

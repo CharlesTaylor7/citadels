@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hasher};
 
 use crate::{
+    districts::{self, DistrictName},
     roles::RoleName,
     types::{PlayerId, PlayerName},
 };
@@ -50,7 +51,7 @@ impl Lobby {
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Copy)]
-pub enum RoleConfig {
+pub enum ConfigOption {
     #[default]
     Sometimes,
     Never,
@@ -58,26 +59,35 @@ pub enum RoleConfig {
 }
 
 pub struct GameConfig {
-    roles: HashMap<RoleName, RoleConfig>,
+    roles: HashMap<RoleName, ConfigOption>,
+    districts: HashMap<DistrictName, ConfigOption>,
 }
 
 impl Default for GameConfig {
     fn default() -> Self {
         let mut roles = HashMap::from([
-            (RoleName::Magistrate, RoleConfig::Always),
-            (RoleName::Blackmailer, RoleConfig::Always),
-            (RoleName::TaxCollector, RoleConfig::Always),
-            (RoleName::Trader, RoleConfig::Always),
-            (RoleName::Navigator, RoleConfig::Always),
+            (RoleName::Magistrate, ConfigOption::Always),
+            (RoleName::Blackmailer, ConfigOption::Always),
+            (RoleName::TaxCollector, ConfigOption::Always),
+            (RoleName::Trader, ConfigOption::Always),
+            (RoleName::Navigator, ConfigOption::Always),
         ]);
 
         for role in RoleName::iter() {
             if !role.enabled() {
-                roles.insert(role, RoleConfig::Never);
+                roles.insert(role, ConfigOption::Never);
             }
         }
 
-        Self { roles }
+        let mut districts = HashMap::from([(DistrictName::Museum, ConfigOption::Always)]);
+
+        for district in districts::UNIQUE {
+            if !district.name.enabled() {
+                districts.insert(district.name, ConfigOption::Never);
+            }
+        }
+
+        Self { roles, districts }
     }
 }
 
@@ -96,12 +106,15 @@ impl GameConfig {
         ];
         let mut roles = HashMap::with_capacity(9);
         for r in base {
-            roles.insert(r, RoleConfig::Always);
+            roles.insert(r, ConfigOption::Always);
         }
-        Self { roles }
+        Self {
+            roles,
+            districts: HashMap::default(),
+        }
     }
-    pub fn config(&self, role: &RoleName) -> RoleConfig {
-        self.roles.get(role).map_or(RoleConfig::default(), |r| *r)
+    pub fn config(&self, role: &RoleName) -> ConfigOption {
+        self.roles.get(role).map_or(ConfigOption::default(), |r| *r)
     }
 
     /// If multiple roles are marked as "Always", either of them could be picked.
@@ -125,22 +138,22 @@ impl GameConfig {
         for r in crate::data::characters::ROLES {
             if num_players >= r.name.min_player_count() {
                 match self.config(&r.name) {
-                    RoleConfig::Always => {
+                    ConfigOption::Always => {
                         let group = &mut grouped_by_rank[r.rank.to_index()];
                         group.clear();
                         group.push(r.name)
                     }
-                    RoleConfig::Sometimes => {
+                    ConfigOption::Sometimes => {
                         let group = &mut grouped_by_rank[r.rank.to_index()];
                         let is_locked = group
                             .get(0)
-                            .is_some_and(|r| self.config(r) == RoleConfig::Always);
+                            .is_some_and(|r| self.config(r) == ConfigOption::Always);
 
                         if !is_locked {
                             group.push(r.name);
                         }
                     }
-                    RoleConfig::Never => {}
+                    ConfigOption::Never => {}
                 }
             }
         }

@@ -6,7 +6,7 @@ use crate::types::CardSet::*;
 use crate::types::CardSuit;
 use crate::types::CardSuit::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 #[repr(usize)]
 pub enum DistrictName {
     Temple,

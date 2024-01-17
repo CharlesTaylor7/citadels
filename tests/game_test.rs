@@ -2,7 +2,6 @@ use citadels::actions::{Action, CityDistrictTarget};
 use citadels::game::Game;
 use citadels::lobby::{GameConfig, Lobby};
 use citadels::random::Prng;
-use citadels::roles::RoleName;
 use citadels::types::PlayerName;
 use rand::seq::SliceRandom;
 use rand::Rng;
