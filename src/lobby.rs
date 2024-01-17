@@ -1,16 +1,12 @@
-use std::{
-    collections::HashMap, hash::Hasher, intrinsics::atomic_cxchgweak_acqrel_seqcst, ops::Deref,
-};
-
 use crate::{
-    districts::{self, DistrictName},
-    game::{Characters, GameRole},
+    districts::DistrictName,
     roles::RoleName,
     types::{PlayerId, PlayerName},
 };
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Player {
@@ -84,7 +80,7 @@ impl Default for GameConfig {
 
         let mut districts = HashMap::from([(DistrictName::Museum, ConfigOption::Always)]);
 
-        for district in districts::UNIQUE {
+        for district in crate::districts::UNIQUE {
             if !district.name.enabled() {
                 districts.insert(district.name, ConfigOption::Never);
             }
@@ -179,7 +175,7 @@ impl GameConfig {
         rng: &mut T,
     ) -> impl Iterator<Item = DistrictName> + '_ {
         let mut always = Vec::with_capacity(14);
-        let mut sometimes = Vec::with_capacity(14);
+        let mut sometimes = Vec::with_capacity(30);
         for d in crate::districts::UNIQUE {
             match self.district(&d.name) {
                 ConfigOption::Always => always.push(d.name),
