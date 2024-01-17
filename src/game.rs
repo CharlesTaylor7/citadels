@@ -636,7 +636,7 @@ impl Game {
                     // gather
                     actions.push(ActionTag::GatherResourceGold);
                     actions.push(ActionTag::GatherResourceCards);
-                } else if self.active_perform_count(ActionTag::Build) < c.role.build_limit() {
+                } else {
                     // build
                     actions.push(ActionTag::Build);
                 }
@@ -645,7 +645,6 @@ impl Game {
                     actions.push(ActionTag::EndTurn);
                 }
 
-                log::info!("Available actions: {:#?}", actions);
                 actions
             }
         }
@@ -659,6 +658,15 @@ impl Game {
         }
 
         let ActionOutput { followup, log } = self.perform_action(&action)?;
+
+        if let Some(log) = self.db_log.as_mut() {
+            if let Err(err) = log.append(&action) {
+                log::error!("{}", err);
+                log::info!("Disabling db action log");
+                self.db_log = None;
+            }
+        }
+
         self.followup = followup;
 
         let tag = action.tag();
@@ -671,21 +679,8 @@ impl Game {
             role.logs.push(log.into());
         }
 
-        if tag == ActionTag::EndTurn
-            || self
-                .allowed_actions()
-                .iter()
-                .all(|action| *action == ActionTag::EndTurn)
-        {
+        if tag == ActionTag::EndTurn {
             self.end_turn()?;
-        }
-
-        if let Some(log) = self.db_log.as_mut() {
-            if let Err(err) = log.append(&action) {
-                log::error!("{}", err);
-                log::info!("Disabling db action log");
-                self.db_log = None;
-            }
         }
 
         Ok(())
@@ -884,6 +879,32 @@ impl Game {
                 }
             }
             Action::Build { district } => {
+                if self
+                    .turn_actions
+                    .iter()
+                    .all(|a| !a.tag().is_resource_gathering())
+                {
+                    return Err("Must gather resources before building".into());
+                }
+
+                if district.data().suit == CardSuit::Trade
+                    && self.active_role().unwrap().role == RoleName::Trader
+                {
+                } else if self
+                    .turn_actions
+                    .iter()
+                    .filter(|a| a.tag() == ActionTag::Build)
+                    .count()
+                    >= self.active_role().unwrap().role.build_limit()
+                {
+                    return Err(format!(
+                        "With your role, you cannot build more than {} time(s), this turn.",
+                        self.active_role().unwrap().role.display_name()
+                    )
+                    .into());
+                }
+                // build
+
                 let player = self.active_player_mut()?;
                 let district = district.data();
 
