@@ -55,6 +55,10 @@ pub struct BeautifyMenu;
 pub struct NavigatorMenu;
 
 #[derive(Template)]
+#[template(path = "game/menus/museum.html")]
+pub struct MuseumMenu;
+
+#[derive(Template)]
 #[template(path = "game/menus/reveal-warrant.html")]
 pub struct RevealWarrantMenu;
 

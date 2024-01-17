@@ -1,6 +1,7 @@
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::game::Game;
 use crate::lobby::Lobby;
+use crate::museum::Museum;
 use crate::roles::Rank;
 use crate::server::state::AppState;
 use crate::templates::game::menu::*;
@@ -335,6 +336,11 @@ async fn submit_game_action(
 
             ActionTag::NavigatorGain => {
                 let rendered = NavigatorMenu {}.to_html()?;
+                Ok(rendered.into_response())
+            }
+
+            ActionTag::Museum => {
+                let rendered = MuseumMenu {}.to_html()?;
                 Ok(rendered.into_response())
             }
 

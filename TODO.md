@@ -15,6 +15,7 @@
 
 
 ## TODO
+- [ ] Game setup checks the lobby district config
 - [ ] OOB swaps and updates targeted only at the players and screen elements that need to change. The current logic just liberally pushes a full page to everyone which wipes client state, like the opened logs, and the position(s) of dragged items.
 - [ ] Restore game state from lobby
 - [ ] Detect when building is impossible.
