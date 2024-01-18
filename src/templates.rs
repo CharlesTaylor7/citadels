@@ -19,6 +19,7 @@ pub enum GamePhase {
 
 #[derive(Clone)]
 pub struct DistrictTemplate<'a> {
+    pub enabled: bool,
     pub name: &'static str,
     pub cost: Option<usize>,
     pub value: String,
@@ -49,6 +50,7 @@ impl<'a> DistrictTemplate<'a> {
         let full_height = length * scale / 5.0;
         let full_width = length * (125.8 / 200.0) * (scale / 5.0);
         Self {
+            enabled: district.enabled(),
             name: data.display_name,
             cost: if district == DistrictName::SecretVault {
                 None

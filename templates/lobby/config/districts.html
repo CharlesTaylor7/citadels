@@ -36,17 +36,7 @@
           class="peer"
         />
         <div 
-          data-tip="{{ district.description|def }}"
-          class="
-            w-full
-            rounded-t-xl relative h-10 bg-neutral
-            {% if district.description.is_some() %}
-            tooltip
-            tooltip-bottom
-            tooltip-secondary
-            before:w-full
-            {% endif %}
-          "
+          class=" relative w-full rounded-t-xl h-10 bg-neutral "
         >
           <div
             class="
@@ -82,6 +72,36 @@
           {% else %}
           {% endmatch %}
           </code>
+          <div
+              data-tip="{{ district.description|def }}"
+              class="
+                bg-gradient-radial
+                from-indigo-400
+                leaded text-center
+                text-sm
+                absolute
+                top-3
+                right-2
+                h-4
+                w-4
+                rounded-full
+                bg-base-200
+                tooltip
+                tooltip-bottom
+                tooltip-secondary
+                before:max-w-[155px]
+                flex flex-col
+                justify-center
+              "
+            >
+            i
+            </div>
+
+          {% if !district.enabled %}
+            <div class="absolute z-10 top-24 w-full text-center text-sm ">
+              Coming Soon...
+            </div>
+          {% endif %}
         </div>
         {% set asset = district.asset %}
         <svg 
@@ -97,11 +117,6 @@
                 preserveAspectRatio="xMinYMin slice"
           />
         </svg>
-        <div 
-          class="absolute top-10"
-          style="height: {{ asset.height }}px"
-        >
-        </div>
       </label>
     {% endfor %}
   </div>
