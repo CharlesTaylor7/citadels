@@ -96,7 +96,10 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
 }
 
 pub async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
-    "todo"
+    let lobby = app.lobby.lock().unwrap();
+    DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
+        .to_html()
+        .into_response()
 }
 
 pub async fn post_district_config(app: State<AppState>) -> impl IntoResponse {

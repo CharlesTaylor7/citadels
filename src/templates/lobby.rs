@@ -26,6 +26,7 @@ pub struct LobbyPlayersTemplate<'a> {
 #[template(path = "lobby/config/districts.html")]
 pub struct DistrictConfigTemplate<'a> {
     pub unit: &'a (),
+    pub selected: &'static str,
     pub districts: Vec<DistrictTemplate<'a>>,
 }
 
@@ -33,6 +34,7 @@ pub struct DistrictConfigTemplate<'a> {
 #[template(path = "lobby/config/roles.html")]
 pub struct RoleConfigTemplate<'a> {
     pub unit: &'a (),
+    pub selected: &'static str,
     pub cols: Vec<ConfigColumn>,
 }
 
@@ -45,6 +47,7 @@ impl<'a> RoleConfigTemplate<'a> {
     pub fn from_config(config: &'a HashSet<RoleName>, invalid: &'a HashSet<Rank>) -> Self {
         Self {
             unit: &(),
+            selected: "Roles",
             cols: ROLES
                 .chunks(3)
                 .map(|chunk| ConfigColumn {
@@ -63,6 +66,7 @@ impl<'a> DistrictConfigTemplate<'a> {
     pub fn from_config(config: &'a HashMap<DistrictName, ConfigOption>) -> Self {
         Self {
             unit: &(),
+            selected: "Districts",
             districts: UNIQUE
                 .into_iter()
                 .map(|d| DistrictTemplate::from(d.name))

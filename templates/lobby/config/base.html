@@ -1,0 +1,38 @@
+<dialog 
+  open
+  id="config"
+  class="h-screen w-full bg-base-100"
+>
+  <div class="h-full flex flex-col gap-5 items-center">
+    <!-- https://htmx.org/examples/tabs-hateoas/ -->
+    <div class="mt-5 flex flex-row gap-3">
+      <button 
+        class='btn {% if selected == "Roles" %}btn-accent{% endif %}'
+        hx-get="/lobby/config/roles"
+        hx-target="#config"
+        hx-swap="outerHTML"
+      >
+        Roles
+      </button>
+      <button 
+        class='btn {% if selected == "Districts" %}btn-accent{% endif %}'
+        hx-get="/lobby/config/districts"
+        hx-target="#config"
+        hx-swap="outerHTML"
+      >
+        Districts
+      </button>
+      <button 
+        class="btn btn-primary"
+        type="button"
+        _="on click add .hidden to the closest <dialog/>"
+      >
+        Close
+      </button>
+    </div>
+    <form>
+      {% block config_content %}
+      {% endblock %}
+    </form>
+  </div>
+</dialog>
