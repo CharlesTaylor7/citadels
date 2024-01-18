@@ -13,19 +13,17 @@
           [&:has([data-index='1'])]:border-4
           [&:has([data-index='1'])]:border-success
         "
+        hx-post="/lobby/config/districts"
+        hx-target="#config"
+        hx-swap="outerHTML"
+        hx-trigger="click"
         {% if district.enabled %}
         _="
-        on click
-          set el to <input /> in me
-          get the @data-index of el
-          increment it
-          set index to it mod 3
-          set the @data-index of el to index
-          get the @data-vals of el
-          call JSON.parse(it)
-          set el.value to it[index]
-          set form to the closest <form />
-          call htmx.ajax('POST', '/lobby/config/districts', { target: '#config', swap: 'outerHTML', source: form})
+        on mouseenter
+          remove .hidden from <button/> in me
+        end
+        on mouseleave
+          add .hidden to <button/> in me
         end
         "  
         {% endif %}
@@ -100,11 +98,42 @@
             i
             </div>
 
-          {% if !district.enabled %}
-            <div class="absolute z-10 top-24 w-full text-center text-sm ">
-              Coming Soon...
+            <div class="absolute z-10 top-10 w-full text-center text-sm ">
+              {% if district.enabled %}
+                <button 
+                  class="hidden btn btn-primary"
+                  type="button"
+                  _="on click 
+                    get the <input[name={{district.value}}]/> in <#config/>
+                    set its value to 'Always'
+                  "
+                >
+                  Always
+                </button>
+                <button 
+                  class="hidden btn btn-secondary"
+                  type="button"
+                  _="on click 
+                    get the <input[name={{district.value}}]/> in <#config/>
+                    set its value to 'Sometimes'
+                  "
+                >
+                  Sometimes
+                </button>
+                <button 
+                  class="hidden btn btn-error"
+                  type="button"
+                  _="on click 
+                    get the <input[name={{district.value}}]/> in <#config/>
+                    set its value to 'Never'
+                  "
+                >
+                  Never
+                </button>
+              {% else %}
+                Coming Soon...
+              {% endif %}
             </div>
-          {% endif %}
         </div>
         {% set asset = district.asset %}
         <svg 

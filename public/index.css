@@ -2307,6 +2307,10 @@ html {
   top: 6rem;
 }
 
+.top-5 {
+  top: 1.25rem;
+}
+
 .z-10 {
   z-index: 10;
 }
