@@ -10,7 +10,7 @@ use std::borrow::{Borrow, BorrowMut};
 
 fn start_with_entropy(lobby: Vec<&str>) -> Game {
     let lobby = Lobby::demo(lobby);
-    Game::start(lobby, SeedableRng::from_entropy())
+    Game::start(lobby, SeedableRng::from_entropy()).unwrap()
 }
 
 #[test]

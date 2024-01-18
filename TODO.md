@@ -15,7 +15,9 @@
 
 
 ## TODO
-- [ ] Edit game config from lobby
+- [x] Edit role config
+- [ ] Edit district config 
+
 - [ ] Rework menus to use drag and drop.
 - [ ] Rework menus as modals.
 - [ ] OOB swaps and updates targeted only at the players and screen elements that need to change. The current logic just liberally pushes a full page to everyone which wipes client state, like the opened logs, and the position(s) of dragged items.
@@ -32,8 +34,8 @@
 
 
 - Lobby
-    - [ ] Enforce unique names in a game
-    - [ ] Impose username character limit
+    - [x] Enforce unique names in a game
+    - [x] Impose username character limit
     - [x] html escape names. Askama does this by default.
     - [x] Make some characters illegal: commas, whitespace
     - [x] Trim spaces around a name before storing.

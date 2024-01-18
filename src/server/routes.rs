@@ -34,8 +34,10 @@ pub fn get_router() -> Router {
         .route("/", get(index))
         .route("/version", get(get_version))
         .route("/lobby", get(get_lobby))
-        .route("/lobby/config", get(get_config))
-        .route("/lobby/config", post(post_config))
+        .route("/lobby/config/districts", get(get_district_config))
+        .route("/lobby/config/districts", post(post_district_config))
+        .route("/lobby/config/roles", get(get_role_config))
+        .route("/lobby/config/roles", post(post_role_config))
         .route("/lobby/register", post(register))
         .route("/ws", get(get_ws))
         .route("/game", get(game))
@@ -93,14 +95,22 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
         .into_response()
 }
 
-pub async fn get_config(app: State<AppState>) -> impl IntoResponse {
+pub async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
+    "todo"
+}
+
+pub async fn post_district_config(app: State<AppState>) -> impl IntoResponse {
+    "todo"
+}
+
+pub async fn get_role_config(app: State<AppState>) -> impl IntoResponse {
     let lobby = app.lobby.lock().unwrap();
-    ConfigTemplate::from_config(lobby.config.roles.borrow(), &HashSet::new())
+    RoleConfigTemplate::from_config(lobby.config.roles.borrow(), &HashSet::new())
         .to_html()
         .into_response()
 }
 
-pub async fn post_config(
+pub async fn post_role_config(
     app: State<AppState>,
     json: Json<HashMap<RoleName, String>>,
 ) -> Result<Response, ErrorResponse> {
@@ -111,13 +121,13 @@ pub async fn post_config(
     if let Err((roles, ranks)) = lobby.config.set_roles(roles) {
         Err((
             StatusCode::UNPROCESSABLE_ENTITY,
-            ConfigTemplate::from_config(&roles, &ranks).to_html(),
+            RoleConfigTemplate::from_config(&roles, &ranks).to_html(),
         )
             .into())
     } else {
         Ok((
             StatusCode::OK,
-            ConfigTemplate::from_config(&lobby.config.roles, &HashSet::new()).to_html(),
+            RoleConfigTemplate::from_config(&lobby.config.roles, &HashSet::new()).to_html(),
         )
             .into_response())
     }
