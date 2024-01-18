@@ -1,7 +1,7 @@
 ## 0.3.0 (pending)
 
 UI:
-    - # of "normal" Builds performed / available builds is shown
+    - Lobby config
 
 Roles:
     - Magistrate (1) 

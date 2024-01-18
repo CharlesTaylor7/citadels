@@ -1,5 +1,6 @@
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::game::Game;
+use crate::lobby::Lobby;
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
 use crate::templates::game::menu::*;
@@ -131,24 +132,26 @@ pub async fn register(
     app: State<AppState>,
     cookies: PrivateCookieJar,
     json: axum::Json<Register>,
-) -> Result<Response, ErrorResponse> {
+) -> Response {
     let username = json.username.trim();
     if username.len() == 0 {
-        return Err((StatusCode::UNPROCESSABLE_ENTITY, "username cannot be empty").into());
+        return validation_error("username cannot be empty".into());
     }
 
     if username.chars().any(|c| !c.is_ascii_alphanumeric()) {
-        return Err((
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "username can only contain letter a-z, A-Z, or digits",
-        )
-            .into());
+        return validation_error("username can only contain letter a-z, A-Z, or digits".into());
+    }
+
+    if username.len() > 16 {
+        return validation_error("username cannot be more than 16 characters long.".into());
     }
 
     let cookie = cookies.get("player_id").unwrap();
     let player_id = cookie.value();
     let mut lobby = app.lobby.lock().unwrap();
-    lobby.register(player_id, username);
+    if let Err(err) = lobby.register(player_id, username) {
+        return validation_error(err);
+    }
 
     let html = Html(
         LobbyPlayersTemplate {
@@ -159,49 +162,43 @@ pub async fn register(
     );
     app.connections.lock().unwrap().broadcast(html);
 
-    Ok(cookies
+    cookies
         .add(Cookie::new("username", username.to_owned()))
-        .into_response())
+        .into_response()
 }
 
-pub async fn start(app: State<AppState>) -> impl IntoResponse {
+pub async fn start(app: State<AppState>) -> Response {
     let mut lobby = app.lobby.lock().unwrap();
     if lobby.players.len() < 2 {
-        return (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "too few players to start a game",
-        )
-            .into_response();
+        return validation_error("Need at least 2 players to start a game".into());
     }
 
     if lobby.players.len() > 8 {
-        return (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "too many players to start a game",
-        )
-            .into_response();
+        return validation_error("You cannot have more than 8 players per game".into());
     }
 
     let mut game = app.game.lock().unwrap();
     if game.is_some() {
-        return (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "can't overwrite a game in progress",
-        )
-            .into_response();
+        return validation_error("Can not overwrite a game in progress".into());
     }
-    // Start the game, and remove all players from the lobby
-    *game = Some(Game::start(
-        mem::take(lobby.deref_mut()),
-        SeedableRng::from_entropy(),
-    ));
+    let clone = lobby.clone();
+    match Game::start(clone, SeedableRng::from_entropy()) {
+        Ok(ok) => {
+            // Start the game, and remove all players from the lobby
+            *game = Some(ok);
+            *lobby = Lobby::default();
+        }
+        Err(err) => {
+            return validation_error(err);
+        }
+    }
 
     if let Some(game) = game.as_ref() {
         app.connections
             .lock()
             .unwrap()
             .broadcast_each(move |id| GameTemplate::render_with(game, Some(id)));
-        return StatusCode::OK.into_response();
+        return (StatusCode::OK).into_response();
     }
     unreachable!()
 }
@@ -278,6 +275,15 @@ pub async fn get_ws(
     } else {
         StatusCode::BAD_REQUEST.into_response()
     }
+}
+
+fn validation_error(err: Cow<'static, str>) -> Response {
+    (
+        StatusCode::UNPROCESSABLE_ENTITY,
+        [("HX-Retarget", "#error"), ("HX-Reswap", "innerHTML")],
+        err,
+    )
+        .into_response()
 }
 
 fn bad_request(err: Cow<'static, str>) -> ErrorResponse {

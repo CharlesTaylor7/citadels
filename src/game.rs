@@ -281,11 +281,12 @@ impl Characters {
         self.0.iter_mut()
     }
 
-    pub fn new(roles: impl Iterator<Item = RoleName>) -> Self {
+    pub fn new(roles: &Vec<RoleName>) -> Self {
         Self(
             roles
+                .iter()
                 .map(|role| GameRole {
-                    role,
+                    role: *role,
                     player: None,
                     revealed: false,
                     markers: vec![],
@@ -414,7 +415,7 @@ impl Game {
             return None;
         }
         let lobby = Lobby::demo(vec!["Alph", "Brittany", "Charlie"]);
-        let mut game = Game::start(lobby, SeedableRng::from_entropy());
+        let mut game = Game::start(lobby, SeedableRng::from_entropy()).ok()?;
 
         // deal out roles randomly
         let mut roles: Vec<_> = game.characters.iter().collect();
@@ -468,11 +469,12 @@ impl Game {
         Some(self.characters.get_mut(rank))
     }
 
-    pub fn start(lobby: Lobby, mut rng: Prng) -> Game {
+    pub fn start(lobby: Lobby, mut rng: Prng) -> Result<Game> {
         let Lobby {
             mut players,
             config,
         } = lobby;
+
         let db_log = DbLog::new(rng.seed, &players)
             .map_err(|e| log::error!("{}", e))
             .ok();
@@ -509,7 +511,7 @@ impl Game {
             }
         });
 
-        let characters = Characters::new(config.select_roles(&mut rng, players.len()));
+        let characters = Characters::new(&config.select_roles(&mut rng, players.len())?);
         let crowned = PlayerIndex(0);
         let mut game = Game {
             rng,
@@ -531,7 +533,7 @@ impl Game {
             first_to_complete: None,
         };
         game.begin_draft();
-        game
+        Ok(game)
     }
 
     pub fn begin_draft(&mut self) {

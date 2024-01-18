@@ -7,6 +7,7 @@ use crate::{
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::{Deserialize, Serialize};
+use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -15,7 +16,7 @@ pub struct Player {
     pub name: PlayerName,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Lobby {
     pub players: Vec<Player>,
     pub config: GameConfig,
@@ -36,7 +37,14 @@ impl Lobby {
         }
     }
 
-    pub fn register(&mut self, id: &str, name: &str) {
+    pub fn register(&mut self, id: &str, name: &str) -> game::Result<()> {
+        if self
+            .players
+            .iter()
+            .any(|p| p.id != id && p.name.borrow() as &str == name)
+        {
+            return Err("username taken".into());
+        }
         match self.players.iter_mut().find(|p| p.id == id) {
             Some(p) => {
                 p.name = PlayerName::from(name.to_owned());
@@ -48,6 +56,7 @@ impl Lobby {
                 });
             }
         }
+        Ok(())
     }
 }
 
@@ -59,6 +68,7 @@ pub enum ConfigOption {
     Always,
 }
 
+#[derive(Clone)]
 pub struct GameConfig {
     pub roles: HashSet<RoleName>,
     pub districts: HashMap<DistrictName, ConfigOption>,
@@ -143,7 +153,7 @@ impl GameConfig {
         &self,
         rng: &'a mut T,
         num_players: usize,
-    ) -> impl Iterator<Item = RoleName> + 'a {
+    ) -> game::Result<Vec<RoleName>> {
         // 9th rank is disallowed for 2
         // 9th rank is required for 3
         // 9th rank is optional for 4-7
@@ -160,11 +170,16 @@ impl GameConfig {
             }
         }
 
-        grouped_by_rank.into_iter().map(|roles| {
-            *roles
-                .choose(rng)
-                .expect("there should be a role for each rank")
-        })
+        grouped_by_rank
+            .into_iter()
+            .enumerate()
+            .map(|(i, roles)| {
+                roles
+                    .choose(rng)
+                    .cloned()
+                    .ok_or(format!("No enabled roles for rank {}", i + 1).into())
+            })
+            .collect()
     }
 
     pub fn select_unique_districts<T: RngCore>(

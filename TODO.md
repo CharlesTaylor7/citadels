@@ -28,14 +28,15 @@
 
 ## Ideas
 - [ ] Make it possible to save a set of roles to use, for config.
+- [ ] UI change: show build ratio: "normal build" / "build limit"
 
 
 - Lobby
-    - [x] html escape names. Askama does this by default.
-    - [ ] Make some characters illegal: commas, whitespace
     - [ ] Enforce unique names in a game
-    - [ ] Trim spaces around a name before storing.
     - [ ] Impose username character limit
+    - [x] html escape names. Askama does this by default.
+    - [x] Make some characters illegal: commas, whitespace
+    - [x] Trim spaces around a name before storing.
 
 - Action logs
     - [ ] Restore game from sqlite
