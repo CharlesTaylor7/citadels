@@ -149,6 +149,7 @@ pub struct ImageAssetTemplate {
 }
 
 pub struct RoleTemplate {
+    pub min_player_count: usize,
     pub enabled: bool,
     pub name: String,
     pub rank: Rank,
@@ -164,6 +165,7 @@ impl RoleTemplate {
         let width = height * 155.0 / 200.0;
         let full_height = height * 265.0 / 200.0;
         Self {
+            min_player_count: role.min_player_count(),
             enabled: role.enabled(),
             name: role.display_name(),
             rank: data.rank,
