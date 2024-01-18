@@ -52,6 +52,14 @@
           document.querySelector("#bell").play();
         }
       });
+
+      document.addEventListener('htmx:beforeOnLoad', function (evt) {
+          if (evt.detail.xhr.status === 422) {
+              evt.detail.shouldSwap = true;
+              evt.detail.isError = false;
+          }
+      });
+
     </script>
     <style>
       .dragging {

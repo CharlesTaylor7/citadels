@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{
     data::characters::ROLES,
     lobby::{ConfigOption, GameConfig, Player},
@@ -24,20 +26,26 @@ pub struct LobbyPlayersTemplate<'a> {
 #[template(path = "lobby/config.html")]
 pub struct ConfigTemplate<'a> {
     pub unit: &'a (),
-    pub rows: Vec<Vec<(bool, RoleTemplate)>>,
+    pub cols: Vec<ConfigColumn>,
+}
+
+pub struct ConfigColumn {
+    pub invalid: bool,
+    pub roles: Vec<(bool, RoleTemplate)>,
 }
 
 impl<'a> ConfigTemplate<'a> {
-    pub fn from_config(config: &'a GameConfig) -> Self {
+    pub fn from_config(config: &'a HashSet<RoleName>, invalid: &'a HashSet<Rank>) -> Self {
         ConfigTemplate {
             unit: &(),
-            rows: ROLES
+            cols: ROLES
                 .chunks(3)
-                .map(|chunk| {
-                    chunk
+                .map(|chunk| ConfigColumn {
+                    invalid: invalid.contains(&chunk[0].rank),
+                    roles: chunk
                         .iter()
-                        .map(|c| (config.role(&c.name), RoleTemplate::from(c.name, 200.0)))
-                        .collect::<Vec<_>>()
+                        .map(|c| (config.contains(&c.name), RoleTemplate::from(c.name, 200.0)))
+                        .collect::<Vec<_>>(),
                 })
                 .collect(),
         }

@@ -1,6 +1,7 @@
 use crate::{
     districts::DistrictName,
-    roles::RoleName,
+    game,
+    roles::{Rank, RoleName},
     types::{PlayerId, PlayerName},
 };
 use rand::seq::SliceRandom;
@@ -59,8 +60,8 @@ pub enum ConfigOption {
 }
 
 pub struct GameConfig {
-    roles: HashSet<RoleName>,
-    districts: HashMap<DistrictName, ConfigOption>,
+    pub roles: HashSet<RoleName>,
+    pub districts: HashMap<DistrictName, ConfigOption>,
 }
 
 impl Default for GameConfig {
@@ -85,6 +86,23 @@ impl Default for GameConfig {
 }
 
 impl GameConfig {
+    pub fn set_roles(
+        &mut self,
+        roles: HashSet<RoleName>,
+    ) -> Result<(), (HashSet<RoleName>, HashSet<Rank>)> {
+        let mut error_ranks = HashSet::with_capacity(9);
+        for chunk in crate::data::characters::ROLES.chunks(3) {
+            if chunk.iter().all(|c| !roles.contains(&c.name)) {
+                error_ranks.insert(chunk[0].rank);
+            }
+        }
+        if error_ranks.len() > 0 {
+            return Err((roles, error_ranks));
+        }
+        self.roles = roles;
+        Ok(())
+    }
+
     pub fn base_set() -> Self {
         let base = [
             RoleName::Assassin,

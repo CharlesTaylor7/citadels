@@ -1,6 +1,6 @@
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::game::Game;
-use crate::roles::Rank;
+use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
 use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
@@ -12,13 +12,14 @@ use askama::Template;
 use axum::extract::{Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
-use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
+use axum::{Json, Router};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use http::StatusCode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
+use std::collections::{HashMap, HashSet};
 use std::mem;
 use std::ops::DerefMut;
 use time::Duration;
@@ -33,6 +34,7 @@ pub fn get_router() -> Router {
         .route("/version", get(get_version))
         .route("/lobby", get(get_lobby))
         .route("/lobby/config", get(get_config))
+        .route("/lobby/config", post(post_config))
         .route("/lobby/register", post(register))
         .route("/ws", get(get_ws))
         .route("/game", get(game))
@@ -92,9 +94,32 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
 
 pub async fn get_config(app: State<AppState>) -> impl IntoResponse {
     let lobby = app.lobby.lock().unwrap();
-    ConfigTemplate::from_config(lobby.config.borrow())
+    ConfigTemplate::from_config(lobby.config.roles.borrow(), &HashSet::new())
         .to_html()
         .into_response()
+}
+
+pub async fn post_config(
+    app: State<AppState>,
+    json: Json<HashMap<RoleName, String>>,
+) -> Result<Response, ErrorResponse> {
+    let mut lobby = app.lobby.lock().unwrap();
+    log::info!("{:?}", json);
+
+    let roles = json.0.into_keys().collect::<HashSet<_>>();
+    if let Err((roles, ranks)) = lobby.config.set_roles(roles) {
+        Err((
+            StatusCode::UNPROCESSABLE_ENTITY,
+            ConfigTemplate::from_config(&roles, &ranks).to_html(),
+        )
+            .into())
+    } else {
+        Ok((
+            StatusCode::OK,
+            ConfigTemplate::from_config(&lobby.config.roles, &HashSet::new()).to_html(),
+        )
+            .into_response())
+    }
 }
 
 #[derive(Deserialize)]
@@ -109,12 +134,12 @@ pub async fn register(
 ) -> Result<Response, ErrorResponse> {
     let username = json.username.trim();
     if username.len() == 0 {
-        return Err((StatusCode::BAD_REQUEST, "username cannot be empty").into());
+        return Err((StatusCode::UNPROCESSABLE_ENTITY, "username cannot be empty").into());
     }
 
     if username.chars().any(|c| !c.is_ascii_alphanumeric()) {
         return Err((
-            StatusCode::BAD_REQUEST,
+            StatusCode::UNPROCESSABLE_ENTITY,
             "username can only contain letter a-z, A-Z, or digits",
         )
             .into());
@@ -142,17 +167,25 @@ pub async fn register(
 pub async fn start(app: State<AppState>) -> impl IntoResponse {
     let mut lobby = app.lobby.lock().unwrap();
     if lobby.players.len() < 2 {
-        return (StatusCode::BAD_REQUEST, "too few players to start a game").into_response();
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "too few players to start a game",
+        )
+            .into_response();
     }
 
     if lobby.players.len() > 8 {
-        return (StatusCode::BAD_REQUEST, "too many players to start a game").into_response();
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "too many players to start a game",
+        )
+            .into_response();
     }
 
     let mut game = app.game.lock().unwrap();
     if game.is_some() {
         return (
-            StatusCode::BAD_REQUEST,
+            StatusCode::UNPROCESSABLE_ENTITY,
             "can't overwrite a game in progress",
         )
             .into_response();
@@ -199,7 +232,7 @@ pub async fn get_game_actions(
     let active_player = game.active_player()?;
 
     if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
-        return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
+        return Err((StatusCode::UNPROCESSABLE_ENTITY, "not your turn!").into());
     }
 
     MenuTemplate::from(game, Some(cookie.value())).to_html()

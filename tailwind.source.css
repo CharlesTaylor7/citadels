@@ -6,11 +6,20 @@
   .tooltip {
     display: revert;
   }
+
   .tooltip:before {
     @apply z-20;
   }
 
   .header {
     @apply underline text-lg font-semibold w-full text-center;
+  }
+
+  .draggable {
+    @apply cursor-grab;
+  }
+
+  .dragging {
+    @apply cursor-grabbing;
   }
 }
