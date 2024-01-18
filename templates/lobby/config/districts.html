@@ -20,15 +20,10 @@
           get the @data-index of el
           increment it
           set index to it mod 3
-          log index
           set the @data-index of el to index
           get the @data-vals of el
-          call JSON.parse(it) then set array to the result
-          log result, result[0], result[1], result[2], result[index]
-          set v to result[index]
-          set el.value to v
-          log v
-          log el.value
+          call JSON.parse(it)
+          set el.value to it[index]
           set form to the closest <form />
           call htmx.ajax('POST', '/lobby/config/districts', { target: '#config', swap: 'outerHTML', source: form})
         end
