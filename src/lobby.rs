@@ -6,7 +6,7 @@ use crate::{
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Player {
@@ -34,6 +34,7 @@ impl Lobby {
                 .collect(),
         }
     }
+
     pub fn register(&mut self, id: &str, name: &str) {
         match self.players.iter_mut().find(|p| p.id == id) {
             Some(p) => {
@@ -58,23 +59,16 @@ pub enum ConfigOption {
 }
 
 pub struct GameConfig {
-    roles: HashMap<RoleName, ConfigOption>,
+    roles: HashSet<RoleName>,
     districts: HashMap<DistrictName, ConfigOption>,
 }
 
 impl Default for GameConfig {
     fn default() -> Self {
-        let mut roles = HashMap::from([
-            (RoleName::Magistrate, ConfigOption::Always),
-            (RoleName::Blackmailer, ConfigOption::Always),
-            (RoleName::TaxCollector, ConfigOption::Always),
-            (RoleName::Trader, ConfigOption::Always),
-            (RoleName::Navigator, ConfigOption::Always),
-        ]);
-
+        let mut roles = HashSet::new();
         for role in RoleName::iter() {
-            if !role.enabled() {
-                roles.insert(role, ConfigOption::Never);
+            if role.enabled() {
+                roles.insert(role);
             }
         }
 
@@ -103,17 +97,17 @@ impl GameConfig {
             RoleName::Warlord,
             RoleName::Artist,
         ];
-        let mut roles = HashMap::with_capacity(9);
+        let mut roles = HashSet::with_capacity(9);
         for r in base {
-            roles.insert(r, ConfigOption::Always);
+            roles.insert(r);
         }
         Self {
             roles,
             districts: HashMap::default(),
         }
     }
-    pub fn role(&self, role: &RoleName) -> ConfigOption {
-        self.roles.get(role).map_or(ConfigOption::default(), |r| *r)
+    pub fn role(&self, role: &RoleName) -> bool {
+        self.roles.contains(role)
     }
 
     pub fn district(&self, district: &DistrictName) -> ConfigOption {
@@ -142,23 +136,8 @@ impl GameConfig {
 
         for r in crate::data::characters::ROLES {
             if num_players >= r.name.min_player_count() {
-                match self.role(&r.name) {
-                    ConfigOption::Always => {
-                        let group = &mut grouped_by_rank[r.rank.to_index()];
-                        group.clear();
-                        group.push(r.name)
-                    }
-                    ConfigOption::Sometimes => {
-                        let group = &mut grouped_by_rank[r.rank.to_index()];
-                        let is_locked = group
-                            .get(0)
-                            .is_some_and(|r| self.role(r) == ConfigOption::Always);
-
-                        if !is_locked {
-                            group.push(r.name);
-                        }
-                    }
-                    ConfigOption::Never => {}
+                if self.role(&r.name) {
+                    grouped_by_rank[r.rank.to_index()].push(r.name);
                 }
             }
         }

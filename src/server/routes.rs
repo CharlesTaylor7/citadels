@@ -1,7 +1,5 @@
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::game::Game;
-use crate::lobby::Lobby;
-use crate::museum::Museum;
 use crate::roles::Rank;
 use crate::server::state::AppState;
 use crate::templates::game::menu::*;
@@ -34,6 +32,7 @@ pub fn get_router() -> Router {
         .route("/", get(index))
         .route("/version", get(get_version))
         .route("/lobby", get(get_lobby))
+        .route("/lobby/config", get(get_config))
         .route("/lobby/register", post(register))
         .route("/ws", get(get_ws))
         .route("/game", get(game))
@@ -91,6 +90,13 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
         .into_response()
 }
 
+pub async fn get_config(app: State<AppState>) -> impl IntoResponse {
+    let lobby = app.lobby.lock().unwrap();
+    ConfigTemplate::from_config(lobby.config.borrow())
+        .to_html()
+        .into_response()
+}
+
 #[derive(Deserialize)]
 pub struct Register {
     username: String,
@@ -103,11 +109,15 @@ pub async fn register(
 ) -> Result<Response, ErrorResponse> {
     let username = json.username.trim();
     if username.len() == 0 {
-        return Err("username cannot be empty".into());
+        return Err((StatusCode::BAD_REQUEST, "username cannot be empty").into());
     }
 
     if username.chars().any(|c| !c.is_ascii_alphanumeric()) {
-        return Err("username can only contain letter a-z, A-Z, or digits".into());
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "username can only contain letter a-z, A-Z, or digits",
+        )
+            .into());
     }
 
     let cookie = cookies.get("player_id").unwrap();

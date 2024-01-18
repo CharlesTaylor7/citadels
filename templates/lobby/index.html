@@ -6,20 +6,21 @@
   data-theme="dark"
   class="bg-base-100 h-full"
 >
+  <dialog id="config"></dialog>
   <div class="flex flex-col gap-3 items-center justify-center">
     <h2 class="mt-3 underline text-2xl font-semibold">Lobby</h2>
     <form
       class="p-7 flex flex-col gap-3 items-start rounded border border-slate-500"
     >
-      <div class="flex flex-col gap-3">
-        <label class="mr-3">Username:</label
-        ><input
+      <label class="flex flex-col gap-3">
+        <span class="mr-3">Username:</span>
+        <input
           class="px-3 border rounded border-slate-400 bg-slate-500"
           type="text"
           name="username"
           value="{{ username }}"
         />
-      </div>
+      </label>
       <div class="flex flex-row gap-3">
         <button 
           class="btn btn-primary" 
@@ -32,6 +33,14 @@
           hx-post="/game"
         >
           Start
+        </button>
+        <button
+          class="btn btn-secondary"
+          hx-get="/lobby/config"
+          hx-target="#config"
+          hx-swap="outerHTML"
+        >
+          Config
         </button>
       </div>
     </form>

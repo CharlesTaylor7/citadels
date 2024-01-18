@@ -1,0 +1,76 @@
+<dialog 
+  open
+  id="config"
+  class="h-screen w-full flex flex-col items-center justify-center bg-base-100"
+>
+  <div class="flex flex-row gap-1">
+    {% for row in rows %}
+    <div class="flex flex-col gap-1">
+      {% for (selected, role) in row %}
+      <label
+        class="
+          relative
+          select-none
+          cursor-pointer
+        "
+      >
+        <input
+          type="checkbox"
+          class="peer hidden"
+          name="role"
+          value="{{ role.value }}"
+          {% if selected %}
+          checked
+          {% endif %}
+        />
+
+        {% set asset = role.asset %}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          height="{{ asset.height }}"
+          width="{{ asset.width }}"
+          class="rounded-xl saturate-0 peer-checked:saturate-100"
+        >
+          <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
+                height="{{ asset.scale_percentage }}%"
+                xlink:href="{{ asset.path }}"
+                preserveAspectRatio="xMinYMin slice"
+          />
+        </svg>
+        <div
+          data-tip="{{ role.description }}"
+          class="
+            bg-gradient-radial
+            peer-checked:from-indigo-400
+            leaded text-center
+            text-sm
+            absolute
+            top-2
+            right-2
+            h-4
+            w-4
+            rounded-full
+            bg-base-200
+            tooltip
+            tooltip-bottom
+            tooltip-secondary
+            before:max-w-[155px]
+            flex flex-col
+            justify-center
+          "
+        >
+        i
+        </div>
+      </label>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <button 
+    class="btn btn-primary"
+    _="on click add .hidden to the closest <dialog/>"
+  >
+    Close
+  </button>
+</dialog>

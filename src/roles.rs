@@ -22,6 +22,10 @@ pub enum Rank {
 }
 
 impl Rank {
+    pub fn iter() -> impl Iterator<Item = Rank> {
+        (0..9_u8).map(|r| unsafe { std::mem::transmute(r) })
+    }
+
     pub fn next(&self) -> Option<Rank> {
         let index = *self as u8 + 1;
         if index <= Rank::Nine as u8 {

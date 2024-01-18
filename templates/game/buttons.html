@@ -1,0 +1,24 @@
+<div class="absolute bottom-0 flex flex-row justify-center gap-3 w-full">
+  <label
+    data-always
+    class="btn hover:btn-accent has-[:checked]:btn-accent leaded text-center text-3xl p-0">
+    ✔️
+    <input
+      class="hidden"
+      type="checkbox"
+      name={{ role.value }}
+      value="Always"
+    />
+  </label>
+  <label 
+    data-never
+    class="btn hover:btn-error has-[:checked]:btn-error leaded text-center text-3xl p-0">
+    ✖️
+    <input
+      class="hidden"
+      type="checkbox"
+      name={{ role.value }}
+      value="Never"
+    />
+  </label>
+</div>
