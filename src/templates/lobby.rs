@@ -27,7 +27,8 @@ pub struct LobbyPlayersTemplate<'a> {
 pub struct DistrictConfigTemplate<'a> {
     pub unit: &'a (),
     pub selected: &'static str,
-    pub districts: Vec<DistrictTemplate<'a>>,
+    pub array: String,
+    pub districts: Vec<(usize, ConfigOption, DistrictTemplate<'a>)>,
 }
 
 #[derive(Template)]
@@ -67,9 +68,13 @@ impl<'a> DistrictConfigTemplate<'a> {
         Self {
             unit: &(),
             selected: "Districts",
+            array: serde_json::to_string(&["Sometimes", "Always", "Never"]).unwrap(),
             districts: UNIQUE
                 .into_iter()
-                .map(|d| DistrictTemplate::from(d.name))
+                .map(|d| {
+                    let option = config.get(&d.name).cloned().unwrap_or_default();
+                    (option as usize, option, DistrictTemplate::from(d.name))
+                })
                 .collect(),
         }
     }

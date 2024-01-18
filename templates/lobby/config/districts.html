@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block config_content %}
   <div class="flex flex-row flex-wrap gap-1">
-    {% for district in districts %}
+    {% for (index, option, district) in districts %}
       <label
         class="
           select-none
@@ -13,26 +13,34 @@
           [&:has([data-index='1'])]:border-4
           [&:has([data-index='1'])]:border-success
         "
+        {% if district.enabled %}
         _="
         on click
           set el to <input /> in me
           get the @data-index of el
           increment it
           set index to it mod 3
+          log index
           set the @data-index of el to index
           get the @data-vals of el
-          call JSON.parse(it)
-          set el.value to it[index]
-          log el
+          call JSON.parse(it) then set array to the result
+          log result, result[0], result[1], result[2], result[index]
+          set v to result[index]
+          set el.value to v
+          log v
+          log el.value
+          set form to the closest <form />
+          call htmx.ajax('POST', '/lobby/config/districts', { target: '#config', swap: 'outerHTML', source: form})
         end
         "  
+        {% endif %}
       >
         <input
-          data-index="0"
-          data-vals='["Sometimes", "Always", "Never"]'
+          data-index="{{ index }}"
+          data-vals="{{ array }}"
           type="hidden"
           name="{{ district.value }}"
-          value="Sometimes"
+          value="{{ option|debug }}"
           class="peer"
         />
         <div 

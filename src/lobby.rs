@@ -60,12 +60,13 @@ impl Lobby {
     }
 }
 
-#[derive(Default, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Deserialize)]
+#[repr(u8)]
 pub enum ConfigOption {
     #[default]
     Sometimes,
-    Never,
     Always,
+    Never,
 }
 
 #[derive(Clone)]

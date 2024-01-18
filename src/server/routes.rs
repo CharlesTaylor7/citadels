@@ -1,6 +1,7 @@
 use crate::actions::{ActionSubmission, ActionTag};
+use crate::districts::DistrictName;
 use crate::game::Game;
-use crate::lobby::Lobby;
+use crate::lobby::{ConfigOption, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
 use crate::templates::game::menu::*;
@@ -10,6 +11,7 @@ use crate::templates::lobby::*;
 use crate::templates::*;
 use crate::types::{Marker, PlayerName};
 use askama::Template;
+use axum::extract::rejection::JsonRejection;
 use axum::extract::{Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
@@ -21,8 +23,6 @@ use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
-use std::mem;
-use std::ops::DerefMut;
 use time::Duration;
 use tower_http::services::ServeDir;
 use uuid::Uuid;
@@ -102,8 +102,19 @@ pub async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
         .into_response()
 }
 
-pub async fn post_district_config(app: State<AppState>) -> impl IntoResponse {
-    "todo"
+pub async fn post_district_config(
+    app: State<AppState>,
+    json: Result<Json<HashMap<DistrictName, ConfigOption>>, JsonRejection>,
+) -> impl IntoResponse {
+    let json = match json {
+        Ok(json) => json,
+        Err(err) => return (StatusCode::BAD_REQUEST, err.to_string()).into_response(),
+    };
+    let mut lobby = app.lobby.lock().unwrap();
+    lobby.config.districts = json.0;
+    DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
+        .to_html()
+        .into_response()
 }
 
 pub async fn get_role_config(app: State<AppState>) -> impl IntoResponse {
