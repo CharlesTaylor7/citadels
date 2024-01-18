@@ -2040,6 +2040,10 @@ html {
   right: 0.25rem;
 }
 
+.bottom-10 {
+  bottom: 2.5rem;
+}
+
 .m-2 {
   margin: 0.5rem;
 }
@@ -2192,6 +2196,10 @@ html {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
 }
 
 .select-none {

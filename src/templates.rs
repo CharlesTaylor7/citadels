@@ -149,6 +149,7 @@ pub struct ImageAssetTemplate {
 }
 
 pub struct RoleTemplate {
+    pub enabled: bool,
     pub name: String,
     pub rank: Rank,
     pub value: String,
@@ -163,6 +164,7 @@ impl RoleTemplate {
         let width = height * 155.0 / 200.0;
         let full_height = height * 265.0 / 200.0;
         Self {
+            enabled: role.enabled(),
             name: role.display_name(),
             rank: data.rank,
             value: format!("{:#?}", role),
