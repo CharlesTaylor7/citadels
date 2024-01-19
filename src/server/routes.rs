@@ -346,7 +346,7 @@ async fn submit_game_action(
                         .unwrap()
                         .broadcast_each(move |id| GameTemplate::render_with(g, Some(id)));
 
-                    Ok(StatusCode::OK.into_response())
+                    Ok((StatusCode::OK, [("HX-Reswap", "none")]).into_response())
                 }
                 Err(error) => Err(bad_request(error)),
             }

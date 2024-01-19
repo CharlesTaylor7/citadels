@@ -246,7 +246,7 @@ pub struct Game {
     pub followup: Option<FollowupAction>,
     pub pause_for_response: Option<ResponseAction>,
     pub turn_actions: Vec<Action>,
-    pub turn_normal_builds: usize,
+    pub remaining_builds: usize,
     pub first_to_complete: Option<PlayerIndex>,
     pub logs: Vec<Cow<'static, str>>,
     pub db_log: Option<DbLog>,
@@ -524,7 +524,7 @@ impl Game {
             deck: Deck::new(deck),
             active_turn: Turn::Draft(crowned),
             turn_actions: Vec::new(),
-            turn_normal_builds: 0,
+            remaining_builds: 0,
             logs: Vec::new(),
             followup: None,
             museum: Museum::default(),
@@ -721,7 +721,7 @@ impl Game {
             return self.start_turn();
         }
         c.revealed = true;
-        self.turn_normal_builds = c.role.build_limit();
+        self.remaining_builds = c.role.build_limit();
 
         let player = self.players[c.player.unwrap().0].borrow_mut();
         c.logs
@@ -905,20 +905,14 @@ impl Game {
                     return Err("Must gather resources before building".into());
                 }
 
-                let within_build_limit = *district == DistrictName::Stables
+                let is_free_build = *district == DistrictName::Stables
                     || (district.data().suit == CardSuit::Trade
-                        && self.active_role().unwrap().role == RoleName::Trader)
-                    || self
-                        .turn_actions
-                        .iter()
-                        .filter(|a| a.tag() == ActionTag::Build)
-                        .count()
-                        < self.active_role().unwrap().role.build_limit();
+                        && self.active_role().unwrap().role == RoleName::Trader);
 
-                if !within_build_limit {
+                if !is_free_build && self.remaining_builds == 0 {
                     return Err(format!(
                         "With your role, you cannot build more than {} time(s), this turn.",
-                        self.active_role().unwrap().role.display_name()
+                        self.active_role().unwrap().role.build_limit()
                     )
                     .into());
                 }
@@ -951,6 +945,9 @@ impl Game {
                 Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
                 player.gold -= cost;
                 player.city.push(CityDistrict::from(district.name));
+                if !is_free_build {
+                    self.remaining_builds -= 1;
+                }
                 if self.active_role().unwrap().role == RoleName::Alchemist {
                     self.alchemist += cost;
                 }

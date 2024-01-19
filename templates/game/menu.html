@@ -4,7 +4,6 @@
   _="
     init 
       add @disabled to <#main-panel input/>
-      remove .hidden from #city
     end
   "
 >
@@ -32,7 +31,7 @@
       <div class="flex flex-row gap-2 items-center">
         {% set action = ActionTag::Build %}
         {% include "action.html" %}
-        Builds left: {{ context.game.turn_normal_builds }}
+        Builds left: {{ context.game.remaining_builds }}
       </div>
       <div class="flex flex-row flex-wrap gap-2">
         {% for action in abilities %}
