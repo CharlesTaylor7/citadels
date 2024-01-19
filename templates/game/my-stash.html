@@ -12,15 +12,13 @@
     My Stash
   </h2>
   <div class="text-5xl w-full flex flex-row justify-center">
-    <div id="dragon" class=""
-      _="init enableDragon()"
-    >
+    <div id="dragon" class="draggable" _="init enableDragon()">
       🐉
     </div>
   </div>
   <div class="text-3xl w-full flex flex-row flex-wrap justify-center" >
     {% for _ in 0..my.gold %}
-      <div class="draggable">
+      <div data-draggable class="draggable">
         💰 
       </div>
     {% endfor %}

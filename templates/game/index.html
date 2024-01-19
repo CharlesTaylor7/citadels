@@ -21,7 +21,13 @@
   >
     {% let enabled = false %}
     {% include "city.html" %}
-    {% include "menu.html" %}
+    <section
+      id="menu"
+      class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
+    >
+      {% include "menu.html" %}
+      <div id="error"></div>
+    </section>
     <div
       class="flex flex-row"
     >

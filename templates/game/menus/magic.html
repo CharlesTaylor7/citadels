@@ -1,34 +1,29 @@
-<section
-  id="menu"
-  class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
->
-  <h2 class="m-2 underline text-lg font-semibold">
-    Magic
-  </h2>
-  <div class="flex flex-row flex-wrap gap-2">
-    <button 
-      class="btn btn-secondary"
-      hx-get="/game/menu/magic-swap-deck"
-      hx-swap="outerHTML"
-      hx-target="#menu"
-    >
-      Discard and draw from deck
-    </button>
-    <button 
-      class="btn btn-secondary"
-      hx-get="/game/menu/magic-swap-player"
-      hx-swap="outerHTML"
-      hx-target="#menu"
-    >
-      Swap hands with someone else
-    </button>
-    <button 
-      class="btn btn-accent"
-      hx-get="/game/actions"
-      hx-swap="outerHTML"
-      hx-target="#menu"
-    >
-      Cancel
-    </button>
-  </div>
-</section>
+<h2 class="m-2 underline text-lg font-semibold">
+  Magic
+</h2>
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    hx-get="/game/menu/magic-swap-deck"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+  >
+    Discard and draw from deck
+  </button>
+  <button 
+    class="btn btn-secondary"
+    hx-get="/game/menu/magic-swap-player"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+  >
+    Swap hands with someone else
+  </button>
+  <button 
+    class="btn btn-accent"
+    hx-get="/game/actions"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+  >
+    Cancel
+  </button>
+</div>

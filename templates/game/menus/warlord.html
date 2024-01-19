@@ -1,5 +1,5 @@
-<section
-  id="menu"
+<div id="init-warlord-menu" class="hidden"
+>
   class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
   _="
     init add .hidden to #city
@@ -18,8 +18,8 @@
     <button 
       class="btn btn-secondary"
       hx-post="/game/action"
-      hx-swap="outerHTML"
       hx-target="#menu"
+      hx-swap="morph:innerHTML"
       name="action"
       value="{{ ActionTag::WarlordDestroy.borrow()|debug }}"
     >
@@ -28,8 +28,8 @@
     <button 
       class="btn btn-accent"
       hx-get="/game/actions"
-      hx-swap="outerHTML"
       hx-target="#menu"
+      hx-swap="morph:innerHTML"
     >
       Cancel
     </button>

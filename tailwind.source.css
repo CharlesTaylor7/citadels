@@ -21,11 +21,11 @@
    * https://github.com/taye/interact.js/issues/595#issuecomment-372888571 
    */
   .draggable {
-    @apply cursor-grab touch-none;
+    @apply cursor-grab touch-none !important;
   }
 
   .dragging {
-    @apply cursor-grabbing;
+    @apply cursor-grabbing !important;
     z-index: 1000 !important; 
   }
 }

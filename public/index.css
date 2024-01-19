@@ -2031,12 +2031,12 @@ html {
    */
 
 .draggable {
-  cursor: grab;
-  touch-action: none;
+  cursor: grab !important;
+  touch-action: none !important;
 }
 
 .dragging {
-  cursor: grabbing;
+  cursor: grabbing !important;
   z-index: 1000 !important;
 }
 

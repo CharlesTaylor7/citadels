@@ -2,7 +2,7 @@
   class="btn {{ action|class }}"
   hx-post="/game/action"
   hx-target="#menu"
-  hx-swap="outerHTML"
+  hx-swap="morph:innerHTML"
   name="action"
   value="{{ action|debug }}"
   {% if context.disabled(action) %}

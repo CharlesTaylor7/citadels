@@ -134,7 +134,7 @@
             }
           });
 
-          interact('#menu .draggable')
+          interact('#menu [data-draggable]')
             .draggable({
               modifiers: [
                 interact.modifiers.restrictRect({
@@ -180,7 +180,7 @@
             }
           });
 
-          interact('#menu .draggable')
+          interact('#menu [data-draggable]')
             .draggable({
               modifiers: [
                 interact.modifiers.restrictRect({
@@ -202,7 +202,7 @@
             });
         }
         function enableDrag(parent) {
-          interact(`${parent} .draggable`)
+          interact(`${parent} [data-draggable]`)
           .draggable({
             inertia: true,
             modifiers: [

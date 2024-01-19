@@ -13,6 +13,9 @@
     draggable
     {% endif %}
   "
+  {% if draggable %}
+  data-draggable
+  {% endif %}
   data-x="{{ district.pos.x }}px"
   data-y="{{ district.pos.y }}px"
   style="

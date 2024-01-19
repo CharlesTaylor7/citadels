@@ -1,92 +1,82 @@
-<section
-  id="menu"
-  class="grow flex flex-col items-center p-2 bg-neutral-content gap-2 border border-base-200"
-  _="
-    init 
-      add @disabled to <#main-panel input/>
-    end
-  "
->
-  <h2 class="header">
-    {{ menu.header }}
-  </h2>
-  {% match menu.view %} 
-  {% when MenuView::Logs { logs } %}
-    <div class="flex flex-col gap-2 items-center">
-        <code class="text-sm">
-          {% for log in logs %}
-            {{ log }}
-            <br>
-          {% endfor %}
-        </code>
-    </div>
-  {% when MenuView::Call { abilities } %}
-    <div class="flex flex-col gap-2 items-center">
-      <div class="flex flex-row gap-2">
-        {% set action = ActionTag::GatherResourceGold %}
-        {% include "action.html" %}
-        {% set action = ActionTag::GatherResourceCards %}
-        {% include "action.html" %}
-      </div>
-      <div class="flex flex-row gap-2 items-center">
-        {% set action = ActionTag::Build %}
-        {% include "action.html" %}
-        Builds left: {{ context.game.remaining_builds }}
-      </div>
-      <div class="flex flex-row flex-wrap gap-2">
-        {% for action in abilities %}
-          {% include "action.html" %}
+<h2 class="header" _=" init add @disabled to <#main-panel input/>" >
+  {{ menu.header }}
+</h2>
+{% match menu.view %} 
+{% when MenuView::Logs { logs } %}
+  <div class="flex flex-col gap-2 items-center">
+      <code class="text-sm">
+        {% for log in logs %}
+          {{ log }}
+          <br>
         {% endfor %}
-      </div>
-      <div>
-        {% set action = ActionTag::EndTurn %}
-        <button 
-          class="btn {{ action|class }}"
-          hx-post="/game/action"
-          hx-swap="outerHTML"
-          hx-target="#menu"
-          name="action"
-          value="{{ action|debug }}"
-          {% if context.disabled(action) %}
-          disabled
-          {% endif %}
-        >
-          {{ context.label(action) }}
-        </button>
-      <div>
+      </code>
+  </div>
+{% when MenuView::Call { abilities } %}
+  <div class="flex flex-col gap-2 items-center">
+    <div class="flex flex-row gap-2">
+      {% set action = ActionTag::GatherResourceGold %}
+      {% include "action.html" %}
+      {% set action = ActionTag::GatherResourceCards %}
+      {% include "action.html" %}
     </div>
-  {% when MenuView::Draft with { actions, roles, discard } %}
-    <div class="flex flex-row flex-wrap gap-2">
-      {% set input_type = "radio" %} 
-      {% set enabled = true %} 
-      {% for role in roles %} 
-        {% include "role-card.html" %}
-      {% endfor %}
+    <div class="flex flex-row gap-2 items-center">
+      {% set action = ActionTag::Build %}
+      {% include "action.html" %}
+      Builds left: {{ context.game.remaining_builds }}
     </div>
     <div class="flex flex-row flex-wrap gap-2">
-      {% for action in actions %}
+      {% for action in abilities %}
         {% include "action.html" %}
       {% endfor %}
     </div>
-  {% when MenuView::Followup with { action, revealed} %}
-    <div class="flex flex-row flex-wrap gap-2">
-      {% set input_type = "radio" %}
-      {% set enabled = true %} 
-      {% set draggable = false %}
-      {% set district_tooltip_class = "" %}
-      {% for district in revealed %} 
-        {% include "district/square-cropped.html" %} 
-      {% endfor %}
-    </div>
-    <div class="flex flex-row flex-wrap gap-2">
+    <div>
+      {% set action = ActionTag::EndTurn %}
       <button 
-        class="btn btn-secondary"
+        class="btn {{ action|class }}"
         hx-post="/game/action"
+        hx-target="#menu"
+        hx-swap="morph:innerHTML"
         name="action"
         value="{{ action|debug }}"
+        {% if context.disabled(action) %}
+        disabled
+        {% endif %}
       >
-        Pick
+        {{ context.label(action) }}
       </button>
-    </div>
-  {% endmatch %}
-</section>
+    <div>
+  </div>
+{% when MenuView::Draft with { actions, roles, discard } %}
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "radio" %} 
+    {% set enabled = true %} 
+    {% for role in roles %} 
+      {% include "role-card.html" %}
+    {% endfor %}
+  </div>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% for action in actions %}
+      {% include "action.html" %}
+    {% endfor %}
+  </div>
+{% when MenuView::Followup with { action, revealed} %}
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "radio" %}
+    {% set enabled = true %} 
+    {% set draggable = false %}
+    {% set district_tooltip_class = "" %}
+    {% for district in revealed %} 
+      {% include "district/square-cropped.html" %} 
+    {% endfor %}
+  </div>
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="{{ action|debug }}"
+    >
+      Pick
+    </button>
+  </div>
+{% endmatch %}
