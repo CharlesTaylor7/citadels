@@ -1,17 +1,13 @@
 {% extends "base.html" %}
 {% block config_content %}
-  <div class="flex flex-row flex-wrap gap-1">
+  <div class="flex flex-row flex-wrap justify-center gap-3">
     {% for (index, option, district) in districts %}
       <label
         class="
+          group
           select-none
           cursor-pointer
-          p-1 box-content
           rounded-2xl
-          [&:has([data-index='1'])]:p-0
-          [&:has([data-index='1'])]:border
-          [&:has([data-index='1'])]:border-4
-          [&:has([data-index='1'])]:border-success
         "
         hx-post="/lobby/config/districts"
         hx-target="#config"
@@ -20,10 +16,10 @@
         {% if district.enabled %}
         _="
         on mouseenter
-          remove .hidden from <button/> in me
+          -- remove .hidden from <button/> in me
         end
         on mouseleave
-          add .hidden to <button/> in me
+          -- add .hidden to <button/> in me
         end
         "  
         {% endif %}
@@ -98,36 +94,36 @@
             i
             </div>
             {% if district.enabled %}
-              <div class="absolute z-10 top-10 w-full flex flex-col gap-3 justify-center items-center">
+              <div class="absolute z-10 top-[180px] w-full flex flex-row gap-3 justify-center items-center">
                 <button 
-                  class="hidden btn btn-primary"
+                  class="min-h-0 p-0 leaded h-8 w-8 btn group-has-[[value='Always']]:btn-accent"
                   type="button"
                   _="on click 
                     get the <input[name={{district.value}}]/> in <#config/>
                     set its value to 'Always'
                   "
                 >
-                  Always
+                  ✔️
                 </button>
                 <button 
-                  class="hidden btn btn-secondary"
+                  class="text-lg min-h-0 p-0 leaded h-8 w-8 btn group-has-[[value='Sometimes']]:btn-primary"
                   type="button"
                   _="on click 
                     get the <input[name={{district.value}}]/> in <#config/>
                     set its value to 'Sometimes'
                   "
                 >
-                  Sometimes
+                  🧋
                 </button>
                 <button 
-                  class="hidden btn btn-error"
+                  class="min-h-0 p-0 leaded h-8 w-8 btn group-has-[[value='Never']]:btn-error"
                   type="button"
                   _="on click 
                     get the <input[name={{district.value}}]/> in <#config/>
                     set its value to 'Never'
                   "
                 >
-                  Never
+                  ✖️
                 </button>
               </div>
             {% else %}
@@ -143,7 +139,14 @@
           xmlns:xlink="http://www.w3.org/1999/xlink"
           height="{{ asset.height }}"
           width="{{ asset.width }}"
-          style="filter: brightness({{ asset.brightness }})"
+          style="filter: 
+            brightness({{ asset.brightness }}) 
+            {% if district.enabled %}
+            saturate({{ asset.saturate }})
+            {% else %}
+            saturate(0)
+            {% endif %}
+          "
         >
           <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
                 height="{{ asset.scale_percentage }}%"

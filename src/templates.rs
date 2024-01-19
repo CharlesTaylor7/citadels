@@ -43,7 +43,8 @@ impl<'a> DistrictTemplate<'a> {
         let data = district.data();
         let length = 170.0;
         let scale = 10.0;
-        let (brightness, p_x, p_y) = Self::customize(district);
+        let (p_x, p_y) = Self::crop(district);
+        let (brightness, saturate) = Self::lighting(district);
         let offset_x = p_x * length;
         let offset_y = p_y * length;
 
@@ -64,6 +65,7 @@ impl<'a> DistrictTemplate<'a> {
             pos: Position::default(),
             artifacts: Cow::Owned(vec![]),
             asset: ImageAssetTemplate {
+                saturate,
                 brightness,
                 path: "/public/districts.jpeg",
                 height: length,
@@ -92,59 +94,115 @@ impl<'a> DistrictTemplate<'a> {
         template
     }
 
-    // brightness, x, y
-    fn customize(district: DistrictName) -> (f64, f64, f64) {
+    // x, y
+    fn crop(district: DistrictName) -> (f64, f64) {
         match district {
             // yellow
-            DistrictName::Manor => (1.3, 0.236, 0.2),
-            DistrictName::Palace => (1.3, 0.236, 0.05),
+            DistrictName::Manor => (0.236, 0.2),
+            DistrictName::Palace => (0.236, 0.05),
 
             // blue
-            DistrictName::Temple => (1.3, 0.236, 0.3),
-            DistrictName::Church => (1.3, 0.236, 0.4),
-            DistrictName::Monastery => (1.3, 0.236, 0.7),
-            DistrictName::Cathedral => (1.5, 0.236, 0.7),
+            DistrictName::Temple => (0.236, 0.3),
+            DistrictName::Church => (0.236, 0.4),
+            DistrictName::Monastery => (0.236, 0.7),
+            DistrictName::Cathedral => (0.236, 0.7),
 
             // green
-            DistrictName::Market => (1.3, 0.236, 0.7),
-            DistrictName::Tavern => (1.3, 0.236, 0.4),
-            DistrictName::TradingPost => (1.3, 0.236, 0.7),
-            DistrictName::Docks => (1.5, 0.236, 0.5),
-            DistrictName::Harbor => (1.3, 0.236, 0.7),
-            DistrictName::TownHall => (1.3, 0.236, 0.6),
+            DistrictName::Market => (0.236, 0.7),
+            DistrictName::Tavern => (0.236, 0.4),
+            DistrictName::TradingPost => (0.236, 0.7),
+            DistrictName::Docks => (0.236, 0.5),
+            DistrictName::Harbor => (0.236, 0.7),
+            DistrictName::TownHall => (0.236, 0.6),
 
             // red
-            DistrictName::Prison => (1.5, 0.236, 0.3),
-            DistrictName::Baracks => (1.3, 0.236, 0.3),
-            DistrictName::Fortress => (1.5, 0.236, 0.15),
+            DistrictName::Prison => (0.236, 0.3),
+            DistrictName::Baracks => (0.236, 0.3),
+            DistrictName::Fortress => (0.236, 0.15),
 
-            DistrictName::Library => (1.0, 0.27, 0.3),
-            DistrictName::GoldMine => (1.5, 0.236, 0.3),
-            DistrictName::Statue => (1.3, 0.236, 0.0),
-            DistrictName::SchoolOfMagic => (1.5, 0.236, 0.3),
-            DistrictName::ImperialTreasury => (1.5, 0.236, 0.3),
-            DistrictName::Observatory => (2.0, 0.236, 0.12),
-            DistrictName::MapRoom => (1.5, 0.236, 0.4),
-            DistrictName::DragonGate => (1.5, 0.236, 0.4),
-            DistrictName::SecretVault => (1.3, 0.236, 0.15),
-            DistrictName::Quarry => (1.3, 0.236, 0.5),
-            DistrictName::HauntedQuarter => (1.3, 0.236, 0.4),
-            DistrictName::GreatWall => (1.3, 0.236, 0.2),
-            DistrictName::WishingWell => (2.0, 0.236, 0.1),
-            DistrictName::Park => (1.2, 0.25, 0.0),
-            DistrictName::Museum => (1.2, 0.27, 0.1),
-            DistrictName::IvoryTower => (1.3, 0.236, 0.05),
-            DistrictName::Laboratory => (1.3, 0.236, 0.5),
-            DistrictName::Theater => (1.3, 0.236, 0.2),
-            DistrictName::PoorHouse => (1.3, 0.236, 0.5),
-            DistrictName::Smithy => (1.3, 0.236, 0.2),
-            DistrictName::Framework => (1.3, 0.236, 0.2),
-            DistrictName::ThievesDen => (1.3, 0.236, 0.3),
-            DistrictName::Basilica => (1.3, 0.236, 0.1),
-            DistrictName::Monument => (1.3, 0.236, 0.1),
-            DistrictName::Factory => (1.3, 0.236, 0.1),
-            DistrictName::Capitol => (1.3, 0.236, 0.1),
-            _ => (1.3, 0.236, 0.0),
+            DistrictName::Library => (0.27, 0.3),
+            DistrictName::GoldMine => (0.236, 0.3),
+            DistrictName::Statue => (0.236, 0.0),
+            DistrictName::SchoolOfMagic => (0.236, 0.3),
+            DistrictName::ImperialTreasury => (0.236, 0.3),
+            DistrictName::Observatory => (0.236, 0.12),
+            DistrictName::MapRoom => (0.236, 0.4),
+            DistrictName::DragonGate => (0.236, 0.4),
+            DistrictName::SecretVault => (0.236, 0.15),
+            DistrictName::Quarry => (0.236, 0.5),
+            DistrictName::HauntedQuarter => (0.236, 0.4),
+            DistrictName::GreatWall => (0.236, 0.2),
+            DistrictName::WishingWell => (0.236, 0.1),
+            DistrictName::Park => (0.25, 0.0),
+            DistrictName::Museum => (0.27, 0.1),
+            DistrictName::IvoryTower => (0.236, 0.05),
+            DistrictName::Laboratory => (0.236, 0.5),
+            DistrictName::Theater => (0.236, 0.2),
+            DistrictName::PoorHouse => (0.236, 0.5),
+            DistrictName::Smithy => (0.236, 0.2),
+            DistrictName::Framework => (0.236, 0.2),
+            DistrictName::ThievesDen => (0.236, 0.3),
+            DistrictName::Basilica => (0.236, 0.1),
+            DistrictName::Monument => (0.236, 0.1),
+            DistrictName::Factory => (0.236, 0.1),
+            DistrictName::Capitol => (0.236, 0.1),
+            _ => (0.236, 0.0),
+        }
+    }
+
+    // brightness, saturate
+    fn lighting(district: DistrictName) -> (f64, f64) {
+        match district {
+            // yellow
+            DistrictName::Manor => (1.3, 1.0),
+            DistrictName::Palace => (1.3, 1.0),
+
+            // blue
+            DistrictName::Temple => (1.3, 1.0),
+            DistrictName::Church => (1.3, 1.0),
+            DistrictName::Monastery => (1.3, 1.0),
+            DistrictName::Cathedral => (1.5, 1.0),
+
+            // green
+            DistrictName::Market => (1.3, 1.0),
+            DistrictName::Tavern => (1.3, 1.0),
+            DistrictName::TradingPost => (1.3, 1.0),
+            DistrictName::Docks => (1.5, 1.0),
+            DistrictName::Harbor => (1.3, 1.0),
+            DistrictName::TownHall => (1.3, 1.0),
+
+            // red
+            DistrictName::Prison => (1.5, 1.0),
+            DistrictName::Baracks => (1.3, 1.0),
+            DistrictName::Fortress => (1.5, 1.0),
+
+            DistrictName::Library => (1.0, 1.0),
+            DistrictName::GoldMine => (1.5, 1.0),
+            DistrictName::Statue => (1.3, 1.0),
+            DistrictName::SchoolOfMagic => (1.5, 1.0),
+            DistrictName::ImperialTreasury => (1.5, 1.0),
+            DistrictName::Observatory => (2.0, 1.0),
+            DistrictName::MapRoom => (1.5, 1.0),
+            DistrictName::DragonGate => (1.5, 1.0),
+            DistrictName::SecretVault => (1.3, 1.0),
+            DistrictName::Quarry => (1.3, 1.0),
+            DistrictName::HauntedQuarter => (1.3, 1.0),
+            DistrictName::GreatWall => (1.3, 1.0),
+            DistrictName::WishingWell => (2.0, 2.0),
+            DistrictName::Park => (1.2, 1.0),
+            DistrictName::Museum => (1.2, 1.0),
+            DistrictName::IvoryTower => (1.3, 1.0),
+            DistrictName::Laboratory => (1.3, 1.0),
+            DistrictName::Theater => (1.3, 1.0),
+            DistrictName::PoorHouse => (1.3, 1.0),
+            DistrictName::Smithy => (1.3, 1.0),
+            DistrictName::Framework => (1.3, 1.0),
+            DistrictName::ThievesDen => (1.3, 1.0),
+            DistrictName::Basilica => (1.3, 1.0),
+            DistrictName::Monument => (1.3, 1.0),
+            DistrictName::Factory => (1.3, 1.0),
+            DistrictName::Capitol => (1.3, 1.0),
+            _ => (1.3, 1.0),
         }
     }
 }
@@ -152,6 +210,7 @@ impl<'a> DistrictTemplate<'a> {
 #[derive(Clone)]
 pub struct ImageAssetTemplate {
     brightness: f64,
+    saturate: f64,
     height: f64,
     width: f64,
     offset_x: f64,
@@ -186,6 +245,7 @@ impl RoleTemplate {
             description: data.description,
             asset: ImageAssetTemplate {
                 brightness: 1.0,
+                saturate: 1.0,
                 path: "/public/roles.jpeg",
                 height,
                 width,
