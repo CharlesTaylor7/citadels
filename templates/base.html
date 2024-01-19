@@ -10,11 +10,24 @@
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+    <!--
     <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.js"></script>
+    Working around an idiomorph bug
+    -->
+    <script src="/public/vendor/idiomorph.js"></script>
     <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
     <script>
-      htmx.config.defaultSwapStyle = "none";
       Idiomorph.defaults.head = "none";
+      Idiomorph.defaults.callbacks.beforeNodeMorphed = (node) => {
+        console.log(node);
+        if (node.tagName == 'details') {
+          console.log(node);
+          //return false;
+        }
+        if (node.tagName == 'code') {
+          console.log(node);
+        }
+      }
 
       document.addEventListener("htmx:wsAfterMessage", (event) => {
         let node = event.detail.elt.querySelector("[data-replace-url]");
