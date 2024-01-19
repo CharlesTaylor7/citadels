@@ -14,31 +14,6 @@
     <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
     <script>
       Idiomorph.defaults.head = 'none';
-      Idiomorph.defaults.callbacks.beforeNodeAdded = (node) => {
-        console.log("attr", node.id)
-        if (node.id == 'mr-brightside') {
-          return false
-        }
-      }
-
-      Idiomorph.defaults.callbacks.beforeAttributeUpdated = (node) => {
-        console.log("attr", node.id)
-        if (node.id == 'mr-brightside') {
-          return false
-        }
-      }
-      Idiomorph.defaults.callbacks.beforeNodeMorphed = (node) => {
-        console.log("morph", node.id)
-        if (node.id == 'mr-brightside') {
-          return false
-        }
-      };
-      Idiomorph.defaults.callbacks.beforeNodeRemoved = (node) => {
-        console.log("remove", node.id)
-        if (node.id == 'mr-brightside') {
-          return false
-        }
-      };
 
       document.addEventListener("htmx:wsAfterMessage", (event) => {
         let node = event.detail.elt.querySelector("[data-replace-url]");
@@ -60,12 +35,6 @@
 
     </script>
     <style>
-      .dragging {
-        z-index: 1000 !important; 
-      }
-      #mr-brightside {
-        display: none;
-      }
     </style>
     <script>
       function enableDragon() {
@@ -88,8 +57,7 @@
             }
           );
           let el = document.querySelector("#mr-brightside");
-          el.setAttribute("hx-preserve", "");
-          el.setAttribute("im-preserve", "");
+          el.classList.add("hidden");
         }
 
         interact("#my-stash")
@@ -266,6 +234,6 @@
       preload="auto"
     >
     </audio>
-    <div id="mr-brightside" hx-swap-oob="none"></div>
+    <div class="hidden" id="mr-brightside" hx-swap-oob="none"></div>
   </body>
 </html>

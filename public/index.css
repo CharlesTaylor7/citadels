@@ -1649,12 +1649,6 @@ html {
   margin-top: 0;
 }
 
-.mockup-phone .display {
-  overflow: hidden;
-  border-radius: 40px;
-  margin-top: -25px;
-}
-
 .mockup-browser .mockup-browser-toolbar .input {
   position: relative;
   margin-left: auto;
@@ -2030,12 +2024,20 @@ html {
   text-decoration-line: underline;
 }
 
+/* 
+   * This is a workaround for mobile, so that scroll 
+   * and other gestures don't interfere with dragging
+   * https://github.com/taye/interact.js/issues/595#issuecomment-372888571 
+   */
+
 .draggable {
   cursor: grab;
+  touch-action: none;
 }
 
 .dragging {
   cursor: grabbing;
+  z-index: 1000 !important;
 }
 
 .static {

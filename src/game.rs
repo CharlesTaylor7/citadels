@@ -409,13 +409,9 @@ impl Game {
         score
     }
 
-    pub fn default_game() -> Option<Game> {
-        return None;
-        if cfg!(not(feature = "dev")) {
-            return None;
-        }
-        let lobby = Lobby::demo(vec!["Alph", "Brittany", "Charlie"]);
-        let mut game = Game::start(lobby, SeedableRng::from_entropy()).ok()?;
+    pub fn demo() -> Game {
+        let lobby = Lobby::demo();
+        let mut game = Game::start(lobby, SeedableRng::from_entropy()).unwrap();
 
         // deal out roles randomly
         let mut roles: Vec<_> = game.characters.iter().collect();
@@ -454,9 +450,9 @@ impl Game {
         game.museum.tuck(DistrictName::Docks);
         */
         game.active_turn = Turn::Call(Rank::One);
-        game.start_turn().ok()?;
+        game.start_turn().unwrap();
 
-        Some(game)
+        game
     }
 
     pub fn active_role(&self) -> Result<&GameRole> {

@@ -1,6 +1,6 @@
 use citadels::actions::{Action, CityDistrictTarget};
 use citadels::game::Game;
-use citadels::lobby::Lobby;
+use citadels::lobby::{self, Lobby};
 use citadels::random::Prng;
 use citadels::types::PlayerName;
 use rand::seq::SliceRandom;
@@ -8,8 +8,9 @@ use rand::Rng;
 use rand_core::SeedableRng;
 use std::borrow::Borrow;
 
-fn start_with_entropy(lobby: Vec<&str>) -> Game {
-    let lobby = Lobby::demo(lobby);
+fn start_with_entropy(players: Vec<&'static str>) -> Game {
+    let mut lobby = Lobby::demo();
+    lobby.players = players.into_iter().map(lobby::Player::demo).collect();
     Game::start(lobby, SeedableRng::from_entropy()).unwrap()
 }
 

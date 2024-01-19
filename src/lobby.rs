@@ -16,6 +16,15 @@ pub struct Player {
     pub name: PlayerName,
 }
 
+impl Player {
+    pub fn demo(name: &'static str) -> Self {
+        Self {
+            id: name.to_owned(),
+            name: PlayerName(name.to_owned()),
+        }
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct Lobby {
     pub players: Vec<Player>,
@@ -23,9 +32,10 @@ pub struct Lobby {
 }
 
 impl Lobby {
-    pub fn demo(players: Vec<&str>) -> Self {
+    pub fn demo() -> Self {
+        let players = vec!["Alph", "Brittany", "Charlie"];
         Self {
-            config: GameConfig::default(),
+            config: GameConfig::demo(),
             players: players
                 .into_iter()
                 .enumerate()
@@ -97,6 +107,12 @@ impl Default for GameConfig {
 }
 
 impl GameConfig {
+    fn demo() -> Self {
+        let mut config = Self::default();
+        config.roles.remove(&RoleName::Assassin);
+        config.roles.remove(&RoleName::Thief);
+        config
+    }
     pub fn set_roles(
         &mut self,
         roles: HashSet<RoleName>,
