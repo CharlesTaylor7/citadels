@@ -1,33 +1,34 @@
-<section
-  id="menu"
-  class="p-2 bg-neutral-content grow flex flex-col gap-2 items-center border border-base-200"
+<div
+  id="init-magic-swap-deck-menu"
+  class="hidden"
   _="
     init
       remove @disabled from <#hand input[name=district]/>
       add @type=checkbox to <#hand input[name=district]/>
   "
 >
-  <h2 class="m-2 underline text-lg font-semibold">
-    Magic: Discard, Draw
-  </h2>
-  <div class="flex flex-row flex-wrap gap-2">
-    <button 
-      class="btn btn-secondary"
-      hx-post="/game/action"
-      hx-swap="outerHTML"
-      hx-target="#menu"
-      name="action"
-      value="Magic"
-    >
-      Discard
-    </button>
-    <button 
-      class="btn btn-accent"
-      hx-get="/game/actions"
-      hx-swap="outerHTML"
-      hx-target="#menu"
-    >
-      Cancel
-    </button>
-  </div>
-</section>
+
+<h2 class="m-2 underline text-lg font-semibold">
+  Magic: Discard, Draw
+</h2>
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    hx-post="/game/action"
+    hx-swap="outerHTML"
+    hx-target="#menu"
+    name="action"
+    value="Magic"
+  >
+    Discard
+  </button>
+  <button 
+    class="btn btn-accent"
+    hx-get="/game/actions"
+    hx-swap="outerHTML"
+    hx-target="#menu"
+  >
+    Cancel
+  </button>
+</div>
