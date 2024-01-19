@@ -1,44 +1,15 @@
-## Goals
-- Support all characters and roles
-- Make it fun
-- Easter eggs
-- Stable, well tested.
-- Learn htmx, practice web dev
-- apply 12 factor app principles:
-    https://www.12factor.net/
 
-
-## Feature set
- - 26/30 unique districts
- - 16/27 game characters.
- - Dragon
- - Game config for picking roles and districts.
-
-## Bugs
-- Draft doesn't work
-
-## TODO
-
-- [ ] Rework menus to use drag and drop.
-- [ ] Rework menus as modals.
-- [ ] OOB swaps and updates targeted only at the players and screen elements that need to change. The current logic just liberally pushes a full page to everyone which wipes client state, like the opened logs, and the position(s) of dragged items.
-- [ ] Restore game state from lobby
-- [ ] Detect when building is impossible.
+## Shortlist
+- [ ] Provide user feedback when an action fails
 
 ## Ideas
+- [ ] Multi room support
+- [ ] Make log format and tenses consistent
+- [ ] Rework menus to use drag and drop.
+- [ ] Rework menus as modals.
+- [ ] Detect when building is impossible.
 - [ ] Make it possible to save a set of roles to use, for config.
-- [ ] UI change: show build ratio: "normal build" / "build limit"
-
-
-- Action logs
-    - [ ] Restore game from sqlite
-
-- UX
-    - [ ] Show confirmation messages inline
-    - [ ] Show errors inline
-        - https://stackoverflow.com/a/73615279/4875161
-    - [ ] Provide user feedback when a submission fails
-    - [ ] Make log format and tenses consistent
+- [ ] Restore game from sqlite
 
 
 ## Playtest feedback

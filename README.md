@@ -1,6 +1,22 @@
 ## Citadels
 This is a web app for playing the card game [Citadels](https://boardgamegeek.com/boardgame/478/citadels).
 
+## Goals
+- Support all characters and roles
+- Make it fun
+- Easter eggs
+- Stable, well tested.
+- Learn htmx, practice web dev
+- apply 12 factor app principles:
+    https://www.12factor.net/
+
+## Feature set
+ - 26/30 unique districts
+ - 16/27 game characters.
+ - Dragon
+ - Game config for picking roles and districts.
+
+
 ## Dev commands
 For most commands: use mprocs.
 

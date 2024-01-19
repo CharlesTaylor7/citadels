@@ -156,25 +156,29 @@ pub async fn register(
     app: State<AppState>,
     cookies: PrivateCookieJar,
     json: axum::Json<Register>,
-) -> Response {
+) -> Result<Response> {
     let username = json.username.trim();
     if username.len() == 0 {
-        return validation_error("username cannot be empty".into());
+        return Err(form_feedback("username cannot be empty".into()));
     }
 
     if username.chars().any(|c| !c.is_ascii_alphanumeric()) {
-        return validation_error("username can only contain letter a-z, A-Z, or digits".into());
+        return Err(form_feedback(
+            "username can only contain letter a-z, A-Z, or digits".into(),
+        ));
     }
 
     if username.len() > 16 {
-        return validation_error("username cannot be more than 16 characters long.".into());
+        return Err(form_feedback(
+            "username cannot be more than 16 characters long.".into(),
+        ));
     }
 
     let cookie = cookies.get("player_id").unwrap();
     let player_id = cookie.value();
     let mut lobby = app.lobby.lock().unwrap();
     if let Err(err) = lobby.register(player_id, username) {
-        return validation_error(err);
+        return Err(form_feedback(err));
     }
 
     let html = Html(
@@ -186,24 +190,28 @@ pub async fn register(
     );
     app.connections.lock().unwrap().broadcast(html);
 
-    cookies
+    Ok(cookies
         .add(Cookie::new("username", username.to_owned()))
-        .into_response()
+        .into_response())
 }
 
-pub async fn start(app: State<AppState>) -> Response {
+pub async fn start(app: State<AppState>) -> Result<Response> {
     let mut lobby = app.lobby.lock().unwrap();
     if lobby.players.len() < 2 {
-        return validation_error("Need at least 2 players to start a game".into());
+        return Err(form_feedback(
+            "Need at least 2 players to start a game".into(),
+        ));
     }
 
     if lobby.players.len() > 8 {
-        return validation_error("You cannot have more than 8 players per game".into());
+        return Err(form_feedback(
+            "You cannot have more than 8 players per game".into(),
+        ));
     }
 
     let mut game = app.game.lock().unwrap();
     if game.is_some() {
-        return validation_error("Can not overwrite a game in progress".into());
+        return Err(form_feedback("Can not overwrite a game in progress".into()));
     }
     let clone = lobby.clone();
     match Game::start(clone, SeedableRng::from_entropy()) {
@@ -213,7 +221,7 @@ pub async fn start(app: State<AppState>) -> Response {
             *lobby = Lobby::default();
         }
         Err(err) => {
-            return validation_error(err);
+            return Err(form_feedback(err));
         }
     }
 
@@ -222,7 +230,7 @@ pub async fn start(app: State<AppState>) -> Response {
             .lock()
             .unwrap()
             .broadcast_each(move |id| GameTemplate::render_with(game, Some(id)));
-        return (StatusCode::OK).into_response();
+        return Ok((StatusCode::OK).into_response());
     }
     unreachable!()
 }
@@ -301,19 +309,10 @@ pub async fn get_ws(
     }
 }
 
-fn validation_error(err: Cow<'static, str>) -> Response {
+fn form_feedback(err: Cow<'static, str>) -> ErrorResponse {
     (
         StatusCode::BAD_REQUEST,
         [("HX-Retarget", "#error"), ("HX-Reswap", "innerHTML")],
-        err,
-    )
-        .into_response()
-}
-
-fn bad_request(err: Cow<'static, str>) -> ErrorResponse {
-    (
-        StatusCode::BAD_REQUEST,
-        [("HX-Retarget", "#errors"), ("HX-Reswap", "innerHTML")],
         err,
     )
         .into()
@@ -331,7 +330,7 @@ async fn submit_game_action(
     let active_player = game.active_player()?;
 
     if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
-        return Err(bad_request("not your turn!".into()));
+        return Err(form_feedback("not your turn!".into()));
     }
 
     log::info!("{:#?}", action.0);
@@ -348,7 +347,7 @@ async fn submit_game_action(
 
                     Ok((StatusCode::OK, [("HX-Reswap", "none")]).into_response())
                 }
-                Err(error) => Err(bad_request(error)),
+                Err(error) => Err(form_feedback(error)),
             }
         }
         ActionSubmission::Incomplete { action } => match action {
@@ -426,7 +425,7 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
 
-            _ => Err(bad_request("missing selection".into())),
+            _ => Err(form_feedback("missing selection".into())),
         },
     }
 }
