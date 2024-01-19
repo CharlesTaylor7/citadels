@@ -26,9 +26,20 @@
         }
       };
 
-      Idiomorph.defaults.callbacks.afterNodeMorphed = (node) => {
-        _hyperscript.processNode(node);
-        console.log("morph", node);
+      Idiomorph.defaults.callbacks.beforeNodeMorphed = (oldNode, newNode) => {
+        if (
+          oldNode.nodeType == Node.ELEMENT_NODE && 
+          oldNode.getAttribute('_') != newNode.getAttribute('_')
+        ) {
+          newNode.setAttribute('data-reprocess-node', 'true');
+        }
+      };
+
+      Idiomorph.defaults.callbacks.afterNodeMorphed = (_, node) => {
+        if (node.getAttribute && node.getAttribute('data-reprocess-node')) {
+          _hyperscript.evaluate(node.getAttribute('_'), { me: node });
+          node.removeAttribute('data-reprocess-node');
+        }
       };
 
       /*
