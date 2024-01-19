@@ -37,10 +37,13 @@
               hx-target="#config"
               hx-swap="morph"
               name="{{ role.value }}"
-              _="on keyup [key is 'Enter'] 
+              _="
+                on click blur() me
+                on keyup [key is 'Enter'] 
                   set my checked to not my checked 
                   trigger change
-                "
+                end
+              "
               
               {% if selected %}
                 checked
