@@ -25,12 +25,14 @@
         <button 
           class="btn btn-primary" 
           hx-post="/lobby/register" 
+          hx-swap="none"
         >
           Join
         </button>
         <button
           class="btn btn-accent"
           hx-post="/game"
+          hx-target="#page-root"
         >
           Start
         </button>

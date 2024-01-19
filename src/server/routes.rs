@@ -134,7 +134,7 @@ pub async fn post_role_config(
     let roles = json.0.into_keys().collect::<HashSet<_>>();
     if let Err((roles, ranks)) = lobby.config.set_roles(roles) {
         Err((
-            StatusCode::UNPROCESSABLE_ENTITY,
+            StatusCode::BAD_REQUEST,
             RoleConfigTemplate::from_config(&roles, &ranks).to_html(),
         )
             .into())
@@ -253,7 +253,7 @@ pub async fn get_game_actions(
     let active_player = game.active_player()?;
 
     if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
-        return Err((StatusCode::UNPROCESSABLE_ENTITY, "not your turn!").into());
+        return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
     }
 
     MenuTemplate::from(game, Some(cookie.value())).to_html()
@@ -303,7 +303,7 @@ pub async fn get_ws(
 
 fn validation_error(err: Cow<'static, str>) -> Response {
     (
-        StatusCode::UNPROCESSABLE_ENTITY,
+        StatusCode::BAD_REQUEST,
         [("HX-Retarget", "#error"), ("HX-Reswap", "innerHTML")],
         err,
     )
