@@ -1,18 +1,23 @@
 {% extends "base.html" %}
 {% block config_content %}
     <div class="flex flex-row gap-1">
-      {% for col in cols %}
-      <div class="flex flex-col gap-1 
-        rounded-lg
-        border border-1 
-        {% if col.invalid %}
-        border-error
-        {% else %}
-        border-transparent
-        {% endif %}
-        ">
+      {% for (i, col) in cols.iter().enumerate() %}
+      <div 
+        id="column-{{i}}"
+        class="
+          flex flex-col gap-1 
+          rounded-lg
+          border border-1 
+          {% if col.invalid %}
+          border-error
+          {% else %}
+          border-transparent
+          {% endif %}
+        "
+      >
         {% for (selected, role) in col.roles %}
           <label
+            id="card-{{role.value}}"
             class="
               rounded-xl
               focus-within:ring-4
@@ -25,17 +30,16 @@
             "
           >
             <input
+              id="checkbox-{{role.value}}"
               type="checkbox"
               class="absolute top-0 peer opacity-0"
               hx-post="/lobby/config/roles"
               hx-target="#config"
-              hx-swap="outerHTML"
+              hx-swap="morph"
               name="{{ role.value }}"
               _="on keyup [key is 'Enter'] 
                   set my checked to not my checked 
                   trigger change
-                  log me
-                  -- trigger me
                 "
               
               {% if selected %}
