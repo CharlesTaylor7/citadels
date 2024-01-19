@@ -97,9 +97,8 @@
             >
             i
             </div>
-
-            <div class="absolute z-10 top-10 w-full text-center text-sm ">
-              {% if district.enabled %}
+            {% if district.enabled %}
+              <div class="absolute z-10 top-10 w-full flex flex-col gap-3 justify-center items-center">
                 <button 
                   class="hidden btn btn-primary"
                   type="button"
@@ -130,10 +129,12 @@
                 >
                   Never
                 </button>
-              {% else %}
+              </div>
+            {% else %}
+              <div class="absolute z-10 top-24 w-full text-center text-sm ">
                 Coming Soon...
-              {% endif %}
-            </div>
+              </div>
+            {% endif %}
         </div>
         {% set asset = district.asset %}
         <svg 
