@@ -1,35 +1,18 @@
 {% extends "base.html" %}
 {% block config_content %}
   <div class="flex flex-row flex-wrap justify-center gap-3">
-    {% for (index, option, district) in districts %}
+    {% for (option, district) in districts %}
       <label
-        class="
-          group
-          select-none
-          cursor-pointer
-          rounded-2xl
-        "
+        class="group select-none cursor-pointer rounded-2xl"
         hx-post="/lobby/config/districts"
         hx-target="#config"
         hx-swap="outerHTML"
         hx-trigger="click"
-        {% if district.enabled %}
-        _="
-        on mouseenter
-          -- remove .hidden from <button/> in me
-        end
-        on mouseleave
-          -- add .hidden to <button/> in me
-        end
-        "  
-        {% endif %}
       >
         <input
-          data-index="{{ index }}"
-          data-vals="{{ array }}"
           type="hidden"
           name="{{ district.value }}"
-          value="{{ option|debug }}"
+          value="{{ option }}"
           class="peer"
         />
         <div 
