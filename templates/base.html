@@ -13,7 +13,8 @@
     <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.js"></script>
     <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
     <script>
-      Idiomorph.defaults.head = 'none';
+      htmx.config.defaultSwapStyle = "none";
+      Idiomorph.defaults.head = "none";
 
       document.addEventListener("htmx:wsAfterMessage", (event) => {
         let node = event.detail.elt.querySelector("[data-replace-url]");
@@ -223,7 +224,6 @@
     class="h-screen text-base-content text-xl"
     hx-ext="ws,morph,json-enc"
     ws-connect="/ws"
-    hx-swap="none"
   >
     {% block content %} 
     {% endblock %}

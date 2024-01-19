@@ -246,6 +246,7 @@ pub struct Game {
     pub followup: Option<FollowupAction>,
     pub pause_for_response: Option<ResponseAction>,
     pub turn_actions: Vec<Action>,
+    pub turn_normal_builds: usize,
     pub first_to_complete: Option<PlayerIndex>,
     pub logs: Vec<Cow<'static, str>>,
     pub db_log: Option<DbLog>,
@@ -522,9 +523,10 @@ impl Game {
             draft: Draft::default(),
             deck: Deck::new(deck),
             active_turn: Turn::Draft(crowned),
+            turn_actions: Vec::new(),
+            turn_normal_builds: 0,
             logs: Vec::new(),
             followup: None,
-            turn_actions: Vec::new(),
             museum: Museum::default(),
             first_to_complete: None,
         };
@@ -719,6 +721,8 @@ impl Game {
             return self.start_turn();
         }
         c.revealed = true;
+        self.turn_normal_builds = c.role.build_limit();
+
         let player = self.players[c.player.unwrap().0].borrow_mut();
         c.logs
             .push(format!("{} started their turn.", player.name).into());
