@@ -18,8 +18,8 @@ Select a district from your hand
   <button 
     class="btn btn-secondary"
     hx-post="/game/action"
-    hx-swap="outerHTML"
     hx-target="#menu"
+    hx-swap="morph:innerHTML"
     name="action"
     value="Museum"
   >
@@ -28,8 +28,8 @@ Select a district from your hand
   <button 
     class="btn btn-accent"
     hx-get="/game/actions"
-    hx-swap="outerHTML"
     hx-target="#menu"
+    hx-swap="morph:innerHTML"
   >
     Cancel
   </button>

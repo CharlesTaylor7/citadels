@@ -6,8 +6,8 @@
   <button 
     class="btn btn-secondary"
     hx-post="/game/action"
-    hx-swap="outerHTML"
     hx-target="#menu"
+    hx-swap="morph:innerHTML"
     hx-vals='{ "resource": "Gold"}'
     name="action"
     value="NavigatorGain"
@@ -17,8 +17,8 @@
   <button 
     class="btn btn-secondary"
     hx-post="/game/action"
-    hx-swap="outerHTML"
     hx-target="#menu"
+    hx-swap="morph:innerHTML"
     hx-vals='{ "resource": "Cards"}'
     name="action"
     value="NavigatorGain"
@@ -28,8 +28,8 @@
   <button 
     class="btn btn-accent"
     hx-get="/game/actions"
-    hx-swap="outerHTML"
     hx-target="#menu"
+    hx-swap="morph:innerHTML"
   >
     Cancel
   </button>

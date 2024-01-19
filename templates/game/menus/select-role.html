@@ -1,4 +1,4 @@
-<h2 class="m-2 underline text-lg font-semibold">
+<h2 class="header">
   {{ header }}
 </h2>
 
@@ -9,13 +9,14 @@
     {% include "game/role-card.html" %}
   {% endfor %}
 </div>
+
 <div class="m-2 flex flex-row flex-wrap gap-2 items-center">
   {% include "game/action.html" %}
   <button 
     class="btn btn-accent"
     hx-get="/game/actions"
-    hx-swap="outerHTML"
     hx-target="#menu"
+    hx-swap="morph:innerHTML"
   >
     Cancel
   </button>
