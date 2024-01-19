@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use crate::game::Game;
-use crate::random::{Seed};
+use crate::random::Seed;
 
 use crate::{game, lobby};
 
