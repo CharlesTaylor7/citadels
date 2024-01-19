@@ -25,19 +25,39 @@
             {% match marker %} 
             {% when Marker::Killed %}            
               <span 
-                data-tip="Killed by the Assassin"
+                data-tip="Killed"
                 class="tooltip tooltip-bottom tooltip-secondary text-xl"
               > 
                 ☠️
               </span>
             {% when Marker::Robbed %}
               <span 
-                data-tip="Robbed by the Thief"
+                data-tip="Robbed"
                 class="tooltip tooltip-bottom tooltip-secondary text-xl"
               > 
                 💸
               </span>
-            {% else %}
+            {% when Marker::Warrant with { signed } %}
+              <span 
+                data-tip="Warrant"
+                class="tooltip tooltip-bottom tooltip-secondary text-xl"
+              > 
+                📜
+              </span>
+            {% when Marker::Blackmail with { flowered } %}
+              <span 
+                data-tip="Blackmail"
+                class="tooltip tooltip-bottom tooltip-secondary text-xl"
+              > 
+                🥀
+              </span>
+            {% when Marker::Bewitched %}
+              <span 
+                data-tip="Bewitched"
+                class="tooltip tooltip-bottom tooltip-secondary text-xl"
+              > 
+                🦹‍♂️
+              </span>
             {% endmatch %}
           {% endfor %}
           {% if role.name == RoleName::TaxCollector %}
