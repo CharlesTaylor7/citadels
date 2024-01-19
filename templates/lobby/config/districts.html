@@ -132,17 +132,18 @@
               </div>
             {% else %}
               <div class="absolute z-10 top-24 w-full text-center text-sm ">
-                Coming Soon...
+                <!--Coming Soon...-->
               </div>
             {% endif %}
         </div>
         {% set asset = district.asset %}
         <svg 
-          class="rounded-b-xl saturate-100 peer-[[data-index='2']]:saturate-0"
+          class="rounded-b-xl"
           xmlns="http://www.w3.org/2000/svg"
           xmlns:xlink="http://www.w3.org/1999/xlink"
           height="{{ asset.height }}"
           width="{{ asset.width }}"
+          style="filter: brightness({{ asset.brightness }})"
         >
           <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
                 height="{{ asset.scale_percentage }}%"

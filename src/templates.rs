@@ -133,7 +133,17 @@ impl<'a> DistrictTemplate<'a> {
             DistrictName::WishingWell => (2.0, 0.236, 0.1),
             DistrictName::Park => (1.2, 0.25, 0.0),
             DistrictName::Museum => (1.2, 0.27, 0.1),
-            DistrictName::IvoryTower => (1.3, 0.236, 0.1),
+            DistrictName::IvoryTower => (1.3, 0.236, 0.05),
+            DistrictName::Laboratory => (1.3, 0.236, 0.5),
+            DistrictName::Theater => (1.3, 0.236, 0.2),
+            DistrictName::PoorHouse => (1.3, 0.236, 0.5),
+            DistrictName::Smithy => (1.3, 0.236, 0.2),
+            DistrictName::Framework => (1.3, 0.236, 0.2),
+            DistrictName::ThievesDen => (1.3, 0.236, 0.3),
+            DistrictName::Basilica => (1.3, 0.236, 0.1),
+            DistrictName::Monument => (1.3, 0.236, 0.1),
+            DistrictName::Factory => (1.3, 0.236, 0.1),
+            DistrictName::Capitol => (1.3, 0.236, 0.1),
             _ => (1.3, 0.236, 0.0),
         }
     }

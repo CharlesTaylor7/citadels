@@ -12,11 +12,12 @@
  - 26/30 unique districts
  - 16/27 game characters.
  - Dragon
+ - Game config for picking roles and districts.
 
+## Bugs
+- Draft doesn't work
 
 ## TODO
-- [x] Edit role config
-- [ ] Edit district config 
 
 - [ ] Rework menus to use drag and drop.
 - [ ] Rework menus as modals.
@@ -24,21 +25,10 @@
 - [ ] Restore game state from lobby
 - [ ] Detect when building is impossible.
 
-- Game Configuration
-    - [ ] Pick roles
-    - [ ] Pick unique districts
-
 ## Ideas
 - [ ] Make it possible to save a set of roles to use, for config.
 - [ ] UI change: show build ratio: "normal build" / "build limit"
 
-
-- Lobby
-    - [x] Enforce unique names in a game
-    - [x] Impose username character limit
-    - [x] html escape names. Askama does this by default.
-    - [x] Make some characters illegal: commas, whitespace
-    - [x] Trim spaces around a name before storing.
 
 - Action logs
     - [ ] Restore game from sqlite
