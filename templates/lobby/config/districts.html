@@ -100,27 +100,25 @@
                   type="button"
                   _="on click 
                     get the <input[name={{district.value}}]/> in <#config/>
-                    set its value to 'Always'
+                    if its value is 'Always'
+                      set its value to 'Sometimes'
+                    else
+                      set its value to 'Always'
+                    end
                   "
                 >
                   ✔️
-                </button>
-                <button 
-                  class="text-xl min-h-0 p-0 leaded h-8 w-8 btn group-has-[[value='Sometimes']]:btn-primary"
-                  type="button"
-                  _="on click 
-                    get the <input[name={{district.value}}]/> in <#config/>
-                    set its value to 'Sometimes'
-                  "
-                >
-                  🧋
                 </button>
                 <button 
                   class="min-h-0 p-0 leaded h-8 w-8 btn group-has-[[value='Never']]:btn-error"
                   type="button"
                   _="on click 
                     get the <input[name={{district.value}}]/> in <#config/>
-                    set its value to 'Never'
+                    if its value is 'Never'
+                      set its value to 'Sometimes'
+                    else
+                      set its value to 'Never'
+                    end
                   "
                 >
                   ✖️
