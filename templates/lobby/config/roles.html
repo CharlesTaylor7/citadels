@@ -14,6 +14,8 @@
         {% for (selected, role) in col.roles %}
           <label
             class="
+              rounded-xl
+              focus-within:ring-4
               relative
               {% if role.enabled %}
               cursor-pointer
@@ -24,11 +26,18 @@
           >
             <input
               type="checkbox"
-              class="peer hidden"
+              class="absolute top-0 peer opacity-0"
               hx-post="/lobby/config/roles"
               hx-target="#config"
               hx-swap="outerHTML"
               name="{{ role.value }}"
+              _="on keyup [key is 'Enter'] 
+                  set my checked to not my checked 
+                  trigger change
+                  log me
+                  -- trigger me
+                "
+              
               {% if selected %}
                 checked
               {% endif %}
