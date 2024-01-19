@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 
 use crate::game::Game;
-use crate::random::{Prng, Seed};
-use crate::roles::RoleName;
+use crate::random::{Seed};
+
 use crate::{game, lobby};
-use rand_core::SeedableRng;
+
 use rusqlite::{Connection, Result};
 
 use crate::actions::Action;
@@ -45,7 +45,7 @@ impl DbLog {
         Ok(())
     }
 
-    pub fn restore(game_id: &str) -> game::Result<Game> {
+    pub fn restore(_game_id: &str) -> game::Result<Game> {
         Err("not implemented".into())
         /*
         let path = format!("{}/volume/games.db", env!("CARGO_MANIFEST_DIR"));

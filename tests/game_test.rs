@@ -1,12 +1,12 @@
 use citadels::actions::{Action, CityDistrictTarget};
 use citadels::game::Game;
-use citadels::lobby::{GameConfig, Lobby};
+use citadels::lobby::{Lobby};
 use citadels::random::Prng;
 use citadels::types::PlayerName;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use rand_core::SeedableRng;
-use std::borrow::{Borrow, BorrowMut};
+use std::borrow::{Borrow};
 
 fn start_with_entropy(lobby: Vec<&str>) -> Game {
     let lobby = Lobby::demo(lobby);
@@ -22,7 +22,7 @@ fn test_complete_city_size() {
     assert_eq!(game.complete_city_size(), 7);
 }
 
-fn random_action(game: &Game, rng: &mut Prng) -> Action {
+fn random_action(_game: &Game, _rng: &mut Prng) -> Action {
     todo!()
 }
 
