@@ -2,6 +2,7 @@
 {% block content %}
 <main
   id="page-root" 
+  hx-swap-oob="morph"
   data-replace-url="/lobby"
   data-theme="dark"
   class="bg-base-100 h-full"
@@ -19,20 +20,19 @@
           type="text"
           name="username"
           value="{{ username }}"
+          autocomplete="username"
         />
       </label>
       <div class="flex flex-row gap-3">
         <button 
           class="btn btn-primary" 
           hx-post="/lobby/register" 
-          hx-swap="none"
         >
           Join
         </button>
         <button
           class="btn btn-accent"
           hx-post="/game"
-          hx-target="#page-root"
         >
           Start
         </button>

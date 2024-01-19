@@ -688,7 +688,9 @@ impl Game {
             role.logs.push(log.into());
         }
 
-        if tag == ActionTag::EndTurn {
+        if tag == ActionTag::EndTurn
+            || self.active_turn.draft().is_some() && self.allowed_actions().is_empty()
+        {
             self.end_turn()?;
         }
 
