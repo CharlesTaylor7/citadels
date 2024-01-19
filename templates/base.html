@@ -21,21 +21,27 @@
         if (node.tagName === "DETAILS" && name == "open") {
           return false;
         }
-      }
+      };
 
+      Idiomorph.defaults.callbacks.afterNodeMorphed = (node) => {
+        _hyperscript.processNode(node);
+        console.log("morph", node);
+      };
+
+      /*
       Idiomorph.defaults.callbacks.beforeNodeRemoved = (node) => {
         console.log("removed", node);
       }
 
-      Idiomorph.defaults.callbacks.beforeNodeMorphed = (oldNode, newNode) => {
-        if (oldNode.tagName === "DETAILS") {
-          console.log("morph", oldNode.open, newNode.open)
-        }
+      Idiomorph.defaults.callbacks.beforeNodeAdded = (node) => {
+        console.log("added", node);
       }
 
-      Idiomorph.defaults.callbacks.beforeNodeAdded = (node) => {
-        console.log("added", node)
+      Idiomorph.defaults.callbacks.beforeNodeMorphed = (oldNode, newNode) => {
+        console.log("morph", oldNode, newNode);
       }
+      */
+
 
       document.addEventListener("htmx:wsAfterMessage", (event) => {
         let node = event.detail.elt.querySelector("[data-replace-url]");
@@ -156,8 +162,8 @@
             });
         }
 
-
         function enableWarrants() {
+          console.log("enable warrants")
           interact('#menu [data-dropzone]').dropzone({
             ondrop(event) {
               let dropzone = event.currentTarget;
