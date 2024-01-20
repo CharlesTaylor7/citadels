@@ -1,3 +1,4 @@
+pub mod faq;
 pub mod filters;
 pub mod game;
 pub mod lobby;

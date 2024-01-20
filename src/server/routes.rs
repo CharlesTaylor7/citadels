@@ -4,6 +4,7 @@ use crate::game::Game;
 use crate::lobby::{ConfigOption, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
+use crate::templates::faq::{DistrictFaqTemplate, RoleFaqTemplate};
 use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
@@ -33,6 +34,7 @@ pub fn get_router() -> Router {
     Router::new()
         .route("/", get(index))
         .route("/version", get(get_version))
+        .route("/faq/:name", get(get_faq))
         .route("/lobby", get(get_lobby))
         .route("/lobby/config/districts", get(get_district_config))
         .route("/lobby/config/districts", post(post_district_config))
@@ -59,6 +61,19 @@ pub async fn get_version() -> impl IntoResponse {
     std::env::var("VERSION")
         .map_or(Cow::Borrowed("dev"), Cow::Owned)
         .into_response()
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum CardName {
+    Role(RoleName),
+    District(DistrictName),
+}
+pub async fn get_faq(path: Path<CardName>) -> impl IntoResponse {
+    match path.0 {
+        CardName::District(d) => DistrictFaqTemplate::from(d).to_html(),
+        CardName::Role(r) => RoleFaqTemplate::from(r).to_html(),
+    }
 }
 
 pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
