@@ -622,8 +622,6 @@ impl Game {
         if let Some(o) = self.pause_for_response.as_ref() {
             return match o {
                 ResponseAction::Warrant { .. } => {
-                    let mut actions = Vec::with_capacity(2);
-                    actions.push(ActionTag::Pass);
                     if self
                         .active_role()
                         .unwrap()
@@ -631,9 +629,10 @@ impl Game {
                         .iter()
                         .any(|m| *m == Marker::Warrant { signed: true })
                     {
-                        actions.push(ActionTag::RevealWarrant);
+                        return vec![ActionTag::RevealWarrant, ActionTag::Pass];
+                    } else {
+                        return vec![ActionTag::Pass];
                     }
-                    actions
                 }
                 ResponseAction::Blackmail => vec![ActionTag::RevealBlackmail, ActionTag::Pass],
             };
@@ -832,6 +831,9 @@ impl Game {
             // active role is the suspended turn
             Action::RevealWarrant => match self.pause_for_response {
                 Some(ResponseAction::Warrant { gold, district }) => {
+                    if self.active_player().unwrap().city_has(district) {
+                        return Err("Cannot confiscate a district you already have.".into());
+                    }
                     let player = self.active_role().unwrap().player.unwrap().0;
                     self.players[player].gold += gold;
                     let magistrate = self.active_player_mut().unwrap();
