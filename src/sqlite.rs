@@ -25,10 +25,12 @@ impl DbLog {
     // https://news.ycombinator.com/item?id=33975635
     // https://github.com/rusqlite/rusqlite
     pub fn new(seed: Seed, players: &[lobby::Player]) -> game::Result<Self> {
+        return Err("TODO".into());
+
         let path = format!("{}/volume/games.db", env!("CARGO_MANIFEST_DIR"));
 
         let players = serde_json::to_string(players).map_err(|e| e.to_string())?;
-        let conn = Connection::open(path).unwrap();
+        let conn = Connection::open(path).map_err(|e| e.to_string())?;
         let game_id: usize = conn
             .prepare("INSERT INTO games (seed, players) VALUES (?1, ?2) RETURNING (id)")
             .map_err(|e| e.to_string())?
