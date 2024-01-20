@@ -1,3 +1,6 @@
+## 0.3.1 
+Fix the magistrate reveal warrant menu
+
 ## 0.3.0
 
 UI:

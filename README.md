@@ -66,8 +66,8 @@ Evaluating:
 ## Releases
 How to release:
 - Bump the version in fly.toml
-- Run: `fly deploy`
 - Update changelog
+- Run: `fly deploy`
 - git commit changes
 - Git tag the release 
 

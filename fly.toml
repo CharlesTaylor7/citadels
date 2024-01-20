@@ -27,4 +27,4 @@ primary_region = "iad"
     port = "443"
 
 [env]
-  VERSION = "0.3.0"
+  VERSION = "0.3.1"
