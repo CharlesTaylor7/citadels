@@ -832,6 +832,8 @@ impl Game {
             // active role is the suspended turn
             Action::RevealWarrant => match self.pause_for_response {
                 Some(ResponseAction::Warrant { gold, district }) => {
+                    self.pause_for_response = None;
+
                     let player = self.active_role().unwrap().player.unwrap().0;
                     self.players[player].gold += gold;
                     self.active_player_mut()
@@ -840,8 +842,12 @@ impl Game {
                         .push(CityDistrict::from(district));
 
                     ActionOutput {
-                        log:
-                    format!("The Magistrate ({}) reveals a signed warrant and takes the district. {} gold is refunded.",self.active_player().unwrap().name, gold).into(),
+                        log: format!(
+                            "The Magistrate ({}) reveals a signed warrant and takes the {}; {} gold is refunded.",
+                            self.active_player().unwrap().name, 
+                            district.data().display_name, 
+                            gold
+                        ).into(),
                         followup: None,
                     }
                 }
@@ -881,6 +887,8 @@ impl Game {
                     .markers
                     .iter()
                     .any(|marker| *marker == Marker::Blackmail { flowered: true });
+
+                self.pause_for_response = None;
                 if is_flowered {
                     let target = self.active_role().unwrap().player.unwrap().0;
                     let gold = std::mem::replace(&mut self.players[target].gold, 0);
@@ -1137,7 +1145,7 @@ impl Game {
 
                     ActionOutput {
                         log: format!(
-                            "They try to build a {}; but they have a warrant.",
+                            "They begin to build a {}; waiting on the Magistrate's response.",
                             district.display_name
                         )
                         .into(),
