@@ -110,9 +110,9 @@ impl GameConfig {
     fn demo() -> Self {
         let mut config = Self::default();
         config.roles.remove(&RoleName::Assassin);
-        config.roles.remove(&RoleName::Thief);
         config
     }
+
     pub fn set_roles(
         &mut self,
         roles: HashSet<RoleName>,

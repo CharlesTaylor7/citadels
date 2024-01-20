@@ -152,11 +152,7 @@ impl RoleName {
             Self::TaxCollector => true,
             Self::Queen => true,
             Self::Trader => true,
-            // needs menu
-            // seems really strong, but also makes you a target for the thief/magician
             Self::Navigator => true,
-
-            // shake up the assassin + thief meta
             Self::Magistrate => true,
 
             // WIP: very close
