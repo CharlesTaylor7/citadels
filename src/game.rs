@@ -1367,10 +1367,10 @@ impl Game {
             }
             Action::Blackmail { flowered, unmarked } => {
                 if flowered == unmarked {
-                    return Err("cannot blackmail the same role twice".into());
+                    return Err("Cannot blackmail someone twice. ".into());
                 }
                 if flowered.rank() < Rank::Three || unmarked.rank() < Rank::Three {
-                    return Err("can only blackmail rank 3 or higher".into());
+                    return Err("Can only blackmail rank 3 or higher".into());
                 }
 
                 if self
@@ -1380,7 +1380,7 @@ impl Game {
                     .iter()
                     .any(|m| *m == Marker::Killed || *m == Marker::Bewitched)
                 {
-                    return Err("cannot blackmail the killed or bewitched".into());
+                    return Err("Cannot blackmail the killed or bewitched".into());
                 }
                 if self
                     .characters
@@ -1389,7 +1389,7 @@ impl Game {
                     .iter()
                     .any(|m| *m == Marker::Killed || *m == Marker::Bewitched)
                 {
-                    return Err("cannot blackmail the killed or bewitched".into());
+                    return Err("Cannot blackmail the killed or bewitched".into());
                 }
 
                 self.characters

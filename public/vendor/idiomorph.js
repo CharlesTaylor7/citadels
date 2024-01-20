@@ -886,7 +886,7 @@ var Idiomorph = (function () {
 
     htmx.defineExtension('morph', {
         isInlineSwap: function(swapStyle) {
-            console.log("idiomorph#isInlineSwap", swapStyle);
+            // console.log("idiomorph#isInlineSwap", swapStyle);
             let config = createMorphConfig(swapStyle);
             return config?.morphStyle === "outerHTML" || config?.morphStyle == null;
         },
