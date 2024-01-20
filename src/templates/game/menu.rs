@@ -1,13 +1,10 @@
 use super::{get_myself, GameContext};
 use crate::actions::ActionTag;
-
-use crate::game::{FollowupAction, Game, Player, Turn};
+use crate::game::{FollowupAction, Game, Player, ResponseAction, Turn};
 use crate::templates::filters;
 use crate::templates::{DistrictTemplate, RoleTemplate};
-
 use askama::Template;
-
-use std::borrow::Cow;
+use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]
 #[template(path = "game/menu.html")]
@@ -104,6 +101,24 @@ impl<'a> MenuView<'a> {
             .collect();
 
         log::info!("{:#?}", game.active_turn);
+
+        if let Some(o) = game.pause_for_response.as_ref() {
+            return match o {
+                ResponseAction::Blackmail { .. } => MenuView::RevealBlackmail {
+                    gold: 777,
+                    player: "TODO",
+                    actions: abilities,
+                },
+                ResponseAction::Warrant { gold, district } => MenuView::RevealWarrant {
+                    gold: gold.clone(),
+                    player: game.players[game.active_role().unwrap().player.unwrap().0]
+                        .name
+                        .borrow(),
+                    district: DistrictTemplate::from(*district),
+                    actions: abilities,
+                },
+            };
+        }
         match game.active_turn {
             Turn::GameOver => MenuView::Call { abilities },
             Turn::Draft(_) => MenuView::Draft {

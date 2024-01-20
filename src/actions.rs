@@ -429,6 +429,8 @@ impl ActionTag {
             ActionTag::Museum => "Museum".into(),
             ActionTag::Smithy => "Smithy".into(),
             ActionTag::Theater => "Theater".into(),
+            ActionTag::RevealWarrant => "Reveal Warrant".into(),
+            ActionTag::RevealBlackmail => "Reveal Blackmail".into(),
             ActionTag::Armory => "Armory".into(),
             ActionTag::Laboratory => "Laboratory".into(),
             ActionTag::NavigatorGain => "Navigator".into(),
