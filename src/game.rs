@@ -1334,7 +1334,7 @@ impl Game {
                 roles.push(signed);
                 for role in unsigned {
                     if roles.iter().any(|r| *r == role) {
-                        return Err("cannot assign duplicate warrants".into());
+                        return Err("Cannot assign more than 1 warrant to a role".into());
                     }
                     roles.push(role);
                 }
