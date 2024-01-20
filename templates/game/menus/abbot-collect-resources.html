@@ -1,0 +1,64 @@
+<h2 class="m-2 underline text-lg font-semibold">
+  Abbot
+</h2>
+
+<div 
+  class="flex flex-col items-end gap-2"
+  data-total="{{ resources }}"
+>
+  <label>
+    Gold:
+    <input 
+      type="number"
+      name="gold"
+      value="{{ resources }}"
+      min="0"
+      max="{{ resources }}"
+      _="
+      on change
+        get the @data-total of the closest <[data-total]/>
+        set total to the result
+        get the next <input /> then set its value to (total - my.value)
+      end
+      "
+    />
+  </label>
+  <label>
+    Cards:
+    <input 
+      type="number"
+      name="cards"
+      value="0"
+      min="0"
+      max="{{ resources }}"
+      _="
+      on change
+        get the @data-total of the closest <[data-total]/>
+        set total to the result
+        get the previous <input /> then set its value to (total - my.value)
+      end
+      "
+    />
+  </label>
+</div>
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    hx-post="/game/test-action"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+    name="action"
+    value="ResourcesFromReligion"
+  >
+    Collect 
+  </button>
+  <button 
+    class="btn btn-accent"
+    hx-get="/game/actions"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+  >
+    Cancel
+  </button>
+</div>
+<div id="error"></div>

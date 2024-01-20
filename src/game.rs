@@ -437,18 +437,12 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
 
-            /*
-            p.city.push(CityDistrict {
-                name: DistrictName::Museum,
-                beautified: true,
-            });
-            for card in game.deck.draw_many(4) {
+            for card in game.deck.draw_many(20) {
                 p.city.push(CityDistrict {
                     name: card,
                     beautified: false,
                 });
             }
-            */
         }
 
         /*
@@ -460,7 +454,7 @@ impl Game {
         game.museum.tuck(DistrictName::Smithy);
         game.museum.tuck(DistrictName::Docks);
         */
-        game.active_turn = Turn::Call(Rank::One);
+        game.active_turn = Turn::Call(Rank::Five);
         game.start_turn().unwrap();
 
         game

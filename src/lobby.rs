@@ -110,6 +110,9 @@ impl GameConfig {
     fn demo() -> Self {
         let mut config = Self::default();
         config.roles.remove(&RoleName::Assassin);
+        config.roles.remove(&RoleName::Bishop);
+        config.roles.remove(&RoleName::Cardinal);
+        config.roles.insert(RoleName::Abbot);
         config
     }
 

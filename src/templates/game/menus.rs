@@ -1,9 +1,8 @@
 use crate::actions::ActionTag;
-
+use crate::game::{self, Game};
 use crate::roles::RoleName;
 use crate::templates::{filters, RoleTemplate};
-
-use crate::game;
+use crate::types::CardSuit;
 use crate::types::Marker;
 use askama::Template;
 
@@ -57,6 +56,27 @@ pub struct NavigatorMenu;
 #[derive(Template)]
 #[template(path = "game/menus/museum.html")]
 pub struct MuseumMenu;
+
+#[derive(Template)]
+#[template(path = "game/menus/abbot-collect-resources.html")]
+pub struct AbbotCollectResourcesMenu {
+    resources: usize,
+}
+
+impl AbbotCollectResourcesMenu {
+    pub fn from(game: &Game) -> Self {
+        Self {
+            resources: game
+                .active_player()
+                .unwrap()
+                .count_suit_for_resource_gain(CardSuit::Religious),
+        }
+    }
+}
+
+#[derive(Template)]
+#[template(path = "game/menus/abbot-tax-richest.html")]
+pub struct AbbotTaxRichestMenu;
 
 #[derive(Template)]
 #[template(path = "game/menus/send-warrants.html")]

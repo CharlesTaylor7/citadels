@@ -1,16 +1,8 @@
-<div
-  class="hidden"
-  _="
-    init
-      remove @disabled from <#hand input[name=district]/>
-      add @type=checkbox to <#hand input[name=district]/>
-  "
->
-</div>
-
 <h2 class="m-2 underline text-lg font-semibold">
-  Magic: Discard, Draw
+  Abbot
 </h2>
+
+TODO: List players richest players here, look at magician menu
 
 <div class="flex flex-row flex-wrap gap-2">
   <button 
@@ -18,11 +10,10 @@
     hx-post="/game/action"
     hx-target="#menu"
     hx-swap="morph:innerHTML"
-    hx-ext="json-enc"
     name="action"
-    value="Magic"
+    value="TakeFromRich"
   >
-    Discard
+    Confirm 
   </button>
   <button 
     class="btn btn-accent"
@@ -33,4 +24,4 @@
     Cancel
   </button>
 </div>
-
+<div id="error"></div>
