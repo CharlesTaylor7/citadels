@@ -94,8 +94,6 @@ pub enum Action {
         district: DistrictName,
     },
 
-    // LATER
-
     // emperor always targets someone else
     // Similar to the king and patricain.
     // The action is required.
@@ -136,6 +134,10 @@ pub enum Action {
         flowered: RoleName,
         unmarked: RoleName,
     },
+
+    RevealWarrant,
+    RevealBlackmail,
+    Pass,
 
     // Marshal
     Seize {

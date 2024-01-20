@@ -1,6 +1,13 @@
-
 ## Shortlist
-- [ ] Provide user feedback when an action fails
+- [x] Provide user feedback when an action fails
+- [ ] Magistrate
+- [ ] Rework warlord menu as a modal
+
+- [ ] Blackmailer
+- [ ] Spy
+- [ ] Abbot 
+- [ ] Diplomat 
+- [ ] Marshal 
 
 ## Ideas
 - [ ] Multi room support

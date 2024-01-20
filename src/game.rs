@@ -229,7 +229,7 @@ pub struct ActionOutput {
 
 #[derive(Debug)]
 pub enum ResponseAction {
-    Warrant,
+    Warrant { gold: usize, district: DistrictName },
     Blackmail,
 }
 
@@ -562,6 +562,20 @@ impl Game {
     }
 
     pub fn active_player_index(&self) -> Result<PlayerIndex> {
+        if let Some(o) = self.pause_for_response.as_ref() {
+            return match o {
+                ResponseAction::Warrant { .. } => self
+                    .characters
+                    .get(Rank::One)
+                    .player
+                    .ok_or("should be a magistrate if there's a warrant".into()),
+                ResponseAction::Blackmail => self
+                    .characters
+                    .get(Rank::Two)
+                    .player
+                    .ok_or("should be a blackmailer if there's blackmail".into()),
+            };
+        }
         match &self.active_turn {
             Turn::GameOver => Err("game over".into()),
             Turn::Draft(index) => Ok(*index),
@@ -593,6 +607,26 @@ impl Game {
     pub fn allowed_actions(&self) -> Vec<ActionTag> {
         if let Some(f) = &self.followup {
             return vec![f.action];
+        }
+
+        if let Some(o) = self.pause_for_response.as_ref() {
+            return match o {
+                ResponseAction::Warrant { .. } => {
+                    let mut actions = Vec::with_capacity(2);
+                    actions.push(ActionTag::Pass);
+                    if self
+                        .active_role()
+                        .unwrap()
+                        .markers
+                        .iter()
+                        .any(|m| *m == Marker::Warrant { signed: true })
+                    {
+                        actions.push(ActionTag::RevealWarrant);
+                    }
+                    actions
+                }
+                ResponseAction::Blackmail => vec![ActionTag::RevealBlackmail, ActionTag::Pass],
+            };
         }
 
         match self.active_turn {
@@ -762,8 +796,103 @@ impl Game {
         }
     }
 
+    fn build(&mut self, player: PlayerIndex, spent: usize, district: DistrictName) {
+        let player = self.players[player.0].borrow_mut();
+
+        player.city.push(CityDistrict::from(district));
+        if self.active_role().unwrap().role == RoleName::Alchemist {
+            self.alchemist += spent;
+        }
+        self.check_city_for_completion();
+    }
+
+    fn check_city_for_completion(&mut self) {
+        let player = self.active_player().unwrap();
+        if player.city_size() >= self.complete_city_size() && self.first_to_complete.is_none() {
+            log::info!("{} is the first to complete their city", player.name);
+            self.first_to_complete = Some(player.index);
+        }
+    }
+
     fn perform_action(&mut self, action: &Action) -> ActionResult {
         Ok(match action {
+            // active player is the one revealing the warrant/blackmail
+            // active role is the suspended turn
+            Action::RevealWarrant => match self.pause_for_response {
+                Some(ResponseAction::Warrant { gold, district }) => {
+                    let player = self.active_role().unwrap().player.unwrap().0;
+                    self.players[player].gold += gold;
+                    self.active_player_mut()
+                        .unwrap()
+                        .city
+                        .push(CityDistrict::from(district));
+
+                    ActionOutput {
+                        log:
+                    format!("The Magistrate ({}) reveals a signed warrant and takes the district. {} gold is refunded.",self.active_player().unwrap().name, gold).into(),
+                        followup: None,
+                    }
+                }
+                _ => return Err("cannot reveal warrant".into()),
+            },
+
+            Action::RevealBlackmail => {
+                let is_flowered = self
+                    .active_role()?
+                    .markers
+                    .iter()
+                    .any(|marker| *marker == Marker::Blackmail { flowered: true });
+                if is_flowered {
+                    let target = self.active_role().unwrap().player.unwrap().0;
+                    let gold = std::mem::replace(&mut self.players[target].gold, 0);
+                    self.active_player_mut().unwrap().gold += gold;
+
+                    ActionOutput {
+                        log:
+                    format!("The Blackmailer ({}) reveals an active threat, and takes all {} of their gold.", self.active_player().unwrap().name, gold ).into(),
+                        followup: None,
+                    }
+                } else {
+                    ActionOutput {
+                        log: format!(
+                            "The Blackmailer ({}) reveals an empty threat. Nothing happens.",
+                            self.active_player().unwrap().name,
+                        )
+                        .into(),
+                        followup: None,
+                    }
+                }
+            }
+
+            Action::Pass => {
+                //
+                match self.pause_for_response.take() {
+                    None => return Err("impossible".into()),
+                    Some(ResponseAction::Warrant { gold, district }) => {
+                        self.build(
+                            self.active_role()?.player.ok_or("impossible")?,
+                            gold,
+                            district,
+                        );
+                        ActionOutput {
+                            log: format!(
+                                "The Magistrate ({}) did not reveal the warrant.",
+                                self.active_player().unwrap().name
+                            )
+                            .into(),
+                            followup: None,
+                        }
+                    }
+                    Some(ResponseAction::Blackmail) => ActionOutput {
+                        log: format!(
+                            "The Blackmailer ({}) did not reveal the blackmail.",
+                            self.active_player().unwrap().name
+                        )
+                        .into(),
+                        followup: None,
+                    },
+                }
+            }
             Action::DraftPick { role } => {
                 let index = self.active_turn.draft().ok_or("not the draft")?;
 
@@ -944,13 +1073,10 @@ impl Game {
 
                 Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
                 player.gold -= cost;
-                player.city.push(CityDistrict::from(district.name));
                 if !is_free_build {
                     self.remaining_builds -= 1;
                 }
-                if self.active_role().unwrap().role == RoleName::Alchemist {
-                    self.alchemist += cost;
-                }
+
                 if self.active_role().unwrap().role != RoleName::TaxCollector
                     && self.characters.has_tax_collector()
                 {
@@ -961,22 +1087,30 @@ impl Game {
                     }
                 }
 
-                // trigger end game
-                let player = self.active_player()?;
-                if player.city_size() >= self.complete_city_size()
-                    && self.first_to_complete.is_none()
+                // you can only confiscate the first build of a turn
+                if self.active_role().unwrap().has_warrant()
+                    && self.active_perform_count(ActionTag::Build) == 0
                 {
-                    log::info!("{} is the first to complete their city", player.name);
-                    self.first_to_complete = Some(player.index);
-                }
+                    self.pause_for_response = Some(ResponseAction::Warrant {
+                        gold: cost,
+                        district: district.name,
+                    });
 
-                if self.active_role().unwrap().has_warrant() {
-                    self.pause_for_response = Some(ResponseAction::Warrant);
-                }
+                    ActionOutput {
+                        log: format!(
+                            "They try to build a {}; but they have a warrant.",
+                            district.display_name
+                        )
+                        .into(),
+                        followup: None,
+                    }
+                } else {
+                    self.build(self.active_player().unwrap().index, cost, district.name);
 
-                ActionOutput {
-                    log: format!("They built a {}.", district.display_name).into(),
-                    followup: None,
+                    ActionOutput {
+                        log: format!("They build a {}.", district.display_name).into(),
+                        followup: None,
+                    }
                 }
             }
 
