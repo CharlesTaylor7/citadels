@@ -1,17 +1,19 @@
 ## Shortlist
-- [x] Magistrate
-    - Reveal warrant menu
+- [ ] Abbot 
+    - collect resources menu
+    - tax richest menu
+    - fixup magician, change format to not require "Select<>"
+
+- [ ] Custom extractor for form url encoded data:
+    https://github.com/tokio-rs/axum/blob/main/examples/customize-extractor-error/src/custom_extractor.rs
 
 - [ ] Rework warlord menu as a modal
-
 - [ ] Blackmailer
     - Bribe menu
 
 - [ ] Spy
     - Spy menu
 
-- [ ] Abbot 
-    - abbot menu
 
 - [ ] Diplomat 
 - [ ] Marshal 
