@@ -2348,6 +2348,10 @@ html {
   overflow-y: hidden;
 }
 
+.overflow-y-visible {
+  overflow-y: visible;
+}
+
 .overflow-x-scroll {
   overflow-x: scroll;
 }

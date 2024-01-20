@@ -832,19 +832,17 @@ impl Game {
             // active role is the suspended turn
             Action::RevealWarrant => match self.pause_for_response {
                 Some(ResponseAction::Warrant { gold, district }) => {
-                    self.pause_for_response = None;
-
                     let player = self.active_role().unwrap().player.unwrap().0;
                     self.players[player].gold += gold;
-                    self.active_player_mut()
-                        .unwrap()
-                        .city
-                        .push(CityDistrict::from(district));
+                    let magistrate = self.active_player_mut().unwrap();
+                    magistrate.city.push(CityDistrict::from(district));
+                    let name = magistrate.name.clone();
+                    self.pause_for_response = None;
 
                     ActionOutput {
                         log: format!(
                             "The Magistrate ({}) reveals a signed warrant and takes the {}; {} gold is refunded.",
-                            self.active_player().unwrap().name, 
+                            name,
                             district.data().display_name, 
                             gold
                         ).into(),
@@ -888,22 +886,29 @@ impl Game {
                     .iter()
                     .any(|marker| *marker == Marker::Blackmail { flowered: true });
 
-                self.pause_for_response = None;
                 if is_flowered {
                     let target = self.active_role().unwrap().player.unwrap().0;
                     let gold = std::mem::replace(&mut self.players[target].gold, 0);
                     self.active_player_mut().unwrap().gold += gold;
 
+                    let name = self.active_player().unwrap().name.clone();
+                    self.pause_for_response = None;
+
                     ActionOutput {
-                        log:
-                    format!("The Blackmailer ({}) reveals an active threat, and takes all {} of their gold.", self.active_player().unwrap().name, gold ).into(),
+                        log: format!(
+                            "The Blackmailer ({}) reveals an active threat, and takes all {} of their gold.", 
+                            name,
+                            gold 
+                        ).into(),
                         followup: None,
                     }
                 } else {
+                    let name = self.active_player().unwrap().name.clone();
+                    self.pause_for_response = None;
                     ActionOutput {
                         log: format!(
                             "The Blackmailer ({}) reveals an empty threat. Nothing happens.",
-                            self.active_player().unwrap().name,
+                            name
                         )
                         .into(),
                         followup: None,

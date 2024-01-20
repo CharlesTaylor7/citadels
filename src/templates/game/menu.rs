@@ -69,6 +69,19 @@ pub enum MenuView<'a> {
         action: ActionTag,
         revealed: Vec<DistrictTemplate<'a>>,
     },
+
+    RevealWarrant {
+        gold: usize,
+        player: &'a str,
+        district: DistrictTemplate<'a>,
+        actions: Vec<ActionTag>,
+    },
+
+    RevealBlackmail {
+        gold: usize,
+        player: &'a str,
+        actions: Vec<ActionTag>,
+    },
 }
 
 impl<'a> MenuView<'a> {
