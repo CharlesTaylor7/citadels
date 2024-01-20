@@ -158,8 +158,9 @@ impl RoleName {
 
             // shake up the assassin + thief meta
             Self::Magistrate => true,
-            Self::Blackmailer => true,
 
+            // WIP: very close
+            Self::Blackmailer => false,
             // Marshal and diplomat seem stronger than warlord.
             // Stealing strong uniques seems more fun than destroying them
             Self::Marshal => false,
