@@ -134,6 +134,8 @@ pub enum Action {
         flowered: RoleName,
         unmarked: RoleName,
     },
+    PayBribe,
+    IgnoreBlackmail,
 
     RevealWarrant,
     RevealBlackmail,

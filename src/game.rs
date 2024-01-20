@@ -203,6 +203,16 @@ impl Default for GameRole {
 }
 
 impl GameRole {
+    pub fn has_blackmail(&self) -> bool {
+        self.markers.iter().any(|m| {
+            if let Marker::Blackmail { .. } = m {
+                true
+            } else {
+                false
+            }
+        })
+    }
+
     pub fn has_warrant(&self) -> bool {
         self.markers.iter().any(|m| {
             if let Marker::Warrant { .. } = m {
@@ -677,6 +687,8 @@ impl Game {
                     // gather
                     actions.push(ActionTag::GatherResourceGold);
                     actions.push(ActionTag::GatherResourceCards);
+                } else if self.active_role().unwrap().has_blackmail() {
+                    return vec![(ActionTag::PayBribe), (ActionTag::IgnoreBlackmail)];
                 } else if self.active_role().unwrap().role != RoleName::Navigator {
                     // build
                     actions.push(ActionTag::Build);
@@ -835,6 +847,33 @@ impl Game {
                 }
                 _ => return Err("cannot reveal warrant".into()),
             },
+
+            Action::PayBribe => {
+                let player = self.active_player_mut().unwrap();
+                let half = player.gold / 2;
+                player.gold -= half;
+
+                let blackmailer = self.characters.get(Rank::Two).player.unwrap();
+                self.players[blackmailer.0].gold += half;
+                ActionOutput {
+                    log: format!(
+                        "They bribed the Blackmailer ({}) with {} gold.",
+                        self.players[blackmailer.0].name, half
+                    )
+                    .into(),
+                    followup: None,
+                }
+            }
+
+            Action::IgnoreBlackmail => {
+                self.pause_for_response = Some(ResponseAction::Blackmail);
+
+                ActionOutput {
+                    log: "They ignored the blackmail. Waiting on the Blackmailer's response."
+                        .into(),
+                    followup: None,
+                }
+            }
 
             Action::RevealBlackmail => {
                 let is_flowered = self
