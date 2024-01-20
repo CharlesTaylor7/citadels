@@ -161,19 +161,17 @@ pub async fn register(
     if username.len() == 0 {
         return Err(form_feedback("username cannot be empty".into()));
     }
-    /*
     if username.chars().any(|c| !c.is_ascii_alphanumeric()) {
         return Err(form_feedback(
             "username can only contain letter a-z, A-Z, or digits".into(),
         ));
     }
-
-    if username.len() > 16 {
+    const MAX_LEN: usize = 20;
+    if username.len() > MAX_LEN {
         return Err(form_feedback(
-            "username cannot be more than 16 characters long.".into(),
+            format!("username cannot be more than {} characters long.", MAX_LEN).into(),
         ));
     }
-    */
 
     let cookie = cookies.get("player_id").unwrap();
     let player_id = cookie.value();
