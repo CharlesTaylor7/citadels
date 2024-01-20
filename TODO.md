@@ -1,11 +1,18 @@
 ## Shortlist
-- [x] Provide user feedback when an action fails
-- [ ] Magistrate
+- [x] Magistrate
+    - Reveal warrant menu
+
 - [ ] Rework warlord menu as a modal
 
 - [ ] Blackmailer
+    - Bribe menu
+
 - [ ] Spy
+    - Spy menu
+
 - [ ] Abbot 
+    - abbot menu
+
 - [ ] Diplomat 
 - [ ] Marshal 
 

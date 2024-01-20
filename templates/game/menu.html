@@ -69,22 +69,7 @@
     {% endfor %}
   </div>
 {% when MenuView::RevealWarrant with { player, gold, actions, district } %}
-  <h2 class="header">
-    Warrant
-  </h2>
-  {% set input_type = "" %}
-  {% set enabled = false %}
-  {% set draggable = false %}
-  {% set district_tooltip_class = "" %}
-  {% include "district/square-cropped.html" %}
-  {{ gold }}
-  {{ player }}
-  <div class="flex flex-row flex-wrap gap-2">
-    {% for action in actions %}
-      {% include "action.html" %}
-    {% endfor %}
-  </div>
-{% when MenuView::RevealBlackmail with { player, gold, actions } %}
+ {% when MenuView::RevealBlackmail with { player, gold, actions } %}
   <h2 class="header">
     Warrant
   </h2>

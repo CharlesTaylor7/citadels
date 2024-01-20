@@ -7,7 +7,7 @@
     <div class="italic text-sm">Hover for details. Click for logs</div>
     {% for character in characters %}
     {% set role = character.role.data() %}
-      <details open>
+      <details open tabindex="-1">
         <summary 
           class="
             text-left

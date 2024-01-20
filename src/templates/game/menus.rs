@@ -59,10 +59,6 @@ pub struct NavigatorMenu;
 pub struct MuseumMenu;
 
 #[derive(Template)]
-#[template(path = "game/menus/reveal-warrant.html")]
-pub struct RevealWarrantMenu;
-
-#[derive(Template)]
 #[template(path = "game/menus/send-warrants.html")]
 pub struct SendWarrantsMenu {
     roles: Vec<RoleTemplate>,

@@ -1,14 +1,19 @@
 <label
-  id="{% if district.artifacts.len() > 0 %}museum{% endif %}"
+  id="card-{{district.value}}"
   class="
+    relative
     select-none
     cursor-pointer
     p-1 box-content
     rounded-2xl
+    has-[:focus-visible]:ring-4
     has-[:checked]:p-0
     has-[:checked]:border
     has-[:checked]:border-4
     has-[:checked]:border-success
+    {% if enabled %}
+    cursor-pointer
+    {% endif %}
     {% if draggable %}
     draggable
     {% endif %}
@@ -86,12 +91,19 @@
   </div>
   <input
     type="{{ input_type }}"
-    class="hidden"
+    class="absolute top-0 peer opacity-0"
     name="district"
     value="{{ district.value }}"
     {% if !enabled %}
     disabled
     {% endif %}
+    _="
+      -- on click blur() me
+      on keyup [key is 'Enter'] 
+        set my checked to not my checked 
+        trigger change
+      end
+    "
   />
   {% set asset = district.asset %}
   <svg 
@@ -116,6 +128,6 @@
     {% for item in district.artifacts %}
       <div class="rounded-full leaded h-10 w-10 draggable text-4xl bg-gradient-radial from-indigo-500 text-center">{{ item }} </div>
     {% endfor %}
-  </div>
+    </div>
   </div>
 </label>
