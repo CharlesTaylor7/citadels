@@ -1,15 +1,10 @@
-## 0.3.0 (pending)
+## 0.3.0
 
 UI:
     - Lobby config
 
 Roles:
     - Magistrate (1) 
-        - needs reveal menu
-        - needs logic for reveal
-    - Blackmailer (2) 
-        - needs reveal menu
-        - needs logic for reveal
 
 Districts:
     - Museum 
