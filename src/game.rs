@@ -841,6 +841,15 @@ impl Game {
                     let name = magistrate.name.clone();
                     self.pause_for_response = None;
 
+                    // clear all remaining warrants
+                    for c in self.characters.iter_mut() {
+                        if let Some((i, _)) =
+                            c.markers.iter().enumerate().find(|(_, m)| m.is_warrant())
+                        {
+                            c.markers.remove(i);
+                        }
+                    }
+
                     ActionOutput {
                         log: format!(
                             "The Magistrate ({}) reveals a signed warrant and takes the {}; {} gold is refunded.",
@@ -895,6 +904,15 @@ impl Game {
 
                     let name = self.active_player().unwrap().name.clone();
                     self.pause_for_response = None;
+
+                    // clear all remaining blackmail
+                    for c in self.characters.iter_mut() {
+                        if let Some((i, _)) =
+                            c.markers.iter().enumerate().find(|(_, m)| m.is_blackmail())
+                        {
+                            c.markers.remove(i);
+                        }
+                    }
 
                     ActionOutput {
                         log: format!(

@@ -34,6 +34,24 @@ pub enum Marker {
     Warrant { signed: bool },
 }
 
+impl Marker {
+    pub fn is_warrant(&self) -> bool {
+        if let Marker::Warrant { .. } = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_blackmail(&self) -> bool {
+        if let Marker::Blackmail { .. } = self {
+            true
+        } else {
+            false
+        }
+    }
+}
+
 pub type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
