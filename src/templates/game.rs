@@ -96,12 +96,12 @@ impl<'a> GameContext<'a> {
         }
     }
 
-    pub fn enabled(&self, action: &ActionTag) -> bool {
+    pub fn allowed(&self, action: &ActionTag) -> bool {
         self.allowed_actions.contains(action)
     }
 
     pub fn disabled(&self, action: &ActionTag) -> bool {
-        !self.enabled(action)
+        !self.allowed(action)
     }
 
     pub fn label(&self, action: &'a ActionTag) -> Cow<'a, str> {

@@ -20,7 +20,7 @@
             id="card-{{role.value}}"
             class="
               rounded-xl
-              focus-within:ring-4
+              has-[:focus-visible]:ring-4
               relative
               {% if role.enabled %}
               cursor-pointer
@@ -38,7 +38,6 @@
               hx-swap="morph"
               name="{{ role.value }}"
               _="
-                on click blur() me
                 on keyup [key is 'Enter'] 
                   set my checked to not my checked 
                   trigger change

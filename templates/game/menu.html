@@ -69,17 +69,9 @@
     {% endfor %}
   </div>
 {% when MenuView::RevealWarrant with { player, gold, actions, district } %}
- {% when MenuView::RevealBlackmail with { player, gold, actions } %}
-  <h2 class="header">
-    Warrant
-  </h2>
-  {{ gold }}
-  {{ player }}
-  <div class="flex flex-row flex-wrap gap-2">
-    {% for action in actions %}
-      {% include "action.html" %}
-    {% endfor %}
-  </div>
+{% include "menus/reveal-warrant.html" %}
+{% when MenuView::RevealBlackmail with { player, gold, actions } %}
+TODO:   blackmail
 {% when MenuView::Followup with { role, action, revealed} %}
   <h2 class="header">
     {{ role }}'s Turn

@@ -17,6 +17,7 @@
 - [ ] Marshal 
 
 ## Ideas
+- [ ] Keyboard based warrant assignment
 - [ ] Multi room support
 - [ ] Make log format and tenses consistent
 - [ ] Rework menus to use drag and drop.
