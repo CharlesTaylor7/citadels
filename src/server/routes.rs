@@ -161,7 +161,7 @@ pub async fn register(
     if username.len() == 0 {
         return Err(form_feedback("username cannot be empty".into()));
     }
-
+    /*
     if username.chars().any(|c| !c.is_ascii_alphanumeric()) {
         return Err(form_feedback(
             "username can only contain letter a-z, A-Z, or digits".into(),
@@ -173,6 +173,7 @@ pub async fn register(
             "username cannot be more than 16 characters long.".into(),
         ));
     }
+    */
 
     let cookie = cookies.get("player_id").unwrap();
     let player_id = cookie.value();
