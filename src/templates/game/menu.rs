@@ -9,49 +9,26 @@ use std::borrow::{Borrow, Cow};
 #[derive(Template)]
 #[template(path = "game/menu.html")]
 pub struct MenuTemplate<'a> {
-    pub menu: MainTemplate<'a>,
+    pub menu: MenuView<'a>,
     pub context: GameContext<'a>,
 }
 impl<'a> MenuTemplate<'a> {
     pub fn from(game: &'a Game, my_id: Option<&'a str>) -> Self {
         let myself = get_myself(game, my_id);
-        let my_turn =
-            myself.is_some_and(|p1| game.active_player().is_ok_and(|p2| p1.index == p2.index));
-
-        let header = if !my_turn {
-            format!(
-                "{}'s Turn",
-                game.active_player().map_or("nobody", |p| &p.name.0)
-            )
-            .into()
-        } else if game.active_turn.draft().is_some() {
-            ("Draft").into()
-        } else if let Ok(c) = game.active_role() {
-            (format!("{}'s Turn", c.role.display_name())).into()
-        } else {
-            ("Game over").into()
-        };
-
         Self {
             context: GameContext {
                 game,
                 allowed_actions: game.allowed_actions(),
             },
-            menu: MainTemplate {
-                header,
-                view: MenuView::from(game, myself),
-            },
+            menu: MenuView::from(game, myself),
         }
     }
 }
 
-pub struct MainTemplate<'a> {
-    pub header: Cow<'a, str>,
-    pub view: MenuView<'a>,
-}
-
 pub enum MenuView<'a> {
+    GameOver,
     Logs {
+        player: &'a str,
         logs: Vec<Cow<'static, str>>,
     },
     Draft {
@@ -60,20 +37,20 @@ pub enum MenuView<'a> {
         actions: Vec<ActionTag>,
     },
     Call {
+        role: String,
         abilities: Vec<ActionTag>,
     },
     Followup {
+        role: String,
         action: ActionTag,
         revealed: Vec<DistrictTemplate<'a>>,
     },
-
     RevealWarrant {
         gold: usize,
         player: &'a str,
         district: DistrictTemplate<'a>,
         actions: Vec<ActionTag>,
     },
-
     RevealBlackmail {
         gold: usize,
         player: &'a str,
@@ -85,8 +62,10 @@ impl<'a> MenuView<'a> {
     pub fn from(game: &'a Game, myself: Option<&'a Player>) -> Self {
         let my_turn =
             myself.is_some_and(|p1| game.active_player().is_ok_and(|p2| p1.index == p2.index));
+
         if !my_turn {
             return MenuView::Logs {
+                player: game.active_player().unwrap().name.borrow(),
                 logs: game.active_role().map_or(vec![], |c| c.logs.clone()),
             };
         }
@@ -120,7 +99,7 @@ impl<'a> MenuView<'a> {
             };
         }
         match game.active_turn {
-            Turn::GameOver => MenuView::Call { abilities },
+            Turn::GameOver => MenuView::GameOver {},
             Turn::Draft(_) => MenuView::Draft {
                 actions: allowed,
                 roles: game
@@ -139,6 +118,7 @@ impl<'a> MenuView<'a> {
 
             Turn::Call(_) => match &game.followup {
                 Some(FollowupAction { action, revealed }) => MenuView::Followup {
+                    role: game.active_role().unwrap().role.display_name(),
                     action: *action,
                     revealed: revealed
                         .iter()
@@ -147,7 +127,10 @@ impl<'a> MenuView<'a> {
                         .collect(),
                 },
 
-                None => MenuView::Call { abilities },
+                None => MenuView::Call {
+                    role: game.active_role().unwrap().role.display_name(),
+                    abilities,
+                },
             },
         }
     }

@@ -5,7 +5,7 @@ use crate::actions::ActionTag;
 use crate::game::{Game, GameRole, Player, PlayerIndex, Turn};
 use crate::roles::RoleName;
 use crate::templates::filters;
-use crate::templates::game::menu::{MainTemplate, MenuTemplate, MenuView};
+use crate::templates::game::menu::{MenuTemplate, MenuView};
 use crate::templates::MyTemplate;
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use crate::types::Marker;
@@ -120,7 +120,7 @@ pub struct GameTemplate<'a> {
     my: &'a PlayerTemplate<'a>,
     misc: MiscTemplate,
     city: CityTemplate<'a>,
-    menu: MainTemplate<'a>,
+    menu: MenuView<'a>,
     end: GameEndTemplate<'a>,
 }
 

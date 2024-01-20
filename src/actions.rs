@@ -356,6 +356,13 @@ impl ActionTag {
             ActionTag::ScholarPick => true,
             ActionTag::WizardPick => true,
 
+            // response actions are required
+            ActionTag::RevealWarrant => true,
+            ActionTag::RevealBlackmail => true,
+            ActionTag::Pass => true,
+            ActionTag::PayBribe => true,
+            ActionTag::IgnoreBlackmail => true,
+
             _ => false,
         }
     }
@@ -431,6 +438,8 @@ impl ActionTag {
             ActionTag::Theater => "Theater".into(),
             ActionTag::RevealWarrant => "Reveal Warrant".into(),
             ActionTag::RevealBlackmail => "Reveal Blackmail".into(),
+            ActionTag::PayBribe => "Pay bribe".into(),
+            ActionTag::IgnoreBlackmail => "Ignore blackmail".into(),
             ActionTag::Armory => "Armory".into(),
             ActionTag::Laboratory => "Laboratory".into(),
             ActionTag::NavigatorGain => "Navigator".into(),
