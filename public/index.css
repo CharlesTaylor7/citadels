@@ -2209,6 +2209,10 @@ html {
   max-width: 280px;
 }
 
+.max-w-\[144px\] {
+  max-width: 144px;
+}
+
 .grow {
   flex-grow: 1;
 }

@@ -38,12 +38,12 @@
 ## Playtest 2
 - [x] Role config menu is clipped on smaller screens
 - [x] flex-wrap my-roles. Basically, they should stack vertically if I narrow my window
-- [ ] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
 - [x] museum auto tooltip hides the artifacts
 - [x] Ending game can crashes the game
+- [x] Limit width and apply text-wrap to right sidebar usernames. Long usernames shouldn't distort the whole page.
+- [ ] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
 - [ ] dismissible popup when your district is detroyed, just shows inline a picture of the destroyed district.
 - [ ] Allow names with some punctuation. Will need to url encode names in city request
-- [ ] Limit width and apply text-wrap to right sidebar usernames. Long usernames shouldn't distort the whole page.
 - [ ] Roles left sidebar, italics say "hover for details". We should restore the tooltip or remove that phrase.
 
 - [ ] Logan couldn't see his city districts without scrolling.
