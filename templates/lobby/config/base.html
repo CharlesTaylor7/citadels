@@ -3,9 +3,9 @@
   id="config"
   class="h-screen w-full bg-base-100"
 >
-  <div class="h-full flex flex-col gap-5">
+  <div class="h-full flex flex-col gap-5 items-center">
     <!-- https://htmx.org/examples/tabs-hateoas/ -->
-    <div class="mt-5 flex flex-row gap-3 self-center">
+    <div class="mt-5 flex flex-row gap-3">
       <button 
         class='btn {% if selected == "Roles" %}btn-accent{% endif %}'
         hx-get="/lobby/config/roles"

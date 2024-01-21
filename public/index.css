@@ -2060,6 +2060,11 @@ html {
   margin: 0.5rem;
 }
 
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .ml-2 {
   margin-left: 0.5rem;
 }

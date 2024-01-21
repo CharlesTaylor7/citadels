@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block config_content %}
-  <div class="flex flex-row flex-wrap justify-center gap-3">
+  <form class="flex flex-row flex-wrap justify-center gap-3">
     {% for (option, district) in districts %}
       <label
         class="group select-none cursor-pointer rounded-2xl"
@@ -14,9 +14,7 @@
           value="{{ option }}"
           class="peer"
         />
-        <div 
-          class=" relative w-full rounded-t-xl h-10 bg-neutral "
-        >
+        <div class="relative w-full rounded-t-xl h-10 bg-neutral">
           <div
             class="
               absolute top-2
@@ -136,5 +134,5 @@
         </svg>
       </label>
     {% endfor %}
-  </div>
+  </form>
 {% endblock %}

@@ -27,13 +27,23 @@
 - [ ] Restore game from sqlite
 
 
-## Playtest feedback
+## Playtest 1 feedback
 - [ ] Notification bell for start of turn.
     - [x] audio tag, with ws event listener
     - [ ] Server needs to send an html element with data-ring-bell, but only once when the turn begins
     - [ ] Server shuffles audio files to send.
 - [ ] role and district description should have dedicated info icon for bringing up their tooltips.
 - [ ] Warlord menu should make it obvious the cost to destroy from the great wallled city is higher.
+
+## Playtest 2
+- [x] Role config menu is clipped on smaller screens
+- [ ] flex-wrap my-roles. Basically, they should stack vertically if I narrow my window
+- [ ] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
+- [ ] dismissible popup when your district is detroyed, just shows inline a picture of the destroyed district.
+
+- [ ] museum auto tooltip hides the artifacts
+- [ ] Clicking End turn crashes the game
+- [ ] William requested Wizard as next role.
 
 ## Feature Ideas
 - Custom Card editor
