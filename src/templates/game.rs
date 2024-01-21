@@ -31,13 +31,10 @@ impl<'a> CityTemplate<'a> {
     pub fn from(game: &'a Game, target: PlayerIndex, my_id: Option<&'a str>) -> Self {
         let myself = get_myself(game, my_id);
 
-        let (tooltip_class, header) = if myself.is_some_and(|p| p.index == target) {
-            ("".into(), "My City".into())
+        let header: Cow<'a, str> = if myself.is_some_and(|p| p.index == target) {
+            "My City".into()
         } else {
-            (
-                "tooltip-open".into(),
-                format!("{}'s City", game.players[target.0].name).into(),
-            )
+            format!("{}'s City", game.players[target.0].name).into()
         };
 
         let mut columns = vec![Vec::new(); 5];
@@ -77,7 +74,6 @@ impl<'a> CityTemplate<'a> {
 
         Self {
             header,
-            district_tooltip_class: tooltip_class,
             columns,
             margin_bottom,
         }
@@ -201,7 +197,6 @@ struct MiscTemplate {
 
 pub struct CityTemplate<'a> {
     header: Cow<'a, str>,
-    district_tooltip_class: Cow<'a, str>,
     columns: Vec<Vec<DistrictTemplate<'a>>>,
     margin_bottom: f64,
 }

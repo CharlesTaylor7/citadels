@@ -37,10 +37,10 @@
 
 ## Playtest 2
 - [x] Role config menu is clipped on smaller screens
-- [ ] flex-wrap my-roles. Basically, they should stack vertically if I narrow my window
+- [x] flex-wrap my-roles. Basically, they should stack vertically if I narrow my window
 - [ ] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
-- [ ] dismissible popup when your district is detroyed, just shows inline a picture of the destroyed district.
 - [ ] museum auto tooltip hides the artifacts
+- [ ] dismissible popup when your district is detroyed, just shows inline a picture of the destroyed district.
 - [ ] Clicking End turn crashes the game
 - [ ] Allow names with some punctuation. Will need to url encode names in city request
 - [ ] Limit width and apply text-wrap to right sidebar usernames. Long usernames shouldn't distort the whole page.

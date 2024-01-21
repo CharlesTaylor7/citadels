@@ -13,7 +13,6 @@
         {% let input_type = "radio" %}
         {% let draggable = true %}
         {% set enabled = true %}
-        {% set district_tooltip_class = city.district_tooltip_class %}
         {% for column in city.columns %} 
           <div class="flex flex-col">
             {% for (i, district) in column.iter().enumerate() %} 

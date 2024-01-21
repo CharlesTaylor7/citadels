@@ -10,7 +10,6 @@
       {% set input_type = "checkbox" %}
       {% set enabled = false %}
       {% set draggable = true %}
-      {% set district_tooltip_class = "" %}
       {% for (index, district) in my.hand.iter().enumerate() %} 
         {% include "district/square-cropped.html" %} 
       {% endfor %}
