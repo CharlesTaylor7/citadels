@@ -250,8 +250,8 @@ pub struct PlayerInfoTemplate<'a> {
     pub active: bool,
     pub name: &'a str,
     pub gold: usize,
-    pub hand_size: usize,
-    pub city_size: usize,
+    pub hand: usize,
+    pub city: usize,
     pub score: usize,
     pub crowned: bool,
     pub complete_city: bool,
@@ -271,16 +271,13 @@ impl<'a> PlayerInfoTemplate<'a> {
                 ));
             }
         }
-        for _ in roles.len()..count {
-            roles.push((false, "?".into()));
-        }
 
         Self {
             active: game.active_player_index().is_ok_and(|i| i == player.index),
             name: player.name.0.borrow(),
             gold: player.gold,
-            hand_size: player.hand.len(),
-            city_size: player.city.len(),
+            hand: player.hand.len(),
+            city: player.city.len(),
             crowned: game.crowned == player.index,
             first_complete_city: game
                 .first_to_complete

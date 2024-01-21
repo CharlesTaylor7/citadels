@@ -44,7 +44,12 @@
 - [ ] dismissible popup when your district is detroyed, just shows inline a picture of the destroyed district.
 - [ ] Allow names with some punctuation. Will need to url encode names in city request
 - [ ] Limit width and apply text-wrap to right sidebar usernames. Long usernames shouldn't distort the whole page.
-- [ ] William requested Wizard as next role. Full random, more card draw in the game.
+- [ ] Roles left sidebar, italics say "hover for details". We should restore the tooltip or remove that phrase.
+
+- [ ] Logan couldn't see his city districts without scrolling.
+- [ ] Logan couldn't easily see enemy districts without scrolling. Warlord menu
+- [ ] Save the dragged position of districts in a city.
+
 
 ## Feature Ideas
 - Custom Card editor

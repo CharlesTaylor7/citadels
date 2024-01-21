@@ -6,6 +6,7 @@
     border
     border-neutral
     rounded-xl
+    flex flex-col items-center
     {% if player.active %}
     bg-slate-300
     {% endif %}
@@ -16,80 +17,50 @@
   hx-swap="outerHTML"
 >
   <div
-    class="text-center text-lg semibold"
+    class="text-center text-lg font-semibold"
     id="player-{{ player.name }}"
   >
       {{ player.name }} 
   </div>
-  <div class="flex flex-row justify-center gap-3" >
-    <div class="flex flex-col" >
-      <div>
-        Gold: 
-      </div>
-      <div>
-        Hand: 
-      </div>
-      <div>
-        City: 
-      </div>
-      <div>
-        Score:
-      </div>
-      {% for i in 0..player.roles.len() %}
-        <div>
-          Role {{ i + 1 }}:
-        </div>
-      {% endfor %}
-      <div>
-      </div>
-      <div>
-        {% if player.crowned %}
-          <span 
-            data-tip="The Crown. They will draft first next round."
-            class="tooltip tooltip-left tooltip-secondary text-2xl"
-          > 
-              👑
-          </span>
+  <div class="flex flex-col" >
+      <pre>Gold  {{ "{: >2}"|format(player.gold) }}</pre>
+      <pre>Hand  {{ "{: >2}"|format(player.hand) }}</pre>
+      <pre>City  {{ "{: >2}"|format(player.city) }}</pre>
+      <pre>Score {{ "{: >2}"|format(player.score) }}</pre>
+    {% for (active, role) in player.roles %}
+      <div 
+        {% if active %}
+        class="self-center underline"
         {% endif %}
-        {% if player.first_complete_city %}
-          <span 
-            data-tip="First completed city.&#10;Worth 4 extra points at the end of the game."
-            class="tooltip tooltip-left tooltip-secondary text-2xl"
-          > 
-            🥇 
-          </span>
-        {% else if player.complete_city %}
-          <span
-            data-tip="Completed city, but not first.&#10;Worth 2 extra points at the end of the game."
-            class="tooltip tooltip-left tooltip-secondary text-2xl"
-          >
-            🥈
-          </span>
-        {% endif %}
+      >
+        {{ role }}
       </div>
+    {% endfor %}
+
     </div>
-    <div class="flex flex-col">
-      <div>
-        {{ player.gold }}
-      </div>
-      <div>
-        {{ player.hand_size }}
-      </div>
-      <div>
-        {{ player.city_size }}
-      </div>
-      <div>
-        {{ player.score }}
-      </div>
-      {% for (active, role) in player.roles %}
-        <div 
-          {% if active %}
-          class="underline"
-          {% endif %}
+    <div class="flex flex-row justify-start">
+      {% if player.crowned %}
+        <span 
+          data-tip="The Crown. They will draft first next round."
+          class="tooltip tooltip-left tooltip-secondary text-2xl"
+        > 
+            👑
+        </span>
+      {% endif %}
+      {% if player.first_complete_city %}
+        <span 
+          data-tip="First completed city.&#10;Worth 4 extra points at the end of the game."
+          class="tooltip tooltip-left tooltip-secondary text-2xl"
+        > 
+          🥇 
+        </span>
+      {% else if player.complete_city %}
+        <span
+          data-tip="Completed city, but not first.&#10;Worth 2 extra points at the end of the game."
+          class="tooltip tooltip-left tooltip-secondary text-2xl"
         >
-          {{ role }}
-        </div>
-      {% endfor %}
-    </div>
+          🥈
+        </span>
+      {% endif %}
   </div>
 </button>

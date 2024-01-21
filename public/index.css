@@ -2265,8 +2265,16 @@ html {
   align-items: flex-start;
 }
 
+.items-end {
+  align-items: flex-end;
+}
+
 .items-center {
   align-items: center;
+}
+
+.justify-start {
+  justify-content: flex-start;
 }
 
 .justify-center {
@@ -2295,6 +2303,10 @@ html {
 
 .gap-5 {
   gap: 1.25rem;
+}
+
+.self-center {
+  align-self: center;
 }
 
 .overflow-scroll {
