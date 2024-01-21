@@ -2205,8 +2205,16 @@ html {
   max-width: 270px;
 }
 
+.max-w-\[280px\] {
+  max-width: 280px;
+}
+
 .grow {
   flex-grow: 1;
+}
+
+.grow-0 {
+  flex-grow: 0;
 }
 
 .border-separate {
@@ -2289,8 +2297,8 @@ html {
   gap: 1.25rem;
 }
 
-.self-center {
-  align-self: center;
+.overflow-scroll {
+  overflow: scroll;
 }
 
 .overflow-x-hidden {

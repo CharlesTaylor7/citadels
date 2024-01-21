@@ -40,10 +40,11 @@
 - [ ] flex-wrap my-roles. Basically, they should stack vertically if I narrow my window
 - [ ] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
 - [ ] dismissible popup when your district is detroyed, just shows inline a picture of the destroyed district.
-
 - [ ] museum auto tooltip hides the artifacts
 - [ ] Clicking End turn crashes the game
-- [ ] William requested Wizard as next role.
+- [ ] Allow names with some punctuation. Will need to url encode names in city request
+- [ ] Limit width and apply text-wrap to right sidebar usernames. Long usernames shouldn't distort the whole page.
+- [ ] William requested Wizard as next role. Full random, more card draw in the game.
 
 ## Feature Ideas
 - Custom Card editor

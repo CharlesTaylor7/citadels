@@ -428,7 +428,7 @@ impl Game {
         let mut roles: Vec<_> = game.characters.iter().collect();
         roles.shuffle(&mut game.rng);
 
-        for (i, role) in roles.iter().enumerate() {
+        for (i, role) in roles.iter().enumerate().take(6) {
             let index = i % 3;
             game.players[index].roles.push(*role);
             game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
