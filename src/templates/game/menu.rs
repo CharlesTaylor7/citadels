@@ -65,7 +65,9 @@ impl<'a> MenuView<'a> {
 
         if !my_turn {
             return MenuView::Logs {
-                player: game.active_player().unwrap().name.borrow(),
+                player: game
+                    .active_player()
+                    .map_or("game over", |p| p.name.borrow()),
                 logs: game.active_role().map_or(vec![], |c| c.logs.clone()),
             };
         }

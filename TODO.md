@@ -39,9 +39,9 @@
 - [x] Role config menu is clipped on smaller screens
 - [x] flex-wrap my-roles. Basically, they should stack vertically if I narrow my window
 - [ ] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
-- [ ] museum auto tooltip hides the artifacts
+- [x] museum auto tooltip hides the artifacts
+- [x] Ending game can crashes the game
 - [ ] dismissible popup when your district is detroyed, just shows inline a picture of the destroyed district.
-- [ ] Clicking End turn crashes the game
 - [ ] Allow names with some punctuation. Will need to url encode names in city request
 - [ ] Limit width and apply text-wrap to right sidebar usernames. Long usernames shouldn't distort the whole page.
 - [ ] William requested Wizard as next role. Full random, more card draw in the game.

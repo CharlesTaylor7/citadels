@@ -428,7 +428,7 @@ impl Game {
         let mut roles: Vec<_> = game.characters.iter().collect();
         roles.shuffle(&mut game.rng);
 
-        for (i, role) in roles.iter().enumerate().take(6) {
+        for (i, role) in roles.iter().enumerate() {
             let index = i % 3;
             game.players[index].roles.push(*role);
             game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
@@ -437,18 +437,12 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
 
-            /*
-            p.city.push(CityDistrict {
-                name: DistrictName::Museum,
-                beautified: true,
-            });
-            for card in game.deck.draw_many(4) {
+            for card in game.deck.draw_many(8) {
                 p.city.push(CityDistrict {
                     name: card,
                     beautified: false,
                 });
             }
-            */
         }
 
         /*
@@ -460,7 +454,8 @@ impl Game {
         game.museum.tuck(DistrictName::Smithy);
         game.museum.tuck(DistrictName::Docks);
         */
-        game.active_turn = Turn::Call(Rank::One);
+        game.first_to_complete = Some(PlayerIndex(0));
+        game.active_turn = Turn::Call(Rank::Nine);
         game.start_turn().unwrap();
 
         game
