@@ -68,41 +68,13 @@ impl<'a> MenuView<'a> {
                 .is_ok_and(|p2| p1.index == p2)
         });
 
-        if !my_turn && !my_response {
-            return MenuView::Logs {
-                header: match game.active_turn {
-                    Turn::Draft { .. } => {
-                        format!("Draft: {}", game.active_player().unwrap().name).into()
-                    }
-                    Turn::Call { .. } => format!(
-                        "{} ({})",
-                        game.active_role().unwrap().role.display_name(),
-                        game.active_player().unwrap().name
-                    )
-                    .into(),
-                    Turn::GameOver { .. } => format!("Game over").into(),
-                },
-                logs: game.active_role().map_or(vec![], |c| c.logs.clone()),
-            };
-        }
-        let allowed = game.active_player_actions();
-        let abilities = game
-            .active_player_actions()
-            .iter()
-            .cloned()
-            .filter(|a| {
-                !a.is_resource_gathering() && *a != ActionTag::Build && *a != ActionTag::EndTurn
-            })
-            .collect();
-
-        log::info!("{:#?}", game.active_turn);
-
-        if let Some(o) = game.pause_for_response.as_ref() {
+        if my_response {
+            let o = game.pause_for_response.as_ref().unwrap();
             return match o {
                 ResponseAction::Blackmail { blackmailer } => MenuView::RevealBlackmail {
                     gold: 777,
                     player: "TODO",
-                    actions: abilities,
+                    actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
                 },
                 ResponseAction::Warrant {
                     magistrate,
@@ -119,41 +91,69 @@ impl<'a> MenuView<'a> {
                     },
                 },
             };
-        }
-        match game.active_turn {
-            Turn::GameOver => MenuView::GameOver {},
-            Turn::Draft(_) => MenuView::Draft {
-                actions: allowed,
-                roles: game
-                    .draft
-                    .remaining
-                    .iter()
-                    .map(|r| RoleTemplate::from(*r, 200.0))
-                    .collect::<Vec<_>>(),
-                discard: game
-                    .draft
-                    .faceup_discard
-                    .iter()
-                    .map(|r| RoleTemplate::from(*r, 200.0))
-                    .collect::<Vec<_>>(),
-            },
+        } else if my_turn {
+            let allowed = game.active_player_actions();
+            let abilities = game
+                .active_player_actions()
+                .iter()
+                .cloned()
+                .filter(|a| {
+                    !a.is_resource_gathering() && *a != ActionTag::Build && *a != ActionTag::EndTurn
+                })
+                .collect();
 
-            Turn::Call(_) => match &game.followup {
-                Some(FollowupAction { action, revealed }) => MenuView::Followup {
-                    role: game.active_role().unwrap().role.display_name(),
-                    action: *action,
-                    revealed: revealed
+            log::info!("{:#?}", game.active_turn);
+            return match game.active_turn {
+                Turn::GameOver => MenuView::GameOver,
+                Turn::Draft(_) => MenuView::Draft {
+                    actions: allowed,
+                    roles: game
+                        .draft
+                        .remaining
                         .iter()
-                        .cloned()
-                        .map(DistrictTemplate::from)
-                        .collect(),
+                        .map(|r| RoleTemplate::from(*r, 200.0))
+                        .collect::<Vec<_>>(),
+                    discard: game
+                        .draft
+                        .faceup_discard
+                        .iter()
+                        .map(|r| RoleTemplate::from(*r, 200.0))
+                        .collect::<Vec<_>>(),
                 },
 
-                None => MenuView::Call {
-                    role: game.active_role().unwrap().role.display_name(),
-                    abilities,
+                Turn::Call(_) => match &game.followup {
+                    Some(FollowupAction { action, revealed }) => MenuView::Followup {
+                        role: game.active_role().unwrap().role.display_name(),
+                        action: *action,
+                        revealed: revealed
+                            .iter()
+                            .cloned()
+                            .map(DistrictTemplate::from)
+                            .collect(),
+                    },
+
+                    None => MenuView::Call {
+                        role: game.active_role().unwrap().role.display_name(),
+                        abilities,
+                    },
                 },
-            },
+            };
+        } else {
+            return MenuView::Logs {
+                header: match game.active_turn {
+                    Turn::Draft { .. } => {
+                        format!("Draft: {}", game.active_player().unwrap().name).into()
+                    }
+                    Turn::Call { .. } => format!(
+                        "{} ({})",
+                        game.active_role().unwrap().role.display_name(),
+                        game.active_player().unwrap().name
+                    )
+                    .into(),
+                    Turn::GameOver { .. } => format!("Game over").into(),
+                },
+                logs: game.active_role().map_or(vec![], |c| c.logs.clone()),
+            };
         }
     }
 }

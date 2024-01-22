@@ -789,7 +789,7 @@ impl Game {
 
         let player = self.players[c.player.unwrap().0].borrow_mut();
         c.logs
-            .push(format!("{} started their turn.", player.name).into());
+            .push(format!("{} starts their turn.", player.name).into());
 
         if c.markers.iter().any(|m| *m == Marker::Robbed) {
             let gold = player.gold;
