@@ -26,6 +26,8 @@
 - [ ] Make it possible to save a set of roles to use, for config.
 - [ ] Restore game from sqlite
 
+## Four+ player support
+- [ ] Need to show faceup discard.
 
 ## Playtest 1 feedback
 - [ ] Notification bell for start of turn.
@@ -48,8 +50,8 @@
 
 - [ ] Logan couldn't see his city districts without scrolling.
 - [ ] Logan couldn't easily see enemy districts without scrolling. Warlord menu
+- [ ] William found the button highlighting behavior in the config menu to be confusing. Didn't realize I was going for tab like interface. How can I make it more tab like?
 - [ ] Save the dragged position of districts in a city.
-
 
 ## Feature Ideas
 - Custom Card editor
@@ -69,3 +71,18 @@
 ## Cleo's easter eggs
 - [x] Dragging the dragon out of his section play's Mr. Brightside. Putting him back pauses it.
     - [ ] Need to send ws updates as oob swaps so as to not disrupt the video player dom state.
+
+## Tech Debt
+- [ ] Json encoding with htmx still doesn't handle arrays well. I am using a kludge of the Select<> type to handle this
+- [ ] Deserializing CityDistrictTarget requires custom handlers, and leaves the struct without Serialiable/Deserializable instances.
+- [ ] Active player should really always coincide with active role. I thought I was being clever by making them different, so that the magistrate is temporarily active while its another players turn, but this really goes against the design of the rest of the code. I need to fix this behavior, and introduce a new "responding_player" concept or something. This gets even more tricky when the Witch is in the mix. I need nonambiguous terms for all the players in a given action context.
+- [ ] Form url encoding would be better, because no htmx extension required and more web standardsy. Problem is Axum doesn't extract arrays or duplicate form fields. I'm also finding out axum doesn't deserialize strings to numbers. Pretty frustrating. I can write a custom extra for all this.
+- [ ] The game engine is all pretty hard coded. Steps of a turn are coupled to specific roles and actions that may occur. Metadata tied to specific roles is embededded in the root game state. All of this is easy from a standpoint of building a game with a small set of roles. But this style of programming would not scale to building other types of games, card games, or board games with lots of moving pieces and systems and expansion content. This is not a huge problem per se, there's lots of specific rulings in the rulebook for how different roles and districts interact with each other. By doing everything in line, I can ensure all the interactions hold up.
+
+This just wouldn't work if I wanted to add a custom card editor. Or support something like mtg / pokemon etc. with a bajillion interactions. It's a way of development is alright for the game I built, but It makes me curious about refactoring this system to be one of abstract triggers, and more explicit steps in a turn, and modifiers and so on. 
+
+The big one for me is metadata. The tax collector's money stash is on the game struct. The alchemist refund is on the game struct. The museum tucked cards are defined on the game struct. 
+At least I made the city districts hold the beautified status instead of the game struct.
+
+
+

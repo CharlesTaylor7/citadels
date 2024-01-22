@@ -2,9 +2,9 @@
 
 {% match menu %} 
 {% when MenuView::GameOver %}
-{% when MenuView::Logs { player, logs } %}
+{% when MenuView::Logs { header, logs } %}
   <h2 class="header">
-    {{ player }}'s Turn
+    {{ header }}
   </h2>
   <div class="flex flex-col gap-2 items-center">
       <code class="text-sm">

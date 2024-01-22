@@ -2193,20 +2193,8 @@ html {
   min-width: 9rem;
 }
 
-.min-w-\[140px\] {
-  min-width: 140px;
-}
-
 .max-w-72 {
   max-width: 18rem;
-}
-
-.max-w-\[270px\] {
-  max-width: 270px;
-}
-
-.max-w-\[280px\] {
-  max-width: 280px;
 }
 
 .max-w-\[144px\] {
@@ -2269,10 +2257,6 @@ html {
   align-items: flex-start;
 }
 
-.items-end {
-  align-items: flex-end;
-}
-
 .items-center {
   align-items: center;
 }
@@ -2319,14 +2303,6 @@ html {
 
 .overflow-x-hidden {
   overflow-x: hidden;
-}
-
-.overflow-y-visible {
-  overflow-y: visible;
-}
-
-.overflow-x-scroll {
-  overflow-x: scroll;
 }
 
 .overflow-y-scroll {
