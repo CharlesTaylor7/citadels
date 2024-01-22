@@ -1,7 +1,4 @@
 ## Shortlist
-- [x] Magistrate
-    - Reveal warrant menu
-
 - [ ] Rework warlord menu as a modal
 
 - [ ] Blackmailer
@@ -43,10 +40,12 @@
 - [x] museum auto tooltip hides the artifacts
 - [x] Ending game can crashes the game
 - [x] Limit width and apply text-wrap to right sidebar usernames. Long usernames shouldn't distort the whole page.
-- [ ] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
+- [x] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
+- [x] Roles left sidebar, italics say "hover for details". We should restore the tooltip or remove that phrase.
+- [ ] Emoji warrant on the build button so you know the dangers
+- [ ] Destroy cost should be disaplyed prominently on the warlord menu. 
 - [ ] dismissible popup when your district is detroyed, just shows inline a picture of the destroyed district.
 - [ ] Allow names with some punctuation. Will need to url encode names in city request
-- [ ] Roles left sidebar, italics say "hover for details". We should restore the tooltip or remove that phrase.
 
 - [ ] Logan couldn't see his city districts without scrolling.
 - [ ] Logan couldn't easily see enemy districts without scrolling. Warlord menu
@@ -54,16 +53,16 @@
 - [ ] Save the dragged position of districts in a city.
 
 ## Feature Ideas
-- Custom Card editor
-- Custom Role editor
 - Optional Timers
     - Basic
     - Chess Clock (Pokemon showdown)
 - kick bots / spammers
 - auth?
 - multi room
-- game config
 - spectator support
+- [ ] Resizable windows, dimensions are saved per user and kept persistently between sessions
+- Custom Card editor
+- Custom Role editor
 
 ## Custom Roles
 - [ ] Nerfed Asssassin: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
@@ -75,7 +74,6 @@
 ## Tech Debt
 - [ ] Json encoding with htmx still doesn't handle arrays well. I am using a kludge of the Select<> type to handle this
 - [ ] Deserializing CityDistrictTarget requires custom handlers, and leaves the struct without Serialiable/Deserializable instances.
-- [ ] Active player should really always coincide with active role. I thought I was being clever by making them different, so that the magistrate is temporarily active while its another players turn, but this really goes against the design of the rest of the code. I need to fix this behavior, and introduce a new "responding_player" concept or something. This gets even more tricky when the Witch is in the mix. I need nonambiguous terms for all the players in a given action context.
 - [ ] Form url encoding would be better, because no htmx extension required and more web standardsy. Problem is Axum doesn't extract arrays or duplicate form fields. I'm also finding out axum doesn't deserialize strings to numbers. Pretty frustrating. I can write a custom extra for all this.
 - [ ] The game engine is all pretty hard coded. Steps of a turn are coupled to specific roles and actions that may occur. Metadata tied to specific roles is embededded in the root game state. All of this is easy from a standpoint of building a game with a small set of roles. But this style of programming would not scale to building other types of games, card games, or board games with lots of moving pieces and systems and expansion content. This is not a huge problem per se, there's lots of specific rulings in the rulebook for how different roles and districts interact with each other. By doing everything in line, I can ensure all the interactions hold up.
 
