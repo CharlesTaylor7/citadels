@@ -417,6 +417,12 @@ impl ActionTag {
                 format!("Gain {} cards from {}", count, suit).into()
             }
 
+            ActionTag::ResourcesFromReligion => {
+                let suit = CardSuit::Religious;
+                let count = player.count_suit_for_resource_gain(suit);
+                format!("Gain {} resources from {}", count, suit).into()
+            }
+
             ActionTag::DraftPick => "Pick".into(),
             ActionTag::DraftDiscard => "Discard".into(),
             ActionTag::Build => "Build".into(),
@@ -444,6 +450,7 @@ impl ActionTag {
             ActionTag::Laboratory => "Laboratory".into(),
             ActionTag::NavigatorGain => "Navigator".into(),
             ActionTag::QueenGainGold => "Queen".into(),
+            ActionTag::TakeFromRich => "Take 1 gold from the richest".into(),
             _ => {
                 log::debug!("Warning: default case for {:#?}", self);
                 format!("{:#?}", self).into()

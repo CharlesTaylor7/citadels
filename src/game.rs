@@ -427,7 +427,7 @@ impl Game {
     }
 
     pub fn demo() -> Game {
-        let lobby = Lobby::demo();
+        let lobby = Lobby::demo(3);
         let mut game = Game::start(lobby, SeedableRng::from_entropy()).unwrap();
 
         // deal out roles randomly
@@ -443,7 +443,7 @@ impl Game {
         for p in game.players.iter_mut() {
             p.roles.sort_by_key(|r| r.rank());
 
-            for card in game.deck.draw_many(8) {
+            for card in game.deck.draw_many(10) {
                 p.city.push(CityDistrict {
                     name: card,
                     beautified: false,
@@ -461,7 +461,7 @@ impl Game {
         game.museum.tuck(DistrictName::Docks);
         */
         game.first_to_complete = Some(PlayerIndex(0));
-        game.active_turn = Turn::Call(Rank::One);
+        game.active_turn = Turn::Call(Rank::Five);
         game.start_turn().unwrap();
 
         game

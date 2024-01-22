@@ -9,8 +9,10 @@ use rand_core::SeedableRng;
 use std::borrow::Borrow;
 
 fn start_with_entropy(players: Vec<&'static str>) -> Game {
-    let mut lobby = Lobby::demo();
-    lobby.players = players.into_iter().map(lobby::Player::demo).collect();
+    let lobby = Lobby {
+        config: lobby::GameConfig::default(),
+        players: players.into_iter().map(lobby::Player::demo).collect(),
+    };
     Game::start(lobby, SeedableRng::from_entropy()).unwrap()
 }
 

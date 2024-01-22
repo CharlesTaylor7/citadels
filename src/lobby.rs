@@ -32,7 +32,7 @@ pub struct Lobby {
 }
 
 impl Lobby {
-    pub fn demo() -> Self {
+    pub fn demo(count: usize) -> Self {
         let players = vec![
             "Alph",
             "Brittany",
@@ -47,6 +47,7 @@ impl Lobby {
             config: GameConfig::demo(),
             players: players
                 .into_iter()
+                .take(count)
                 .enumerate()
                 .map(|(i, p)| Player {
                     id: format!("{}", i + 1),
@@ -116,9 +117,12 @@ impl Default for GameConfig {
 }
 
 impl GameConfig {
-    fn demo() -> Self {
+    pub fn demo() -> Self {
         let mut config = Self::default();
         config.roles.remove(&RoleName::Assassin);
+        config.roles.remove(&RoleName::Bishop);
+        config.roles.remove(&RoleName::Cardinal);
+        config.roles.insert(RoleName::Abbot);
         config
     }
 

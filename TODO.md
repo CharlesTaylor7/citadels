@@ -1,14 +1,22 @@
 ## Shortlist
-- [ ] Rework warlord menu as a modal
+<<<<<<< HEAD
+=======
+- [ ] Abbot 
+    - collect resources menu
+    - tax richest menu
+    - fixup magician, change format to not require "Select<>"
 
+- [ ] Custom extractor for form url encoded data:
+    https://github.com/tokio-rs/axum/blob/main/examples/customize-extractor-error/src/custom_extractor.rs
+
+>>>>>>> abbot-and-form-url-encoding
+- [ ] Rework warlord menu as a modal
 - [ ] Blackmailer
     - Bribe menu
 
 - [ ] Spy
     - Spy menu
 
-- [ ] Abbot 
-    - abbot menu
 
 - [ ] Diplomat 
 - [ ] Marshal 
