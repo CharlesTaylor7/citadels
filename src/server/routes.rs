@@ -257,7 +257,7 @@ pub async fn get_game_actions(
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
 
-    MenuTemplate::from(game, cookie.to_owned().map(|c| c.value().into())).to_html()
+    MenuTemplate::from(game, cookie.as_ref().map(|c| c.value())).to_html()
 }
 
 pub async fn get_game_city(
@@ -427,7 +427,7 @@ async fn get_game_menu(
 
     let active_player = game.active_player()?;
 
-    if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
+    if cookie.value() != active_player.id {
         return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
     }
 

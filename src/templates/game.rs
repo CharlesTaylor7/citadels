@@ -85,7 +85,7 @@ pub struct GameContext<'a> {
 }
 
 impl<'a> GameContext<'a> {
-    pub fn from_game(game: &'a Game, id: Option<Cow<'a, str>>) -> Self {
+    pub fn from_game(game: &'a Game, id: Option<&'a str>) -> Self {
         Self {
             game,
             allowed: game.allowed_for(id),
@@ -170,9 +170,7 @@ impl<'a> GameTemplate<'a> {
 }
 
 pub fn get_myself<'a>(game: &'a Game, myself: Option<&'a str>) -> Option<&'a Player> {
-    if cfg!(feature = "dev") {
-        game.active_player().ok()
-    } else if let Some(id) = myself {
+    if let Some(id) = myself {
         game.players.iter().find(|p| p.id == id)
     } else {
         None

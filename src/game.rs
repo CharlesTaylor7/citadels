@@ -624,7 +624,7 @@ impl Game {
             .any(|m| *m == Marker::Warrant { signed: true })
     }
 
-    pub fn allowed_for(&self, id: Option<&str>>) -> Vec<ActionTag> {
+    pub fn allowed_for(&self, id: Option<&str>) -> Vec<ActionTag> {
         let id = if let Some(id) = id { id } else { return vec![] };
         if let Some(response) = self.pause_for_response.as_ref() {
             return match response {

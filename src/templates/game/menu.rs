@@ -13,7 +13,7 @@ pub struct MenuTemplate<'a> {
     pub context: GameContext<'a>,
 }
 impl<'a> MenuTemplate<'a> {
-    pub fn from(game: &'a Game, my_id: Option<Cow<'a, str>>) -> Self {
+    pub fn from(game: &'a Game, my_id: Option<&'a str>) -> Self {
         let myself = get_myself(game, my_id);
         Self {
             context: GameContext {
