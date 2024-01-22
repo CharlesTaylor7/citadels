@@ -582,6 +582,11 @@ impl Game {
         Err("No pending response".into())
     }
 
+    pub fn responding_player(&self) -> Result<&Player> {
+        self.responding_player_index()
+            .map(|i| self.players[i.0].borrow())
+    }
+
     pub fn active_player_index(&self) -> Result<PlayerIndex> {
         match &self.active_turn {
             Turn::GameOver => Err("game over".into()),
@@ -619,7 +624,36 @@ impl Game {
             .any(|m| *m == Marker::Warrant { signed: true })
     }
 
-    pub fn allowed_actions(&self) -> Vec<ActionTag> {
+    pub fn allowed_for(&self, id: &str) -> Vec<ActionTag> {
+        if let Some(response) = self.pause_for_response.as_ref() {
+            return match response {
+                ResponseAction::Blackmail { blackmailer } => {
+                    if self.players[blackmailer.0].id != id {
+                        vec![]
+                    } else {
+                        vec![ActionTag::RevealBlackmail, ActionTag::Pass]
+                    }
+                }
+                ResponseAction::Warrant { magistrate, .. } => {
+                    if self.players[magistrate.0].id != id {
+                        vec![]
+                    } else if self.can_reveal_warrant() {
+                        vec![ActionTag::RevealWarrant, ActionTag::Pass]
+                    } else {
+                        vec![ActionTag::Pass]
+                    }
+                }
+            };
+        };
+
+        if self.active_player().is_ok_and(|p| p.id == id) {
+            self.active_player_actions()
+        } else {
+            vec![]
+        }
+    }
+
+    pub fn active_player_actions(&self) -> Vec<ActionTag> {
         if let Some(f) = &self.followup {
             return vec![f.action];
         }
@@ -688,11 +722,9 @@ impl Game {
         }
     }
 
-    pub fn perform(&mut self, action: Action) -> Result<()> {
-        self.active_player()?;
-        let allowed = self.allowed_actions();
-        if !allowed.contains(&action.tag()) {
-            return Err("Action is not allowed".into());
+    pub fn perform(&mut self, action: Action, id: &str) -> Result<()> {
+        if !self.allowed_for(id).contains(&action.tag()) {
+            return Err("not allowed".into());
         }
 
         let ActionOutput { followup, log } = self.perform_action(&action)?;
@@ -718,7 +750,7 @@ impl Game {
         }
 
         if tag == ActionTag::EndTurn
-            || self.active_turn.draft().is_some() && self.allowed_actions().is_empty()
+            || self.active_turn.draft().is_some() && self.active_player_actions().is_empty()
         {
             self.end_turn()?;
         }

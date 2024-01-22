@@ -325,17 +325,10 @@ async fn submit_game_action(
     let cookie = cookies.get("player_id").ok_or("missing cookie")?;
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
-
-    let active_player = game.active_player()?;
-
-    if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
-        return Err(form_feedback("not your turn!".into()));
-    }
-
     log::info!("{:#?}", action.0);
     match action.0 {
         ActionSubmission::Complete(action) => {
-            match game.perform(action) {
+            match game.perform(action, cookie.value()) {
                 Ok(()) => {
                     // TODO: broadcast other
                     let g = &game;

@@ -61,9 +61,14 @@ pub enum MenuView<'a> {
 impl<'a> MenuView<'a> {
     pub fn from(game: &'a Game, myself: Option<&'a Player>) -> Self {
         let my_turn =
-            myself.is_some_and(|p1| game.active_player().is_ok_and(|p2| p1.index == p2.index));
+            myself.is_some_and(|p1| game.active_player_index().is_ok_and(|p2| p1.index == p2));
 
-        if !my_turn {
+        let my_response = myself.is_some_and(|p1| {
+            game.responding_player_index()
+                .is_ok_and(|p2| p1.index == p2)
+        });
+
+        if !my_turn && !my_response {
             return MenuView::Logs {
                 header: "Someone's turn".into(),
                 logs: game.active_role().map_or(vec![], |c| c.logs.clone()),
@@ -96,7 +101,11 @@ impl<'a> MenuView<'a> {
                     gold: *gold,
                     player: game.active_player().unwrap().name.borrow(),
                     district: DistrictTemplate::from(*district),
-                    actions: abilities,
+                    actions: if game.can_reveal_warrant() {
+                        vec![ActionTag::RevealWarrant, ActionTag::Pass]
+                    } else {
+                        vec![ActionTag::Pass]
+                    },
                 },
             };
         }

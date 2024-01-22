@@ -2145,18 +2145,6 @@ html {
   height: 100vh;
 }
 
-.max-h-\[100vh-268px\] {
-  max-height: 100vh-268px;
-}
-
-.max-h-\[calc\(100vh-268px\)\] {
-  max-height: calc(100vh - 268px);
-}
-
-.max-h-\[calc\(100vh-300px\)\] {
-  max-height: calc(100vh - 300px);
-}
-
 .max-h-\[calc\(100vh-280px\)\] {
   max-height: calc(100vh - 280px);
 }
@@ -2171,10 +2159,6 @@ html {
 
 .min-h-\[268px\] {
   min-height: 268px;
-}
-
-.min-h-\[70px\] {
-  min-height: 70px;
 }
 
 .w-10 {
@@ -2219,10 +2203,6 @@ html {
 
 .max-w-\[144px\] {
   max-width: 144px;
-}
-
-.max-w-\[120px\] {
-  max-width: 120px;
 }
 
 .max-w-\[300px\] {
