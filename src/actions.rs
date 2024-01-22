@@ -10,7 +10,6 @@ use std::borrow::Cow;
 #[derive(Serialize, Deserialize, Tag, Debug, Clone)]
 #[tag(serde::Deserialize)]
 #[serde(tag = "action")]
-#[allow(non_snake_case)]
 pub enum Action {
     // single select a role, then click pick or discard
     // Draft Phase

@@ -13,12 +13,12 @@ pub struct MenuTemplate<'a> {
     pub context: GameContext<'a>,
 }
 impl<'a> MenuTemplate<'a> {
-    pub fn from(game: &'a Game, my_id: Option<&'a str>) -> Self {
+    pub fn from(game: &'a Game, my_id: Option<Cow<'a, str>>) -> Self {
         let myself = get_myself(game, my_id);
         Self {
             context: GameContext {
                 game,
-                allowed_actions: game.allowed_actions(),
+                allowed: game.allowed_for(my_id),
             },
             menu: MenuView::from(game, myself),
         }
@@ -70,13 +70,24 @@ impl<'a> MenuView<'a> {
 
         if !my_turn && !my_response {
             return MenuView::Logs {
-                header: "Someone's turn".into(),
+                header: match game.active_turn {
+                    Turn::Draft { .. } => {
+                        format!("Draft: {}", game.active_player().unwrap().name).into()
+                    }
+                    Turn::Call { .. } => format!(
+                        "{} ({})",
+                        game.active_role().unwrap().role.display_name(),
+                        game.active_player().unwrap().name
+                    )
+                    .into(),
+                    Turn::GameOver { .. } => format!("Game over").into(),
+                },
                 logs: game.active_role().map_or(vec![], |c| c.logs.clone()),
             };
         }
-        let allowed = game.allowed_actions();
+        let allowed = game.active_player_actions();
         let abilities = game
-            .allowed_actions()
+            .active_player_actions()
             .iter()
             .cloned()
             .filter(|a| {

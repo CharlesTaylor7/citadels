@@ -103,7 +103,7 @@ impl Default for GameConfig {
             }
         }
 
-        let mut districts = HashMap::from([(DistrictName::Museum, ConfigOption::Always)]);
+        let mut districts = HashMap::from([]);
 
         for district in crate::districts::UNIQUE {
             if !district.name.enabled() {

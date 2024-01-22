@@ -253,17 +253,11 @@ pub async fn get_game_actions(
     app: State<AppState>,
     cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
-    let cookie = cookies.get("player_id").ok_or("missing cookie")?;
+    let cookie = cookies.get("player_id");
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
 
-    let active_player = game.active_player()?;
-
-    if cfg!(not(feature = "dev")) && cookie.value() != active_player.id {
-        return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
-    }
-
-    MenuTemplate::from(game, Some(cookie.value())).to_html()
+    MenuTemplate::from(game, cookie.to_owned().map(|c| c.value().into())).to_html()
 }
 
 pub async fn get_game_city(
@@ -351,7 +345,7 @@ async fn submit_game_action(
                         .filter(|c| c.role.rank() > Rank::One)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(game),
+                    context: GameContext::from_game(game, Some(cookie.value())),
                     header: "Select a role".into(),
                     action: ActionTag::Assassinate,
                 }
@@ -371,7 +365,7 @@ async fn submit_game_action(
                         })
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(game),
+                    context: GameContext::from_game(game, Some(cookie.value())),
                     header: "Select a role".into(),
                     action: ActionTag::Steal,
                 }

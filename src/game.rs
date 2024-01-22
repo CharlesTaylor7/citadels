@@ -624,7 +624,8 @@ impl Game {
             .any(|m| *m == Marker::Warrant { signed: true })
     }
 
-    pub fn allowed_for(&self, id: &str) -> Vec<ActionTag> {
+    pub fn allowed_for(&self, id: Option<&str>>) -> Vec<ActionTag> {
+        let id = if let Some(id) = id { id } else { return vec![] };
         if let Some(response) = self.pause_for_response.as_ref() {
             return match response {
                 ResponseAction::Blackmail { blackmailer } => {
@@ -723,7 +724,7 @@ impl Game {
     }
 
     pub fn perform(&mut self, action: Action, id: &str) -> Result<()> {
-        if !self.allowed_for(id).contains(&action.tag()) {
+        if !self.allowed_for(Some(id)).contains(&action.tag()) {
             return Err("not allowed".into());
         }
 

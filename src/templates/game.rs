@@ -81,19 +81,19 @@ impl<'a> CityTemplate<'a> {
 }
 pub struct GameContext<'a> {
     game: &'a Game,
-    allowed_actions: Vec<ActionTag>,
+    allowed: Vec<ActionTag>,
 }
 
 impl<'a> GameContext<'a> {
-    pub fn from_game(game: &'a Game) -> Self {
+    pub fn from_game(game: &'a Game, id: Option<Cow<'a, str>>) -> Self {
         Self {
             game,
-            allowed_actions: game.allowed_actions(),
+            allowed: game.allowed_for(id),
         }
     }
 
     pub fn allowed(&self, action: &ActionTag) -> bool {
-        self.allowed_actions.contains(action)
+        self.allowed.contains(action)
     }
 
     pub fn disabled(&self, action: &ActionTag) -> bool {
