@@ -239,8 +239,14 @@ pub struct ActionOutput {
 
 #[derive(Debug)]
 pub enum ResponseAction {
-    Warrant { gold: usize, district: DistrictName },
-    Blackmail,
+    Warrant {
+        magistrate: PlayerIndex,
+        gold: usize,
+        district: DistrictName,
+    },
+    Blackmail {
+        blackmailer: PlayerIndex,
+    },
 }
 
 #[derive(Debug)]
@@ -566,21 +572,17 @@ impl Game {
         self.draft.initial_discard = Some(self.draft.remaining.remove(i));
     }
 
-    pub fn active_player_index(&self) -> Result<PlayerIndex> {
+    pub fn responding_player_index(&self) -> Result<PlayerIndex> {
         if let Some(o) = self.pause_for_response.as_ref() {
             return match o {
-                ResponseAction::Warrant { .. } => self
-                    .characters
-                    .get(Rank::One)
-                    .player
-                    .ok_or("should be a magistrate if there's a warrant".into()),
-                ResponseAction::Blackmail => self
-                    .characters
-                    .get(Rank::Two)
-                    .player
-                    .ok_or("should be a blackmailer if there's blackmail".into()),
+                ResponseAction::Warrant { magistrate, .. } => Ok(*magistrate),
+                ResponseAction::Blackmail { blackmailer } => Ok(*blackmailer),
             };
         }
+        Err("No pending response".into())
+    }
+
+    pub fn active_player_index(&self) -> Result<PlayerIndex> {
         match &self.active_turn {
             Turn::GameOver => Err("game over".into()),
             Turn::Draft(index) => Ok(*index),
@@ -609,28 +611,17 @@ impl Game {
             .count()
     }
 
+    pub fn can_reveal_warrant(&self) -> bool {
+        self.active_role()
+            .unwrap()
+            .markers
+            .iter()
+            .any(|m| *m == Marker::Warrant { signed: true })
+    }
+
     pub fn allowed_actions(&self) -> Vec<ActionTag> {
         if let Some(f) = &self.followup {
             return vec![f.action];
-        }
-
-        if let Some(o) = self.pause_for_response.as_ref() {
-            return match o {
-                ResponseAction::Warrant { .. } => {
-                    if self
-                        .active_role()
-                        .unwrap()
-                        .markers
-                        .iter()
-                        .any(|m| *m == Marker::Warrant { signed: true })
-                    {
-                        return vec![ActionTag::RevealWarrant, ActionTag::Pass];
-                    } else {
-                        return vec![ActionTag::Pass];
-                    }
-                }
-                ResponseAction::Blackmail => vec![ActionTag::RevealBlackmail, ActionTag::Pass],
-            };
         }
 
         match self.active_turn {
@@ -824,17 +815,20 @@ impl Game {
         Ok(match action {
             // active player is the one revealing the warrant/blackmail
             // active role is the suspended turn
-            Action::RevealWarrant => match self.pause_for_response {
-                Some(ResponseAction::Warrant { gold, district }) => {
-                    if self.active_player().unwrap().city_has(district) {
+            Action::RevealWarrant => match self.pause_for_response.take() {
+                Some(ResponseAction::Warrant {
+                    magistrate,
+                    gold,
+                    district,
+                }) => {
+                    if self.players[magistrate.0].city_has(district) {
                         return Err("Cannot confiscate a district you already have.".into());
                     }
-                    let player = self.active_role().unwrap().player.unwrap().0;
-                    self.players[player].gold += gold;
-                    let magistrate = self.active_player_mut().unwrap();
+                    let player = self.active_player_mut().unwrap();
+                    player.gold += gold;
+                    let magistrate = self.players[magistrate.0].borrow_mut();
                     magistrate.city.push(CityDistrict::from(district));
                     let name = magistrate.name.clone();
-                    self.pause_for_response = None;
 
                     // clear all remaining warrants
                     for c in self.characters.iter_mut() {
@@ -847,7 +841,7 @@ impl Game {
 
                     ActionOutput {
                         log: format!(
-                            "The Magistrate ({}) reveals a signed warrant and takes the {}; {} gold is refunded.",
+                            "The Magistrate ({}) reveals a signed warrant and confiscates the {}; {} gold is refunded.",
                             name,
                             district.data().display_name, 
                             gold
@@ -876,7 +870,9 @@ impl Game {
             }
 
             Action::IgnoreBlackmail => {
-                self.pause_for_response = Some(ResponseAction::Blackmail);
+                self.pause_for_response = Some(ResponseAction::Blackmail {
+                    blackmailer: self.characters.get(Rank::Two).player.unwrap(),
+                });
 
                 ActionOutput {
                     log: "They ignored the blackmail. Waiting on the Blackmailer's response."
@@ -885,75 +881,77 @@ impl Game {
                 }
             }
 
-            Action::RevealBlackmail => {
-                let is_flowered = self
-                    .active_role()?
-                    .markers
-                    .iter()
-                    .any(|marker| *marker == Marker::Blackmail { flowered: true });
+            Action::RevealBlackmail => match self.pause_for_response.take() {
+                None => return Err("impossible".into()),
+                Some(ResponseAction::Warrant { .. }) => return Err("impossible".into()),
+                Some(ResponseAction::Blackmail { blackmailer }) => {
+                    let is_flowered = self
+                        .active_role()?
+                        .markers
+                        .iter()
+                        .any(|marker| *marker == Marker::Blackmail { flowered: true });
 
-                if is_flowered {
-                    let target = self.active_role().unwrap().player.unwrap().0;
-                    let gold = std::mem::replace(&mut self.players[target].gold, 0);
-                    self.active_player_mut().unwrap().gold += gold;
+                    if is_flowered {
+                        let target = self.active_player_mut().unwrap();
+                        let gold = std::mem::replace(&mut target.gold, 0);
+                        self.players[blackmailer.0].gold += gold;
 
-                    let name = self.active_player().unwrap().name.clone();
-                    self.pause_for_response = None;
-
-                    // clear all remaining blackmail
-                    for c in self.characters.iter_mut() {
-                        if let Some((i, _)) =
-                            c.markers.iter().enumerate().find(|(_, m)| m.is_blackmail())
-                        {
-                            c.markers.remove(i);
+                        // clear all remaining blackmail
+                        for c in self.characters.iter_mut() {
+                            if let Some((i, _)) =
+                                c.markers.iter().enumerate().find(|(_, m)| m.is_blackmail())
+                            {
+                                c.markers.remove(i);
+                            }
                         }
-                    }
 
-                    ActionOutput {
+                        ActionOutput {
                         log: format!(
                             "The Blackmailer ({}) reveals an active threat, and takes all {} of their gold.", 
-                            name,
+                            self.players[blackmailer.0].name,
                             gold 
                         ).into(),
                         followup: None,
-                    }
-                } else {
-                    let name = self.active_player().unwrap().name.clone();
-                    self.pause_for_response = None;
-                    ActionOutput {
-                        log: format!(
-                            "The Blackmailer ({}) reveals an empty threat. Nothing happens.",
-                            name
-                        )
-                        .into(),
-                        followup: None,
-                    }
-                }
-            }
-
-            Action::Pass => {
-                //
-                match self.pause_for_response.take() {
-                    None => return Err("impossible".into()),
-                    Some(ResponseAction::Warrant { gold, district }) => {
-                        self.build(
-                            self.active_role()?.player.ok_or("impossible")?,
-                            gold,
-                            district,
-                        );
+                        }
+                    } else {
+                        let name = self.active_player().unwrap().name.clone();
+                        self.pause_for_response = None;
                         ActionOutput {
                             log: format!(
-                                "The Magistrate ({}) did not reveal the warrant.",
-                                self.active_player().unwrap().name
+                                "The Blackmailer ({}) reveals an empty threat. Nothing happens.",
+                                name
                             )
                             .into(),
                             followup: None,
                         }
                     }
-                    Some(ResponseAction::Blackmail) => ActionOutput {
+                }
+            },
+
+            Action::Pass => {
+                //
+                match self.pause_for_response.take() {
+                    None => return Err("impossible".into()),
+                    Some(ResponseAction::Warrant {
+                        gold,
+                        district,
+                        magistrate,
+                    }) => {
+                        // t
+                        self.build(self.active_player_index()?, gold, district);
+                        ActionOutput {
+                            log: format!(
+                                "The Magistrate ({}) did not reveal the warrant.",
+                                self.players[magistrate.0].name
+                            )
+                            .into(),
+                            followup: None,
+                        }
+                    }
+                    Some(ResponseAction::Blackmail { blackmailer }) => ActionOutput {
                         log: format!(
                             "The Blackmailer ({}) did not reveal the blackmail.",
-                            self.active_player().unwrap().name
+                            self.players[blackmailer.0].name,
                         )
                         .into(),
                         followup: None,
@@ -1159,6 +1157,7 @@ impl Game {
                     && self.active_perform_count(ActionTag::Build) == 0
                 {
                     self.pause_for_response = Some(ResponseAction::Warrant {
+                        magistrate: self.characters.get(Rank::One).player.unwrap(),
                         gold: cost,
                         district: district.name,
                     });
@@ -1185,7 +1184,7 @@ impl Game {
                 self.crowned = self.active_player_index()?;
 
                 ActionOutput {
-                    log: "They took the crown.".into(),
+                    log: format!("{} takes the crown.", self.active_player().unwrap().name).into(),
                     followup: None,
                 }
             }
@@ -1199,7 +1198,7 @@ impl Game {
 
                 ActionOutput {
                     log: format!(
-                        "The Assassin ({}) killed the {}; Their turn will be skipped.",
+                        "The Assassin ({}) kills the {}; Their turn will be skipped.",
                         self.active_player()?.name,
                         role.display_name(),
                     )
@@ -1235,7 +1234,7 @@ impl Game {
 
                 ActionOutput {
                     log: format!(
-                        "The Thief ({}) robbed the {}; Their gold will be taken at the start of their turn.",
+                        "The Thief ({}) robs the {}; At the start of their turn, all their gold will be taken.",
                         self.active_player()?.name,
                         role.display_name(),
                     ).into(),

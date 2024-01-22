@@ -83,16 +83,18 @@ impl<'a> MenuView<'a> {
 
         if let Some(o) = game.pause_for_response.as_ref() {
             return match o {
-                ResponseAction::Blackmail { .. } => MenuView::RevealBlackmail {
+                ResponseAction::Blackmail { blackmailer } => MenuView::RevealBlackmail {
                     gold: 777,
                     player: "TODO",
                     actions: abilities,
                 },
-                ResponseAction::Warrant { gold, district } => MenuView::RevealWarrant {
-                    gold: gold.clone(),
-                    player: game.players[game.active_role().unwrap().player.unwrap().0]
-                        .name
-                        .borrow(),
+                ResponseAction::Warrant {
+                    magistrate,
+                    gold,
+                    district,
+                } => MenuView::RevealWarrant {
+                    gold: *gold,
+                    player: game.active_player().unwrap().name.borrow(),
                     district: DistrictTemplate::from(*district),
                     actions: abilities,
                 },
