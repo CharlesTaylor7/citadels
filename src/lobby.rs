@@ -33,7 +33,16 @@ pub struct Lobby {
 
 impl Lobby {
     pub fn demo() -> Self {
-        let players = vec!["Alph", "Brittany", "Charlie"];
+        let players = vec![
+            "Alph",
+            "Brittany",
+            "Charlie",
+            "Dana",
+            "Eli",
+            "Francesca",
+            "George",
+            "Helen",
+        ];
         Self {
             config: GameConfig::demo(),
             players: players

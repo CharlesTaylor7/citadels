@@ -435,7 +435,7 @@ impl Game {
         roles.shuffle(&mut game.rng);
 
         for (i, role) in roles.iter().enumerate() {
-            let index = i % 3;
+            let index = i % game.players.len();
             game.players[index].roles.push(*role);
             game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
         }
@@ -461,7 +461,7 @@ impl Game {
         game.museum.tuck(DistrictName::Docks);
         */
         game.first_to_complete = Some(PlayerIndex(0));
-        game.active_turn = Turn::Call(Rank::Nine);
+        game.active_turn = Turn::Call(Rank::One);
         game.start_turn().unwrap();
 
         game
