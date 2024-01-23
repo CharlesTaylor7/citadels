@@ -999,6 +999,7 @@ impl Game {
                 c.player = Some(index);
                 let player = self.players[index.0].borrow_mut();
                 player.roles.push(*role);
+                player.roles.sort_by_key(|r| r.rank());
 
                 ActionOutput {
                     log: format!("{} drafted a role.", player.name).into(),
