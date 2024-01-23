@@ -1,3 +1,7 @@
+## 0.4.0
+Roles:
+    - Abbot
+
 ## 0.3.1 
 Fix the magistrate reveal warrant menu
 
