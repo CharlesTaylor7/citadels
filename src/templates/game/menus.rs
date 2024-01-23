@@ -2,8 +2,8 @@ use crate::actions::ActionTag;
 use crate::game::{self, Game, Player};
 use crate::roles::RoleName;
 use crate::templates::{filters, RoleTemplate};
+use crate::types::CardSuit;
 use crate::types::Marker;
-use crate::types::{CardSuit, PlayerName};
 use askama::Template;
 
 use std::borrow::{Borrow, Cow};

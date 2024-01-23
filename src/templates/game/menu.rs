@@ -1,6 +1,7 @@
 use super::{get_myself, GameContext};
 use crate::actions::ActionTag;
-use crate::game::{FollowupAction, Game, Player, ResponseAction, Turn};
+use crate::game::{Followup, Game, Player, Turn};
+use crate::roles::RoleName;
 use crate::templates::filters;
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use askama::Template;
@@ -26,6 +27,7 @@ impl<'a> MenuTemplate<'a> {
 }
 
 pub enum MenuView<'a> {
+    TODO,
     GameOver,
     Logs {
         header: Cow<'a, str>,
@@ -69,26 +71,50 @@ impl<'a> MenuView<'a> {
         });
 
         if my_response {
-            let o = game.pause_for_response.as_ref().unwrap();
+            let o = game.followup.as_ref().unwrap();
             return match o {
-                ResponseAction::Blackmail { blackmailer } => MenuView::RevealBlackmail {
+                Followup::Blackmail { blackmailer } => MenuView::RevealBlackmail {
                     gold: 777,
                     player: "TODO",
                     actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
                 },
-                ResponseAction::Warrant {
+
+                Followup::WizardPick { .. } => MenuView::TODO,
+                Followup::SeerDistribute { .. } => MenuView::TODO,
+                Followup::SpyAcknowledge { .. } => MenuView::TODO,
+                Followup::Warrant {
                     magistrate,
                     gold,
                     district,
+                    signed,
                 } => MenuView::RevealWarrant {
                     gold: *gold,
                     player: game.active_player().unwrap().name.borrow(),
                     district: DistrictTemplate::from(*district),
-                    actions: if game.can_reveal_warrant() {
+                    actions: if *signed {
                         vec![ActionTag::RevealWarrant, ActionTag::Pass]
                     } else {
                         vec![ActionTag::Pass]
                     },
+                },
+
+                Followup::GatherCardsPick { revealed } => MenuView::Followup {
+                    role: game.active_role().unwrap().role.display_name(),
+                    action: ActionTag::GatherCardsPick,
+                    revealed: revealed
+                        .iter()
+                        .cloned()
+                        .map(DistrictTemplate::from)
+                        .collect(),
+                },
+                Followup::ScholarPick { revealed } => MenuView::Followup {
+                    role: RoleName::Scholar.display_name(),
+                    action: ActionTag::ScholarPick,
+                    revealed: revealed
+                        .iter()
+                        .cloned()
+                        .map(DistrictTemplate::from)
+                        .collect(),
                 },
             };
         } else if my_turn {
@@ -121,21 +147,9 @@ impl<'a> MenuView<'a> {
                         .collect::<Vec<_>>(),
                 },
 
-                Turn::Call(_) => match &game.followup {
-                    Some(FollowupAction { action, revealed }) => MenuView::Followup {
-                        role: game.active_role().unwrap().role.display_name(),
-                        action: *action,
-                        revealed: revealed
-                            .iter()
-                            .cloned()
-                            .map(DistrictTemplate::from)
-                            .collect(),
-                    },
-
-                    None => MenuView::Call {
-                        role: game.active_role().unwrap().role.display_name(),
-                        abilities,
-                    },
+                Turn::Call(_) => MenuView::Call {
+                    role: game.active_role().unwrap().role.display_name(),
+                    abilities,
                 },
             };
         } else {

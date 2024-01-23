@@ -70,6 +70,9 @@
   </div>
 {% when MenuView::RevealWarrant with { player, gold, actions, district } %}
 {% include "menus/reveal-warrant.html" %}
+
+{% when MenuView::TODO %}
+TODO
 {% when MenuView::RevealBlackmail with { player, gold, actions } %}
 TODO:   blackmail
 {% when MenuView::Followup with { role, action, revealed} %}

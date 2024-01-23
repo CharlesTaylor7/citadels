@@ -152,6 +152,8 @@ pub enum Action {
         player: PlayerName,
         suit: CardSuit,
     },
+    // followup to acknowledge they were able to peek at the hand of cards
+    SpyAcknowledge,
 
     // can happen during turn, or at end of round if king was killed
     QueenGainGold,

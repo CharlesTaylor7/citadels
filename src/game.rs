@@ -176,12 +176,6 @@ impl Draft {
 }
 
 #[derive(Debug)]
-pub struct FollowupAction {
-    pub action: ActionTag,
-    pub revealed: Vec<DistrictName>,
-}
-
-#[derive(Debug)]
 pub struct GameRole {
     pub role: RoleName,
     pub markers: Vec<Marker>,
@@ -233,13 +227,29 @@ impl GameRole {
 pub type ActionResult = Result<ActionOutput>;
 
 pub struct ActionOutput {
-    pub followup: Option<FollowupAction>,
+    pub followup: Option<Followup>,
     pub log: Cow<'static, str>,
 }
 
 #[derive(Debug)]
-pub enum ResponseAction {
+pub enum Followup {
+    GatherCardsPick {
+        revealed: Vec<DistrictName>,
+    },
+    ScholarPick {
+        revealed: Vec<DistrictName>,
+    },
+    WizardPick {
+        revealed: Vec<DistrictName>,
+    },
+    SeerDistribute {
+        players: Vec<PlayerIndex>,
+    },
+    SpyAcknowledge {
+        revealed: Vec<DistrictName>,
+    },
     Warrant {
+        signed: bool,
         magistrate: PlayerIndex,
         gold: usize,
         district: DistrictName,
@@ -247,6 +257,26 @@ pub enum ResponseAction {
     Blackmail {
         blackmailer: PlayerIndex,
     },
+}
+
+impl Followup {
+    pub fn actions(&self) -> Vec<ActionTag> {
+        match self {
+            Self::SpyAcknowledge { .. } => vec![ActionTag::SpyAcknowledge],
+            Self::GatherCardsPick { .. } => vec![ActionTag::GatherCardsPick],
+            Self::ScholarPick { .. } => vec![ActionTag::ScholarPick],
+            Self::WizardPick { .. } => vec![ActionTag::WizardPick],
+            Self::SeerDistribute { .. } => vec![ActionTag::SeerDistribute],
+            Self::Blackmail { .. } => vec![ActionTag::RevealBlackmail, ActionTag::Pass],
+            Self::Warrant { signed, .. } => {
+                if *signed {
+                    vec![ActionTag::RevealWarrant, ActionTag::Pass]
+                } else {
+                    vec![ActionTag::Pass]
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -259,8 +289,7 @@ pub struct Game {
     pub crowned: PlayerIndex,
     pub active_turn: Turn,
     pub draft: Draft,
-    pub followup: Option<FollowupAction>,
-    pub pause_for_response: Option<ResponseAction>,
+    pub followup: Option<Followup>,
     pub turn_actions: Vec<Action>,
     pub remaining_builds: usize,
     pub first_to_complete: Option<PlayerIndex>,
@@ -530,7 +559,6 @@ impl Game {
             round: 0,
             alchemist: 0,
             tax_collector: 0,
-            pause_for_response: None,
             draft: Draft::default(),
             deck: Deck::new(deck),
             active_turn: Turn::Draft(crowned),
@@ -573,10 +601,15 @@ impl Game {
     }
 
     pub fn responding_player_index(&self) -> Result<PlayerIndex> {
-        if let Some(o) = self.pause_for_response.as_ref() {
+        if let Some(o) = self.followup.as_ref() {
             return match o {
-                ResponseAction::Warrant { magistrate, .. } => Ok(*magistrate),
-                ResponseAction::Blackmail { blackmailer } => Ok(*blackmailer),
+                Followup::Warrant { magistrate, .. } => Ok(*magistrate),
+                Followup::Blackmail { blackmailer, .. } => Ok(*blackmailer),
+                Followup::SpyAcknowledge { .. } => self.active_player_index(),
+                Followup::WizardPick { .. } => self.active_player_index(),
+                Followup::SeerDistribute { .. } => self.active_player_index(),
+                Followup::ScholarPick { .. } => self.active_player_index(),
+                Followup::GatherCardsPick { .. } => self.active_player_index(),
             };
         }
         Err("No pending response".into())
@@ -616,38 +649,15 @@ impl Game {
             .count()
     }
 
-    pub fn can_reveal_warrant(&self) -> bool {
-        self.active_role()
-            .unwrap()
-            .markers
-            .iter()
-            .any(|m| *m == Marker::Warrant { signed: true })
-    }
-
     pub fn allowed_for(&self, id: Option<&str>) -> Vec<ActionTag> {
         let id = if let Some(id) = id { id } else { return vec![] };
-        if let Some(response) = self.pause_for_response.as_ref() {
-            return match response {
-                ResponseAction::Blackmail { blackmailer } => {
-                    if self.players[blackmailer.0].id != id {
-                        vec![]
-                    } else {
-                        vec![ActionTag::RevealBlackmail, ActionTag::Pass]
-                    }
-                }
-                ResponseAction::Warrant { magistrate, .. } => {
-                    if self.players[magistrate.0].id != id {
-                        vec![]
-                    } else if self.can_reveal_warrant() {
-                        vec![ActionTag::RevealWarrant, ActionTag::Pass]
-                    } else {
-                        vec![ActionTag::Pass]
-                    }
-                }
-            };
-        };
-
-        if self.active_player().is_ok_and(|p| p.id == id) {
+        if let Ok(p) = self.responding_player() {
+            if p.id == id {
+                self.followup.as_ref().unwrap().actions()
+            } else {
+                vec![]
+            }
+        } else if self.active_player().is_ok_and(|p| p.id == id) {
             self.active_player_actions()
         } else {
             vec![]
@@ -655,10 +665,6 @@ impl Game {
     }
 
     pub fn active_player_actions(&self) -> Vec<ActionTag> {
-        if let Some(f) = &self.followup {
-            return vec![f.action];
-        }
-
         match self.active_turn {
             Turn::GameOver => {
                 vec![]
@@ -848,12 +854,16 @@ impl Game {
         Ok(match action {
             // active player is the one revealing the warrant/blackmail
             // active role is the suspended turn
-            Action::RevealWarrant => match self.pause_for_response.take() {
-                Some(ResponseAction::Warrant {
+            Action::RevealWarrant => match self.followup.take() {
+                Some(Followup::Warrant {
                     magistrate,
                     gold,
                     district,
+                    signed,
                 }) => {
+                    if !signed {
+                        return Err("Cannot reveal unsigned warrant".into());
+                    }
                     if self.players[magistrate.0].city_has(district) {
                         return Err("Cannot confiscate a district you already have.".into());
                     }
@@ -902,22 +912,15 @@ impl Game {
                 }
             }
 
-            Action::IgnoreBlackmail => {
-                self.pause_for_response = Some(ResponseAction::Blackmail {
+            Action::IgnoreBlackmail => ActionOutput {
+                log: "They ignored the blackmail. Waiting on the Blackmailer's response.".into(),
+                followup: Some(Followup::Blackmail {
                     blackmailer: self.characters.get(Rank::Two).player.unwrap(),
-                });
+                }),
+            },
 
-                ActionOutput {
-                    log: "They ignored the blackmail. Waiting on the Blackmailer's response."
-                        .into(),
-                    followup: None,
-                }
-            }
-
-            Action::RevealBlackmail => match self.pause_for_response.take() {
-                None => return Err("impossible".into()),
-                Some(ResponseAction::Warrant { .. }) => return Err("impossible".into()),
-                Some(ResponseAction::Blackmail { blackmailer }) => {
+            Action::RevealBlackmail => match self.followup.take() {
+                Some(Followup::Blackmail { blackmailer }) => {
                     let is_flowered = self
                         .active_role()?
                         .markers
@@ -948,7 +951,6 @@ impl Game {
                         }
                     } else {
                         let name = self.active_player().unwrap().name.clone();
-                        self.pause_for_response = None;
                         ActionOutput {
                             log: format!(
                                 "The Blackmailer ({}) reveals an empty threat. Nothing happens.",
@@ -959,16 +961,17 @@ impl Game {
                         }
                     }
                 }
+                _ => return Err("Cannot reveal blackmail".into()),
             },
 
             Action::Pass => {
                 //
-                match self.pause_for_response.take() {
-                    None => return Err("impossible".into()),
-                    Some(ResponseAction::Warrant {
+                match self.followup.take() {
+                    Some(Followup::Warrant {
                         gold,
                         district,
                         magistrate,
+                        ..
                     }) => {
                         // t
                         self.build(self.active_player_index()?, gold, district);
@@ -981,7 +984,7 @@ impl Game {
                             followup: None,
                         }
                     }
-                    Some(ResponseAction::Blackmail { blackmailer }) => ActionOutput {
+                    Some(Followup::Blackmail { blackmailer }) => ActionOutput {
                         log: format!(
                             "The Blackmailer ({}) did not reveal the blackmail.",
                             self.players[blackmailer.0].name,
@@ -989,6 +992,7 @@ impl Game {
                         .into(),
                         followup: None,
                     },
+                    _ => return Err("impossible".into()),
                 }
             }
 
@@ -1070,10 +1074,7 @@ impl Game {
                         )
                         .into(),
                         followup: if drawn.len() > 0 {
-                            Some(FollowupAction {
-                                action: ActionTag::GatherCardsPick,
-                                revealed: drawn,
-                            })
+                            Some(Followup::GatherCardsPick { revealed: drawn })
                         } else {
                             None
                         },
@@ -1082,8 +1083,13 @@ impl Game {
             }
 
             Action::GatherCardsPick { district } => {
-                let FollowupAction { mut revealed, .. } =
-                    self.followup.take().ok_or("action is not allowed")?;
+                let mut revealed = if let Some(Followup::GatherCardsPick { revealed, .. }) =
+                    self.followup.take()
+                {
+                    revealed
+                } else {
+                    return Err("action is not allowed".into());
+                };
 
                 Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
                 self.active_player_mut()?.hand.push(*district);
@@ -1191,19 +1197,23 @@ impl Game {
                 if self.active_role().unwrap().has_warrant()
                     && self.active_perform_count(ActionTag::Build) == 0
                 {
-                    self.pause_for_response = Some(ResponseAction::Warrant {
-                        magistrate: self.characters.get(Rank::One).player.unwrap(),
-                        gold: cost,
-                        district: district.name,
-                    });
-
                     ActionOutput {
                         log: format!(
                             "They begin to build a {}; waiting on the Magistrate's response.",
                             district.display_name
                         )
                         .into(),
-                        followup: None,
+                        followup: Some(Followup::Warrant {
+                            magistrate: self.characters.get(Rank::One).player.unwrap(),
+                            gold: cost,
+                            district: district.name,
+                            signed: self
+                                .active_role()
+                                .unwrap()
+                                .markers
+                                .iter()
+                                .any(|m| *m == Marker::Warrant { signed: true }),
+                        }),
                     }
                 } else {
                     self.build(self.active_player().unwrap().index, cost, district.name);
@@ -1560,6 +1570,11 @@ impl Game {
                 }
             }
 
+            Action::SpyAcknowledge => ActionOutput {
+                followup: None,
+                log: format!("Spy is done peeking at the revealed hand").into(),
+            },
+
             Action::Spy { player, suit } => {
                 if player == self.active_player().unwrap().name {
                     return Err("Cannot spy on self.".into());
@@ -1582,7 +1597,7 @@ impl Game {
                     .iter()
                     .filter(|d| d.data().suit == *suit)
                     .count();
-                let gold_taken = std::cmp::max(self.players[target.0].gold, matches);
+                let gold_taken = std::cmp::min(self.players[target.0].gold, matches);
                 self.players[target.0].gold -= gold_taken;
                 self.active_player_mut().unwrap().gold += gold_taken;
                 let cards_drawn = self.gain_cards(matches);
@@ -1595,7 +1610,9 @@ impl Game {
                         gold_taken,
                         cards_drawn
                     ).into(),
-                    followup: None,
+                    followup: Some(Followup::SpyAcknowledge {
+                        revealed: self.players[target.0].hand.clone(),
+                    }),
                 }
             }
             Action::Bewitch { .. } => return Err("Not implemented".into()),
@@ -1779,16 +1796,17 @@ impl Game {
                         drawn.len(),
                     )
                     .into(),
-                    followup: Some(FollowupAction {
-                        action: ActionTag::ScholarPick,
-                        revealed: drawn,
-                    }),
+                    followup: Some(Followup::ScholarPick { revealed: drawn }),
                 }
             }
 
             Action::ScholarPick { district } => {
-                let FollowupAction { mut revealed, .. } =
-                    self.followup.take().ok_or("action is not allowed")?;
+                let mut revealed =
+                    if let Some(Followup::ScholarPick { revealed, .. }) = self.followup.take() {
+                        revealed
+                    } else {
+                        return Err("action is not allowed".into());
+                    };
 
                 Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
                 self.active_player_mut()?.hand.push(*district);
