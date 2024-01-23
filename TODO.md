@@ -93,6 +93,16 @@ Also neither handles parsing strings to numbers
 - I can try to port code between form deserializers to get both features.
 
 
+Three packages, and they are all incomplete:
+- https://github.com/nox/serde_urlencoded
+    - handles untagged/internally tagged enums, doesn't handle nesting or sequences
+
+https://github.com/jplatte/serde_html_form
+    - handles arrays
+    - breaks handling of untagged/internally tagged enums
+https://github.com/samscott89/serde_qs
+    - handles nesting
+
 
 
 

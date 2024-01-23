@@ -31,6 +31,12 @@ pub enum Action {
 
     Build {
         district: DistrictName,
+        // to sacrifice
+        framework: bool,
+        // to sacrifice
+        necropolis: Option<DistrictName>,
+        // to discard
+        thieves_den: Vec<DistrictName>,
     },
     // Happens automatically when no actions are left.
     // Turn can end early if requested
@@ -223,7 +229,8 @@ pub enum Action {
 /// optional build modifiers:
 /// - cardinal
 /// - framework
-/// - thieve's den
+/// - thieves's den
+/// - necropolis
 ///
 /// Just special build rules
 /// - stables
@@ -235,6 +242,23 @@ pub enum Action {
 // cardinal is complicated. I think I will add optional fields to the build action
 // witch is complicated
 
+#[serde_as]
+#[derive(Serialize, Deserialize, Tag, Debug, Clone)]
+#[tag(serde::Deserialize)]
+#[serde(tag = "cost")]
+pub enum AlternateBuildCost {
+    Framework,
+    Necropolis {
+        district: DistrictName,
+    },
+    ThievesDen {
+        district: Select<DistrictName>,
+    },
+    Cardinal {
+        player: PlayerName,
+        district: Select<DistrictName>,
+    },
+}
 #[derive(Debug, Clone)]
 pub struct CityDistrictTarget {
     pub player: PlayerName,
