@@ -1,12 +1,13 @@
 ## Shortlist
-- [ ] Fix armory
+- [x] Fix armory
 - [x] Abbot 
-    - Make tax richest menu less janky
-    - Make collect resources less janky. the textbox could have a background that blends with the theme. On firefox the input should be an inline-block
+    - [ ] Make tax richest menu less janky
+    - [ ] Make collect resources less janky. the textbox could have a background that blends with the theme. On firefox the input should be an inline-block
 
 - [x] Spy
-    - Make less janky menu
+    - [ ] Make less janky menu
 
+- [x] Sort districts alphabetically
 - [ ] Blackmailer
     - Bribe menu
 

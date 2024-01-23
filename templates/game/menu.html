@@ -71,6 +71,20 @@
 {% when MenuView::RevealWarrant with { player, gold, actions, district } %}
 {% include "menus/reveal-warrant.html" %}
 
+{% when MenuView::RevealBlackmail with { player, gold, actions } %}
+  <h2 class="header">
+    Blackmail
+  </h2>
+
+  {{ player }} has {{ gold }}
+
+  <div class="flex flex-row flex-wrap gap-2">
+    {% for action in actions %}
+      {% include "action.html" %}
+    {% endfor %}
+  </div>
+<div id="error"></div>
+
 {% when MenuView::Spy with { player, hand } %}
   <h2 class="header">
     {{ player }}'s Hand
@@ -93,10 +107,6 @@
       Acknowledge
     </button>
   </div>
-{% when MenuView::TODO %}
-TODO
-{% when MenuView::RevealBlackmail with { player, gold, actions } %}
-TODO:   blackmail
 {% when MenuView::Followup with { role, action, revealed} %}
   <h2 class="header">
     {{ role }}'s Turn
@@ -120,4 +130,6 @@ TODO:   blackmail
       Pick
     </button>
   </div>
+{% when MenuView::TODO %}
+TODO
 {% endmatch %}

@@ -63,10 +63,12 @@ impl<'a> RoleConfigTemplate<'a> {
 
 impl<'a> DistrictConfigTemplate<'a> {
     pub fn from_config(config: &'a HashMap<DistrictName, ConfigOption>) -> Self {
+        let mut districts = UNIQUE;
+        districts.sort_by_key(|d| d.display_name);
         Self {
             selected: "Districts",
-            districts: UNIQUE
-                .into_iter()
+            districts: districts
+                .iter()
                 .map(|d| {
                     let option = config.get(&d.name).cloned().unwrap_or_default();
                     (format!("{:?}", option), DistrictTemplate::from(d.name))

@@ -153,9 +153,8 @@ impl RoleName {
             Self::Magistrate => true,
             Self::Abbot => true,
             Self::Spy => true,
+            Self::Blackmailer => true,
 
-            // WIP: very close
-            Self::Blackmailer => false,
             // Marshal and diplomat seem stronger than warlord.
             // Stealing strong uniques seems more fun than destroying them
             Self::Marshal => false,

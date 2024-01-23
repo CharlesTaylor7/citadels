@@ -1,8 +1,9 @@
 ## 0.5.0
 Roles:
     - Spy
+    - Blackmailer - WIP
 Fixes:
-    - Armory has a menu
+    - Armory is actually usable. It was missing a menu.
 
 ## 0.4.0
 Roles:

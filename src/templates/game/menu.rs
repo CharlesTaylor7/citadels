@@ -78,8 +78,8 @@ impl<'a> MenuView<'a> {
             let o = game.followup.as_ref().unwrap();
             return match o {
                 Followup::Blackmail { .. } => MenuView::RevealBlackmail {
-                    gold: 777,
-                    player: "TODO",
+                    gold: game.active_player().unwrap().gold,
+                    player: game.active_player().unwrap().name.borrow(),
                     actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
                 },
 
