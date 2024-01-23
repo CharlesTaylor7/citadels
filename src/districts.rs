@@ -1,10 +1,9 @@
-use serde::{Deserialize, Serialize};
-
 use crate::actions::ActionTag;
 use crate::types::CardSet;
 use crate::types::CardSet::*;
 use crate::types::CardSuit;
 use crate::types::CardSuit::*;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 #[repr(usize)]
@@ -163,9 +162,9 @@ impl DistrictName {
             Self::Armory => true,
 
             Self::Stables => true,
-            Self::Framework => true,
-            Self::Necropolis => true,
-            Self::ThievesDen => true,
+            Self::Framework => false,
+            Self::Necropolis => false,
+            Self::ThievesDen => false,
             Self::Theater => false,
 
             _ => false,

@@ -1121,7 +1121,7 @@ impl Game {
                     followup: None,
                 }
             }
-            Action::Build { district } => {
+            Action::Build { district, .. } => {
                 if self.active_role().unwrap().role == RoleName::Navigator {
                     return Err("The navigator is not allowed to build.".into());
                 }
