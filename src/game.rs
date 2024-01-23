@@ -1561,7 +1561,50 @@ impl Game {
             Action::Spy { .. } => return Err("Not implemented".into()),
             Action::Bewitch { .. } => return Err("Not implemented".into()),
             Action::Seize { .. } => return Err("Not implemented".into()),
-            Action::TakeFromRich { .. } => return Err("Not implemented".into()),
+            Action::TakeFromRich { player } => {
+                if player
+                    .as_ref()
+                    .is_some_and(|name| name == self.active_player().unwrap().name)
+                {
+                    return Err("Cannot take from yourself".into());
+                }
+                let my_gold = self.active_player().unwrap().gold;
+
+                let mut richest = Vec::with_capacity(self.players.len());
+                for player in self.players.iter_mut().filter(|p| p.gold > my_gold) {
+                    if richest.len() == 0 {
+                        richest.push(player);
+                    } else if player.gold == richest[0].gold {
+                        richest.push(player);
+                    } else if player.gold > richest[0].gold {
+                        richest.clear();
+                        richest.push(player);
+                    }
+                }
+
+                let target = match player {
+                    None => {
+                        if richest.len() == 1 {
+                            richest[0].borrow_mut()
+                        } else {
+                            return Err("There is no single richest".into());
+                        }
+                    }
+                    Some(player) => richest
+                        .iter_mut()
+                        .find(|p| p.name == *player)
+                        .ok_or("Not among the richest".to_owned())?,
+                };
+
+                target.gold -= 1;
+                let name = target.name.clone();
+                self.active_player_mut().unwrap().gold += 1;
+                //target
+                ActionOutput {
+                    log: format!("The Abbot takes 1 gold from the richest: {}", name).into(),
+                    followup: None,
+                }
+            }
             Action::SendWarrants { signed, unsigned } => {
                 let mut roles = Vec::with_capacity(3);
                 roles.push(signed);
