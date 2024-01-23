@@ -1560,7 +1560,44 @@ impl Game {
                 }
             }
 
-            Action::Spy { .. } => return Err("Not implemented".into()),
+            Action::Spy { player, suit } => {
+                if player == self.active_player().unwrap().name {
+                    return Err("Cannot spy on self.".into());
+                }
+                // TODO: show them the hand.
+                // dismissible popup? store inbox of messages for each player?
+                let target = self
+                    .players
+                    .iter()
+                    .find_map(|p| {
+                        if &p.name == player {
+                            Some(p.index)
+                        } else {
+                            None
+                        }
+                    })
+                    .ok_or("no player with that name")?;
+                let matches = self.players[target.0]
+                    .hand
+                    .iter()
+                    .filter(|d| d.data().suit == *suit)
+                    .count();
+                let gold_taken = std::cmp::max(self.players[target.0].gold, matches);
+                self.players[target.0].gold -= gold_taken;
+                self.active_player_mut().unwrap().gold += gold_taken;
+                let cards_drawn = self.gain_cards(matches);
+                ActionOutput {
+                    log: format!(
+                        "The Spy is counting {} districts. They spy on {}, and find {} matches. They take {} gold, and draw {} cards.",
+                        suit,
+                        self.players[target.0].name,
+                        matches,
+                        gold_taken,
+                        cards_drawn
+                    ).into(),
+                    followup: None,
+                }
+            }
             Action::Bewitch { .. } => return Err("Not implemented".into()),
             Action::Seize { .. } => return Err("Not implemented".into()),
             Action::TakeFromRich { player } => {

@@ -11,6 +11,16 @@ pub enum CardSuit {
     Unique,
 }
 
+impl CardSuit {
+    pub const ALL: [CardSuit; 5] = [
+        Self::Trade,
+        Self::Religious,
+        Self::Military,
+        Self::Noble,
+        Self::Unique,
+    ];
+}
+
 impl fmt::Display for CardSuit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:#?}", self)

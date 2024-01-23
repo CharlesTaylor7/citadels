@@ -416,6 +416,11 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
 
+            ActionTag::Spy => {
+                let rendered = SpyMenu::from(game).to_html()?;
+                Ok(rendered.into_response())
+            }
+
             _ => Err(form_feedback("missing selection".into())),
         },
     }

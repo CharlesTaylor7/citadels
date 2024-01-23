@@ -2,8 +2,8 @@ use crate::actions::ActionTag;
 use crate::game::{self, Game, Player};
 use crate::roles::RoleName;
 use crate::templates::{filters, RoleTemplate};
-use crate::types::CardSuit;
 use crate::types::Marker;
+use crate::types::{CardSuit, PlayerName};
 use askama::Template;
 
 use std::borrow::{Borrow, Cow};
@@ -84,6 +84,23 @@ impl<'a> AbbotTakeFromRichMenu<'a> {
     pub fn from(game: &'a Game) -> Self {
         Self {
             players: game.abbot_take_from_rich_targets(),
+        }
+    }
+}
+
+#[derive(Template)]
+#[template(path = "game/menus/spy.html")]
+pub struct SpyMenu<'a> {
+    pub players: Vec<&'a Player>,
+    pub suits: &'a [CardSuit],
+}
+
+impl<'a> SpyMenu<'a> {
+    pub fn from(game: &'a Game) -> Self {
+        let active = game.active_player_index().unwrap();
+        Self {
+            players: game.players.iter().filter(|p| p.index != active).collect(),
+            suits: CardSuit::ALL.borrow(),
         }
     }
 }

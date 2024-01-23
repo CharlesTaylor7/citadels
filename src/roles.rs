@@ -134,7 +134,6 @@ impl RoleName {
 
     pub fn enabled(self) -> bool {
         match self {
-            // base
             Self::Assassin => true,
             Self::Thief => true,
             Self::Magician => true,
@@ -144,8 +143,6 @@ impl RoleName {
             Self::Architect => true,
             Self::Warlord => true,
             Self::Artist => true,
-
-            // working
             Self::Patrician => true,
             Self::Scholar => true,
             Self::Alchemist => true,
@@ -154,6 +151,8 @@ impl RoleName {
             Self::Trader => true,
             Self::Navigator => true,
             Self::Magistrate => true,
+            Self::Abbot => true,
+            Self::Spy => true,
 
             // WIP: very close
             Self::Blackmailer => false,
@@ -165,12 +164,6 @@ impl RoleName {
             // seem fun, require some menuing
             Self::Seer => false,
             Self::Wizard => false,
-            Self::Spy => false,
-
-            // Abilities are ok
-            // Makes the rank 8 character a lot better
-            // bishop blocking is really huge in 2-3 player games.
-            Self::Abbot => true,
 
             // Seems really unfun for a 3 player game.
             // The king making aspect only really works in a larger game where you can guarantee

@@ -1,0 +1,45 @@
+<h2 class="m-2 underline text-lg font-semibold">
+  Spy
+</h2>
+
+<div>
+  {% for player in players %}
+    <label class="block cursor-pointer">
+      <input type="radio" name="player" value={{ player.name }} />
+      {{ player.name }}
+    </label>
+  {% endfor %}
+</div>
+
+<div>
+  {% for suit in suits %}
+    <label class="block cursor-pointer">
+      <input type="radio" name="suit" value={{ suit }} />
+      {{ suit }}
+    </label>
+  {% endfor %}
+</div>
+
+
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    hx-post="/game/action"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+    name="action"
+    value="Spy"
+  >
+    Confirm 
+  </button>
+  <button 
+    class="btn btn-accent"
+    hx-get="/game/actions"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+  >
+    Cancel
+  </button>
+</div>
+<div id="error"></div>
