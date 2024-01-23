@@ -40,12 +40,6 @@ pub struct MagicSwapPlayerMenu<'a> {
 pub struct MagicSwapDeckMenu {}
 
 #[derive(Template)]
-#[template(path = "game/menus/warlord.html")]
-pub struct WarlordMenu<'a> {
-    pub cities: Vec<CityTemplate<'a>>,
-}
-
-#[derive(Template)]
 #[template(path = "game/menus/beautify.html")]
 pub struct BeautifyMenu;
 
@@ -147,6 +141,12 @@ impl BlackmailMenu {
     }
 }
 
+#[derive(Template)]
+#[template(path = "game/menus/warlord.html")]
+pub struct WarlordMenu<'a> {
+    pub cities: Vec<CityTemplate<'a>>,
+}
+
 impl<'a> WarlordMenu<'a> {
     pub fn from_game(game: &'a game::Game) -> Self {
         Self {
@@ -157,6 +157,25 @@ impl<'a> WarlordMenu<'a> {
                     !game.characters.has_revealed_role(p, RoleName::Bishop)
                         && p.city_size() < game.complete_city_size()
                 })
+                .map(|p| CityTemplate::from(game, p.index, None))
+                .collect::<Vec<_>>(),
+        }
+    }
+}
+
+#[derive(Template)]
+#[template(path = "game/menus/armory.html")]
+pub struct ArmoryMenu<'a> {
+    pub cities: Vec<CityTemplate<'a>>,
+}
+
+impl<'a> ArmoryMenu<'a> {
+    pub fn from_game(game: &'a game::Game) -> Self {
+        Self {
+            cities: game
+                .players
+                .iter()
+                .filter(|p| p.city_size() < game.complete_city_size())
                 .map(|p| CityTemplate::from(game, p.index, None))
                 .collect::<Vec<_>>(),
         }

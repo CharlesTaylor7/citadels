@@ -1,8 +1,8 @@
 ## 0.5.0
 Roles:
     - Spy
-        - needs better action menu
-        - needs to get a peek at the targets hand
+Fixes:
+    - Armory has a menu
 
 ## 0.4.0
 Roles:

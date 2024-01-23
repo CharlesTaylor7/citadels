@@ -1404,7 +1404,11 @@ impl Game {
 
             Action::Armory { district: target } => {
                 if target.district == DistrictName::Keep {
-                    return Err("cannot destroy the Keep".into());
+                    return Err("Cannot destroy the Keep".into());
+                }
+
+                if target.district == DistrictName::Armory {
+                    return Err("The armory cannot destroy itself".into());
                 }
 
                 let complete_size = self.complete_city_size();
@@ -1429,17 +1433,15 @@ impl Game {
 
                 targeted_player.city.remove(city_index);
                 let active_player = self.active_player_mut()?;
-                //Game::remove_first(&mut
                 let (city_index, _) = active_player
                     .city
                     .iter()
                     .enumerate()
                     .find(|(_, d)| d.name == DistrictName::Armory)
-                    .unwrap();
+                    .ok_or("You do not have the armory")?;
 
                 active_player.city.remove(city_index);
-                self.deck.discard_to_bottom(DistrictName::Armory);
-
+                self.discard_district(DistrictName::Armory);
                 self.discard_district(target.district);
 
                 ActionOutput {

@@ -1,21 +1,14 @@
 ## Shortlist
-- [ ] Abbot 
-    - collect resources menu
-    - tax richest menu
-    - fixup magician, change format to not require "Select<>"
+- [ ] Fix armory
+- [x] Abbot 
+    - Make tax richest menu less janky
+    - Make collect resources less janky. the textbox could have a background that blends with the theme. On firefox the input should be an inline-block
 
-- [ ] Custom extractor for form url encoded data:
-    https://github.com/tokio-rs/axum/blob/main/examples/customize-extractor-error/src/custom_extractor.rs
+- [x] Spy
+    - Make less janky menu
 
-- [ ] Rework warlord menu as a modal
 - [ ] Blackmailer
     - Bribe menu
-
-- [ ] Spy
-    - Spy menu
-
-- [ ] Diplomat 
-- [ ] Marshal 
 
 ## Ideas
 - [ ] Keyboard based warrant assignment
