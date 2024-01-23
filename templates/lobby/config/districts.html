@@ -126,10 +126,13 @@
             {% endif %}
           "
         >
-          <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
-                height="{{ asset.scale_percentage }}%"
-                xlink:href="{{ asset.path }}"
-                preserveAspectRatio="xMinYMin slice"
+          <image 
+            id="img" 
+            x="{{asset.offset_x}}" 
+            y="{{asset.offset_y}}"
+            height="{{ asset.scale_percentage }}%"
+            xlink:href="{{ asset.path }}"
+            preserveAspectRatio="xMinYMin slice"
           />
         </svg>
       </div>
