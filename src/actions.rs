@@ -43,37 +43,21 @@ pub enum Action {
     // Happens automatically when no actions are left.
     // Turn can end early if requested
     EndTurn,
-
-    // gold for district suits
     GoldFromNobility,
     GoldFromReligion,
     GoldFromTrade,
     GoldFromMilitary,
+    CardsFromNobility,
     MerchantGainOneGold,
     ArchitectGainCards,
-
-    // the king and patrician always target themselves.
-    // this action must happen each round.
-    // The game says "at some point during their turn".
-    // Since there's no strategy to waiting, it will happen automatically.
-    // If bewitched the original player still claims the crown.
-    // If the character is killed it happens at the end of the round.
     TakeCrown,
-
     Assassinate {
         role: RoleName,
     },
     Steal {
         role: RoleName,
     },
-
-    // select 1 player, or select many cards from hand
     Magic(MagicianAction),
-
-    // Warlord
-    // may destroy own district
-    // may not destroy from any completed city
-    // may not destroy from bishop's city
     WarlordDestroy {
         #[serde(
             serialize_with = "serialize_city_district_target",
@@ -81,7 +65,6 @@ pub enum Action {
         )]
         district: CityDistrictTarget,
     },
-
     Beautify {
         #[serde(
             serialize_with = "serialize_city_district_target",
@@ -89,9 +72,6 @@ pub enum Action {
         )]
         district: CityDistrictTarget,
     },
-
-    // Patrician
-    CardsFromNobility,
 
     // reveals 7 cards
     ScholarReveal,
@@ -186,7 +166,7 @@ pub enum Action {
     // distribute 1 card to each player that you took from.
     // note: if an opponent has no cards initially, they get no card back from you.
     SeerDistribute {
-        seer: Vec<SeerTarget>,
+        //seer: Vec<SeerTarget>,
     },
 
     // action
@@ -228,39 +208,6 @@ pub enum Action {
     },
 }
 
-/// optional build modifiers:
-/// - cardinal
-/// - framework
-/// - thieves's den
-/// - necropolis
-///
-/// Just special build rules
-/// - stables
-/// - Monument
-///
-/// Navigator + stables = no build
-/// Magistrate + stables =  can build again.
-
-// cardinal is complicated. I think I will add optional fields to the build action
-// witch is complicated
-
-#[serde_as]
-#[derive(Serialize, Deserialize, Tag, Debug, Clone)]
-#[tag(serde::Deserialize)]
-#[serde(tag = "cost")]
-pub enum AlternateBuildCost {
-    Framework,
-    Necropolis {
-        district: DistrictName,
-    },
-    ThievesDen {
-        district: Select<DistrictName>,
-    },
-    Cardinal {
-        player: PlayerName,
-        district: Select<DistrictName>,
-    },
-}
 #[derive(Debug, Clone)]
 pub struct CityDistrictTarget {
     pub player: PlayerName,
@@ -268,64 +215,12 @@ pub struct CityDistrictTarget {
     pub beautified: bool,
 }
 
-impl CityDistrictTarget {}
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Resource {
     Gold,
     Cards,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SeerTarget {
-    pub player: PlayerName,
-    pub district: DistrictName,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Warrant {
-    pub role: RoleName,
-    pub signed: bool,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Threat {
-    pub role: RoleName,
-    pub flowered: bool,
-}
-
-// action button click leads to one of 3 outcomes:
-// - immediate action
-// - open menu and possibly allow selection from either your hand or your city.
-
-// action target domains:
-// a role - Assassinate, Steal, single
-// other player - Magician, single
-// my hand - Magician, many
-// my city - Build, beautify, single
-// other city - Warlord, single
-// revealed hand - Wizard, single
-// revealed top of deck - Scholar, single
-// draft - picking roles, single
-//
-// fluidly the ui needs to swap input types from 3 states:
-// disabled = ""
-// single = "checkbox"
-// many = "radio"
-//
-// depending on what the active action is.
-// I should not leak the UI needs into the domain layer.
-// Resource pick cards is the only followup action I need at the moment.
-// I may need more followup actions for new roles and districts, but at the moment that's the only
-// followup needed.
-//
-// So I need the UI layer to smartly allow:
-// - picking an action,
-// - that enables selection from the desired zone/domain.
-// - and puts in a simple confirm button into the ui.
-//
-//
-//
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum Select<T> {
