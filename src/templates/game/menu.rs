@@ -28,6 +28,10 @@ impl<'a> MenuTemplate<'a> {
 
 pub enum MenuView<'a> {
     TODO,
+    Spy {
+        player: &'a str,
+        hand: Vec<DistrictTemplate<'a>>,
+    },
     GameOver,
     Logs {
         header: Cow<'a, str>,
@@ -73,7 +77,7 @@ impl<'a> MenuView<'a> {
         if my_response {
             let o = game.followup.as_ref().unwrap();
             return match o {
-                Followup::Blackmail { blackmailer } => MenuView::RevealBlackmail {
+                Followup::Blackmail { .. } => MenuView::RevealBlackmail {
                     gold: 777,
                     player: "TODO",
                     actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
@@ -81,12 +85,18 @@ impl<'a> MenuView<'a> {
 
                 Followup::WizardPick { .. } => MenuView::TODO,
                 Followup::SeerDistribute { .. } => MenuView::TODO,
-                Followup::SpyAcknowledge { .. } => MenuView::TODO,
+                Followup::SpyAcknowledge { player, revealed } => MenuView::Spy {
+                    player: player.borrow(),
+                    hand: revealed
+                        .iter()
+                        .map(|d| DistrictTemplate::from(*d))
+                        .collect(),
+                },
                 Followup::Warrant {
-                    magistrate,
                     gold,
                     district,
                     signed,
+                    ..
                 } => MenuView::RevealWarrant {
                     gold: *gold,
                     player: game.active_player().unwrap().name.borrow(),

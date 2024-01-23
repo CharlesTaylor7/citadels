@@ -246,6 +246,7 @@ pub enum Followup {
         players: Vec<PlayerIndex>,
     },
     SpyAcknowledge {
+        player: PlayerName,
         revealed: Vec<DistrictName>,
     },
     Warrant {
@@ -1611,6 +1612,7 @@ impl Game {
                         cards_drawn
                     ).into(),
                     followup: Some(Followup::SpyAcknowledge {
+                        player: self.players[target.0].name.clone(),
                         revealed: self.players[target.0].hand.clone(),
                     }),
                 }

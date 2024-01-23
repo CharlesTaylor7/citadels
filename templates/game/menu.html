@@ -71,6 +71,28 @@
 {% when MenuView::RevealWarrant with { player, gold, actions, district } %}
 {% include "menus/reveal-warrant.html" %}
 
+{% when MenuView::Spy with { player, hand } %}
+  <h2 class="header">
+    {{ player }}'s Hand
+  </h2>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "" %}
+    {% set enabled = false %} 
+    {% set draggable = true %}
+    {% for district in hand %} 
+      {% include "district/square-cropped.html" %} 
+    {% endfor %}
+  </div>
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="SpyAcknowledge"
+    >
+      Acknowledge
+    </button>
+  </div>
 {% when MenuView::TODO %}
 TODO
 {% when MenuView::RevealBlackmail with { player, gold, actions } %}
@@ -87,6 +109,7 @@ TODO:   blackmail
       {% include "district/square-cropped.html" %} 
     {% endfor %}
   </div>
+
   <div class="flex flex-row flex-wrap gap-2">
     <button 
       class="btn btn-secondary"
