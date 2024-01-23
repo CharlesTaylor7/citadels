@@ -1564,10 +1564,7 @@ impl Game {
             Action::Bewitch { .. } => return Err("Not implemented".into()),
             Action::Seize { .. } => return Err("Not implemented".into()),
             Action::TakeFromRich { player } => {
-                if player
-                    .as_ref()
-                    .is_some_and(|name| name == self.active_player().unwrap().name)
-                {
+                if player == self.active_player().unwrap().name {
                     return Err("Cannot take from yourself".into());
                 }
 
@@ -1585,24 +1582,14 @@ impl Game {
                     }
                 }
 
-                let target = match player {
-                    None => {
-                        if richest.len() == 1 {
-                            richest[0].borrow_mut()
-                        } else {
-                            return Err("There is no single richest".into());
-                        }
-                    }
-                    Some(player) => richest
-                        .iter_mut()
-                        .find(|p| p.name == *player)
-                        .ok_or("Not among the richest".to_owned())?,
-                };
+                let target = richest
+                    .iter_mut()
+                    .find(|p| p.name == *player)
+                    .ok_or("Not among the richest".to_owned())?;
 
                 target.gold -= 1;
                 let name = target.name.clone();
                 self.active_player_mut().unwrap().gold += 1;
-                //target
                 ActionOutput {
                     log: format!("The Abbot takes 1 gold from the richest: {}", name).into(),
                     followup: None,

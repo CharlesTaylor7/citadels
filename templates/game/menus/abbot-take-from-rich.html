@@ -2,8 +2,15 @@
   Abbot
 </h2>
 
-TODO: List players richest players here, look at magician menu
-
+<div>
+  {% for player in players %}
+    <label class="block cursor-pointer">
+      <input type="radio" name="player" value={{ player.name }} />
+      {{ player.name }}
+    </label>
+  {% endfor %}
+</div>
+<
 <div class="flex flex-row flex-wrap gap-2">
   <button 
     class="btn btn-secondary"

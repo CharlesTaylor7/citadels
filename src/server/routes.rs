@@ -20,7 +20,6 @@ use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use http::StatusCode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
-use serde_with::{serde_as, DisplayFromStr};
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
@@ -409,6 +408,11 @@ async fn submit_game_action(
 
             ActionTag::ResourcesFromReligion => {
                 let rendered = AbbotCollectResourcesMenu::from(game).to_html()?;
+                Ok(rendered.into_response())
+            }
+
+            ActionTag::TakeFromRich => {
+                let rendered = AbbotTakeFromRichMenu::from(game).to_html()?;
                 Ok(rendered.into_response())
             }
 

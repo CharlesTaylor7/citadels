@@ -32,10 +32,12 @@ pub enum Action {
     Build {
         district: DistrictName,
         // to sacrifice
+        #[serde(default)]
         framework: bool,
         // to sacrifice
         necropolis: Option<DistrictName>,
         // to discard
+        #[serde(default)]
         thieves_den: Vec<DistrictName>,
     },
     // Happens automatically when no actions are left.
@@ -121,7 +123,7 @@ pub enum Action {
     // Abbot
     // player arg to break a tie amongst the richest.
     TakeFromRich {
-        player: Option<PlayerName>,
+        player: PlayerName,
     },
 
     // Cardinal

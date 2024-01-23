@@ -1,5 +1,5 @@
 use crate::actions::ActionTag;
-use crate::game::{self, Game};
+use crate::game::{self, Game, Player};
 use crate::roles::RoleName;
 use crate::templates::{filters, RoleTemplate};
 use crate::types::CardSuit;
@@ -75,8 +75,18 @@ impl AbbotCollectResourcesMenu {
 }
 
 #[derive(Template)]
-#[template(path = "game/menus/abbot-tax-richest.html")]
-pub struct AbbotTaxRichestMenu;
+#[template(path = "game/menus/abbot-take-from-rich.html")]
+pub struct AbbotTakeFromRichMenu<'a> {
+    pub players: Vec<&'a Player>,
+}
+
+impl<'a> AbbotTakeFromRichMenu<'a> {
+    pub fn from(game: &'a Game) -> Self {
+        Self {
+            players: game.abbot_take_from_rich_targets(),
+        }
+    }
+}
 
 #[derive(Template)]
 #[template(path = "game/menus/send-warrants.html")]
