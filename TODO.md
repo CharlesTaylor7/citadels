@@ -1,6 +1,4 @@
 ## Shortlist
-<<<<<<< HEAD
-=======
 - [ ] Abbot 
     - collect resources menu
     - tax richest menu
@@ -9,14 +7,12 @@
 - [ ] Custom extractor for form url encoded data:
     https://github.com/tokio-rs/axum/blob/main/examples/customize-extractor-error/src/custom_extractor.rs
 
->>>>>>> abbot-and-form-url-encoding
 - [ ] Rework warlord menu as a modal
 - [ ] Blackmailer
     - Bribe menu
 
 - [ ] Spy
     - Spy menu
-
 
 - [ ] Diplomat 
 - [ ] Marshal 
@@ -80,15 +76,31 @@
     - [ ] Need to send ws updates as oob swaps so as to not disrupt the video player dom state.
 
 ## Tech Debt
-- [ ] Json encoding with htmx still doesn't handle arrays well. I am using a kludge of the Select<> type to handle this
-- [ ] Deserializing CityDistrictTarget requires custom handlers, and leaves the struct without Serialiable/Deserializable instances.
-- [ ] Form url encoding would be better, because no htmx extension required and more web standardsy. Problem is Axum doesn't extract arrays or duplicate form fields. I'm also finding out axum doesn't deserialize strings to numbers. Pretty frustrating. I can write a custom extra for all this.
-- [ ] The game engine is all pretty hard coded. Steps of a turn are coupled to specific roles and actions that may occur. Metadata tied to specific roles is embededded in the root game state. All of this is easy from a standpoint of building a game with a small set of roles. But this style of programming would not scale to building other types of games, card games, or board games with lots of moving pieces and systems and expansion content. This is not a huge problem per se, there's lots of specific rulings in the rulebook for how different roles and districts interact with each other. By doing everything in line, I can ensure all the interactions hold up.
+### Deserialization
+Json encoding with htmx still doesn't handle arrays well. I am using a kludge of the Select<> type to handle this
+
+Form url encoding would be better, because no htmx extension required and more web standardsy. Problem is Axum doesn't extract arrays or duplicate form fields. I'm also finding out axum doesn't deserialize strings to numbers. Pretty frustrating. I can write a custom extra for all this.
+Deserializing CityDistrictTarget requires custom handlers, and leaves the struct without Serialiable/Deserializable instances.
+Also neither handles parsing strings to numbers
+
+- I can use `#[serde_as(as = "DisplayFromStr")]` to handle the int parsing.
+- I can use serde_html_form to handle arrays in forms.
+    - but this requires giving up internally tagged enums. I have switch to externally tagged, if I do this.
+    - this is because the feature in serde is half baked. There are rough edges when deserializing to non json formats while using internally tagged enums. It's up to the deserializer library to figure it out, and this doesn't handle it.
+- with json encoding:
+    - The main pain point is around arrays. I have to use my Select<> type to handle it.
+- I can go back `serde_urlencoded`, which handled internally tagged enums, but not arrays.
+- I can try to port code between form deserializers to get both features.
+
+
+
+
+
+
+### Game Engine
+The game engine is all pretty hard coded. Steps of a turn are coupled to specific roles and actions that may occur. Metadata tied to specific roles is embededded in the root game state. All of this is easy from a standpoint of building a game with a small set of roles. But this style of programming would not scale to building other types of games, card games, or board games with lots of moving pieces and systems and expansion content. This is not a huge problem per se, there's lots of specific rulings in the rulebook for how different roles and districts interact with each other. By doing everything in line, I can ensure all the interactions hold up.
 
 This just wouldn't work if I wanted to add a custom card editor. Or support something like mtg / pokemon etc. with a bajillion interactions. It's a way of development is alright for the game I built, but It makes me curious about refactoring this system to be one of abstract triggers, and more explicit steps in a turn, and modifiers and so on. 
 
 The big one for me is metadata. The tax collector's money stash is on the game struct. The alchemist refund is on the game struct. The museum tucked cards are defined on the game struct. 
 At least I made the city districts hold the beautified status instead of the game struct.
-
-
-

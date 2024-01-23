@@ -1502,7 +1502,7 @@ impl Game {
             Action::WizardPeek { .. } => return Err("Not implemented".into()),
             Action::WizardPick { .. } => return Err("Not implemented".into()),
 
-            Action::ResourcesFromReligion { gold, cards } => {
+            Action::ResourcesFromReligion { gold, cards, .. } => {
                 let player = self.active_player()?;
                 let count = player.count_suit_for_resource_gain(CardSuit::Religious);
                 if gold + cards < count {

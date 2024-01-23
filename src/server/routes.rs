@@ -1,4 +1,4 @@
-use crate::actions::{Action, ActionSubmission, ActionTag};
+use crate::actions::{Action, ActionSubmission, ActionTag, Select};
 use crate::districts::DistrictName;
 use crate::game::Game;
 use crate::lobby::{ConfigOption, Lobby};
@@ -11,15 +11,16 @@ use crate::templates::lobby::*;
 use crate::templates::*;
 use crate::types::{Marker, PlayerName};
 use askama::Template;
-use axum::extract::{Path, State};
+use axum::extract::{Json, Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
+use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
-use axum::{Form, Router};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use http::StatusCode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
+use serde_with::{serde_as, DisplayFromStr};
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
@@ -45,14 +46,9 @@ pub fn get_router() -> Router {
         .route("/game/logs", get(get_game_logs))
         .route("/game", post(start))
         .route("/game/action", post(submit_game_action))
-        .route("/game/test-action", post(test_deserialize))
         .route("/game/menu/:menu", get(get_game_menu))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
-}
-
-pub async fn test_deserialize(form: Form<Action>) -> Result<Response> {
-    Err(form_feedback(format!("test: {:?}", form.0).into()))
 }
 
 pub async fn index() -> impl IntoResponse {
@@ -108,7 +104,7 @@ pub async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
 
 pub async fn post_district_config(
     app: State<AppState>,
-    form: Form<HashMap<DistrictName, ConfigOption>>,
+    form: Json<HashMap<DistrictName, ConfigOption>>,
 ) -> impl IntoResponse {
     let mut lobby = app.lobby.lock().unwrap();
     lobby.config.districts = form.0;
@@ -126,7 +122,7 @@ pub async fn get_role_config(app: State<AppState>) -> impl IntoResponse {
 
 pub async fn post_role_config(
     app: State<AppState>,
-    form: Form<HashMap<RoleName, String>>,
+    form: Json<HashMap<RoleName, String>>,
 ) -> Result<Response, ErrorResponse> {
     let mut lobby = app.lobby.lock().unwrap();
     log::info!("{:?}", form);
@@ -155,7 +151,7 @@ pub struct Register {
 pub async fn register(
     app: State<AppState>,
     cookies: PrivateCookieJar,
-    form: axum::Form<Register>,
+    form: axum::Json<Register>,
 ) -> Result<Response> {
     let username = form.username.trim();
     if username.len() == 0 {
@@ -314,7 +310,7 @@ fn form_feedback(err: Cow<'static, str>) -> ErrorResponse {
 async fn submit_game_action(
     app: State<AppState>,
     cookies: PrivateCookieJar,
-    action: axum::Form<ActionSubmission>,
+    action: axum::Json<ActionSubmission>,
 ) -> Result<Response> {
     let cookie = cookies.get("player_id").ok_or("missing cookie")?;
     let mut game = app.game.lock().unwrap();

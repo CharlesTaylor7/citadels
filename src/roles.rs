@@ -170,7 +170,7 @@ impl RoleName {
             // Abilities are ok
             // Makes the rank 8 character a lot better
             // bishop blocking is really huge in 2-3 player games.
-            Self::Abbot => false,
+            Self::Abbot => true,
 
             // Seems really unfun for a 3 player game.
             // The king making aspect only really works in a larger game where you can guarantee

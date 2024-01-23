@@ -1,3 +1,4 @@
+use serde_with::{serde_as, DisplayFromStr};
 pub mod deserializer;
 use crate::actions::deserializer::*;
 use crate::game::Player;
@@ -7,6 +8,7 @@ use macros::tag::Tag;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
+#[serde_as]
 #[derive(Serialize, Deserialize, Tag, Debug, Clone)]
 #[tag(serde::Deserialize)]
 #[serde(tag = "action")]
@@ -104,7 +106,9 @@ pub enum Action {
 
     // Abbot
     ResourcesFromReligion {
+        #[serde_as(as = "DisplayFromStr")]
         gold: usize,
+        #[serde_as(as = "DisplayFromStr")]
         cards: usize,
     },
 
