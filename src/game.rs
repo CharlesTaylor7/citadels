@@ -991,6 +991,7 @@ impl Game {
                     },
                 }
             }
+
             Action::DraftPick { role } => {
                 let index = self.active_turn.draft().ok_or("not the draft")?;
 
@@ -1569,6 +1570,7 @@ impl Game {
                 {
                     return Err("Cannot take from yourself".into());
                 }
+
                 let my_gold = self.active_player().unwrap().gold;
 
                 let mut richest = Vec::with_capacity(self.players.len());
@@ -1782,6 +1784,23 @@ impl Game {
                 }
             }
         })
+    }
+
+    pub fn abbot_take_from_rich_targets(&self) -> Vec<&Player> {
+        let my_gold = self.active_player().unwrap().gold;
+
+        let mut richest = Vec::with_capacity(self.players.len());
+        for player in self.players.iter().filter(|p| p.gold > my_gold) {
+            if richest.len() == 0 {
+                richest.push(player);
+            } else if player.gold == richest[0].gold {
+                richest.push(player);
+            } else if player.gold > richest[0].gold {
+                richest.clear();
+                richest.push(player);
+            }
+        }
+        richest
     }
 
     fn remove_first<T: PartialEq>(items: &mut Vec<T>, item: T) -> Option<T> {
