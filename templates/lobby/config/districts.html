@@ -2,8 +2,8 @@
 {% block config_content %}
   <form class="flex flex-row flex-wrap justify-center gap-3">
     {% for (option, district) in districts %}
-      <label
-        class="group select-none cursor-pointer rounded-2xl"
+      <div
+        class="group select-none rounded-2xl"
         hx-post="/lobby/config/districts"
         hx-trigger="click"
         hx-swap="none"
@@ -132,7 +132,7 @@
                 preserveAspectRatio="xMinYMin slice"
           />
         </svg>
-      </label>
+      </div>
     {% endfor %}
   </form>
 {% endblock %}
