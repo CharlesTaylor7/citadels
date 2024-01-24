@@ -133,45 +133,28 @@ impl RoleName {
     }
 
     pub fn enabled(self) -> bool {
+        // 6 to go!
         match self {
-            Self::Assassin => true,
-            Self::Thief => true,
-            Self::Magician => true,
-            Self::King => true,
-            Self::Bishop => true,
-            Self::Merchant => true,
-            Self::Architect => true,
-            Self::Warlord => true,
-            Self::Artist => true,
-            Self::Patrician => true,
-            Self::Scholar => true,
-            Self::Alchemist => true,
-            Self::TaxCollector => true,
-            Self::Queen => true,
-            Self::Trader => true,
-            Self::Navigator => true,
-            Self::Magistrate => true,
-            Self::Abbot => true,
-            Self::Spy => true,
-            Self::Blackmailer => true,
-            Self::Seer => true,
-
-            // Marshal and diplomat seem stronger than warlord.
-            // Stealing strong uniques seems more fun than destroying them
-            Self::Marshal => false,
-            Self::Diplomat => false,
-
-            // seem fun, require some menuing
-            Self::Wizard => false,
-
-            // Seems really unfun for a 3 player game.
-            // The king making aspect only really works in a larger game where you can guarantee
-            // you will be picking 2nd or 3rd. In a 3 player game, its just not a good pick.
+            // just target player, basically magician/spy menu
             Self::Emperor => false,
 
-            // Complicated
-            Self::Witch => false,
+            // warlord menu with tweaks
+            Self::Marshal => false,
+
+            // warlord menu with tweaks, just need to select a district from each city.
+            Self::Diplomat => false,
+
+            // build menu with tweaks, just need to select a card from another player's hand
+            Self::Wizard => false,
+
+            // modify the build menu to allow alternative payments
             Self::Cardinal => false,
+
+            // menu to bewitch is the same as ASSASSIN
+            // lots of game engine changes
+            Self::Witch => false,
+
+            _ => true,
         }
     }
 }

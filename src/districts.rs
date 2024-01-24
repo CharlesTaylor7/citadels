@@ -129,45 +129,14 @@ impl DistrictName {
     }
 
     pub fn enabled(self) -> bool {
-        // 26
+        // 4 to go!
         match self {
-            Self::GreatWall => true,
-            Self::Keep => true,
-            Self::Factory => true,
-            Self::Quarry => true,
-            Self::SchoolOfMagic => true,
-
-            Self::Library => true,
-            Self::Observatory => true,
-            Self::Park => true,
-            Self::PoorHouse => true,
-            Self::GoldMine => true,
-
-            Self::SecretVault => true,
-            Self::DragonGate => true,
-            Self::WishingWell => true,
-            Self::IvoryTower => true,
-            Self::ImperialTreasury => true,
-
-            Self::MapRoom => true,
-            Self::Statue => true,
-            Self::Basilica => true,
-            Self::Capitol => true,
-            Self::Museum => true,
-
-            Self::Laboratory => true,
-            Self::Smithy => true,
-            Self::Monument => true,
-            Self::HauntedQuarter => true,
-            Self::Armory => true,
-
-            Self::Stables => true,
             Self::Framework => false,
             Self::Necropolis => false,
             Self::ThievesDen => false,
             Self::Theater => false,
 
-            _ => false,
+            _ => true,
         }
     }
     pub fn multiplicity(self) -> usize {
