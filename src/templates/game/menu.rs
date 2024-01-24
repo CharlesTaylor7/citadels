@@ -1,6 +1,6 @@
 use super::{get_myself, GameContext};
 use crate::actions::ActionTag;
-use crate::game::{Followup, ForcedToGatherReason, Game, Player, Turn};
+use crate::game::{Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
 use crate::roles::{Rank, RoleName};
 use crate::templates::filters;
 use crate::templates::{DistrictTemplate, RoleTemplate};
@@ -28,6 +28,10 @@ impl<'a> MenuTemplate<'a> {
 
 pub enum MenuView<'a> {
     TODO,
+    Theater {
+        players: Vec<&'a str>,
+        roles: Vec<RoleTemplate>,
+    },
     SeerDistribute {
         players: Vec<&'a str>,
         hand: Vec<DistrictTemplate<'a>>,
@@ -179,18 +183,32 @@ impl<'a> MenuView<'a> {
                 })
                 .collect();
 
-            return match game.active_turn {
+            return match game.active_turn.borrow() {
                 Turn::GameOver => MenuView::GameOver,
-                Turn::Draft(_) => MenuView::Draft {
+                Turn::Draft(Draft {
+                    theater_step: true, ..
+                }) => MenuView::Theater {
+                    players: game
+                        .players
+                        .iter()
+                        .filter(|p| p.index != myself.unwrap().index)
+                        .map(|p| p.name.borrow())
+                        .collect(),
+                    roles: myself
+                        .unwrap()
+                        .roles
+                        .iter()
+                        .map(|r| RoleTemplate::from(*r, 200.0))
+                        .collect(),
+                },
+                Turn::Draft(draft) => MenuView::Draft {
                     actions: allowed,
-                    roles: game
-                        .draft
+                    roles: draft
                         .remaining
                         .iter()
                         .map(|r| RoleTemplate::from(*r, 200.0))
                         .collect::<Vec<_>>(),
-                    discard: game
-                        .draft
+                    discard: draft
                         .faceup_discard
                         .iter()
                         .map(|r| RoleTemplate::from(*r, 200.0))

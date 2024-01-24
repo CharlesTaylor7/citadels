@@ -210,6 +210,7 @@ pub enum Action {
         role: RoleName,
         player: PlayerName,
     },
+    TheaterPass,
 }
 
 #[derive(Debug, Clone)]

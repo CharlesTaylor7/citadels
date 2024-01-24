@@ -3,7 +3,9 @@ Roles:
     - Spy
     - Blackmailer
     - Seer
-Fixes:
+
+Districts:
+    - Theater
     - Armory is actually usable. It was missing a menu.
 
 ## 0.4.0

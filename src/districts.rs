@@ -120,7 +120,6 @@ impl DistrictName {
     pub fn action(self) -> Option<ActionTag> {
         match self {
             DistrictName::Smithy => Some(ActionTag::Smithy),
-            DistrictName::Theater => Some(ActionTag::Theater),
             DistrictName::Museum => Some(ActionTag::Museum),
             DistrictName::Laboratory => Some(ActionTag::Laboratory),
             DistrictName::Armory => Some(ActionTag::Armory),
@@ -129,12 +128,11 @@ impl DistrictName {
     }
 
     pub fn enabled(self) -> bool {
-        // 4 to go!
+        // 3 to go!
         match self {
             Self::Framework => false,
             Self::Necropolis => false,
             Self::ThievesDen => false,
-            Self::Theater => false,
 
             _ => true,
         }

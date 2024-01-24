@@ -161,8 +161,11 @@ impl<'a> GameTemplate<'a> {
             players: &players,
             my: player_template.borrow(),
             end: GameEndTemplate {
-                hidden: game.active_turn != Turn::GameOver,
                 players: scores,
+                hidden: match game.active_turn {
+                    Turn::GameOver => false,
+                    _ => true,
+                },
             },
         }
         .to_html()

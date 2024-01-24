@@ -135,7 +135,6 @@
   </div>
 
 {% when MenuView::SeerDistribute with { players, hand } %}
-
   <div class="hidden" _="init add .hidden to #hand-panel enableSeer()"></div>
   <h2 class="header">
     Seer 
@@ -194,6 +193,50 @@
       Pick
     </button>
   </div>
+
+{% when MenuView::Theater with { roles, players } %}
+  <h2 class="header">
+    Theater
+  </h2>
+
+  <div>
+    {% for player in players %}
+      <label class="block cursor-pointer">
+        <input type="radio" name="player" value={{ player }} />
+        {{ player }}
+      </label>
+    {% endfor %}
+  </div>
+
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "radio" %}
+    {% set enabled = true %} 
+    {% set draggable = false %}
+    {% for role in roles %} 
+      {% include "role-card.html" %} 
+    {% endfor %}
+  </div>
+
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="Theater"
+    >
+      Swap
+    </button>
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="TheaterPass"
+    >
+      Pass
+    </button>
+  </div>
+
+
 {% when MenuView::TODO %}
 TODO
 {% endmatch %}

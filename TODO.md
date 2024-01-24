@@ -22,6 +22,7 @@
     - Seer targets which card was taken. 
     - Seer target which card was restored.
     - Warlord target when district is destroyed.
+    - Theater 
 
 
 ## Ideas

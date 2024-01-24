@@ -144,22 +144,14 @@ impl<T> Deck<T> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug)]
 pub enum Turn {
     GameOver,
-    Draft(PlayerIndex),
+    Draft(Draft),
     Call(Rank),
 }
 
 impl Turn {
-    pub fn draft(&self) -> Option<PlayerIndex> {
-        if let Turn::Draft(index) = self {
-            Some(*index)
-        } else {
-            None
-        }
-    }
-
     pub fn call(&self) -> Option<Rank> {
         if let Turn::Call(rank) = self {
             Some(*rank)
@@ -167,16 +159,76 @@ impl Turn {
             None
         }
     }
+
+    pub fn draft(&self) -> Result<&Draft> {
+        if let Turn::Draft(draft) = self {
+            Ok(draft)
+        } else {
+            Err("not the draft".into())
+        }
+    }
+
+    pub fn draft_mut(&mut self) -> Result<&mut Draft> {
+        if let Turn::Draft(draft) = self {
+            Ok(draft)
+        } else {
+            Err("not the draft".into())
+        }
+    }
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Draft {
+    pub player_count: usize,
+    pub player: PlayerIndex,
+    pub theater_step: bool,
     pub remaining: Vec<RoleName>,
     pub initial_discard: Option<RoleName>,
     pub faceup_discard: Vec<RoleName>,
 }
 
 impl Draft {
+    pub fn begin<R: RngCore>(
+        player_count: usize,
+        player: PlayerIndex,
+        roles: Vec<RoleName>,
+        rng: &mut R,
+    ) -> Self {
+        let mut draft = Self {
+            player_count,
+            player,
+            remaining: roles,
+            theater_step: false,
+            initial_discard: None,
+            faceup_discard: vec![],
+        };
+        let role_count = draft.remaining.len();
+        // discard cards face up in 4+ player game
+        if draft.player_count >= 4 {
+            for _ in draft.player_count + 2..role_count {
+                let mut index;
+                loop {
+                    index = rng.gen_range(0..draft.remaining.len());
+                    if draft.remaining[index].can_be_discarded_faceup() {
+                        break;
+                    }
+                }
+
+                draft
+                    .faceup_discard
+                    .push(draft.remaining.swap_remove(index));
+            }
+        }
+
+        // discard 1 card facedown
+        let i = rng.gen_range(0..draft.remaining.len());
+        draft.initial_discard = Some(draft.remaining.swap_remove(i));
+
+        // restore sort of roles
+        draft.remaining.sort_by_key(|role| role.rank());
+        draft
+    }
+
     pub fn clear(&mut self) {
         self.remaining.clear();
         self.initial_discard = None;
@@ -294,19 +346,24 @@ impl Followup {
 #[derive(Debug)]
 pub struct Game {
     rng: Prng,
+    // global
     pub round: usize,
     pub deck: Deck<DistrictName>,
     pub players: Vec<Player>,
     pub characters: Characters,
     pub crowned: PlayerIndex,
+    pub first_to_complete: Option<PlayerIndex>,
+
+    // current turn info
     pub active_turn: Turn,
-    pub draft: Draft,
     pub followup: Option<Followup>,
     pub turn_actions: Vec<Action>,
     pub remaining_builds: usize,
-    pub first_to_complete: Option<PlayerIndex>,
+
+    // logs
     pub logs: Vec<Cow<'static, str>>,
     pub db_log: Option<DbLog>,
+
     // card specific metadata
     pub museum: Museum,
     pub alchemist: usize,
@@ -530,9 +587,8 @@ impl Game {
             round: 0,
             alchemist: 0,
             tax_collector: 0,
-            draft: Draft::default(),
             deck: Deck::new(deck),
-            active_turn: Turn::Draft(crowned),
+            active_turn: Turn::GameOver,
             turn_actions: Vec::new(),
             remaining_builds: 0,
             logs: Vec::new(),
@@ -544,7 +600,7 @@ impl Game {
         if !cfg!(feature = "dev") {
             game.begin_draft();
             Ok(game)
-        } else {
+        } else if false {
             // deal roles out randomly
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
@@ -559,34 +615,24 @@ impl Game {
             game.active_turn = Turn::Call(Rank::Three);
             game.start_turn().unwrap();
             Ok(game)
+        } else {
+            game.players[0].city.push(CityDistrict {
+                name: DistrictName::Theater,
+                beautified: false,
+            });
+            game.begin_draft();
+            Ok(game)
         }
     }
 
     pub fn begin_draft(&mut self) {
         self.round += 1;
-        self.active_turn = Turn::Draft(self.crowned);
-        self.draft.remaining = self.characters.iter().collect();
-
-        // discard cards face up in 4+ player game
-        if self.players.len() >= 4 {
-            for _ in self.players.len() + 2..self.characters.len() {
-                let mut index;
-                loop {
-                    index = self.rng.gen_range(0..self.draft.remaining.len());
-                    if self.draft.remaining[index].can_be_discarded_faceup() {
-                        break;
-                    }
-                }
-
-                self.draft
-                    .faceup_discard
-                    .push(self.draft.remaining.remove(index));
-            }
-        }
-
-        // discard 1 card facedown
-        let i = self.rng.gen_range(0..self.draft.remaining.len());
-        self.draft.initial_discard = Some(self.draft.remaining.remove(i));
+        self.active_turn = Turn::Draft(Draft::begin(
+            self.players.len(),
+            self.crowned,
+            self.characters.iter().collect(),
+            &mut self.rng,
+        ));
     }
 
     pub fn responding_player_index(&self) -> Result<PlayerIndex> {
@@ -613,7 +659,7 @@ impl Game {
     pub fn active_player_index(&self) -> Result<PlayerIndex> {
         match &self.active_turn {
             Turn::GameOver => Err("game over".into()),
-            Turn::Draft(index) => Ok(*index),
+            Turn::Draft(draft) => Ok(draft.player),
             Turn::Call(rank) => self
                 .characters
                 .get(*rank)
@@ -687,11 +733,22 @@ impl Game {
     }
 
     pub fn active_player_actions(&self) -> Vec<ActionTag> {
-        match self.active_turn {
+        match self.active_turn.borrow() {
             Turn::GameOver => {
                 vec![]
             }
-            Turn::Draft(_) => {
+            Turn::Draft(Draft {
+                theater_step: true, ..
+            }) => {
+                if self.turn_actions.iter().any(|act| {
+                    act.tag() == ActionTag::Theater || act.tag() == ActionTag::TheaterPass
+                }) {
+                    vec![]
+                } else {
+                    vec![ActionTag::Theater, ActionTag::TheaterPass]
+                }
+            }
+            Turn::Draft(draft) => {
                 if self.active_perform_count(ActionTag::DraftPick) == 0 {
                     vec![ActionTag::DraftPick]
 
@@ -700,7 +757,7 @@ impl Game {
                     // the one they don't pick is automatically discarded.
                     // So really only the middle two draft turns should show the discard button
                 } else if self.players.len() == 2
-                    && (self.draft.remaining.len() == 5 || self.draft.remaining.len() == 3)
+                    && (draft.remaining.len() == 5 || draft.remaining.len() == 3)
                 {
                     vec![ActionTag::DraftDiscard]
                 } else {
@@ -723,7 +780,7 @@ impl Game {
                 }
 
                 let mut actions = Vec::new();
-                let c = self.characters.get(rank);
+                let c = self.characters.get(*rank);
                 for (n, action) in c.role.data().actions {
                     if self.active_perform_count(*action) < *n {
                         actions.push(*action);
@@ -784,7 +841,7 @@ impl Game {
         }
 
         if tag == ActionTag::EndTurn
-            || self.active_turn.draft().is_some() && self.active_player_actions().is_empty()
+            || self.active_turn.draft().is_ok() && self.active_player_actions().is_empty()
         {
             self.end_turn()?;
         }
@@ -1031,12 +1088,12 @@ impl Game {
             }
 
             Action::DraftPick { role } => {
-                let index = self.active_turn.draft().ok_or("not the draft")?;
+                let draft = self.active_turn.draft_mut()?;
 
-                Game::remove_first(&mut self.draft.remaining, *role);
+                Game::remove_first(&mut draft.remaining, *role);
                 let c = self.characters.get_mut(role.rank());
-                c.player = Some(index);
-                let player = self.players[index.0].borrow_mut();
+                c.player = Some(draft.player);
+                let player = self.players[draft.player.0].borrow_mut();
                 player.roles.push(*role);
                 player.roles.sort_by_key(|r| r.rank());
 
@@ -1047,11 +1104,12 @@ impl Game {
             }
 
             Action::DraftDiscard { role } => {
-                let i = (0..self.draft.remaining.len())
-                    .find(|i| self.draft.remaining[*i] == *role)
+                let draft = self.active_turn.draft_mut()?;
+                let i = (0..draft.remaining.len())
+                    .find(|i| draft.remaining[*i] == *role)
                     .ok_or("selected role is not available")?;
 
-                self.draft.remaining.remove(i);
+                draft.remaining.remove(i);
                 ActionOutput {
                     log: format!("{} discarded a role face down.", self.active_player()?.name)
                         .into(),
@@ -1920,12 +1978,60 @@ impl Game {
                 }
             }
 
+            Action::TheaterPass => ActionOutput {
+                log: format!(
+                    "{} decided not to use the Theatre",
+                    self.active_player()?.name
+                )
+                .into(),
+
+                followup: None,
+            },
+            Action::Theater { role, player } => {
+                if self.active_player().unwrap().name == *player {
+                    return Err("Cannot swap with self".into());
+                }
+                Game::remove_first(&mut self.active_player_mut()?.roles, *role)
+                    .ok_or("You cannot give away a role you don't have")?;
+
+                let target = self
+                    .players
+                    .iter_mut()
+                    .find(|p| p.name == *player)
+                    .ok_or("nonexistent player")?;
+
+                let index = self.rng.gen_range(0..target.roles.len());
+                let target_role = target.roles.swap_remove(index);
+                target.roles.push(*role);
+                target.roles.sort_by_key(|r| r.rank());
+                for role in target.roles.iter() {
+                    self.characters.get_mut(role.rank()).player = Some(target.index);
+                }
+
+                let active = self.active_player_mut().unwrap();
+                active.roles.push(target_role);
+                active.roles.sort_by_key(|r| r.rank());
+                let index = active.index;
+                for role in active.roles.clone() {
+                    self.characters.get_mut(role.rank()).player = Some(index);
+                }
+
+                ActionOutput {
+                    log: format!(
+                        "Theater: {} swaps roles with {}",
+                        self.active_player().unwrap().name,
+                        player
+                    )
+                    .into(),
+                    followup: None,
+                }
+            }
+
             Action::WizardPeek { .. } => return Err("Not implemented".into()),
             Action::WizardPick { .. } => return Err("Not implemented".into()),
             Action::Bewitch { .. } => return Err("Not implemented".into()),
             Action::Seize { .. } => return Err("Not implemented".into()),
             Action::EmperorGiveCrown { .. } => return Err("Not implemented".into()),
-            Action::Theater { .. } => return Err("Not implemented".into()),
             Action::ExchangeCityDistricts { .. } => return Err("Not implemented".into()),
         })
     }
@@ -2002,38 +2108,54 @@ impl Game {
         log::info!("ending turn");
         self.turn_actions.clear();
 
-        match self.active_turn {
+        match self.active_turn.borrow_mut() {
             Turn::GameOver => {}
-            Turn::Draft(index) => {
-                // advance turn
-                let role_count = if self.players.len() <= 3 { 2 } else { 1 };
-                self.active_turn = if self.players.iter().all(|p| p.roles.len() == role_count) {
-                    Turn::Call(Rank::One)
-                } else {
-                    let next = PlayerIndex((index.0 + 1) % self.players.len());
-                    Turn::Draft(next)
-                };
+            Turn::Draft(Draft {
+                theater_step: true, ..
+            }) => {
+                // call
+                self.active_turn = Turn::Call(Rank::One)
+            }
+            Turn::Draft(draft) => {
+                // discard cards between turns
 
                 // for the 3 player game with 9 characters
                 // after the first round of cards are selected,
                 // randomly discard 1.
                 if self.players.len() == 3
                     && self.characters.len() == 9
-                    && self.draft.remaining.len() == 5
+                    && draft.remaining.len() == 5
                 {
-                    let index = self.rng.gen_range(0..self.draft.remaining.len());
-                    self.draft.remaining.remove(index);
+                    let index = self.rng.gen_range(0..draft.remaining.len());
+                    draft.remaining.remove(index);
                 }
 
                 // for the 7 player 8 role game, or 8 player 9 role game
                 // give the final player the choice to choose the initial discard
                 if self.players.len() + 1 == self.characters.len()
-                    && self.draft.remaining.len() == 1
-                    && self.draft.initial_discard.is_some()
+                    && draft.remaining.len() == 1
+                    && draft.initial_discard.is_some()
                 {
-                    let initial = self.draft.initial_discard.take().ok_or("impossible")?;
-                    self.draft.remaining.push(initial);
+                    let initial = draft.initial_discard.take().ok_or("impossible")?;
+                    draft.remaining.push(initial);
                 }
+
+                // advance turn
+                let role_count = if self.players.len() <= 3 { 2 } else { 1 };
+                if self.players.iter().all(|p| p.roles.len() == role_count) {
+                    if let Some(player) = self
+                        .players
+                        .iter()
+                        .find(|p| p.city_has(DistrictName::Theater))
+                    {
+                        draft.player = player.index;
+                        draft.theater_step = true;
+                    } else {
+                        self.active_turn = Turn::Call(Rank::One)
+                    }
+                } else {
+                    draft.player = PlayerIndex((draft.player.0 + 1) % self.players.len());
+                };
             }
             Turn::Call(_) => {
                 if let Ok(player) = self.active_player() {
@@ -2148,8 +2270,6 @@ impl Game {
         for player in self.players.iter_mut() {
             player.cleanup_round();
         }
-
-        self.draft.clear();
     }
 }
 
