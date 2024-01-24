@@ -2,7 +2,7 @@
 Roles:
     - Spy
     - Blackmailer
-    - Seer - wip
+    - Seer
 Fixes:
     - Armory is actually usable. It was missing a menu.
 
