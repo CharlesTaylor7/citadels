@@ -19,8 +19,8 @@ pub struct Player {
 impl Player {
     pub fn demo(name: &'static str) -> Self {
         Self {
-            id: name.to_owned(),
-            name: PlayerName(name.to_owned()),
+            id: name.into(),
+            name: name.into(),
         }
     }
 }
