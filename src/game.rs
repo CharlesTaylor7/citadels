@@ -1208,7 +1208,7 @@ impl Game {
                 }
                 // build
 
-                let player = self.active_player_mut()?;
+                let player = self.active_player()?;
                 let district = district.data();
 
                 let mut cost = district.cost;
@@ -1222,7 +1222,8 @@ impl Game {
                     return Err("not enough gold".into());
                 }
 
-                if !player.city_has(DistrictName::Quarry)
+                if !(player.city_has(DistrictName::Quarry)
+                    || self.active_role().unwrap().role == RoleName::Wizard)
                     && player.city.iter().any(|d| d.name == district.name)
                 {
                     return Err("cannot build duplicate".into());
@@ -1232,6 +1233,7 @@ impl Game {
                     return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
                 }
 
+                let player = self.active_player_mut()?;
                 Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
                 player.gold -= cost;
                 if !is_free_build {
