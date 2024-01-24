@@ -676,13 +676,22 @@ impl Game {
     }
 
     pub fn has_gathered_resources(&self) -> bool {
-        self.turn_actions
-            .iter()
-            .any(|act| act.tag().is_resource_gathering())
+        let followup = self.followup.as_ref().is_some_and(|a| {
+            if let Followup::GatherCardsPick { .. } = a {
+                true
+            } else {
+                false
+            }
+        });
+        !dbg!(followup)
+            && dbg!(self
+                .turn_actions
+                .iter()
+                .any(|act| act.tag().is_resource_gathering()))
     }
 
     pub fn forced_to_gather_resources(&self) -> Option<ForcedToGatherReason> {
-        if self.has_gathered_resources() {
+        if dbg!(self.has_gathered_resources()) {
             return None;
         }
         self.active_role().ok().and_then(|c| {
@@ -788,9 +797,8 @@ impl Game {
 
         let tag = action.tag();
         log::info!("{:#?}", log);
-        if self.followup.is_some() {
-            log::info!("followup: {:#?}", self.followup);
-        }
+        log::info!("followup: {:#?}", self.followup);
+
         self.turn_actions.push(action.clone());
         if let Some(role) = self.active_role_mut() {
             role.logs.push(log.into());
@@ -890,6 +898,7 @@ impl Game {
         }
     }
     fn after_gather_resources(&self) -> Option<Followup> {
+        log::info!("After gathering, are they forced to followup?");
         self.forced_to_gather_resources()
             .and_then(|reason| match reason {
                 ForcedToGatherReason::Witch => None,
@@ -900,8 +909,6 @@ impl Game {
 
     fn perform_action(&mut self, action: &Action) -> ActionResult {
         Ok(match action {
-            // active player is the one revealing the warrant/blackmail
-            // active role is the suspended turn
             Action::RevealWarrant => match self.followup.take() {
                 Some(Followup::Warrant {
                     magistrate,
@@ -1132,7 +1139,7 @@ impl Game {
 
             Action::GatherCardsPick { district } => {
                 let mut revealed = if let Some(Followup::GatherCardsPick { revealed, .. }) =
-                    self.followup.take()
+                    self.followup.borrow_mut()
                 {
                     revealed
                 } else {
@@ -1140,12 +1147,12 @@ impl Game {
                 };
 
                 Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
-                self.active_player_mut()?.hand.push(*district);
-
                 revealed.shuffle(&mut self.rng);
+
                 for remaining in revealed {
-                    self.deck.discard_to_bottom(remaining);
+                    self.deck.discard_to_bottom(*remaining);
                 }
+                self.active_player_mut()?.hand.push(*district);
                 ActionOutput {
                     log: "They picked a card.".into(),
                     followup: self.after_gather_resources(),
