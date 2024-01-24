@@ -215,7 +215,7 @@ pub const ROLES: [RoleData; 27] =
     , name: Diplomat
     , set: DarkCity
     , suit: Some(Military)
-    , actions: &[(1, GoldFromMilitary), (1, ExchangeCityDistricts)]
+    , actions: &[(1, GoldFromMilitary), (1, DiplomatTrade)]
     , description: "Exchange 1 of your districts for another player's district, giving them gold equal to the difference in their costs. Gain 1 gold for each of your MILITARY districts."
     , reminder: ""
     }
@@ -224,7 +224,7 @@ pub const ROLES: [RoleData; 27] =
     , name: Marshal
     , set: Citadels2016
     , suit: Some(Military)
-    , actions: &[(1, GoldFromMilitary), (1, Seize)]
+    , actions: &[(1, GoldFromMilitary), (1, MarshalSeize)]
     , description: "Seize 1 district with a cost of 3 or less from another player's city, giving that player gold equal to its cost. Gain 1 gold for each of your MILITARY districts."
     , reminder: ""
     }

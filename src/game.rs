@@ -2020,7 +2020,7 @@ impl Game {
                 }
             }
 
-            Action::Seize { district: target } => {
+            Action::MarshalSeize { district: target } => {
                 if self.active_player().unwrap().city_has(target.district) {
                     return Err("Cannot seize a copy of your own district".into());
                 }
@@ -2070,7 +2070,7 @@ impl Game {
 
                 ActionOutput {
                     log: format!(
-                        "The Marshal ({}) seized {}'s {}.",
+                        "The Marshal ({}) seizes {}'s {}.",
                         self.active_player()?.name,
                         target.player,
                         target.district.data().display_name,
@@ -2079,11 +2079,30 @@ impl Game {
                     followup: None,
                 }
             }
+            Action::EmperorGiveCrown { player, resource } => {
+                //
+                //
+                let resource = match resource {
+                    Resource::Gold => "gold",
+
+                    Resource::Cards => "card",
+                };
+
+                ActionOutput {
+                    log: format!(
+                        "The Emperor ({}) gives {} the crown and takes one of their {}.",
+                        self.active_player()?.name,
+                        player,
+                        resource,
+                    )
+                    .into(),
+                    followup: None,
+                }
+            }
             Action::WizardPeek { .. } => return Err("Not implemented".into()),
             Action::WizardPick { .. } => return Err("Not implemented".into()),
             Action::Bewitch { .. } => return Err("Not implemented".into()),
-            Action::EmperorGiveCrown { .. } => return Err("Not implemented".into()),
-            Action::ExchangeCityDistricts { .. } => return Err("Not implemented".into()),
+            Action::DiplomatTrade { .. } => return Err("Not implemented".into()),
         })
     }
 

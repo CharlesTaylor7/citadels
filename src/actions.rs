@@ -13,22 +13,17 @@ use std::borrow::Cow;
 #[tag(serde::Deserialize)]
 #[serde(tag = "action")]
 pub enum Action {
-    // single select a role, then click pick or discard
-    // Draft Phase
     DraftPick {
         role: RoleName,
     },
     DraftDiscard {
         role: RoleName,
     },
-
-    // Call phase
     GatherResourceGold,
     GatherResourceCards,
     GatherCardsPick {
         district: DistrictName,
     },
-
     Build {
         district: DistrictName,
         // to sacrifice
@@ -40,8 +35,6 @@ pub enum Action {
         #[serde(default)]
         thieves_den: Vec<DistrictName>,
     },
-    // Happens automatically when no actions are left.
-    // Turn can end early if requested
     EndTurn,
     GoldFromNobility,
     GoldFromReligion,
@@ -72,129 +65,75 @@ pub enum Action {
         )]
         district: CityDistrictTarget,
     },
-
-    // reveals 7 cards
     ScholarReveal,
-    // picks 1 of them
-    // shuffles the rest into the deck.
-    // Note: shuffle the _entire_ deck.
-    // Usually cards are discarded to the bottom of the deck.
     ScholarPick {
         district: DistrictName,
     },
-
-    // emperor always targets someone else
-    // Similar to the king and patricain.
-    // The action is required.
-    // If bewitched, the witch assigns the crown.
-    // If killed, the action occurs at the end of the round, and no resources are taken.
     EmperorGiveCrown {
         player: PlayerName,
+        resource: Resource,
     },
-
-    // Abbot
     ResourcesFromReligion {
         #[serde_as(as = "serde_with::DisplayFromStr")]
         gold: usize,
         #[serde_as(as = "serde_with::DisplayFromStr")]
         cards: usize,
     },
-
-    // Abbot
-    // player arg to break a tie amongst the richest.
     TakeFromRich {
         player: PlayerName,
     },
-
-    // Cardinal
     CardsFromReligion,
-
-    // Witch
     Bewitch {
         role: RoleName,
     },
-
-    // Magistrate
     SendWarrants {
         signed: RoleName,
         unsigned: [RoleName; 2],
     },
-
-    // Blackmailer
     Blackmail {
         flowered: RoleName,
         unmarked: RoleName,
     },
     PayBribe,
     IgnoreBlackmail,
-
     RevealWarrant,
     RevealBlackmail,
     Pass,
-
-    // Marshal
-    Seize {
+    MarshalSeize {
         #[serde(
             serialize_with = "serialize_city_district_target",
             deserialize_with = "deserialize_city_district_target"
         )]
         district: CityDistrictTarget,
     },
-
-    // Tax Collector collects from the tax pool
     CollectTaxes,
-
-    // Diplomat
-    ExchangeCityDistricts, //{ exchange: [CityDistrictTarget; 2], },
-
-    // Spy
+    DiplomatTrade, //{ exchange: [CityDistrictTarget; 2], },
     Spy {
         player: PlayerName,
         suit: CardSuit,
     },
-    // followup to acknowledge they were able to peek at the hand of cards
     SpyAcknowledge,
-
-    // can happen during turn, or at end of round if king was killed
     QueenGainGold,
-
-    // 4 gold or 4 cards
     NavigatorGain {
         resource: Resource,
     },
-
-    // take 1 card at random from each player
     SeerTake,
-    // distribute 1 card to each player that you took from.
-    // note: if an opponent has no cards initially, they get no card back from you.
     SeerDistribute {
         #[serde_as(as = "serde_with::Map<_, _>")]
         #[serde(flatten)]
         seer: Vec<(PlayerName, DistrictName)>,
     },
-
-    // action
-    // Reveals a players hand
     WizardPeek {
         player: PlayerName,
     },
-    // picks out of revealed hand
-    // gets the option to build the picked card or to add to hand
     WizardPick {
         district: DistrictName,
         build: bool,
     },
-
-    // district actions
-    // 2 gold -> 3 cards
     Smithy,
-    // 1 card -> 2 gold
     Laboratory {
         district: DistrictName,
     },
-    // destroy self, to destroy a district.
-    // unaffected by great wall, and bishop.
-    // can't destroy the keep.
     Armory {
         #[serde(
             serialize_with = "serialize_city_district_target",
@@ -202,7 +141,6 @@ pub enum Action {
         )]
         district: CityDistrictTarget,
     },
-    // store a card from hand under museum for 1 point at the end of game.
     Museum {
         district: DistrictName,
     },
@@ -254,20 +192,6 @@ impl ActionTag {
             ActionTag::EmperorGiveCrown => true,
             ActionTag::GatherResourceGold => true,
             ActionTag::GatherResourceCards => true,
-
-            // followup actions are often required
-            ActionTag::GatherCardsPick => true,
-            ActionTag::SeerDistribute => true,
-            ActionTag::ScholarPick => true,
-            ActionTag::WizardPick => true,
-
-            // response actions are required
-            ActionTag::RevealWarrant => true,
-            ActionTag::RevealBlackmail => true,
-            ActionTag::Pass => true,
-            ActionTag::PayBribe => true,
-            ActionTag::IgnoreBlackmail => true,
-
             _ => false,
         }
     }
