@@ -1613,9 +1613,6 @@ impl Game {
                 }
             }
 
-            Action::WizardPeek { .. } => return Err("Not implemented".into()),
-            Action::WizardPick { .. } => return Err("Not implemented".into()),
-
             Action::ResourcesFromReligion { gold, cards, .. } => {
                 let player = self.active_player()?;
                 let count = player.count_suit_for_resource_gain(CardSuit::Religious);
@@ -1648,7 +1645,6 @@ impl Game {
                     followup: None,
                 }
             }
-            Action::EmperorGiveCrown { .. } => return Err("Not implemented".into()),
             Action::QueenGainGold => {
                 let active = self.active_player_index()?;
                 let left = PlayerIndex((active.0 + self.players.len() - 1) % self.players.len());
@@ -1718,8 +1714,6 @@ impl Game {
                     }),
                 }
             }
-            Action::Bewitch { .. } => return Err("Not implemented".into()),
-            Action::Seize { .. } => return Err("Not implemented".into()),
             Action::TakeFromRich { player } => {
                 if player == self.active_player().unwrap().name {
                     return Err("Cannot take from yourself".into());
@@ -1837,7 +1831,6 @@ impl Game {
                     followup: None,
                 }
             }
-            Action::ExchangeCityDistricts { .. } => return Err("Not implemented".into()),
 
             Action::Smithy => {
                 let active = self.active_player_mut()?;
@@ -1869,8 +1862,6 @@ impl Game {
                     followup: None,
                 }
             }
-
-            Action::Theater { .. } => return Err("Not implemented".into()),
 
             Action::Museum { district } => {
                 let active = self.active_player_mut()?;
@@ -1928,6 +1919,14 @@ impl Game {
                     followup: None,
                 }
             }
+
+            Action::WizardPeek { .. } => return Err("Not implemented".into()),
+            Action::WizardPick { .. } => return Err("Not implemented".into()),
+            Action::Bewitch { .. } => return Err("Not implemented".into()),
+            Action::Seize { .. } => return Err("Not implemented".into()),
+            Action::EmperorGiveCrown { .. } => return Err("Not implemented".into()),
+            Action::Theater { .. } => return Err("Not implemented".into()),
+            Action::ExchangeCityDistricts { .. } => return Err("Not implemented".into()),
         })
     }
 
