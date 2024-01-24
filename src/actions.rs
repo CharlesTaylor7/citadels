@@ -1,4 +1,4 @@
-use serde_with::{serde_as, DisplayFromStr};
+use serde_with::serde_as;
 pub mod deserializer;
 use crate::actions::deserializer::*;
 use crate::game::Player;
@@ -94,9 +94,9 @@ pub enum Action {
 
     // Abbot
     ResourcesFromReligion {
-        #[serde_as(as = "DisplayFromStr")]
+        #[serde_as(as = "serde_with::DisplayFromStr")]
         gold: usize,
-        #[serde_as(as = "DisplayFromStr")]
+        #[serde_as(as = "serde_with::DisplayFromStr")]
         cards: usize,
     },
 
@@ -168,7 +168,9 @@ pub enum Action {
     // distribute 1 card to each player that you took from.
     // note: if an opponent has no cards initially, they get no card back from you.
     SeerDistribute {
-        //seer: Vec<SeerTarget>,
+        #[serde_as(as = "serde_with::Map<_, _>")]
+        #[serde(flatten)]
+        seer: Vec<(PlayerName, DistrictName)>,
     },
 
     // action
@@ -223,41 +225,17 @@ pub enum Resource {
     Cards,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
-pub enum Select<T> {
-    One(T),
-    Many(Vec<T>),
-}
-
-impl<T: Clone> Select<T> {
-    pub fn to_vec(&self) -> Cow<'_, [T]>
-    where
-        [T]: ToOwned<Owned = Vec<T>>,
-    {
-        match self {
-            Select::One(item) => Cow::Owned(vec![item.clone()]),
-            Select::Many(items) => Cow::Borrowed(items),
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        match self {
-            Select::One(_) => 1,
-            Select::Many(items) => items.len(),
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-}
-
+#[serde_as]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum MagicianAction {
-    TargetPlayer { player: PlayerName },
-    TargetDeck { district: Select<DistrictName> },
+    TargetPlayer {
+        player: PlayerName,
+    },
+    TargetDeck {
+        #[serde_as(as = "serde_with::OneOrMany<_>")]
+        district: Vec<DistrictName>,
+    },
 }
 
 impl ActionTag {

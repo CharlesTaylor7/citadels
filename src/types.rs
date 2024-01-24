@@ -65,7 +65,7 @@ impl Marker {
 pub type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
-#[derive(Default, Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
 pub struct PlayerName(pub String);
 
 impl Borrow<str> for PlayerName {

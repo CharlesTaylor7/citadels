@@ -23,11 +23,7 @@ impl Default for AppState {
             cookie_signing_key: cookie::Key::from(key.as_bytes()),
             connections: new_arc_mutex(ws::Connections::default()),
             lobby: new_arc_mutex(Lobby::default()),
-            game: new_arc_mutex(if cfg!(feature = "dev") {
-                Some(Game::demo())
-            } else {
-                None
-            }),
+            game: new_arc_mutex(None),
         }
     }
 }

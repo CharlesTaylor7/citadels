@@ -9,8 +9,10 @@ use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut, Cow};
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::iter::repeat;
+use std::mem;
 
 #[derive(Debug)]
 pub enum ForcedToGatherReason {
@@ -465,47 +467,6 @@ impl Game {
         score
     }
 
-    pub fn demo() -> Game {
-        let lobby = Lobby::demo(3);
-        let mut game = Game::start(lobby, SeedableRng::from_entropy()).unwrap();
-
-        // deal out roles randomly
-        let mut roles: Vec<_> = game.characters.iter().collect();
-        roles.shuffle(&mut game.rng);
-
-        for (i, role) in roles.iter().enumerate() {
-            let index = i % game.players.len();
-            game.players[index].roles.push(*role);
-            game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
-        }
-
-        for p in game.players.iter_mut() {
-            p.roles.sort_by_key(|r| r.rank());
-
-            for card in game.deck.draw_many(10) {
-                p.city.push(CityDistrict {
-                    name: card,
-                    beautified: false,
-                });
-            }
-        }
-
-        /*
-        game.museum.tuck(DistrictName::Keep);
-        game.museum.tuck(DistrictName::Library);
-        game.museum.tuck(DistrictName::Temple);
-        game.museum.tuck(DistrictName::Park);
-        game.museum.tuck(DistrictName::Palace);
-        game.museum.tuck(DistrictName::Smithy);
-        game.museum.tuck(DistrictName::Docks);
-        */
-        game.first_to_complete = Some(PlayerIndex(0));
-        game.active_turn = Turn::Call(Rank::Five);
-        game.start_turn().unwrap();
-
-        game
-    }
-
     pub fn active_role(&self) -> Result<&GameRole> {
         let rank = self.active_turn.call().ok_or("not the call phase")?;
         Ok(self.characters.get(rank))
@@ -579,8 +540,26 @@ impl Game {
             museum: Museum::default(),
             first_to_complete: None,
         };
-        game.begin_draft();
-        Ok(game)
+
+        if !cfg!(feature = "dev") {
+            game.begin_draft();
+            Ok(game)
+        } else {
+            // deal roles out randomly
+            let mut roles: Vec<_> = game.characters.iter().collect();
+            roles.shuffle(&mut game.rng);
+
+            for (i, role) in roles.iter().enumerate() {
+                let index = i % game.players.len();
+                game.players[index].roles.push(*role);
+                game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
+            }
+
+            // skip the drafting phase
+            game.active_turn = Turn::Call(Rank::Three);
+            game.start_turn().unwrap();
+            Ok(game)
+        }
     }
 
     pub fn begin_draft(&mut self) {
@@ -683,15 +662,15 @@ impl Game {
                 false
             }
         });
-        !dbg!(followup)
-            && dbg!(self
+        !followup
+            && self
                 .turn_actions
                 .iter()
-                .any(|act| act.tag().is_resource_gathering()))
+                .any(|act| act.tag().is_resource_gathering())
     }
 
     pub fn forced_to_gather_resources(&self) -> Option<ForcedToGatherReason> {
-        if dbg!(self.has_gathered_resources()) {
+        if self.has_gathered_resources() {
             return None;
         }
         self.active_role().ok().and_then(|c| {
@@ -1182,6 +1161,7 @@ impl Game {
                     followup: None,
                 }
             }
+
             Action::Build { district, .. } => {
                 if self.active_role().unwrap().role == RoleName::Navigator {
                     return Err("The navigator is not allowed to build.".into());
@@ -1372,7 +1352,7 @@ impl Game {
 
             Action::Magic(MagicianAction::TargetDeck { district }) => {
                 let active = self.active_player_mut()?;
-                let discard = district.to_vec();
+                let discard = district;
                 let backup = active.hand.clone();
 
                 for card in discard.iter() {
@@ -1566,9 +1546,72 @@ impl Game {
                 }
             }
 
-            Action::SeerTake { .. } => return Err("Not implemented".into()),
+            Action::SeerTake => {
+                let my_index = self.active_player_index()?;
+                let mut taken_from = Vec::with_capacity(self.players.len() - 1);
+                let mut active_hand = mem::replace(&mut self.active_player_mut()?.hand, Vec::new());
+                for player in self.players.iter_mut() {
+                    if player.index != my_index && player.hand.len() > 0 {
+                        let i = self.rng.gen_range(0..player.hand.len());
+                        let card = player.hand.remove(i);
+                        taken_from.push(player.index);
+                        active_hand.push(card);
+                    }
+                }
+                self.active_player_mut()?.hand = active_hand;
+                ActionOutput {
+                    log: format!(
+                        "The Seer ({}) takes 1 card from everyone.",
+                        self.active_player()?.name
+                    )
+                    .into(),
+                    followup: if taken_from.is_empty() {
+                        None
+                    } else {
+                        Some(Followup::SeerDistribute {
+                            players: taken_from,
+                        })
+                    },
+                }
+            }
 
-            Action::SeerDistribute { .. } => return Err("Not implemented".into()),
+            Action::SeerDistribute { seer } => {
+                let players: HashMap<_, _> = self
+                    .players
+                    .iter()
+                    .map(|p| (p.name.borrow(), p.index))
+                    .collect();
+                let pairs: Vec<(PlayerIndex, DistrictName)> = seer
+                    .iter()
+                    .map(|(name, district)| {
+                        Ok((
+                            players
+                                .get(name)
+                                .ok_or(format!("Cannot give {} a card.", name).to_owned())?
+                                .clone(),
+                            district.clone(),
+                        ))
+                    })
+                    .collect::<Result<_>>()?;
+
+                let mut removed = Vec::new();
+                for (_, district) in pairs.iter() {
+                    let active_hand = &mut self.active_player_mut()?.hand;
+                    if let Some(district) = Game::remove_first(active_hand, *district) {
+                        removed.push(district);
+                    } else {
+                        return Err("cannot assign district not in hand!".into());
+                    }
+                }
+                for (index, district) in pairs {
+                    self.players[index.0].hand.push(district);
+                }
+
+                ActionOutput {
+                    log: format!("The Seer distributed cards back.").into(),
+                    followup: None,
+                }
+            }
 
             Action::WizardPeek { .. } => return Err("Not implemented".into()),
             Action::WizardPick { .. } => return Err("Not implemented".into()),

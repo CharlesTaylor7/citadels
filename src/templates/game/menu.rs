@@ -28,6 +28,10 @@ impl<'a> MenuTemplate<'a> {
 
 pub enum MenuView<'a> {
     TODO,
+    SeerDistribute {
+        players: Vec<&'a str>,
+        hand: Vec<DistrictTemplate<'a>>,
+    },
     HandleBlackmail {
         blackmailer: &'a str,
         bribe: usize,
@@ -98,7 +102,19 @@ impl<'a> MenuView<'a> {
                 },
 
                 Followup::WizardPick { .. } => MenuView::TODO,
-                Followup::SeerDistribute { .. } => MenuView::TODO,
+                Followup::SeerDistribute { players } => MenuView::SeerDistribute {
+                    hand: game
+                        .active_player()
+                        .unwrap()
+                        .hand
+                        .iter()
+                        .map(|d| DistrictTemplate::from(*d))
+                        .collect(),
+                    players: players
+                        .iter()
+                        .map(|index| game.players[index.0].name.borrow())
+                        .collect(),
+                },
                 Followup::SpyAcknowledge { player, revealed } => MenuView::Spy {
                     player: player.borrow(),
                     hand: revealed
@@ -142,7 +158,6 @@ impl<'a> MenuView<'a> {
                 },
             };
         } else if my_turn {
-            log::info!("forced: {:?}", game.forced_to_gather_resources());
             if let Some(reason) = game.forced_to_gather_resources() {
                 return MenuView::ForcedGatherResources {
                     role: game.active_role().unwrap().role.display_name(),

@@ -1,4 +1,4 @@
-<div class="hidden" _="init add @disabled to <#main-panel input/>"></div>
+<div class="hidden" _="init add @disabled to <#main-panel input/> remove .hidden from #city remove .hidden from #hand-panel"></div>
 
 {% match menu %} 
 {% when MenuView::GameOver %}
@@ -133,6 +133,44 @@
       Acknowledge
     </button>
   </div>
+
+{% when MenuView::SeerDistribute with { players, hand } %}
+
+  <div class="hidden" _="init add .hidden to #hand-panel enableSeer()"></div>
+  <h2 class="header">
+    Seer 
+  </h2>
+  <div class="italic text-sm">Give back a card to each player by dragging their name to a card</div>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% for player in players %}
+      <div data-draggable class="draggable bg-secondary w-24 rounded-lg text-center">
+        {{ player }}
+        <input data-seer-player class="hidden" type="checkbox" name="{{ player }}" />
+      </div>
+    {% endfor %}
+  </div>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "" %}
+    {% set enabled = false %} 
+    {% set draggable = false %}
+    {% for district in hand %} 
+      {% include "district/square-cropped.html" %} 
+    {% endfor %}
+  </div>
+
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      id="confirm"
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="SeerDistribute"
+      disabled
+    >
+      Confirm
+    </button>
+  </div>
+
 {% when MenuView::Followup with { role, action, revealed} %}
   <h2 class="header">
     {{ role }}'s Turn

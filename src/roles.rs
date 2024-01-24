@@ -154,6 +154,7 @@ impl RoleName {
             Self::Abbot => true,
             Self::Spy => true,
             Self::Blackmailer => true,
+            Self::Seer => true,
 
             // Marshal and diplomat seem stronger than warlord.
             // Stealing strong uniques seems more fun than destroying them
@@ -161,7 +162,6 @@ impl RoleName {
             Self::Diplomat => false,
 
             // seem fun, require some menuing
-            Self::Seer => false,
             Self::Wizard => false,
 
             // Seems really unfun for a 3 player game.

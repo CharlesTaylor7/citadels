@@ -87,7 +87,6 @@ impl<'de> de::Visitor<'de> for Visitor {
         T: de::MapAccess<'de>,
         T::Error: de::Error,
     {
-        log::info!("visit_map");
         if let Ok(Some(("district", value))) = value.next_entry::<&'de str, &'de str>() {
             self.visit_str(value)
         } else {
@@ -98,19 +97,10 @@ impl<'de> de::Visitor<'de> for Visitor {
         }
     }
 
-    fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-    where
-        E: de::Error,
-    {
-        log::info!("visit_string");
-        self.visit_str(&value)
-    }
-
     fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        log::info!("visit_str");
         let mut district = None as Option<DistrictName>;
         let mut player = None as Option<PlayerName>;
         let mut beautified = None as Option<bool>;
