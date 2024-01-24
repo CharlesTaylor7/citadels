@@ -1,6 +1,6 @@
 use super::{get_myself, GameContext};
 use crate::actions::ActionTag;
-use crate::game::{Followup, Game, Player, Turn};
+use crate::game::{Followup, ForcedToGatherReason, Game, Player, Turn};
 use crate::roles::RoleName;
 use crate::templates::filters;
 use crate::templates::{DistrictTemplate, RoleTemplate};
@@ -28,6 +28,14 @@ impl<'a> MenuTemplate<'a> {
 
 pub enum MenuView<'a> {
     TODO,
+    HandleBlackmail {
+        blackmailer: &'a str,
+        bribe: usize,
+    },
+    ForcedGatherResources {
+        explanation: Cow<'a, str>,
+        role: String,
+    },
     Spy {
         player: &'a str,
         hand: Vec<DistrictTemplate<'a>>,
@@ -128,6 +136,17 @@ impl<'a> MenuView<'a> {
                 },
             };
         } else if my_turn {
+            if let Some(reason) = game.forced_to_gather_resources() {
+                return MenuView::ForcedGatherResources {
+                    role: game.active_role().unwrap().role.display_name(),
+                    explanation: match reason {
+                        ForcedToGatherReason::Witch => "Your turn ends after you gather resources. Your turn may resume as the bewitched player."
+                            .into(),
+                        ForcedToGatherReason::Bewitched => "You have been bewitched! Your turn ends after gathering resources.".into(),
+                        ForcedToGatherReason::Blackmailed => "You have been blackmailed! You must gather resources now, and then decide how to handle the blackmail.".into(),
+                    },
+                };
+            }
             let allowed = game.active_player_actions();
             let abilities = game
                 .active_player_actions()
@@ -138,7 +157,6 @@ impl<'a> MenuView<'a> {
                 })
                 .collect();
 
-            log::info!("{:#?}", game.active_turn);
             return match game.active_turn {
                 Turn::GameOver => MenuView::GameOver,
                 Turn::Draft(_) => MenuView::Draft {

@@ -12,6 +12,12 @@ use std::borrow::{Borrow, BorrowMut, Cow};
 use std::fmt::Debug;
 use std::iter::repeat;
 
+pub enum ForcedToGatherReason {
+    Witch,
+    Bewitched,
+    Blackmailed,
+}
+
 pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -665,6 +671,28 @@ impl Game {
         }
     }
 
+    pub fn has_gathered_resources(&self) -> bool {
+        self.turn_actions
+            .iter()
+            .any(|act| act.tag().is_resource_gathering())
+    }
+    pub fn forced_to_gather_resources(&self) -> Option<ForcedToGatherReason> {
+        if !self.has_gathered_resources() {
+            return None;
+        }
+        self.active_role().ok().and_then(|c| {
+            if c.role == RoleName::Witch {
+                Some(ForcedToGatherReason::Witch)
+            } else if c.markers.iter().any(|m| *m == Marker::Bewitched) {
+                Some(ForcedToGatherReason::Bewitched)
+            } else if c.markers.iter().any(|m| m.is_blackmail()) {
+                Some(ForcedToGatherReason::Blackmailed)
+            } else {
+                None
+            }
+        })
+    }
+
     pub fn active_player_actions(&self) -> Vec<ActionTag> {
         match self.active_turn {
             Turn::GameOver => {
@@ -688,16 +716,28 @@ impl Game {
             }
 
             Turn::Call(rank) => {
+                let player = if let Ok(player) = self.active_player() {
+                    player
+                } else {
+                    return vec![];
+                };
+
+                if self.forced_to_gather_resources().is_some() {
+                    return vec![
+                        ActionTag::GatherResourceGold,
+                        ActionTag::GatherResourceCards,
+                    ];
+                }
+
                 let mut actions = Vec::new();
                 let c = self.characters.get(rank);
-
                 for (n, action) in c.role.data().actions {
                     if self.active_perform_count(*action) < *n {
                         actions.push(*action);
                     }
                 }
 
-                for card in self.active_player().iter().flat_map(|p| &p.city) {
+                for card in player.city.iter() {
                     if let Some(action) = card.name.action() {
                         if self.active_perform_count(action) < 1 {
                             actions.push(action);
@@ -706,16 +746,10 @@ impl Game {
                 }
 
                 // You have to gather resources before building
-                if self
-                    .turn_actions
-                    .iter()
-                    .all(|act| !act.tag().is_resource_gathering())
-                {
+                if !self.has_gathered_resources() {
                     // gather
                     actions.push(ActionTag::GatherResourceGold);
                     actions.push(ActionTag::GatherResourceCards);
-                } else if self.active_role().unwrap().has_blackmail() {
-                    return vec![(ActionTag::PayBribe), (ActionTag::IgnoreBlackmail)];
                 } else if self.active_role().unwrap().role != RoleName::Navigator {
                     // build
                     actions.push(ActionTag::Build);
