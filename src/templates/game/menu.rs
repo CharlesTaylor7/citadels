@@ -136,6 +136,7 @@ impl<'a> MenuView<'a> {
                 },
             };
         } else if my_turn {
+            log::info!("forced: {:?}", game.forced_to_gather_resources());
             if let Some(reason) = game.forced_to_gather_resources() {
                 return MenuView::ForcedGatherResources {
                     role: game.active_role().unwrap().role.display_name(),

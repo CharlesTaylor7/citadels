@@ -12,6 +12,7 @@ use std::borrow::{Borrow, BorrowMut, Cow};
 use std::fmt::Debug;
 use std::iter::repeat;
 
+#[derive(Debug)]
 pub enum ForcedToGatherReason {
     Witch,
     Bewitched,
@@ -676,8 +677,9 @@ impl Game {
             .iter()
             .any(|act| act.tag().is_resource_gathering())
     }
+
     pub fn forced_to_gather_resources(&self) -> Option<ForcedToGatherReason> {
-        if !self.has_gathered_resources() {
+        if self.has_gathered_resources() {
             return None;
         }
         self.active_role().ok().and_then(|c| {
