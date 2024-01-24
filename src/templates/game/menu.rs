@@ -1,7 +1,7 @@
 use super::{get_myself, GameContext};
 use crate::actions::ActionTag;
 use crate::game::{Followup, ForcedToGatherReason, Game, Player, Turn};
-use crate::roles::RoleName;
+use crate::roles::{Rank, RoleName};
 use crate::templates::filters;
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use askama::Template;
@@ -85,6 +85,12 @@ impl<'a> MenuView<'a> {
         if my_response {
             let o = game.followup.as_ref().unwrap();
             return match o {
+                Followup::HandleBlackmail { .. } => MenuView::HandleBlackmail {
+                    blackmailer: game.players[game.characters.get(Rank::Two).player.unwrap().0]
+                        .name
+                        .borrow(),
+                    bribe: game.active_player().unwrap().gold / 2,
+                },
                 Followup::Blackmail { .. } => MenuView::RevealBlackmail {
                     gold: game.active_player().unwrap().gold,
                     player: game.active_player().unwrap().name.borrow(),

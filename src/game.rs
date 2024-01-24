@@ -265,11 +265,13 @@ pub enum Followup {
     Blackmail {
         blackmailer: PlayerIndex,
     },
+    HandleBlackmail,
 }
 
 impl Followup {
     pub fn actions(&self) -> Vec<ActionTag> {
         match self {
+            Self::HandleBlackmail { .. } => vec![ActionTag::PayBribe, ActionTag::IgnoreBlackmail],
             Self::SpyAcknowledge { .. } => vec![ActionTag::SpyAcknowledge],
             Self::GatherCardsPick { .. } => vec![ActionTag::GatherCardsPick],
             Self::ScholarPick { .. } => vec![ActionTag::ScholarPick],
@@ -613,6 +615,7 @@ impl Game {
             return match o {
                 Followup::Warrant { magistrate, .. } => Ok(*magistrate),
                 Followup::Blackmail { blackmailer, .. } => Ok(*blackmailer),
+                Followup::HandleBlackmail { .. } => self.active_player_index(),
                 Followup::SpyAcknowledge { .. } => self.active_player_index(),
                 Followup::WizardPick { .. } => self.active_player_index(),
                 Followup::SeerDistribute { .. } => self.active_player_index(),
@@ -886,6 +889,14 @@ impl Game {
             self.first_to_complete = Some(player.index);
         }
     }
+    fn after_gather_resources(&self) -> Option<Followup> {
+        self.forced_to_gather_resources()
+            .and_then(|reason| match reason {
+                ForcedToGatherReason::Witch => None,
+                ForcedToGatherReason::Bewitched => None,
+                ForcedToGatherReason::Blackmailed => Some(Followup::HandleBlackmail),
+            })
+    }
 
     fn perform_action(&mut self, action: &Action) -> ActionResult {
         Ok(match action {
@@ -1084,7 +1095,7 @@ impl Game {
 
                 ActionOutput {
                     log,
-                    followup: None,
+                    followup: self.after_gather_resources(),
                 }
             }
 
@@ -1101,7 +1112,7 @@ impl Game {
 
                     ActionOutput {
                         log: format!("They gathered cards. With the aid of their library they kept all {} cards.", draw_amount).into(),
-                        followup: None,
+                        followup: self.after_gather_resources(),
                     }
                 } else {
                     ActionOutput {
@@ -1113,7 +1124,7 @@ impl Game {
                         followup: if drawn.len() > 0 {
                             Some(Followup::GatherCardsPick { revealed: drawn })
                         } else {
-                            None
+                            self.after_gather_resources()
                         },
                     }
                 }
@@ -1137,7 +1148,7 @@ impl Game {
                 }
                 ActionOutput {
                     log: "They picked a card.".into(),
-                    followup: None,
+                    followup: self.after_gather_resources(),
                 }
             }
             Action::GoldFromNobility => self.gain_gold_for_suit(CardSuit::Noble)?,
