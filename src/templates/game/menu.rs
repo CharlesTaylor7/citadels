@@ -147,7 +147,7 @@ impl<'a> MenuView<'a> {
                     action: ActionTag::GatherCardsPick,
                     revealed: revealed
                         .iter()
-                        .cloned()
+                        .copied()
                         .map(DistrictTemplate::from)
                         .collect(),
                 },
@@ -156,7 +156,7 @@ impl<'a> MenuView<'a> {
                     action: ActionTag::ScholarPick,
                     revealed: revealed
                         .iter()
-                        .cloned()
+                        .copied()
                         .map(DistrictTemplate::from)
                         .collect(),
                 },
@@ -177,7 +177,7 @@ impl<'a> MenuView<'a> {
             let abilities = game
                 .active_player_actions()
                 .iter()
-                .cloned()
+                .copied()
                 .filter(|a| {
                     !a.is_resource_gathering() && *a != ActionTag::Build && *a != ActionTag::EndTurn
                 })

@@ -70,7 +70,7 @@ impl<'a> DistrictConfigTemplate<'a> {
             districts: districts
                 .iter()
                 .map(|d| {
-                    let option = config.get(&d.name).cloned().unwrap_or_default();
+                    let option = config.get(&d.name).copied().unwrap_or_default();
                     (format!("{:?}", option), DistrictTemplate::from(d.name))
                 })
                 .collect(),

@@ -226,7 +226,7 @@ impl<'a> PlayerTemplate<'a> {
                 hand: p
                     .hand
                     .iter()
-                    .cloned()
+                    .copied()
                     .map(DistrictTemplate::from)
                     .collect::<Vec<_>>(),
                 roles: p

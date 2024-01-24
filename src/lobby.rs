@@ -206,7 +206,7 @@ impl GameConfig {
             .map(|(i, roles)| {
                 roles
                     .choose(rng)
-                    .cloned()
+                    .copied()
                     .ok_or(format!("No enabled roles for rank {}", i + 1).into())
             })
             .collect()
