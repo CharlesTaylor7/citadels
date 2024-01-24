@@ -600,7 +600,7 @@ impl Game {
         if !cfg!(feature = "dev") {
             game.begin_draft();
             Ok(game)
-        } else if false {
+        } else {
             // deal roles out randomly
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
@@ -612,15 +612,8 @@ impl Game {
             }
 
             // skip the drafting phase
-            game.active_turn = Turn::Call(Rank::Three);
+            game.active_turn = Turn::Call(Rank::Five);
             game.start_turn().unwrap();
-            Ok(game)
-        } else {
-            game.players[0].city.push(CityDistrict {
-                name: DistrictName::Theater,
-                beautified: false,
-            });
-            game.begin_draft();
             Ok(game)
         }
     }
@@ -2027,10 +2020,68 @@ impl Game {
                 }
             }
 
+            Action::Seize { district: target } => {
+                if self.active_player().unwrap().city_has(target.district) {
+                    return Err("Cannot seize a copy of your own district".into());
+                }
+                let available_gold = self.active_player()?.gold;
+                let complete_size = self.complete_city_size();
+                let targeted_player = self
+                    .players
+                    .iter_mut()
+                    .find(|p| {
+                        p.name == target.player
+                            && !self.characters.has_revealed_role(p, RoleName::Bishop)
+                            && p.city_size() < complete_size
+                    })
+                    .ok_or("invalid player target")?;
+
+                let city_index = targeted_player
+                    .city
+                    .iter()
+                    .enumerate()
+                    .find_map(|(i, c)| {
+                        if c.name == target.district && c.beautified == target.beautified {
+                            Some(i)
+                        } else {
+                            None
+                        }
+                    })
+                    .ok_or("does not exist in the targeted player's city")?;
+
+                let mut seize_cost = target.district.data().cost;
+                if target.beautified {
+                    seize_cost += 1;
+                }
+                if seize_cost > 3 {
+                    return Err("cannot seize district because it costs more than 3".into());
+                }
+                if targeted_player.city_has(DistrictName::GreatWall) {
+                    seize_cost += 1;
+                }
+
+                if available_gold < seize_cost {
+                    return Err("not enough gold to seize".into());
+                }
+
+                targeted_player.city.remove(city_index);
+                self.active_player_mut()?.gold -= seize_cost;
+                self.discard_district(target.district);
+
+                ActionOutput {
+                    log: format!(
+                        "The Marshal ({}) seized {}'s {}.",
+                        self.active_player()?.name,
+                        target.player,
+                        target.district.data().display_name,
+                    )
+                    .into(),
+                    followup: None,
+                }
+            }
             Action::WizardPeek { .. } => return Err("Not implemented".into()),
             Action::WizardPick { .. } => return Err("Not implemented".into()),
             Action::Bewitch { .. } => return Err("Not implemented".into()),
-            Action::Seize { .. } => return Err("Not implemented".into()),
             Action::EmperorGiveCrown { .. } => return Err("Not implemented".into()),
             Action::ExchangeCityDistricts { .. } => return Err("Not implemented".into()),
         })

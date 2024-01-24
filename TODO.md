@@ -17,6 +17,7 @@
     - [ ] Build Menu:
         - Reminder that you have a warrant; emoji + text
         - Cost to build should be displayed
+    
 
 - Notifications
     - Seer targets which card was taken. 
@@ -24,16 +25,23 @@
     - Warlord target when district is destroyed.
     - Theater 
 
-
 ## Ideas
+- [ ] Persist game config to sqlite db
 - [ ] Keyboard based warrant assignment
 - [ ] Multi room support
 - [ ] Make log format and tenses consistent
-- [ ] Rework menus to use drag and drop.
-- [ ] Rework menus as modals.
 - [ ] Detect when building is impossible.
-- [ ] Make it possible to save a set of roles to use, for config.
-- [ ] Restore game from sqlite
+- [ ] Pesist the dragged position of districts in a city.
+- [ ] Resizable windows, dimensions are saved per user and kept persistently between sessions
+- Optional Timers
+    - Basic
+    - Chess Clock (Pokemon showdown)
+
+## Features if I wanted to make this bigger
+- [ ] A way for me to kick bots / spammers
+- [ ] Integrate w/ Google OAuth
+- [ ] Multi room support
+- [ ] Backup games and Restore from sqlite
 
 ## Four+ player support
 - [ ] Need to show faceup discard.
@@ -57,19 +65,6 @@
 - [ ] Logan couldn't see his city districts without scrolling.
 - [ ] Logan couldn't easily see enemy districts without scrolling. Warlord menu
 - [ ] William found the button highlighting behavior in the config menu to be confusing. Didn't realize I was going for tab like interface. How can I make it more tab like?
-- [ ] Save the dragged position of districts in a city.
-
-## Feature Ideas
-- Optional Timers
-    - Basic
-    - Chess Clock (Pokemon showdown)
-- kick bots / spammers
-- auth?
-- multi room
-- spectator support
-- [ ] Resizable windows, dimensions are saved per user and kept persistently between sessions
-- Custom Card editor
-- Custom Role editor
 
 ## Custom Roles
 - [ ] Nerfed Asssassin: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
