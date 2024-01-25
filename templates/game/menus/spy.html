@@ -5,7 +5,7 @@
 <div>
   {% for player in players %}
     <label class="block cursor-pointer">
-      <input type="radio" name="player" value={{ player.name }} />
+      <input class="radio" type="radio" name="player" value={{ player.name }} />
       {{ player.name }}
     </label>
   {% endfor %}
@@ -13,9 +13,9 @@
 
 <div>
   {% for suit in suits %}
-    <label class="block cursor-pointer">
-      <input type="radio" name="suit" value={{ suit }} />
-      {{ suit }}
+    <label class="flex flex-row cursor-pointer">
+      <input class="radio" type="radio" name="suit" value={{ suit }} />
+      {{suit}}
     </label>
   {% endfor %}
 </div>

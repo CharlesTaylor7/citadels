@@ -14,11 +14,10 @@ module.exports = {
       },
       colors: {
         'suit-trade': "rgb(104, 189, 126)",
-        'suit-military': "var(--fallback-p,oklch(var(--p)/var(--tw-bg-opacity)))",
+        'suit-military': "rgb(223, 71, 71)",
         'suit-religious': "rgb(75, 203, 214)",
-        'suit-noble': "rgb(207, 182, 60)",
-        'suit-unique': "rgb(185, 153, 224)",
-        
+        'suit-noble':   "rgb(224, 189, 22)", 
+        'suit-unique': "rgb(169, 107, 244)",
       }
     }
   },

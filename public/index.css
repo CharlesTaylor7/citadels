@@ -993,11 +993,6 @@ html {
   }
 }
 
-.form-control {
-  display: flex;
-  flex-direction: column;
-}
-
 .label {
   display: flex;
   -webkit-user-select: none;
@@ -1577,18 +1572,6 @@ input.tab:checked + .tab-content,
   --tw-border-opacity: 1;
   border-color: var(--fallback-p,oklch(var(--p)/var(--tw-border-opacity)));
   outline-color: var(--fallback-p,oklch(var(--p)/1));
-}
-
-.input-info {
-  --tw-border-opacity: 1;
-  border-color: var(--fallback-in,oklch(var(--in)/var(--tw-border-opacity)));
-}
-
-.input-info:focus,
-    .input-info:focus-within {
-  --tw-border-opacity: 1;
-  border-color: var(--fallback-in,oklch(var(--in)/var(--tw-border-opacity)));
-  outline-color: var(--fallback-in,oklch(var(--in)/1));
 }
 
 .input-disabled,
@@ -2341,10 +2324,6 @@ input.tab:checked + .tab-content,
   margin-left: 1rem;
 }
 
-.mr-3 {
-  margin-right: 0.75rem;
-}
-
 .mt-3 {
   margin-top: 0.75rem;
 }
@@ -2663,11 +2642,6 @@ input.tab:checked + .tab-content,
   border-color: var(--fallback-n,oklch(var(--n)/var(--tw-border-opacity)));
 }
 
-.border-slate-400 {
-  --tw-border-opacity: 1;
-  border-color: rgb(148 163 184 / var(--tw-border-opacity));
-}
-
 .border-slate-500 {
   --tw-border-opacity: 1;
   border-color: rgb(100 116 139 / var(--tw-border-opacity));
@@ -2721,18 +2695,14 @@ input.tab:checked + .tab-content,
   background-color: rgb(203 213 225 / var(--tw-bg-opacity));
 }
 
-.bg-slate-500 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(100 116 139 / var(--tw-bg-opacity));
-}
-
 .bg-suit-military {
-  background-color: var(--fallback-p,oklch(var(--p)/var(--tw-bg-opacity)));
+  --tw-bg-opacity: 1;
+  background-color: rgb(223 71 71 / var(--tw-bg-opacity));
 }
 
 .bg-suit-noble {
   --tw-bg-opacity: 1;
-  background-color: rgb(207 182 60 / var(--tw-bg-opacity));
+  background-color: rgb(224 189 22 / var(--tw-bg-opacity));
 }
 
 .bg-suit-religious {
@@ -2747,7 +2717,7 @@ input.tab:checked + .tab-content,
 
 .bg-suit-unique {
   --tw-bg-opacity: 1;
-  background-color: rgb(185 153 224 / var(--tw-bg-opacity));
+  background-color: rgb(169 107 244 / var(--tw-bg-opacity));
 }
 
 .bg-gradient-radial {
@@ -2784,11 +2754,6 @@ input.tab:checked + .tab-content,
 
 .p-7 {
   padding: 1.75rem;
-}
-
-.px-3 {
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
 }
 
 .px-4 {

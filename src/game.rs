@@ -612,7 +612,7 @@ impl Game {
             }
 
             // skip the drafting phase
-            game.active_turn = Turn::Call(Rank::Five);
+            game.active_turn = Turn::Call(Rank::One);
             game.start_turn().unwrap();
             Ok(game)
         }
