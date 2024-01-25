@@ -2078,21 +2078,45 @@ impl Game {
                     followup: None,
                 }
             }
-            Action::EmperorGiveCrown { player, resource } => {
-                //
-                //
-                let resource = match resource {
-                    Resource::Gold => "gold",
 
-                    Resource::Cards => "card",
-                };
+            Action::EmperorGiveCrown { player, resource } => {
+                if self.active_player().unwrap().name == *player {
+                    return Err("Cannot give the crown to yourself".into());
+                }
+
+                let target = self
+                    .players
+                    .iter_mut()
+                    .find(|p| p.name == *player)
+                    .ok_or("player does not exist")?;
+
+                if target.index == self.crowned {
+                    return Err("Cannot give the crown to the already crowned player".into());
+                }
+
+                self.crowned = target.index;
+                match resource {
+                    Resource::Gold if target.gold > 0 => {
+                        target.gold -= 1;
+                        self.active_player_mut().unwrap().gold += 1;
+                    }
+                    Resource::Cards if target.hand.len() > 0 => {
+                        let index = self.rng.gen_range(0..target.hand.len());
+                        let card = target.hand.remove(index);
+                        self.active_player_mut().unwrap().hand.push(card);
+                    }
+                    _ => {}
+                }
 
                 ActionOutput {
                     log: format!(
                         "The Emperor ({}) gives {} the crown and takes one of their {}.",
                         self.active_player()?.name,
                         player,
-                        resource,
+                        match resource {
+                            Resource::Gold => "gold",
+                            Resource::Cards => "card",
+                        }
                     )
                     .into(),
                     followup: None,
@@ -2295,8 +2319,9 @@ impl Game {
                         .into(),
                     );
                 }
+
                 if character.role == RoleName::Emperor {
-                    todo!();
+                    log::error!("The emperor's heir needs to grant the crown")
                 }
 
                 if self.characters.len() >= 9 {
