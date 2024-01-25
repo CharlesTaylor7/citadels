@@ -1,11 +1,11 @@
-use serde_with::serde_as;
-pub mod deserializer;
-use crate::actions::deserializer::*;
+mod deserializer;
+
 use crate::game::Player;
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
 use macros::tag::Tag;
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 use std::borrow::Cow;
 
 #[serde_as]
@@ -52,17 +52,9 @@ pub enum Action {
     },
     Magic(MagicianAction),
     WarlordDestroy {
-        #[serde(
-            serialize_with = "serialize_city_district_target",
-            deserialize_with = "deserialize_city_district_target"
-        )]
         district: CityDistrictTarget,
     },
     Beautify {
-        #[serde(
-            serialize_with = "serialize_city_district_target",
-            deserialize_with = "deserialize_city_district_target"
-        )]
         district: CityDistrictTarget,
     },
     ScholarReveal,
@@ -100,25 +92,11 @@ pub enum Action {
     RevealBlackmail,
     Pass,
     MarshalSeize {
-        #[serde(
-            serialize_with = "serialize_city_district_target",
-            deserialize_with = "deserialize_city_district_target"
-        )]
         district: CityDistrictTarget,
     },
     CollectTaxes,
     DiplomatTrade {
-        #[serde(
-            serialize_with = "serialize_city_district_target",
-            deserialize_with = "deserialize_city_district_target"
-        )]
-        mine: CityDistrictTarget,
-
-        #[serde(
-            serialize_with = "serialize_city_district_target",
-            deserialize_with = "deserialize_city_district_target"
-        )]
-        yours: CityDistrictTarget,
+        district: [CityDistrictTarget; 2],
     },
     Spy {
         player: PlayerName,
@@ -147,10 +125,6 @@ pub enum Action {
         district: DistrictName,
     },
     Armory {
-        #[serde(
-            serialize_with = "serialize_city_district_target",
-            deserialize_with = "deserialize_city_district_target"
-        )]
         district: CityDistrictTarget,
     },
     Museum {

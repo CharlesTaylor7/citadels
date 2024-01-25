@@ -1,13 +1,11 @@
 use serde::de;
 use serde::ser;
-use serde::{Deserialize, Serialize};
+use serde::ser::{Serialize, Serializer};
 use std::fmt;
 
 use crate::{districts::DistrictName, types::PlayerName};
 
 use super::CityDistrictTarget;
-
-struct Visitor;
 
 pub fn serialize_city_district_target<S: ser::Serializer>(
     item: &CityDistrictTarget,
@@ -16,64 +14,26 @@ pub fn serialize_city_district_target<S: ser::Serializer>(
     format!("{:?},{},{}", item.district, item.player, item.beautified).serialize(s)
 }
 
-pub fn deserialize_city_district_target<'de, D>(
-    deserializer: D,
-) -> Result<CityDistrictTarget, D::Error>
-where
-    D: de::Deserializer<'de>,
-{
-    let csv = String::deserialize(deserializer)?;
-
-    log::info!("visit_str");
-    let mut district = None as Option<DistrictName>;
-    let mut player = None as Option<PlayerName>;
-    let mut beautified = None as Option<bool>;
-    for (i, raw) in csv.split(",").enumerate() {
-        if i == 0 {
-            let result = serde_json::from_value(serde_json::Value::String(raw.to_owned()));
-            log::info!("{raw} {result:#?}");
-            district = result.ok()
-        }
-
-        if i == 1 {
-            let result = serde_json::from_value(serde_json::Value::String(raw.to_owned()));
-            log::info!("{raw} {result:#?}");
-            player = result.ok();
-        }
-
-        if i == 2 {
-            log::info!("{raw}");
-            beautified = match raw {
-                "true" => Some(true),
-                "false" => Some(false),
-                _ => None,
-            };
-        }
-    }
-
-    if let (Some(district), Some(player), Some(beautified)) = (district, player, beautified) {
-        Ok(CityDistrictTarget {
-            district,
-            player,
-            beautified,
-        })
-    } else {
-        Err(de::Error::custom(csv))
+impl Serialize for CityDistrictTarget {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let item = self;
+        format!("{:?},{},{}", item.district, item.player, item.beautified).serialize(serializer)
     }
 }
-/*
-// This is the trait that informs Serde how to deserialize MyMap.
+
 impl<'de> de::Deserialize<'de> for CityDistrictTarget {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
     {
-        // Instantiate our Visitor and ask the Deserializer to drive
-        // it over the input data, resulting in an instance of MyMap.
-        deserializer.deserialize_map(Visitor {})
+        deserializer.deserialize_str(Visitor)
     }
 }
-*/
+
+struct Visitor;
 
 impl<'de> de::Visitor<'de> for Visitor {
     type Value = CityDistrictTarget;
@@ -97,30 +57,33 @@ impl<'de> de::Visitor<'de> for Visitor {
         }
     }
 
-    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    fn visit_str<E>(self, csv: &str) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
         let mut district = None as Option<DistrictName>;
         let mut player = None as Option<PlayerName>;
         let mut beautified = None as Option<bool>;
-        for (i, raw) in value.split(",").enumerate() {
+        for (i, raw) in csv.split(",").enumerate() {
             if i == 0 {
-                let result = serde_json::from_str(raw);
+                let result = serde_json::from_value(serde_json::Value::String(raw.to_owned()));
                 log::info!("{raw} {result:#?}");
                 district = result.ok()
             }
 
             if i == 1 {
-                let result = serde_json::from_str(raw);
+                let result = serde_json::from_value(serde_json::Value::String(raw.to_owned()));
                 log::info!("{raw} {result:#?}");
                 player = result.ok();
             }
 
             if i == 2 {
-                let result = serde_json::from_str(raw);
-                log::info!("{raw} {result:#?}");
-                beautified = result.ok();
+                log::info!("{raw}");
+                beautified = match raw {
+                    "true" => Some(true),
+                    "false" => Some(false),
+                    _ => None,
+                };
             }
         }
 
@@ -131,7 +94,7 @@ impl<'de> de::Visitor<'de> for Visitor {
                 beautified,
             })
         } else {
-            Err(E::custom(value))
+            Err(de::Error::custom(csv))
         }
     }
 }
