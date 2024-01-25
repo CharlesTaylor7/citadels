@@ -133,17 +133,8 @@ impl RoleName {
     }
 
     pub fn enabled(self) -> bool {
-        // 6 to go!
+        // 3 to go!
         match self {
-            // just target player, basically magician/spy menu
-            Self::Emperor => false,
-
-            // warlord menu with tweaks
-            Self::Marshal => false,
-
-            // warlord menu with tweaks, just need to select a district from each city.
-            Self::Diplomat => false,
-
             // build menu with tweaks, just need to select a card from another player's hand
             Self::Wizard => false,
 

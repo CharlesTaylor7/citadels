@@ -1461,10 +1461,7 @@ impl Game {
                     })
                     .ok_or("does not exist in the targeted player's city")?;
 
-                let mut destroy_cost = target.district.data().cost - 1;
-                if target.beautified {
-                    destroy_cost += 1;
-                }
+                let mut destroy_cost = target.effective_cost() - 1;
                 if targeted_player.city_has(DistrictName::GreatWall) {
                     destroy_cost += 1;
                 }
@@ -2048,10 +2045,7 @@ impl Game {
                     })
                     .ok_or("does not exist in the targeted player's city")?;
 
-                let mut seize_cost = target.district.data().cost;
-                if target.beautified {
-                    seize_cost += 1;
-                }
+                let mut seize_cost = target.effective_cost();
                 if seize_cost > 3 {
                     return Err("cannot seize district because it costs more than 3".into());
                 }
@@ -2122,9 +2116,114 @@ impl Game {
                     followup: None,
                 }
             }
-            Action::DiplomatTrade { .. } => return Err("Not implemented".into()),
-            Action::WizardPeek { .. } => return Err("Not implemented".into()),
-            Action::WizardPick { .. } => return Err("Not implemented".into()),
+            Action::DiplomatTrade { district } => {
+                let my_name = self.active_player().unwrap().name.borrow();
+                let [district_a, district_b] = district;
+                let (my_target, their_target) = {
+                    //
+                    if district_a.player == *my_name && district_b.player != *my_name {
+                        (district_a, district_b)
+                    } else if district_b.player == *my_name && district_a.player != *my_name {
+                        (district_b, district_a)
+                    } else {
+                        Err("One of the districts should be your own, and the other should be someone else's")?
+                    }
+                };
+                let complete_city_size = self.complete_city_size();
+                let player = self
+                    .players
+                    .iter()
+                    .find(|p| p.name == their_target.player)
+                    .ok_or("invalid player target")?;
+
+                if self.characters.has_revealed_role(player, RoleName::Bishop) {
+                    Err("Cannot target the Bishop")?
+                }
+                if player.city_size() >= complete_city_size {
+                    Err("Cannot target a completed city")?
+                }
+
+                let my_cost = my_target.effective_cost();
+                let their_cost = their_target.effective_cost();
+                let mut trade_cost = if my_cost < their_cost {
+                    their_cost - my_cost
+                } else {
+                    0
+                };
+
+                if player.city_has(DistrictName::GreatWall) {
+                    trade_cost += 1;
+                }
+                if trade_cost > self.active_player().unwrap().gold {
+                    Err("Not enough gold")?
+                }
+
+                let my_city_index = self
+                    .active_player()
+                    .unwrap()
+                    .city
+                    .iter()
+                    .enumerate()
+                    .find_map(|(i, c)| {
+                        if c.name == my_target.district && c.beautified == my_target.beautified {
+                            Some(i)
+                        } else {
+                            None
+                        }
+                    })
+                    .ok_or("does not exist in the your city")?;
+
+                let their_city_index = player
+                    .city
+                    .iter()
+                    .enumerate()
+                    .find_map(|(i, c)| {
+                        if c.name == their_target.district
+                            && c.beautified == their_target.beautified
+                        {
+                            Some(i)
+                        } else {
+                            None
+                        }
+                    })
+                    .ok_or("does not exist in the targeted player's city")?;
+                let index = player.index.0;
+                let player = self.players[index].borrow_mut();
+                player.gold += trade_cost;
+                player.city[their_city_index] = CityDistrict {
+                    name: my_target.district,
+                    beautified: my_target.beautified,
+                };
+
+                let active = self.active_player_mut().unwrap();
+                active.gold -= trade_cost;
+                active.city[my_city_index] = CityDistrict {
+                    name: their_target.district,
+                    beautified: their_target.beautified,
+                };
+
+                ActionOutput {
+                    log: format!(
+                        "The Diplomat ({}) traded their {} for {}'s {}{}.",
+                        active.name,
+                        my_target.district.data().display_name,
+                        their_target.player,
+                        their_target.district.data().display_name,
+                        if trade_cost > 0 {
+                            format!(
+                                "; they were compensated {} gold for the difference",
+                                trade_cost
+                            )
+                        } else {
+                            "".into()
+                        }
+                    )
+                    .into(),
+                    followup: None,
+                }
+            }
+            Action::WizardPeek { .. } => Err("Not implemented")?,
+            Action::WizardPick { .. } => Err("Not implemented")?,
             Action::Bewitch { .. } => return Err("Not implemented".into()),
         })
     }

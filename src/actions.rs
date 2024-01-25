@@ -144,6 +144,12 @@ pub struct CityDistrictTarget {
     pub beautified: bool,
 }
 
+impl CityDistrictTarget {
+    pub fn effective_cost(&self) -> usize {
+        self.district.data().cost + if self.beautified { 1 } else { 0 }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Resource {
     Gold,
