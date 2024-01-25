@@ -7,21 +7,29 @@
     <!-- https://htmx.org/examples/tabs-hateoas/ -->
     <div class="mt-5">
       <div role="tablist" class="tabs tabs-boxed inline-block">
-        <input type="radio" name="config_tab" role="tab" class="tab" aria-label="Roles" 
-          {% if selected == "Roles" %}
-          checked
-          {% endif %}
+        <input 
+          type="radio" 
+          role="tab" 
           hx-get="/lobby/config/roles"
           hx-target="#config"
           hx-swap="morph:outerHTML"
-        >
-        <input type="radio" name="config_tab" role="tab" class="tab" aria-label="Districts" 
-          {% if selected == "Districts" %}
-          checked
+          aria-label="Roles" 
+          class='tab'
+          {% if selected == "Roles" %}
+            checked
           {% endif %}
+        >
+        <input 
+          type="radio" 
+          role="tab" 
           hx-get="/lobby/config/districts"
           hx-target="#config"
           hx-swap="morph:outerHTML"
+          aria-label="Districts" 
+          class='tab'
+          {% if selected == "Districts" %}
+            checked
+          {% endif %}
         />
       </div>
       <button 

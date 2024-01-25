@@ -1195,21 +1195,6 @@ html {
   grid-column-start: span 9999;
 }
 
-.tab-content {
-  grid-column-start: 1;
-  grid-column-end: span 9999;
-  grid-row-start: 2;
-  margin-top: calc(var(--tab-border) * -1);
-  display: none;
-  border-color: transparent;
-  border-width: var(--tab-border, 0);
-}
-
-:checked + .tab-content:nth-child(2),
-  .tab-active + .tab-content:nth-child(2) {
-  border-start-start-radius: 0px;
-}
-
 input.tab:checked + .tab-content,
 .tab-active + .tab-content {
   display: block;
@@ -2210,12 +2195,19 @@ input.tab:checked + .tab-content,
   --tooltip-text-color: var(--fallback-sc,oklch(var(--sc)/1));
 }
 
+/* override daisy ui */
+
 .tooltip {
   display: revert;
 }
 
 .tooltip:before {
   z-index: 20;
+}
+
+.tab:is(input[type="radio"]) {
+  border-bottom-right-radius: var(--rounded-btn, 0.5rem);
+  border-bottom-left-radius: var(--rounded-btn, 0.5rem);
 }
 
 .header {
@@ -2225,22 +2217,6 @@ input.tab:checked + .tab-content,
   line-height: 1.75rem;
   font-weight: 600;
   text-decoration-line: underline;
-}
-
-/* 
-   * This is a workaround for mobile, so that scroll 
-   * and other gestures don't interfere with dragging
-   * https://github.com/taye/interact.js/issues/595#issuecomment-372888571 
-   */
-
-.draggable {
-  cursor: grab !important;
-  touch-action: none !important;
-}
-
-.dragging {
-  cursor: grabbing !important;
-  z-index: 1000 !important;
 }
 
 .static {
@@ -2612,10 +2588,6 @@ input.tab:checked + .tab-content,
   border-radius: 0.75rem;
 }
 
-.rounded-box {
-  border-radius: var(--rounded-box, 1rem);
-}
-
 .rounded-b-xl {
   border-bottom-right-radius: 0.75rem;
   border-bottom-left-radius: 0.75rem;
@@ -2785,10 +2757,6 @@ input.tab:checked + .tab-content,
   padding: 1.75rem;
 }
 
-.p-6 {
-  padding: 1.5rem;
-}
-
 .px-3 {
   padding-left: 0.75rem;
   padding-right: 0.75rem;
@@ -2907,6 +2875,22 @@ input.tab:checked + .tab-content,
 
 .filter {
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
+/* 
+   * This is a workaround for mobile, so that scroll 
+   * and other gestures don't interfere with dragging
+   * https://github.com/taye/interact.js/issues/595#issuecomment-372888571 
+   */
+
+.draggable {
+  cursor: grab !important;
+  touch-action: none !important;
+}
+
+.dragging {
+  cursor: grabbing !important;
+  z-index: 1000 !important;
 }
 
 @media (hover: hover) {

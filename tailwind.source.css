@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @layer components {
+  /* override daisy ui */
   .tooltip {
     display: revert;
   }
@@ -11,10 +12,17 @@
     @apply z-20;
   }
 
+  .tab:is(input[type="radio"]) {
+    border-bottom-right-radius: var(--rounded-btn, 0.5rem);
+    border-bottom-left-radius: var(--rounded-btn, 0.5rem);
+  }
+
   .header {
     @apply underline text-lg font-semibold w-full text-center;
   }
+}
 
+@layer utilities {
   /* 
    * This is a workaround for mobile, so that scroll 
    * and other gestures don't interfere with dragging
