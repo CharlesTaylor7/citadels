@@ -2115,17 +2115,17 @@ impl Game {
                         player,
                         match resource {
                             Resource::Gold => "gold",
-                            Resource::Cards => "card",
+                            Resource::Cards => "cards",
                         }
                     )
                     .into(),
                     followup: None,
                 }
             }
+            Action::DiplomatTrade { .. } => return Err("Not implemented".into()),
             Action::WizardPeek { .. } => return Err("Not implemented".into()),
             Action::WizardPick { .. } => return Err("Not implemented".into()),
             Action::Bewitch { .. } => return Err("Not implemented".into()),
-            Action::DiplomatTrade { .. } => return Err("Not implemented".into()),
         })
     }
 

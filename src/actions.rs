@@ -107,7 +107,19 @@ pub enum Action {
         district: CityDistrictTarget,
     },
     CollectTaxes,
-    DiplomatTrade, //{ exchange: [CityDistrictTarget; 2], },
+    DiplomatTrade {
+        #[serde(
+            serialize_with = "serialize_city_district_target",
+            deserialize_with = "deserialize_city_district_target"
+        )]
+        mine: CityDistrictTarget,
+
+        #[serde(
+            serialize_with = "serialize_city_district_target",
+            deserialize_with = "deserialize_city_district_target"
+        )]
+        yours: CityDistrictTarget,
+    },
     Spy {
         player: PlayerName,
         suit: CardSuit,
