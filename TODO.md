@@ -17,7 +17,11 @@
     - [ ] Build Menu:
         - Reminder that you have a warrant; emoji + text
         - Cost to build should be displayed
-    
+
+- Finish actions    
+- Finish roles
+- Finish districts
+- Daisy UI ify everything 
 
 - Notifications
     - Seer targets which card was taken. 
