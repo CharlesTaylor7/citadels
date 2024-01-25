@@ -51,7 +51,7 @@ pub enum MenuView<'a> {
     GameOver,
     Logs {
         header: Cow<'a, str>,
-        logs: Vec<Cow<'static, str>>,
+        logs: &'a [Cow<'static, str>],
     },
     Draft {
         roles: Vec<RoleTemplate>,
@@ -234,7 +234,7 @@ impl<'a> MenuView<'a> {
                     .into(),
                     Turn::GameOver { .. } => format!("Game over").into(),
                 },
-                logs: game.active_role().map_or(vec![], |c| c.logs.clone()),
+                logs: game.active_role().map_or(&[], |c| &c.logs),
             };
         }
     }

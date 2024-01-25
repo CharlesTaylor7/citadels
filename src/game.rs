@@ -1636,11 +1636,10 @@ impl Game {
                     .iter()
                     .map(|(name, district)| {
                         Ok((
-                            players
+                            *players
                                 .get(name)
-                                .ok_or(format!("Cannot give {} a card.", name).to_owned())?
-                                .clone(),
-                            district.clone(),
+                                .ok_or(format!("Cannot give {} a card.", name).to_owned())?,
+                            *district,
                         ))
                     })
                     .collect::<Result<_>>()?;
