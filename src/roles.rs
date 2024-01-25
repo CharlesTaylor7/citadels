@@ -148,7 +148,6 @@ impl RoleName {
             // menu to bewitch is the same as ASSASSIN
             // lots of game engine changes
             Self::Witch => false,
-
             _ => true,
         }
     }

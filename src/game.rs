@@ -2222,9 +2222,27 @@ impl Game {
                     followup: None,
                 }
             }
-            Action::WizardPeek { .. } => Err("Not implemented")?,
+            Action::WizardPeek { player } => {
+                let target = self
+                    .players
+                    .iter()
+                    .find(|p| p.name == *player)
+                    .ok_or("invalid player target")?;
+
+                ActionOutput {
+                    log: format!(
+                        "The Wizard ({}) peeks at {}'s hand.",
+                        self.active_player().unwrap().name,
+                        player,
+                    )
+                    .into(),
+                    followup: Some(Followup::WizardPick {
+                        revealed: target.hand.clone(),
+                    }),
+                }
+            }
             Action::WizardPick { .. } => Err("Not implemented")?,
-            Action::Bewitch { .. } => return Err("Not implemented".into()),
+            Action::Bewitch { .. } => Err("Not implemented")?,
         })
     }
 
