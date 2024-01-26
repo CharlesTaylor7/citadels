@@ -4,9 +4,6 @@ module.exports = {
   content: { 
     files: ["templates/**/*", "src/templates.rs",  "src/templates/filters.rs"],
   },
-  daisyui: {
-    themes: ["dark","retro"],
-  },
   theme: {
     extend: {
       borderWidth: {
