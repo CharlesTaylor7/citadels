@@ -79,7 +79,7 @@
 
 ## Cleo's easter eggs
 - [x] Dragging the dragon out of his section play's Mr. Brightside. Putting him back pauses it.
-    - [ ] Need to send ws updates as oob swaps so as to not disrupt the video player dom state.
+- [ ] "Pause" menu button
 
 ## Tech Debt
 ### Deserialization

@@ -10,6 +10,7 @@
     flex-row
     items-center
     justify-center
+    hidden
   "
   _="init enableDrag('#modal')"
 >
@@ -26,8 +27,8 @@
       "
     >
       <h2 class="header">Paused</h2>
-      <div class="italic text-sm text-wrap">The game is paused<sup>*</sup>. You can change your theme.</div>
+      <div class="italic text-sm text-wrap max-w-40">The game is paused<sup>*</sup>. You can change your theme.</div>
       {% include "theme-dropdown.html" %}
-      <div class="italic text-xs text-wrap"><b>*</b> The game is not really paused. You can still tell people the game is paused.</div>
+      <div class="italic text-xs text-wrap max-w-40"><b>*</b> The game is not really paused. You can still tell people the game is paused.</div>
     </div>
 </dialog>
