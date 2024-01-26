@@ -2,7 +2,7 @@
 module.exports = {
   plugins: [require("daisyui")],
   content: { 
-    files: ["templates/**/*", "src/templates.rs",  "src/templates/filters.rs"],
+    files: ["templates/**/*", "src/templates.rs", "src/templates/filters.rs"],
   },
   daisyui: {
     themes: [
