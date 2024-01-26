@@ -273,6 +273,10 @@ impl ActionTag {
             ActionTag::NavigatorGain => "Navigator".into(),
             ActionTag::QueenGainGold => "Queen".into(),
             ActionTag::TakeFromRich => "Take 1 gold from the richest".into(),
+            ActionTag::SeerTake => "Seer".into(),
+            ActionTag::WizardPeek => "Wizard".into(),
+            ActionTag::MarshalSeize => "Seize".into(),
+            ActionTag::DiplomatTrade => "Diplomacy".into(),
             _ => {
                 log::debug!("Warning: default case for {:#?}", self);
                 format!("{:#?}", self).into()
