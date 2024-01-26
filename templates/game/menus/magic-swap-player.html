@@ -2,14 +2,15 @@
   Magic: Swap Hands
 </h2>
 
-<div>
+<div class="flex flex-row gap-2">
   {% for name in players %}
-    <label class="block cursor-pointer">
-      <input type="radio" name="player" value={{ name }} />
+    <label class="flex flex-row gap-1 items-center cursor-pointer">
+      <input class="radio border-3" type="radio" name="player" value={{ name }} />
       {{ name }}
     </label>
   {% endfor %}
 </div>
+
 <button 
   class="btn btn-secondary"
   hx-post="/game/action"
