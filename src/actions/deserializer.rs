@@ -1,18 +1,8 @@
+use crate::actions::CityDistrictTarget;
+use crate::{districts::DistrictName, types::PlayerName};
 use serde::de;
-use serde::ser;
 use serde::ser::{Serialize, Serializer};
 use std::fmt;
-
-use crate::{districts::DistrictName, types::PlayerName};
-
-use super::CityDistrictTarget;
-
-pub fn serialize_city_district_target<S: ser::Serializer>(
-    item: &CityDistrictTarget,
-    s: S,
-) -> Result<S::Ok, S::Error> {
-    format!("{:?},{},{}", item.district, item.player, item.beautified).serialize(s)
-}
 
 impl Serialize for CityDistrictTarget {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

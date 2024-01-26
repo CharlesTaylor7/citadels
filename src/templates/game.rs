@@ -4,9 +4,9 @@ pub mod menus;
 use crate::actions::ActionTag;
 use crate::game::{Game, GameRole, Player, PlayerIndex, Turn};
 use crate::roles::RoleName;
-use crate::templates::filters;
 use crate::templates::game::menu::{MenuTemplate, MenuView};
 use crate::templates::MyTemplate;
+use crate::templates::{filters, DAISY_THEMES};
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use crate::types::Marker;
 use askama::Template;
@@ -118,6 +118,7 @@ pub struct GameTemplate<'a> {
     city: CityTemplate<'a>,
     menu: MenuView<'a>,
     end: GameEndTemplate<'a>,
+    themes: &'static [&'static str],
 }
 
 impl<'a> GameTemplate<'a> {
@@ -142,6 +143,7 @@ impl<'a> GameTemplate<'a> {
         scores.sort_by_key(|(_, score)| -(*score as isize));
 
         GameTemplate {
+            themes: &DAISY_THEMES,
             menu,
             context,
             characters: &game.characters.0,

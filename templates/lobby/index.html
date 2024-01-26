@@ -45,10 +45,11 @@
         >
           Config
         </button>
+        {% set theme_dropdown_class = "dropdown-bottom" %}
+        {% include "theme-dropdown.html" %}
       </div>
       <div id="error" class="text-wrap w-60"></div>
     </form>
-    {% include "theme-dropdown.html" %}
     {% include "players.html" %}
   </div>
 </main>

@@ -5,11 +5,9 @@
     p-2
     border
     border-neutral
+    bg-base-300
     rounded-xl
     flex flex-col items-center
-    {% if player.active %}
-    bg-slate-300
-    {% endif %}
   "
   type="button"
   hx-get="/game/city/{{ player.name }}"

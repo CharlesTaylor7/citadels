@@ -9,6 +9,9 @@ pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
 pub fn class(item: &ActionTag) -> askama::Result<&'static str> {
     let cls = match item {
         ActionTag::EndTurn => "btn-error",
+        ActionTag::Build => "btn-info",
+        ActionTag::GatherResourceGold => "btn-success",
+        ActionTag::GatherResourceCards => "btn-success",
         _ => "btn-secondary",
     };
     Ok(cls)
@@ -21,7 +24,7 @@ pub fn def<'a>(t: &'a Option<&'static str>) -> askama::Result<&'a str> {
 pub fn suit_bg_character(suit: &Option<CardSuit>) -> askama::Result<&'static str> {
     match suit.as_ref() {
         Some(suit) => suit_bg_color(suit),
-        None => Ok("bg-neutral-content"),
+        None => Ok("bg-neutral"),
     }
 }
 

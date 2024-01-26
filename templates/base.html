@@ -316,10 +316,11 @@
   </head>
   <body
     id="ws"
-    class="h-screen text-base-content text-xl"
+    data-theme="retro"
+    class="h-screen bg-base-100 text-base-content text-xl"
     hx-ext="ws,morph,json-enc"
     ws-connect="/ws"
-    _="init set my @data-theme to localStorage.theme"
+    _="init get the theme of localStorage if it exists set my @data-theme to it"
   >
     {% block content %} 
     {% endblock %}

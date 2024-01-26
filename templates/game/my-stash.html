@@ -3,7 +3,7 @@
   class="
     min-h-[268px] 
     flex flex-col 
-    p-2 bg-neutral-content 
+    p-2
     border border-base-200
   "
   _="init enableDrag('#my-stash')"
@@ -23,4 +23,6 @@
       </div>
     {% endfor %}
   </div>
+  {% set theme_dropdown_class = "dropdown-top" %}
+  {% include "theme-dropdown.html" %}
 </section>
