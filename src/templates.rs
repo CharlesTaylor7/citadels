@@ -270,16 +270,16 @@ impl<T: Template> MyTemplate for T {
     }
 }
 
-pub const DAISY_THEMES: [&'static str; 32] = [
+pub const DAISY_THEMES: [&'static str; 30] = [
     "light",
     "dark",
     "cupcake",
     "bumblebee",
     "emerald",
     "corporate",
-    "synthwave",
+    // "synthwave",
     "retro",
-    "cyberpunk",
+    // "cyberpunk",
     "valentine",
     "halloween",
     "garden",
