@@ -4,7 +4,6 @@
   id="page-root" 
   hx-swap-oob="morph"
   data-replace-url="/lobby"
-  data-theme="dark"
   class="bg-base-100 h-full"
 >
   <dialog id="config"></dialog>
@@ -46,6 +45,7 @@
         >
           Config
         </button>
+        {% include "theme-dropdown.html" %}
       </div>
       <div id="error" class="text-wrap w-60"></div>
     </form>

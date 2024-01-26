@@ -86,6 +86,7 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
             LobbyTemplate {
                 username: &username,
                 players: &lobby.players,
+                themes: &DAISY_THEMES,
             }
             .render()
             .unwrap(),
