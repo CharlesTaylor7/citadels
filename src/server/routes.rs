@@ -74,17 +74,12 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
         return (cookies, Redirect::to("/game")).into_response();
     }
 
-    let username = cookies
-        .get("username")
-        .map_or("".to_owned(), |c| c.value().to_owned());
-
     let lobby = app.lobby.lock().unwrap();
 
     (
         cookies,
         Html(
             LobbyTemplate {
-                username: &username,
                 players: &lobby.players,
                 themes: &DAISY_THEMES,
             }
@@ -185,9 +180,7 @@ pub async fn register(
     );
     app.connections.lock().unwrap().broadcast(html);
 
-    Ok(cookies
-        .add(Cookie::new("username", username.to_owned()))
-        .into_response())
+    Ok(StatusCode::OK.into_response())
 }
 
 pub async fn start(app: State<AppState>) -> Result<Response> {

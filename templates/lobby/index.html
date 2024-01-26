@@ -18,8 +18,9 @@
           class="input input-primary"
           type="text"
           name="username"
-          value="{{ username }}"
           autocomplete="username"
+          _= "init get localStorage.username if it exists set my.value to it end
+              on change set localStorage.username to my.value end"
         />
       </label>
       <div class="flex flex-row gap-3">

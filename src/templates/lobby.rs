@@ -12,7 +12,6 @@ use std::collections::{HashMap, HashSet};
 #[derive(Template)]
 #[template(path = "lobby/index.html")]
 pub struct LobbyTemplate<'a> {
-    pub username: &'a str,
     pub players: &'a [Player],
     pub themes: &'static [&'static str],
 }
