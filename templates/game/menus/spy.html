@@ -2,20 +2,20 @@
   Spy
 </h2>
 
-<div>
+<div class="flex flex-row gap-2">
   {% for player in players %}
-    <label class="block cursor-pointer">
-      <input class="radio" type="radio" name="player" value={{ player.name }} />
+    <label class="flex flex-row gap-1 items-center cursor-pointer">
+      <input class="radio border-3" type="radio" name="player" value={{ player.name }} />
       {{ player.name }}
     </label>
   {% endfor %}
 </div>
 
-<div>
+<div class="flex flex-row gap-2">
   {% for suit in suits %}
-    <label class="flex flex-row cursor-pointer">
-      <input class="radio" type="radio" name="suit" value={{ suit }} />
-      {{suit}}
+    <label class="flex flex-row gap-1 items-center cursor-pointer">
+      <input class="radio border-3 {{suit|suit_border_color}}" type="radio" name="suit" value={{ suit }} />
+      <span class="">{{ suit }}</span>
     </label>
   {% endfor %}
 </div>

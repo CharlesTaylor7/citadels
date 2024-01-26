@@ -720,6 +720,11 @@ html {
     color: var(--fallback-nc,oklch(var(--nc)/var(--tw-text-opacity)));
   }
 
+  .radio-info:hover {
+    --tw-border-opacity: 1;
+    border-color: var(--fallback-in,oklch(var(--in)/var(--tw-border-opacity)));
+  }
+
   .tab:hover {
     --tw-text-opacity: 1;
   }
@@ -1777,6 +1782,26 @@ input.tab:checked + .tab-content,
       0 0 0 4px var(--fallback-b1,oklch(var(--b1)/1)) inset;
 }
 
+.radio-info {
+  --chkbg: var(--in);
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-in,oklch(var(--in)/var(--tw-border-opacity)));
+}
+
+.radio-info:focus-visible {
+  outline-color: var(--fallback-in,oklch(var(--in)/1));
+}
+
+.radio-info:checked,
+    .radio-info[aria-checked="true"] {
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-in,oklch(var(--in)/var(--tw-border-opacity)));
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-in,oklch(var(--in)/var(--tw-bg-opacity)));
+  --tw-text-opacity: 1;
+  color: var(--fallback-inc,oklch(var(--inc)/var(--tw-text-opacity)));
+}
+
 .radio:disabled {
   cursor: not-allowed;
   opacity: 0.2;
@@ -2610,6 +2635,10 @@ input.tab:checked + .tab-content,
   border-width: 1px;
 }
 
+.border-3 {
+  border-width: 3px;
+}
+
 .border-4 {
   border-width: 4px;
 }
@@ -2650,6 +2679,31 @@ input.tab:checked + .tab-content,
 .border-success {
   --tw-border-opacity: 1;
   border-color: var(--fallback-su,oklch(var(--su)/var(--tw-border-opacity)));
+}
+
+.border-suit-military {
+  --tw-border-opacity: 1;
+  border-color: rgb(223 71 71 / var(--tw-border-opacity));
+}
+
+.border-suit-noble {
+  --tw-border-opacity: 1;
+  border-color: rgb(224 189 22 / var(--tw-border-opacity));
+}
+
+.border-suit-religious {
+  --tw-border-opacity: 1;
+  border-color: rgb(75 203 214 / var(--tw-border-opacity));
+}
+
+.border-suit-trade {
+  --tw-border-opacity: 1;
+  border-color: rgb(104 189 126 / var(--tw-border-opacity));
+}
+
+.border-suit-unique {
+  --tw-border-opacity: 1;
+  border-color: rgb(169 107 244 / var(--tw-border-opacity));
 }
 
 .border-transparent {
@@ -2718,6 +2772,11 @@ input.tab:checked + .tab-content,
 .bg-suit-unique {
   --tw-bg-opacity: 1;
   background-color: rgb(169 107 244 / var(--tw-bg-opacity));
+}
+
+.bg-base-content {
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-bc,oklch(var(--bc)/var(--tw-bg-opacity)));
 }
 
 .bg-gradient-radial {
@@ -2847,6 +2906,26 @@ input.tab:checked + .tab-content,
 
 .underline {
   text-decoration-line: underline;
+}
+
+.decoration-suit-military {
+  text-decoration-color: rgb(223, 71, 71);
+}
+
+.decoration-suit-noble {
+  text-decoration-color: rgb(224, 189, 22);
+}
+
+.decoration-suit-religious {
+  text-decoration-color: rgb(75, 203, 214);
+}
+
+.decoration-suit-trade {
+  text-decoration-color: rgb(104, 189, 126);
+}
+
+.decoration-suit-unique {
+  text-decoration-color: rgb(169, 107, 244);
 }
 
 .opacity-0 {

@@ -602,6 +602,7 @@ impl Game {
             Ok(game)
         } else {
             // deal roles out randomly
+            game.characters.get_mut(Rank::Two).role = RoleName::Spy;
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
@@ -612,7 +613,7 @@ impl Game {
             }
 
             // skip the drafting phase
-            game.active_turn = Turn::Call(Rank::One);
+            game.active_turn = Turn::Call(Rank::Two);
             game.start_turn().unwrap();
             Ok(game)
         }

@@ -13,6 +13,10 @@ pub fn class(item: &ActionTag) -> askama::Result<&'static str> {
     };
     Ok(cls)
 }
+pub fn def<'a>(t: &'a Option<&'static str>) -> askama::Result<&'a str> {
+    let c: Option<&str> = t.as_deref();
+    Ok(c.unwrap_or_default())
+}
 
 pub fn suit_bg_character(suit: &Option<CardSuit>) -> askama::Result<&'static str> {
     match suit.as_ref() {
@@ -31,7 +35,22 @@ pub fn suit_bg_color(suit: &CardSuit) -> askama::Result<&'static str> {
     })
 }
 
-pub fn def<'a>(t: &'a Option<&'static str>) -> askama::Result<&'a str> {
-    let c: Option<&str> = t.as_deref();
-    Ok(c.unwrap_or_default())
+pub fn suit_decoration_color(suit: &CardSuit) -> askama::Result<&'static str> {
+    Ok(match suit {
+        CardSuit::Military => "decoration-suit-military",
+        CardSuit::Religious => "decoration-suit-religious",
+        CardSuit::Noble => "decoration-suit-noble",
+        CardSuit::Trade => "decoration-suit-trade",
+        CardSuit::Unique => "decoration-suit-unique",
+    })
+}
+
+pub fn suit_border_color(suit: &CardSuit) -> askama::Result<&'static str> {
+    Ok(match suit {
+        CardSuit::Military => "border-suit-military",
+        CardSuit::Religious => "border-suit-religious",
+        CardSuit::Noble => "border-suit-noble",
+        CardSuit::Trade => "border-suit-trade",
+        CardSuit::Unique => "border-suit-unique",
+    })
 }
