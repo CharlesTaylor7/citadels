@@ -1,4 +1,7 @@
 ## Shortlist
+- [ ] Move Username from cookie to local storage
+- [ ] Fixup right panel for players. Should be 2 columns only when there is more than 4 players
+
 - Fixup janky UI
     - [ ] Abbot tax richest menu
         - Buttons instead of radio buttons?
