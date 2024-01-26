@@ -606,14 +606,20 @@ impl Game {
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
-            for (i, role) in roles.iter().enumerate() {
+            let role_count = if game.players.len() <= 3 { 2 } else { 1 };
+
+            let roles = roles
+                .iter()
+                .enumerate()
+                .take(role_count * game.players.len());
+            for (i, role) in roles {
                 let index = i % game.players.len();
                 game.players[index].roles.push(*role);
                 game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
             }
 
-            // skip the drafting phase
-            game.active_turn = Turn::Call(Rank::Two);
+            // skip to end
+            game.active_turn = Turn::Call(Rank::Eight);
             game.start_turn().unwrap();
             Ok(game)
         }

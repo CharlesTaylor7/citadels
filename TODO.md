@@ -22,6 +22,10 @@
 - Finish roles
 - Finish districts
 - Daisy UI ify everything 
+    - [ ] Consistent theming
+    - [ ] cards
+    - [ ] Collapsible details menu
+    - [ ] typography?
 
 - Notifications
     - Seer targets which card was taken. 
