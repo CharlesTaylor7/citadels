@@ -619,8 +619,7 @@ impl Game {
             }
 
             // skip to end
-            game.first_to_complete = Some(PlayerIndex(0));
-            game.active_turn = Turn::Call(Rank::Eight);
+            game.active_turn = Turn::Call(Rank::One);
             game.start_turn().unwrap();
             Ok(game)
         }

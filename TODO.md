@@ -1,6 +1,6 @@
 ## Shortlist
-- [ ] Fixup right panel for players. Should be 2 columns only when there is more than 4 players
-
+- Max height for hand panel, with horizontal scroll
+- x marker for face up discard from draft
 - Fixup janky UI
     - [ ] Abbot tax richest menu
         - Buttons instead of radio buttons?
@@ -24,9 +24,8 @@
 - Finish roles
 - Finish districts
 - Daisy UI ify everything 
-    - [ ] Consistent theming
-    - [ ] cards
-    - [ ] Collapsible details menu
+    - [ ] Cards for misc, and logs
+    - [ ] Collapsible details For logs sidebar
     - [ ] typography?
 
 - Notifications

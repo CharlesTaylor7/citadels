@@ -20,6 +20,10 @@
   .header {
     @apply underline text-lg font-semibold w-full text-center;
   }
+
+  .panel {
+    @apply p-2 border border-base-200 bg-base-100;
+  }
 }
 
 @layer utilities {

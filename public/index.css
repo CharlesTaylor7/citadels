@@ -4685,6 +4685,15 @@ input.tab:checked + .tab-content,
   text-decoration-line: underline;
 }
 
+.panel {
+  border-width: 1px;
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-border-opacity)));
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity)));
+  padding: 0.5rem;
+}
+
 .static {
   position: static;
 }
@@ -4842,10 +4851,6 @@ input.tab:checked + .tab-content,
   height: 100vh;
 }
 
-.max-h-\[calc\(100vh-280px\)\] {
-  max-height: calc(100vh - 280px);
-}
-
 .min-h-0 {
   min-height: 0px;
 }
@@ -4912,10 +4917,6 @@ input.tab:checked + .tab-content,
 
 .max-w-\[144px\] {
   max-width: 144px;
-}
-
-.max-w-\[300px\] {
-  max-width: 300px;
 }
 
 .grow {
@@ -5022,6 +5023,10 @@ input.tab:checked + .tab-content,
   overflow-x: hidden;
 }
 
+.overflow-x-scroll {
+  overflow-x: scroll;
+}
+
 .overflow-y-scroll {
   overflow-y: scroll;
 }
@@ -5080,11 +5085,6 @@ input.tab:checked + .tab-content,
   border-top-width: 1px;
 }
 
-.border-base-200 {
-  --tw-border-opacity: 1;
-  border-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-border-opacity)));
-}
-
 .border-error {
   --tw-border-opacity: 1;
   border-color: var(--fallback-er,oklch(var(--er)/var(--tw-border-opacity)));
@@ -5093,11 +5093,6 @@ input.tab:checked + .tab-content,
 .border-neutral {
   --tw-border-opacity: 1;
   border-color: var(--fallback-n,oklch(var(--n)/var(--tw-border-opacity)));
-}
-
-.border-slate-500 {
-  --tw-border-opacity: 1;
-  border-color: rgb(100 116 139 / var(--tw-border-opacity));
 }
 
 .border-suit-military {
