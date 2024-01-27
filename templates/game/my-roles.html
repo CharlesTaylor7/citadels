@@ -4,14 +4,12 @@
     panel
     min-h-[268px] 
     grow-0
-    flex flex-col 
-    items-center
   "
 >
   <h2 class="header">
     My Roles
   </h2>
-  <div class="flex flex-row flex-wrap gap-2 overflow-scroll">
+  <div class="my-auto flex flex-row gap-2 overflow-x-scroll overflow-y-hidden">
     {% set input_type = "checkbox" %}
     {% set enabled = false %}
     {% for role in my.roles %} 

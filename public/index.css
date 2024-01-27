@@ -4771,6 +4771,11 @@ input.tab:checked + .tab-content,
   margin-right: auto;
 }
 
+.my-auto {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
 .ml-2 {
   margin-left: 0.5rem;
 }
@@ -4991,6 +4996,10 @@ input.tab:checked + .tab-content,
   justify-content: center;
 }
 
+.justify-between {
+  justify-content: space-between;
+}
+
 .gap-0 {
   gap: 0px;
 }
@@ -5021,6 +5030,10 @@ input.tab:checked + .tab-content,
 
 .overflow-x-hidden {
   overflow-x: hidden;
+}
+
+.overflow-y-hidden {
+  overflow-y: hidden;
 }
 
 .overflow-x-scroll {
