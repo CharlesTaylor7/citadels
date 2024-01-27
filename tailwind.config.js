@@ -9,6 +9,9 @@ module.exports = {
   },
   theme: {
     extend: {
+      borderRadius: {
+        'box': 'var(--rounded-box, 1rem)',
+      },
       borderWidth: {
         '3': '3px',
       },

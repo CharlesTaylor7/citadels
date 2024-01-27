@@ -27,7 +27,7 @@
         opacity-100
         rounded-lg
         border border-neutral
-        bg-base-200
+        bg-base-100
       "
     >
       <div class="flex flex-row gap-3">
@@ -35,28 +35,18 @@
         <h2 class="inline header">Final Scores </h2>
         <span class="text-3xl">🎉</span>
       </div>
-      <div class="border border-base-300 rounded-2xl" >
+      <div class="border border-neutral rounded-box" >
         <table className="border-separate border-spacing-0">
           <tbody>
-            {% for (i, (name, score)) in end.players.iter().enumerate() %}
-              <tr>
+            {% for (name, score) in end.players %}
+              <tr class="border-neutral border-t first:border-t-0">
                 <td
-                  class="
-                    border-base-300 p-4 
-                    {% if i > 0 %}
-                    border-t
-                    {% endif %}
-                  "
+                  class="p-4"
                 >
                   {{ name }}
                 </td>
                 <td 
-                  class="
-                    border-base-300 p-4 border-l
-                    {% if i > 0 %}
-                    border-t
-                    {% endif %}
-                  " 
+                  class="p-4 border-neutral border-l p-4" 
                 >
                   {{ score }}
                 </td>

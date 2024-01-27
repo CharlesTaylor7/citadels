@@ -4818,10 +4818,6 @@ input.tab:checked + .tab-content,
   height: 0.5rem;
 }
 
-.h-32 {
-  height: 8rem;
-}
-
 .h-4 {
   height: 1rem;
 }
@@ -4870,10 +4866,6 @@ input.tab:checked + .tab-content,
   width: 0.5rem;
 }
 
-.w-20 {
-  width: 5rem;
-}
-
 .w-24 {
   width: 6rem;
 }
@@ -4910,6 +4902,10 @@ input.tab:checked + .tab-content,
   min-width: 9rem;
 }
 
+.max-w-40 {
+  max-width: 10rem;
+}
+
 .max-w-72 {
   max-width: 18rem;
 }
@@ -4920,14 +4916,6 @@ input.tab:checked + .tab-content,
 
 .max-w-\[300px\] {
   max-width: 300px;
-}
-
-.max-w-36 {
-  max-width: 9rem;
-}
-
-.max-w-40 {
-  max-width: 10rem;
 }
 
 .grow {
@@ -5000,10 +4988,6 @@ input.tab:checked + .tab-content,
 
 .justify-center {
   justify-content: center;
-}
-
-.justify-between {
-  justify-content: space-between;
 }
 
 .gap-0 {
@@ -5099,11 +5083,6 @@ input.tab:checked + .tab-content,
 .border-base-200 {
   --tw-border-opacity: 1;
   border-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-border-opacity)));
-}
-
-.border-base-300 {
-  --tw-border-opacity: 1;
-  border-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-border-opacity)));
 }
 
 .border-error {
@@ -5765,6 +5744,10 @@ input.tab:checked + .tab-content,
 .before\:max-w-full::before {
   content: var(--tw-content);
   max-width: 100%;
+}
+
+.first\:border-t-0:first-child {
+  border-top-width: 0px;
 }
 
 .focus\:outline-none:focus {
