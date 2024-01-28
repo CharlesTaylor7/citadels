@@ -2028,17 +2028,20 @@ impl Game {
                 }
                 let available_gold = self.active_player()?.gold;
                 let complete_size = self.complete_city_size();
-                let targeted_player = self
+                let player = self
                     .players
                     .iter_mut()
-                    .find(|p| {
-                        p.name == target.player
-                            && !self.characters.has_revealed_role(p, RoleName::Bishop)
-                            && p.city_size() < complete_size
-                    })
-                    .ok_or("invalid player target")?;
+                    .find(|p| p.name == target.player)
+                    .ok_or("Player does not exist")?;
 
-                let city_index = targeted_player
+                if self.characters.has_revealed_role(player, RoleName::Bishop) {
+                    Err("Cannot target the Bishop")?
+                }
+                if player.city_size() >= complete_size {
+                    Err("Cannot target a completed city")?
+                }
+
+                let city_index = player
                     .city
                     .iter()
                     .enumerate()
@@ -2050,12 +2053,11 @@ impl Game {
                         }
                     })
                     .ok_or("does not exist in the targeted player's city")?;
-
                 let mut seize_cost = target.effective_cost();
                 if seize_cost > 3 {
                     return Err("cannot seize district because it costs more than 3".into());
                 }
-                if targeted_player.city_has(DistrictName::GreatWall) {
+                if player.city_has(DistrictName::GreatWall) {
                     seize_cost += 1;
                 }
 
@@ -2063,7 +2065,7 @@ impl Game {
                     return Err("not enough gold to seize".into());
                 }
 
-                targeted_player.city.remove(city_index);
+                player.city.remove(city_index);
                 self.active_player_mut()?.gold -= seize_cost;
                 self.discard_district(target.district);
 
@@ -2122,6 +2124,7 @@ impl Game {
                     followup: None,
                 }
             }
+            // TODO: cannot duplicate district in your city or target
             Action::DiplomatTrade { district } => {
                 let my_name = self.active_player().unwrap().name.borrow();
                 let [district_a, district_b] = district;
