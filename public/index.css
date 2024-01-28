@@ -4818,6 +4818,10 @@ details.collapse summary::-webkit-details-marker {
   z-index: 20;
 }
 
+.dropdown {
+  position: revert;
+}
+
 .tab:is(input[type="radio"]) {
   border-bottom-right-radius: var(--rounded-btn, 0.5rem);
   border-bottom-left-radius: var(--rounded-btn, 0.5rem);

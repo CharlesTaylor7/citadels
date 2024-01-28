@@ -1,3 +1,8 @@
+## 0.5.1
+Fixes:
+    - base.html init scripts for idiomorph and htmx config.
+    - Theme button no longer bleeds through config menu
+
 ## 0.5.0
 Roles:
     - Spy
