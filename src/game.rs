@@ -1440,22 +1440,25 @@ impl Game {
 
             Action::WarlordDestroy { district: target } => {
                 if target.district == DistrictName::Keep {
-                    return Err("cannot destroy the Keep".into());
+                    return Err("Cannot target the Keep".into());
                 }
 
                 let available_gold = self.active_player()?.gold;
                 let complete_size = self.complete_city_size();
-                let targeted_player = self
+                let player = self
                     .players
                     .iter_mut()
-                    .find(|p| {
-                        p.name == target.player
-                            && !self.characters.has_revealed_role(p, RoleName::Bishop)
-                            && p.city_size() < complete_size
-                    })
-                    .ok_or("invalid player target")?;
+                    .find(|p| p.name == target.player)
+                    .ok_or("Player does not exist")?;
 
-                let city_index = targeted_player
+                if self.characters.has_revealed_role(player, RoleName::Bishop) {
+                    Err("Cannot target the Bishop")?
+                }
+                if player.city_size() >= complete_size {
+                    Err("Cannot target a completed city")?
+                }
+
+                let city_index = player
                     .city
                     .iter()
                     .enumerate()
@@ -1469,7 +1472,7 @@ impl Game {
                     .ok_or("does not exist in the targeted player's city")?;
 
                 let mut destroy_cost = target.effective_cost() - 1;
-                if targeted_player.city_has(DistrictName::GreatWall) {
+                if player.city_has(DistrictName::GreatWall) {
                     destroy_cost += 1;
                 }
 
@@ -1477,7 +1480,7 @@ impl Game {
                     return Err("not enough gold to destroy".into());
                 }
 
-                targeted_player.city.remove(city_index);
+                player.city.remove(city_index);
                 self.active_player_mut()?.gold -= destroy_cost;
                 self.discard_district(target.district);
 
@@ -2138,6 +2141,7 @@ impl Game {
                         Err("One of the districts should be your own, and the other should be someone else's")?
                     }
                 };
+
                 let complete_city_size = self.complete_city_size();
                 let player = self
                     .players
