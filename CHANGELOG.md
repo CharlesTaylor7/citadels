@@ -7,6 +7,10 @@ Roles:
 Districts:
     - Theater
     - Armory is actually usable. It was missing a menu.
+    - Basilica interacts with Artist Beautify now. 
+        (e.g. Beautifying an odd cost district is net 0 points, and beautifying an even cost district is net +2 points.)
+
+UI makeover with the ability to select themes.
 
 ## 0.4.0
 Roles:
