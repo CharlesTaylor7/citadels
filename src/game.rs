@@ -2026,6 +2026,9 @@ impl Game {
             }
 
             Action::MarshalSeize { district: target } => {
+                if target.district == DistrictName::Keep {
+                    return Err("Cannot target the Keep".into());
+                }
                 if self.active_player().unwrap().city_has(target.district) {
                     return Err("Cannot seize a copy of your own district".into());
                 }
@@ -2141,6 +2144,10 @@ impl Game {
                         Err("One of the districts should be your own, and the other should be someone else's")?
                     }
                 };
+
+                if their_target.district == DistrictName::Keep {
+                    return Err("Cannot target the Keep".into());
+                }
 
                 let complete_city_size = self.complete_city_size();
                 let player = self
