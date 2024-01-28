@@ -9,9 +9,9 @@ pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
 pub fn class(item: &ActionTag) -> askama::Result<&'static str> {
     let cls = match item {
         ActionTag::EndTurn => "btn-error",
-        ActionTag::Build => "btn-info",
-        ActionTag::GatherResourceGold => "btn-success",
-        ActionTag::GatherResourceCards => "btn-success",
+        ActionTag::Build => "btn-primary",
+        ActionTag::GatherResourceGold => "btn-primary",
+        ActionTag::GatherResourceCards => "btn-primary",
         _ => "btn-secondary",
     };
     Ok(cls)

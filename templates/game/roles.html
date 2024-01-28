@@ -4,23 +4,12 @@
 >
   <h2 class="header">Roles</h2>
   <div class="flex flex-col gap-2">
-    <div class="italic text-sm text-center">Click for logs</div>
     {% for character in characters %}
     {% set role = character.role.data() %}
-      <details open tabindex="-1">
-        <summary 
-          class="
-            text-left
-            text-wrap
-            block
-            {% if character.logs.len() > 0 %}
-              cursor-pointer
-            {% endif %}
-          "
-        >
-          <span class="" >
-            {{ role.rank }}. {{ role.name.display_name() }}
-          </span>
+      <label class="collapse collapse-arrow bg-base-100">
+        <input tabindex="-1" type="checkbox" class="hidden" checked /> 
+        <div class="collapse-title p-1">
+          {{ role.rank }}. {{ role.name.display_name() }}
           {% for marker in character.markers %}
             {% match marker %} 
             {% when Marker::Killed %}            
@@ -70,19 +59,14 @@
             </span>
           {% endfor %}
           {% endif %}
-        </summary>
-        <div 
-          class="cursor-pointer text-sm"
-          _="on click remove @open from closest <details/>"
-        >
-          <code id="logs-{{ role.name|debug }}" >
-            {% for log in character.logs %}
-              {{ log }}
-              <br>
-            {% endfor %}
-          </code>
         </div>
-      </details>
+        <code class="border border-neutral" id="logs-{{ role.name|debug }}" >
+          {% for log in character.logs %}
+            {{ log }}
+            <br>
+          {% endfor %}
+        </code>
+      </label>
     {% endfor %}
   </div>
 </div>

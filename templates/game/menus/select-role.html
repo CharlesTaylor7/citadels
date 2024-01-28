@@ -12,12 +12,5 @@
 
 <div class="m-2 flex flex-row flex-wrap gap-2 items-center">
   {% include "game/action.html" %}
-  <button 
-    class="btn btn-accent"
-    hx-get="/game/actions"
-    hx-target="#menu"
-    hx-swap="morph:innerHTML"
-  >
-    Cancel
-  </button>
+  {% include "button/cancel.html" %}
 </div>

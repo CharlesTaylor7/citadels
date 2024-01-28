@@ -54,13 +54,6 @@
   >
     Collect 
   </button>
-  <button 
-    class="btn btn-accent"
-    hx-get="/game/actions"
-    hx-target="#menu"
-    hx-swap="morph:innerHTML"
-  >
-    Cancel
-  </button>
+  {% include "button/cancel.html" %}
 </div>
 <div id="error"></div>

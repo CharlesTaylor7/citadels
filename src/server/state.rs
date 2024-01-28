@@ -2,7 +2,6 @@ use crate::server::ws;
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::cookie;
-use rand_core::SeedableRng;
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]
@@ -25,7 +24,7 @@ impl Default for AppState {
             connections: new_arc_mutex(ws::Connections::default()),
             lobby: new_arc_mutex(Lobby::default()),
             game: new_arc_mutex(None),
-            //kgame: new_arc_mutex(Game::start(Lobby::demo(3), SeedableRng::from_entropy()).ok()),
+            // game: new_arc_mutex(Game::start(Lobby::demo(3), SeedableRng::from_entropy()).ok()),
         }
     }
 }
