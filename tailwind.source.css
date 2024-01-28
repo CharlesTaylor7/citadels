@@ -18,6 +18,7 @@
   }
 
   .collapse {
+    @apply rounded-none;
   }
 
   .collapse-title {

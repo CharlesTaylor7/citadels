@@ -204,12 +204,6 @@ pub struct CityTemplate<'a> {
     margin_bottom: f64,
 }
 
-#[derive(Template)]
-#[template(path = "game/logs.html")]
-pub struct LogsTemplate<'a> {
-    pub logs: &'a [String],
-}
-
 /// Current player info
 #[derive(Default)]
 pub struct PlayerTemplate<'a> {

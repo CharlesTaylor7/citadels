@@ -7,7 +7,14 @@
     {% for character in characters %}
     {% set role = character.role.data() %}
       <label class="collapse collapse-arrow bg-base-100">
-        <input tabindex="-1" type="checkbox" class="hidden" checked /> 
+        <input 
+          data-preserve-checked='true'
+          id="role-logs-input-{{ role.name|debug }}" 
+          tabindex="-1" 
+          type="checkbox" 
+          class="hidden" 
+          checked 
+        /> 
         <div class="collapse-title p-1">
           {{ role.rank }}. {{ role.name.display_name() }}
           {% for marker in character.markers %}
@@ -60,7 +67,7 @@
           {% endfor %}
           {% endif %}
         </div>
-        <code class="border border-neutral" id="logs-{{ role.name|debug }}" >
+        <code class="collapse-content text-sm">
           {% for log in character.logs %}
             {{ log }}
             <br>

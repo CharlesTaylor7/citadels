@@ -21,6 +21,14 @@
     <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
     <script>
       Idiomorph.defaults.callbacks.beforeAttributeUpdated = (name, node, type) => {
+        if (
+          node.tagName === "INPUT" && name === "checked" 
+          node.dataset.preserveChecked
+        ) {
+
+          return false;
+        }
+
         if (node.tagName === "DETAILS" && name == "open") {
           return false;
         }

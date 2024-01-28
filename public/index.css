@@ -4865,6 +4865,7 @@ details.collapse summary::-webkit-details-marker {
 }
 
 .collapse {
+  border-radius: 0px;
 }
 
 .collapse-title {
@@ -5121,10 +5122,6 @@ details.collapse summary::-webkit-details-marker {
 
 .max-w-40 {
   max-width: 10rem;
-}
-
-.max-w-72 {
-  max-width: 18rem;
 }
 
 .max-w-\[144px\] {

@@ -6,7 +6,7 @@
   <h2 class="header">
     {{ header }}
   </h2>
-  <div class="flex flex-col gap-2 items-center">
+  <div class="">
       <code class="text-sm">
         {% for log in logs %}
           {{ log }}
@@ -227,7 +227,7 @@
       Swap
     </button>
     <button 
-      class="btn btn-secondary"
+      class="btn btn-error"
       hx-post="/game/action"
       name="action"
       value="TheaterPass"
