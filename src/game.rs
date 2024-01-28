@@ -1288,9 +1288,9 @@ impl Game {
                     }
                 }
 
-                // you can only confiscate the first build of a turn
+                // the magistrate can only confiscate the first build of a turn
                 if self.active_role().unwrap().has_warrant()
-                    && self.active_perform_count(ActionTag::Build) == 0
+                    && !self.turn_actions.iter().any(|act| act.is_build())
                 {
                     ActionOutput {
                         log: format!(
@@ -2247,25 +2247,83 @@ impl Game {
                     }),
                 }
             }
+            // only works as a regular build
+            // doesn't allow for alternate payment methods
             Action::WizardPick { district, build } => match self.followup {
-                Some(Followup::WizardPick { player }) => {
+                Some(Followup::WizardPick { player: target }) => {
+                    Game::remove_first(&mut self.players[target.0].hand, *district)
+                        .ok_or("district not in target player's hand")?;
                     if *build {
-                        ActionOutput {
-                            log: format!(
-                                "The Wizard ({}) builds the {} from {}'s hand.",
-                                self.active_player().unwrap().name,
-                                district.data().display_name,
-                                self.players[player.0].name,
-                            )
-                            .into(),
-                            followup: None,
+                        let active = self.active_player_mut()?;
+                        let district = district.data();
+
+                        let mut cost = district.cost;
+                        if district.suit == CardSuit::Unique
+                            && active.city_has(DistrictName::Factory)
+                        {
+                            cost -= 1;
+                        }
+
+                        if cost > active.gold {
+                            return Err("not enough gold".into());
+                        }
+
+                        if district.name == DistrictName::Monument && active.city.len() >= 5 {
+                            return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
+                        }
+
+                        active.gold -= cost;
+
+                        if self.characters.has_tax_collector() {
+                            let player = self.active_player_mut()?;
+                            if player.gold > 0 {
+                                player.gold -= 1;
+                                self.tax_collector += 1;
+                            }
+                        }
+
+                        // The magistrate can only confiscate the first build of a turn
+                        if self.active_role().unwrap().has_warrant()
+                            && !self.turn_actions.iter().any(|act| act.is_build())
+                        {
+                            ActionOutput {
+                        log: format!(
+                            "The Wizard begins to build a {}; waiting on the Magistrate's response.",
+                            district.display_name
+                        )
+                        .into(),
+                        followup: Some(Followup::Warrant {
+                            magistrate: self.characters.get(Rank::One).player.unwrap(),
+                            gold: cost,
+                            district: district.name,
+                            signed: self
+                                .active_role()
+                                .unwrap()
+                                .markers
+                                .iter()
+                                .any(|m| *m == Marker::Warrant { signed: true }),
+                        }),
+                    }
+                        } else {
+                            self.build(self.active_player().unwrap().index, cost, district.name);
+                            ActionOutput {
+                                log: format!(
+                                    "The Wizard ({}) builds the {} from {}'s hand.",
+                                    self.active_player().unwrap().name,
+                                    district.display_name,
+                                    self.players[target.0].name,
+                                )
+                                .into(),
+                                followup: None,
+                            }
                         }
                     } else {
+                        self.active_player_mut().unwrap().hand.push(*district);
                         ActionOutput {
                             log: format!(
                                 "The Wizard ({}) takes a card from {}'s hand.",
                                 self.active_player().unwrap().name,
-                                self.players[player.0].name,
+                                self.players[target.0].name,
                             )
                             .into(),
                             followup: None,

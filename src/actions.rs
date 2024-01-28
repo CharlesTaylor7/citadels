@@ -168,6 +168,15 @@ pub enum MagicianAction {
         district: Vec<DistrictName>,
     },
 }
+impl Action {
+    pub fn is_build(&self) -> bool {
+        match self {
+            Action::Build { .. } => true,
+            Action::WizardPick { build: true, .. } => true,
+            _ => false,
+        }
+    }
+}
 
 impl ActionTag {
     pub fn is_resource_gathering(self) -> bool {
@@ -177,6 +186,7 @@ impl ActionTag {
             _ => false,
         }
     }
+
     pub fn is_required(self) -> bool {
         match self {
             ActionTag::Bewitch => true,
