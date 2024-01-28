@@ -496,7 +496,7 @@ impl Game {
                 DistrictName::Basilica => player
                     .city
                     .iter()
-                    .filter(|c| c.name.data().cost % 2 == 1)
+                    .filter(|c| c.effective_cost() % 2 == 1)
                     .count(),
 
                 _ => 0,
