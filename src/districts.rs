@@ -217,7 +217,7 @@ pub const UNIQUE: [DistrictData; 30] = [
         suit: Unique,
         set: Base,
         display_name: "Keep",
-        cost: 6,
+        cost: 3,
         description: Some("The rank 8 character cannot use its ability on the Keep."),
     },
     DistrictData {

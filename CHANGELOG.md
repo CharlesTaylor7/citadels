@@ -1,3 +1,7 @@
+## 0.5.2
+Fixes:
+    - Keep costs 3 instead of 6
+
 ## 0.5.1
 Fixes:
     - base.html init scripts for idiomorph and htmx config.

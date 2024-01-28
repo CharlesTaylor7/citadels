@@ -17,7 +17,12 @@
 
 - Finish Game engine    
     - [ ] killed Emperor end of round action to grant crown
-    - [ ] Alternate Builds
+    - [ ] Alternate Build costs
+        I'm going to code these as mutually exclusive options, though a case could be made that Thieves Den and Cardinal should be allowed to split payment. However since it's so niche, I'm going to leave it out.
+        - [ ] Cardinal
+        - [ ] Den of thieves
+        - [ ] Framework
+        - [ ] Necropolis
     - [ ] Bewitch
 
 - Daisy UI ify everything 
