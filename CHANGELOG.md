@@ -1,3 +1,6 @@
+## 0.6.0
+- Notification bell
+
 ## 0.5.2
 Fixes:
     - Keep costs 3 instead of 6

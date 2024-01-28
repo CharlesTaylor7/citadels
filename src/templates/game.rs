@@ -119,6 +119,7 @@ pub struct GameTemplate<'a> {
     menu: MenuView<'a>,
     end: GameEndTemplate<'a>,
     themes: &'static [&'static str],
+    ring_bell: bool,
 }
 
 impl<'a> GameTemplate<'a> {
@@ -134,7 +135,6 @@ impl<'a> GameTemplate<'a> {
             .map(|p| PlayerInfoTemplate::from(p, game))
             .collect();
         let MenuTemplate { menu, context } = MenuTemplate::from(game, my_id);
-        log::info!("{:#?}", game.active_turn);
         let mut scores = game
             .players
             .iter()
@@ -143,6 +143,8 @@ impl<'a> GameTemplate<'a> {
         scores.sort_by_key(|(_, score)| -(*score as isize));
 
         GameTemplate {
+            ring_bell: game.turn_actions.is_empty()
+                && myself.is_some_and(|p1| game.active_player().is_ok_and(|p2| p1.id == p2.id)),
             themes: &DAISY_THEMES,
             menu,
             context,

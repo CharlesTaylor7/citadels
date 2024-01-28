@@ -47,5 +47,15 @@
     {% include "players.html" %}
     {% include "misc.html" %}
   </div>
+  <audio
+    {% if ring_bell %}
+    data-ring-bell
+    {% endif %}
+    class="hidden"
+    id="bell"
+    src="/public/audio/cow.mp3"
+    preload="auto"
+  >
+  </audio>
 </main>
 {% endblock %}
