@@ -301,7 +301,7 @@ pub enum Followup {
         revealed: Vec<DistrictName>,
     },
     WizardPick {
-        revealed: Vec<DistrictName>,
+        player: PlayerIndex,
     },
     SeerDistribute {
         players: Vec<PlayerIndex>,
@@ -945,7 +945,7 @@ impl Game {
 
     fn perform_action(&mut self, action: &Action) -> ActionResult {
         Ok(match action {
-            Action::RevealWarrant => match self.followup.take() {
+            Action::RevealWarrant => match self.followup {
                 Some(Followup::Warrant {
                     magistrate,
                     gold,
@@ -1010,7 +1010,7 @@ impl Game {
                 }),
             },
 
-            Action::RevealBlackmail => match self.followup.take() {
+            Action::RevealBlackmail => match self.followup {
                 Some(Followup::Blackmail { blackmailer }) => {
                     let is_flowered = self
                         .active_role()?
@@ -1057,7 +1057,7 @@ impl Game {
 
             Action::Pass => {
                 //
-                match self.followup.take() {
+                match self.followup {
                     Some(Followup::Warrant {
                         gold,
                         district,
@@ -1950,19 +1950,18 @@ impl Game {
 
             Action::ScholarPick { district } => {
                 let mut revealed =
-                    if let Some(Followup::ScholarPick { revealed, .. }) = self.followup.take() {
+                    if let Some(Followup::ScholarPick { revealed, .. }) = self.followup.as_mut() {
                         revealed
                     } else {
                         return Err("action is not allowed".into());
                     };
 
                 Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
-                self.active_player_mut()?.hand.push(*district);
-
                 for remaining in revealed {
-                    self.deck.discard_to_bottom(remaining);
+                    self.deck.discard_to_bottom(*remaining);
                 }
                 self.deck.shuffle(&mut self.rng);
+                self.active_player_mut()?.hand.push(*district);
 
                 ActionOutput {
                     log: format!(
@@ -2244,11 +2243,37 @@ impl Game {
                     )
                     .into(),
                     followup: Some(Followup::WizardPick {
-                        revealed: target.hand.clone(),
+                        player: target.index,
                     }),
                 }
             }
-            Action::WizardPick { .. } => Err("Not implemented")?,
+            Action::WizardPick { district, build } => match self.followup {
+                Some(Followup::WizardPick { player }) => {
+                    if *build {
+                        ActionOutput {
+                            log: format!(
+                                "The Wizard ({}) builds the {} from {}'s hand.",
+                                self.active_player().unwrap().name,
+                                district.data().display_name,
+                                self.players[player.0].name,
+                            )
+                            .into(),
+                            followup: None,
+                        }
+                    } else {
+                        ActionOutput {
+                            log: format!(
+                                "The Wizard ({}) takes a card from {}'s hand.",
+                                self.active_player().unwrap().name,
+                                self.players[player.0].name,
+                            )
+                            .into(),
+                            followup: None,
+                        }
+                    }
+                }
+                _ => Err("impossible")?,
+            },
             Action::Bewitch { .. } => Err("Not implemented")?,
         })
     }
