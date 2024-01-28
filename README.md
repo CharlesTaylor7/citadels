@@ -51,7 +51,6 @@ Tech Stack:
 - Frontend:
     - htmx
     - hyperscript (as needed)
-    - inline js
     - interactjs for drag 'n drop
 - Backend 
     - Rust, stable compiler. No nightly features

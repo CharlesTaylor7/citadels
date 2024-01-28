@@ -8,11 +8,6 @@
     - [ ] Abbot collect resources: 
         - the textbox could have a background that blends with the theme. On firefox the input should be an inline-block
 
-    - [ ] Spy menu:
-       - Radio buttons are in two vertical columns 
-       - District radio group could be styled like buttons. The suits should have underlines or backgrounds that match the suit.
-
-
     - [ ] Warlord Menu:
         - Destroy cost should be disaplyed prominently 
 
@@ -20,19 +15,24 @@
         - Reminder that you have a warrant; emoji + text
         - Cost to build should be displayed
 
-- Finish actions    
-- Finish roles
-- Finish districts
+- Finish Game engine    
+    - [ ] killed Emperor end of round action to grant crown
+    - [ ] Alternate Builds
+    - [ ] Bewitch
+
 - Daisy UI ify everything 
-    - [ ] Cards for misc, and logs
-    - [ ] Collapsible details For logs sidebar
-    - [ ] typography?
+    - [ ] Card for misc
 
 - Notifications
-    - Seer targets which card was taken. 
-    - Seer target which card was restored.
-    - Warlord target when district is destroyed.
+    - Seer: card is taken. 
+    - Seer: card is given.
+    - Magician
+    - Spy
+    - Warlord 
+    - Marshal
+    - Diplomat
     - Theater 
+    - Wizard 
 
 ## Ideas
 - [ ] Persist game config to sqlite db
