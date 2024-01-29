@@ -1709,14 +1709,14 @@ impl Game {
                 let player = self.active_player_mut()?;
 
                 if player.gold < 1 {
-                    return Err("not enough gold".into());
+                    return Err("Not enough gold".into());
                 }
 
                 let city_district = player
                     .city
                     .iter_mut()
                     .find(|d| !d.beautified && d.name == *district)
-                    .ok_or("invalid target; is it already beautified?")?;
+                    .ok_or("Invalid target. Is it already beautified?")?;
 
                 city_district.beautified = true;
                 player.gold -= 1;
@@ -1967,7 +1967,7 @@ impl Game {
                     roles.push(role);
                 }
                 if roles.iter().any(|role| role.rank() == Rank::One) {
-                    return Err("cannot assign warrant to self".into());
+                    return Err("Cannot assign warrant to self".into());
                 }
                 roles.sort_by_key(|r| r.rank());
 
