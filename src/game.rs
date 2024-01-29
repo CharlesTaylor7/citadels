@@ -602,16 +602,14 @@ impl Game {
             Ok(game)
         } else {
             // deal roles out randomly
-            game.characters.get_mut(Rank::Two).role = RoleName::Spy;
+            game.characters.get_mut(Rank::Five).role = RoleName::Abbot;
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
             let role_count = if game.players.len() <= 3 { 2 } else { 1 };
 
-            let roles = roles
-                .iter()
-                .enumerate()
-                .take(role_count * game.players.len());
+            let roles = roles.iter().enumerate();
+            // .take(role_count * game.players.len());
             for (i, role) in roles {
                 let index = i % game.players.len();
                 game.players[index].roles.push(*role);
@@ -619,7 +617,7 @@ impl Game {
             }
 
             // skip to end
-            game.active_turn = Turn::Call(Rank::One);
+            game.active_turn = Turn::Call(Rank::Five);
             game.start_turn().unwrap();
             Ok(game)
         }

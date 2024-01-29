@@ -2,9 +2,6 @@
 - Max height for hand panel, with horizontal scroll
 - x marker for face up discard from draft
 - Fixup janky UI
-    - [ ] Abbot tax richest menu
-        - Buttons instead of radio buttons?
-
     - [ ] Abbot collect resources: 
         - the textbox could have a background that blends with the theme. On firefox the input should be an inline-block
 
@@ -61,7 +58,7 @@
 - [ ] Need to show faceup discard.
 
 ## Playtest 1 feedback
-- [ ] Notification bell for start of turn.
+- [x] Notification bell for start of turn.
     - [x] audio tag, with ws event listener
     - [ ] Server needs to send an html element with data-ring-bell, but only once when the turn begins
     - [ ] Server shuffles audio files to send.
@@ -80,12 +77,25 @@
 - [ ] Logan couldn't easily see enemy districts without scrolling. Warlord menu
 - [ ] William found the button highlighting behavior in the config menu to be confusing. Didn't realize I was going for tab like interface. How can I make it more tab like?
 
+## Playtest 3
+- [ ] public/index.css is being cached across multiple browsers. I need to look into how axum serves directories, and invalidate the cache on this file. Because its ridiculous william had to disable his cache and reload.
+- [ ] All Cities in 1 panel, scroll.
+- [ ] Timer:  2 minute timer, +20secs every turn, capped at 2 minutes.
+- [ ] Logan's audio notification didn't work.
+    - [ ] some way of grabbing attention of the user. 
+    - [ ] Does the WS connection die, when logan was switching apps/safari tabs?
+    - [ ] Ask logan to use Firefox, Chrome, or Brave.
+- [ ] Lock down game room permissions to Room host. Make myself room host, so I can configure the game.
+- [ ] Highlight active player in sidebar. It's too subtle to notice the active player.
+- [ ] Tooltips or faq links on every card. Logan didn't know what the seer did, and I can't blame him.
+-
+
 ## Custom Roles
 - [ ] Nerfed Asssassin: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
 
 ## Cleo's easter eggs
 - [x] Dragging the dragon out of his section play's Mr. Brightside. Putting him back pauses it.
-- [ ] "Pause" menu button
+- [x] "Pause" menu button
 
 ## Tech Debt
 ### Deserialization
