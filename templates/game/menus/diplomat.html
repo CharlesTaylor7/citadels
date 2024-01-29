@@ -1,8 +1,8 @@
-<div class="hidden" _="init add .hidden to #city">
+<div class="hidden" _="init remove @disabled from <#city input/> add @name=theirs to <#menu input/>">
 </div>
 
 <h2 class="m-2 underline text-lg font-semibold">
-  Warlord
+  Diplomat
 </h2>
 
 {% let enabled = true %}
@@ -17,10 +17,11 @@
     hx-target="#menu"
     hx-swap="morph:innerHTML"
     name="action"
-    value="WarlordDestroy"
+    value="DiplomatTrade"
   >
-    Destroy
+    Trade
   </button>
+
   {% include "button/cancel.html" %}
 </div>
 <div id="error"></div>

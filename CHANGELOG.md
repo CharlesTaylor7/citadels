@@ -1,6 +1,7 @@
 ## 0.7.0
 - Roles:
     - Marshal
+    - Diplomat
 
 ## 0.6.0
 - Notification bell

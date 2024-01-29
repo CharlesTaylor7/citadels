@@ -605,7 +605,7 @@ impl Game {
             game.begin_draft();
             Ok(game)
         } else {
-            let test_role = RoleName::Marshal;
+            let test_role = RoleName::Diplomat;
             // deal roles out randomly
             game.characters.get_mut(test_role.rank()).role = test_role;
             let mut roles: Vec<_> = game.characters.iter().collect();
@@ -626,23 +626,16 @@ impl Game {
                 .filter(|p| !p.has_role(RoleName::Marshal))
             {
                 p.city.push(CityDistrict {
-                    name: DistrictName::Temple,
-                    beautified: true,
-                });
-                p.city.push(CityDistrict {
-                    name: DistrictName::Docks,
-                    beautified: true,
-                });
-
-                p.city.push(CityDistrict {
-                    name: DistrictName::Docks,
-                    beautified: false,
-                });
-
-                p.city.push(CityDistrict {
                     name: DistrictName::GreatWall,
                     beautified: false,
                 });
+
+                for card in game.deck.draw_many(3) {
+                    p.city.push(CityDistrict {
+                        name: card,
+                        beautified: false,
+                    });
+                }
             }
 
             // skip to end
@@ -2159,7 +2152,7 @@ impl Game {
                 }
             }
             Action::DiplomatTrade {
-                mine: my_target,
+                district: my_target,
                 theirs: their_target,
             } => {
                 if their_target.district == DistrictName::Keep {
@@ -2259,10 +2252,7 @@ impl Game {
                         their_target.player,
                         their_target.district.data().display_name,
                         if trade_cost > 0 {
-                            format!(
-                                "; they were compensated {} gold for the difference",
-                                trade_cost
-                            )
+                            format!("; they paid {} gold for the difference", trade_cost)
                         } else {
                             "".into()
                         }

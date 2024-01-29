@@ -96,7 +96,7 @@ pub enum Action {
     },
     CollectTaxes,
     DiplomatTrade {
-        mine: CityDistrictTarget,
+        district: CityDistrictTarget,
         theirs: CityDistrictTarget,
     },
     Spy {

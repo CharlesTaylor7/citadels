@@ -206,16 +206,14 @@ impl<'a> MarshalMenu<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "game/menus/marshal.html")]
+#[template(path = "game/menus/diplomat.html")]
 pub struct DiplomatMenu<'a> {
     pub cities: Vec<CityTemplate<'a>>,
-    pub mine: CityTemplate<'a>,
 }
 
 impl<'a> DiplomatMenu<'a> {
     pub fn from_game(game: &'a game::Game) -> Self {
         Self {
-            mine: CityTemplate::from(game, game.active_player_index().unwrap(), None),
             cities: game
                 .players
                 .iter()
