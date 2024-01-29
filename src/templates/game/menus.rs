@@ -1,4 +1,5 @@
 use crate::actions::ActionTag;
+use crate::districts::DistrictName;
 use crate::game::{self, Game, Player};
 use crate::roles::RoleName;
 use crate::templates::{filters, RoleTemplate};
@@ -23,7 +24,31 @@ pub struct SelectRoleMenu<'a> {
 // for building
 #[derive(Template)]
 #[template(path = "game/menus/build.html")]
-pub struct BuildMenu {}
+pub struct BuildMenu {
+    cardinal: bool,
+    thieves_den: bool,
+    framework: bool,
+    necropolis: bool,
+}
+
+impl BuildMenu {
+    pub fn from_game(game: &Game) -> Self {
+        Self {
+            cardinal: game
+                .active_role()
+                .is_ok_and(|c| c.role == RoleName::Cardinal),
+            thieves_den: game
+                .active_player()
+                .is_ok_and(|p| p.hand.iter().any(|d| *d == DistrictName::ThievesDen)),
+            necropolis: game
+                .active_player()
+                .is_ok_and(|p| p.hand.iter().any(|d| *d == DistrictName::Necropolis)),
+            framework: game
+                .active_player()
+                .is_ok_and(|p| p.city_has(DistrictName::Framework)),
+        }
+    }
+}
 
 // for magician
 #[derive(Template)]

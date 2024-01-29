@@ -11,7 +11,66 @@
 >
   Build
 </h2>
-Select a district from your hand to build
+<div class="italic text-sm">Select a district from your hand and a method to build</div>
+<div class="flex flex-row gap-2">
+  Method: 
+  <label class="flex flex-row gap-1 items-center">
+    <input 
+      class="radio"
+      type="radio"
+      name="build_method"
+      value="Regular"
+      checked
+    />
+    Normal
+  </label>
+  {% if cardinal %}
+  <label class="flex flex-row gap-1 items-center">
+    <input 
+      class="radio"
+      type="radio"
+      name="build_method"
+      value="Cardinal"
+    />
+    Cardinal
+  </label>
+  {% endif %}
+  {% if framework %}
+  <label class="flex flex-row gap-1 items-center">
+    <input 
+      class="radio"
+      type="radio"
+      name="build_method"
+      value="Framework"
+    />
+    Framework
+  </label>
+  {% endif %}
+  {% if necropolis %}
+  <label class="flex flex-row gap-1 items-center">
+    <input 
+      class="radio"
+      type="radio"
+      name="build_method"
+      value="Necropolis"
+    />
+
+    Necropolis
+  </label>
+  {% endif %}
+  {% if thieves_den %}
+  <label class="flex flex-row gap-1 items-center">
+    <input 
+      class="radio"
+      type="radio"
+      name="build_method"
+      value="ThievesDen"
+    />
+    ThievesDen
+  </label>
+  {% endif %}
+</div>
+
 <div class="flex flex-row flex-wrap gap-2">
   <button 
     class="btn btn-primary"
@@ -20,50 +79,10 @@ Select a district from your hand to build
     hx-swap="morph:innerHTML"
     name="action"
     value="Build"
-    hx-vals='{"discard": "Temple","player": "Firefox", "sacrifice": "Watchtower"}'
+    hx-vals='{"discard": "Temple","player": "Firefox", "sacrifice": "Watchtower,Firefox,false"}'
   >
     Build 
   </button>
-
-  <label>
-    Cardinal
-    <input 
-      class="checkbox"
-      type="checkbox"
-      name="alt_cost"
-      value="Cardinal"
-    />
-  </label>
-  <label>
-    Framework
-    <input 
-      class="checkbox"
-      type="checkbox"
-      name="alt_cost"
-      value="Framework"
-    />
-  </label>
-  <label>
-    Necropolis
-    <input 
-      class="checkbox"
-      type="checkbox"
-      name="alt_cost"
-      value="Necropolis"
-    />
-  </label>
-  <label>
-    ThievesDen
-    <input 
-      class="checkbox"
-      type="checkbox"
-      name="alt_cost"
-      value="ThievesDen"
-    />
-  </label>
-
-
-
 
   {% include "button/cancel.html" %}
 </div>

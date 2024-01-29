@@ -1,5 +1,4 @@
 ## Shortlist
-- [ ] Laboratory is missing a menu
 - [ ] x marker for face up discard from draft
 - Fixup janky UI
     - [ ] Warlord Menu:
@@ -53,7 +52,7 @@
 - [ ] Backup games and Restore from sqlite
 
 ## Four+ player support
-- [ ] Need to show faceup discard.
+- [ ] Need to show faceup discard. Use X marker on sidebar
 
 ## Playtest 1 feedback
 - [x] Notification bell for start of turn.

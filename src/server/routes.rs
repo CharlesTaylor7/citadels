@@ -366,7 +366,7 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
             ActionTag::Build => {
-                let rendered = BuildMenu {}.to_html()?;
+                let rendered = BuildMenu::from_game(game).to_html()?;
                 Ok(rendered.into_response())
             }
 

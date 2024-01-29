@@ -1,5 +1,5 @@
 use crate::actions::{
-    Action, ActionTag, AltBuildCost, CityDistrictTarget, MagicianAction, Resource,
+    Action, ActionTag, BuildMethod, CityDistrictTarget, MagicianAction, Resource,
 };
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
@@ -637,7 +637,7 @@ impl Game {
                     });
                 }
                 p.city.push(CityDistrict {
-                    name: DistrictName::Laboratory,
+                    name: DistrictName::Framework,
                     beautified: false,
                 });
             }
@@ -1244,13 +1244,20 @@ impl Game {
                 }
             }
 
-            Action::Build { district, alt_cost } => {
+            Action::Build(method) => {
                 if self.active_role().unwrap().role == RoleName::Navigator {
                     Err("The navigator is not allowed to build.")?;
                 }
+                let district = match method {
+                    BuildMethod::Regular { district } => *district,
+                    BuildMethod::Cardinal { district, .. } => *district,
+                    BuildMethod::Framework { district } => *district,
+                    BuildMethod::ThievesDen { .. } => DistrictName::ThievesDen,
+                    BuildMethod::Necropolis { .. } => DistrictName::Necropolis,
+                };
 
                 let active = self.active_player()?;
-                if active.hand.iter().all(|d| d != district) {
+                if active.hand.iter().all(|d| *d != district) {
                     Err("card not in hand")?;
                 }
 
@@ -1262,7 +1269,7 @@ impl Game {
                     Err("Must gather resources before building")?;
                 }
 
-                let is_free_build = *district == DistrictName::Stables
+                let is_free_build = district == DistrictName::Stables
                     || (district.data().suit == CardSuit::Trade
                         && self.active_role().unwrap().role == RoleName::Trader);
 
@@ -1275,12 +1282,12 @@ impl Game {
 
                 if !(active.city_has(DistrictName::Quarry)
                     || self.active_role().unwrap().role == RoleName::Wizard)
-                    && active.city.iter().any(|d| d.name == *district)
+                    && active.city.iter().any(|d| d.name == district)
                 {
                     return Err("cannot build duplicate".into());
                 }
 
-                if *district == DistrictName::Monument && active.city.len() >= 5 {
+                if district == DistrictName::Monument && active.city.len() >= 5 {
                     return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
                 }
 
@@ -1293,8 +1300,15 @@ impl Game {
                     cost -= 1;
                 }
 
-                match alt_cost {
-                    Some(AltBuildCost::Cardinal { discard, player }) => {
+                match method {
+                    BuildMethod::Regular { .. } => {
+                        if cost > active.gold {
+                            Err("Not enough gold")?;
+                        }
+                    }
+                    BuildMethod::Cardinal {
+                        discard, player, ..
+                    } => {
                         if active.gold + discard.len() < cost {
                             Err("Not enough gold or discarded")?;
                         }
@@ -1342,7 +1356,7 @@ impl Game {
                         target.hand.append(&mut discard);
                     }
 
-                    Some(AltBuildCost::ThievesDen { discard }) => {
+                    BuildMethod::ThievesDen { discard } => {
                         if district.name != DistrictName::ThievesDen {
                             Err("You are not building the ThievesDen!")?;
                         }
@@ -1374,8 +1388,7 @@ impl Game {
                         self.active_player_mut().unwrap().hand = new_hand;
                     }
 
-                    Some(AltBuildCost::Framework) => {
-                        cost = 0;
+                    BuildMethod::Framework { .. } => {
                         let city_index = active
                             .city
                             .iter()
@@ -1389,13 +1402,14 @@ impl Game {
                             })
                             .ok_or("Cannot sacrifice a district you don't own!")?;
 
+                        cost = 0;
                         self.active_player_mut()
                             .unwrap()
                             .city
                             .swap_remove(city_index);
                     }
 
-                    Some(AltBuildCost::Necropolis { sacrifice: target }) => {
+                    BuildMethod::Necropolis { sacrifice: target } => {
                         if district.name != DistrictName::Necropolis {
                             Err("You are not building the necropolis!")?;
                         }
@@ -1420,13 +1434,9 @@ impl Game {
 
                         cost = 0;
                     }
-                    None => {}
                 }
 
                 let active = self.active_player()?;
-                if cost > active.gold {
-                    return Err("not enough gold".into());
-                }
                 let player = self.active_player_mut()?;
                 Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
                 player.gold -= cost;

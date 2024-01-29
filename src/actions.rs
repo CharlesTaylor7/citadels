@@ -24,11 +24,7 @@ pub enum Action {
     GatherCardsPick {
         district: DistrictName,
     },
-    Build {
-        district: DistrictName,
-        #[serde(flatten, default)]
-        alt_cost: Option<AltBuildCost>,
-    },
+    Build(BuildMethod),
     EndTurn,
     GoldFromNobility,
     GoldFromReligion,
@@ -134,9 +130,14 @@ pub enum Action {
 
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag = "alt_cost")]
-pub enum AltBuildCost {
-    Framework,
+#[serde(tag = "build_method")]
+pub enum BuildMethod {
+    Regular {
+        district: DistrictName,
+    },
+    Framework {
+        district: DistrictName,
+    },
     Necropolis {
         sacrifice: CityDistrictTarget,
     },
@@ -145,6 +146,7 @@ pub enum AltBuildCost {
         discard: Vec<DistrictName>,
     },
     Cardinal {
+        district: DistrictName,
         #[serde_as(as = "serde_with::OneOrMany<_>")]
         discard: Vec<DistrictName>,
         player: PlayerName,
