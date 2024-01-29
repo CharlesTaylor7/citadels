@@ -2054,12 +2054,12 @@ impl Game {
             Action::Smithy => {
                 let active = self.active_player_mut()?;
                 if active.gold < 2 {
-                    return Err("not enough gold".into());
+                    Err("Not enough gold")?;
                 }
                 active.gold -= 2;
                 self.gain_cards(3);
                 ActionOutput {
-                    log: "At the Smithy, they forged 2 gold into 3 cards".into(),
+                    log: "At the Smithy, they forge 2 gold into 3 cards.".into(),
                     followup: None,
                 }
             }
@@ -2077,7 +2077,7 @@ impl Game {
                 self.deck.discard_to_bottom(card);
 
                 ActionOutput {
-                    log: "At the Laboratory, they transmuted 1 card into 2 gold".into(),
+                    log: "At the Laboratory, they transmute 1 card into 2 gold.".into(),
                     followup: None,
                 }
             }
