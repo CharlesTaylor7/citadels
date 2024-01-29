@@ -128,15 +128,11 @@ impl DistrictName {
     }
 
     pub fn enabled(self) -> bool {
-        // 3 to go!
         match self {
-            Self::Framework => false,
-            Self::Necropolis => false,
-            Self::ThievesDen => false,
-
             _ => true,
         }
     }
+
     pub fn multiplicity(self) -> usize {
         match self {
             Self::Palace => 3,

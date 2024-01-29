@@ -1244,7 +1244,12 @@ impl Game {
 
             Action::Build { district, alt_cost } => {
                 if self.active_role().unwrap().role == RoleName::Navigator {
-                    return Err("The navigator is not allowed to build.".into());
+                    Err("The navigator is not allowed to build.")?;
+                }
+
+                let active = self.active_player()?;
+                if active.hand.iter().all(|d| d != district) {
+                    Err("card not in hand")?;
                 }
 
                 if self
@@ -1252,7 +1257,7 @@ impl Game {
                     .iter()
                     .all(|a| !a.tag().is_resource_gathering())
                 {
-                    return Err("Must gather resources before building".into());
+                    Err("Must gather resources before building")?;
                 }
 
                 let is_free_build = *district == DistrictName::Stables
@@ -1260,14 +1265,11 @@ impl Game {
                         && self.active_role().unwrap().role == RoleName::Trader);
 
                 if !is_free_build && self.remaining_builds == 0 {
-                    return Err(format!(
+                    Err(format!(
                         "With your role, you cannot build more than {} time(s), this turn.",
                         self.active_role().unwrap().role.build_limit()
-                    )
-                    .into());
+                    ))?;
                 }
-
-                let active = self.active_player()?;
 
                 if !(active.city_has(DistrictName::Quarry)
                     || self.active_role().unwrap().role == RoleName::Wizard)
@@ -1292,7 +1294,7 @@ impl Game {
                 match alt_cost {
                     Some(AltBuildCost::Cardinal { discard, player }) => {
                         if active.gold + discard.len() < cost {
-                            Err("Not enough gold")?;
+                            Err("Not enough gold or discarded")?;
                         }
 
                         if active.gold + discard.len() > cost {
@@ -1330,29 +1332,87 @@ impl Game {
                         if discard.len() > 0 {
                             Err("Can't discard cards not in your hand")?;
                         }
-                        self.active_player_mut().unwrap().hand = new_hand;
 
                         cost -= discard.len();
+                        self.active_player_mut().unwrap().hand = new_hand;
+                        let target = self.players[target.0].borrow_mut();
+                        target.gold -= discard.len();
+                        target.hand.append(&mut discard);
                     }
 
                     Some(AltBuildCost::ThievesDen { discard }) => {
                         if discard.len() > cost {
-                            return Err("Cannot discard more cards than the cost".into());
+                            Err("Cannot discard more cards than the cost")?;
                         }
-                        // TODO: discard cards
+
+                        if active.gold + discard.len() < cost {
+                            Err("Not enough gold or cards discarded")?;
+                        }
+
+                        let mut discard = discard.clone();
+                        let mut new_hand = Vec::with_capacity(active.hand.len());
+                        for card in active.hand.iter() {
+                            if let Some((i, _)) =
+                                discard.iter().enumerate().find(|(_, d)| *d == card)
+                            {
+                                discard.swap_remove(i);
+                            } else {
+                                new_hand.push(*card);
+                            }
+                        }
+
+                        if discard.len() > 0 {
+                            Err("Can't discard cards not in your hand")?;
+                        }
+
                         cost -= discard.len();
+                        self.active_player_mut().unwrap().hand = new_hand;
                     }
 
                     Some(AltBuildCost::Framework) => {
-                        // TODO: sacrifice framework
                         cost = 0;
+                        let city_index = active
+                            .city
+                            .iter()
+                            .enumerate()
+                            .find_map(|(i, c)| {
+                                if c.name == DistrictName::Framework {
+                                    Some(i)
+                                } else {
+                                    None
+                                }
+                            })
+                            .ok_or("Cannot sacrifice a district you don't own!")?;
+
+                        self.active_player_mut()
+                            .unwrap()
+                            .city
+                            .swap_remove(city_index);
                     }
 
-                    Some(AltBuildCost::Necropolis { district }) => {
-                        // TODO: sacrifice district
+                    Some(AltBuildCost::Necropolis { district: target }) => {
+                        let city_index = active
+                            .city
+                            .iter()
+                            .enumerate()
+                            .find_map(|(i, c)| {
+                                if c.name == target.district && c.beautified == target.beautified {
+                                    Some(i)
+                                } else {
+                                    None
+                                }
+                            })
+                            .ok_or("Cannot sacrifice a district you don't own!")?;
+                        let district = self
+                            .active_player_mut()
+                            .unwrap()
+                            .city
+                            .swap_remove(city_index);
+                        self.discard_district(district.name);
+
                         cost = 0;
                     }
-                    _ => todo!(),
+                    None => {}
                 }
 
                 let active = self.active_player()?;

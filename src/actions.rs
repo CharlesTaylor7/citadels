@@ -142,7 +142,7 @@ pub enum AltBuildCost {
     },
     Framework,
     Necropolis {
-        district: DistrictName,
+        district: CityDistrictTarget,
     },
     ThievesDen {
         discard: Vec<DistrictName>,
