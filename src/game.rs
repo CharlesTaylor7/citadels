@@ -1341,6 +1341,9 @@ impl Game {
                     }
 
                     Some(AltBuildCost::ThievesDen { discard }) => {
+                        if district.name != DistrictName::ThievesDen {
+                            Err("You are not building the ThievesDen!")?;
+                        }
                         if discard.len() > cost {
                             Err("Cannot discard more cards than the cost")?;
                         }
@@ -1390,7 +1393,10 @@ impl Game {
                             .swap_remove(city_index);
                     }
 
-                    Some(AltBuildCost::Necropolis { district: target }) => {
+                    Some(AltBuildCost::Necropolis { sacrifice: target }) => {
+                        if district.name != DistrictName::Necropolis {
+                            Err("You are not building the necropolis!")?;
+                        }
                         let city_index = active
                             .city
                             .iter()

@@ -8,6 +8,7 @@
     - Framework
     - Thieves' Den
     - Necropolis
+    - Laboratory
 
 ## 0.6.0
 - Notification bell

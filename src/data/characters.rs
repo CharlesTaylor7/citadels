@@ -144,7 +144,7 @@ pub const ROLES: [RoleData; 27] =
     , set: Citadels2016
     , suit: Some(Religious)
     , actions: &[ (1, CardsFromReligion)]
-    , description: "If you are short of gold to build a district, exchange your cards for another player's gold ( 1 card : 1 gold). Gain 1 card for each of your RELIGIOUS districts."
+    , description: "If you are short of gold to build a district, exchange cards for another player's gold at a rate of 1 card to 1 gold. Gain 1 card for each of your RELIGIOUS districts."
     , reminder: ""
     }
   , RoleData 

@@ -136,16 +136,18 @@ pub enum Action {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "alt_cost")]
 pub enum AltBuildCost {
-    Cardinal {
-        discard: Vec<DistrictName>,
-        player: PlayerName,
-    },
     Framework,
     Necropolis {
-        district: CityDistrictTarget,
+        sacrifice: CityDistrictTarget,
     },
     ThievesDen {
+        #[serde_as(as = "serde_with::OneOrMany<_>")]
         discard: Vec<DistrictName>,
+    },
+    Cardinal {
+        #[serde_as(as = "serde_with::OneOrMany<_>")]
+        discard: Vec<DistrictName>,
+        player: PlayerName,
     },
 }
 

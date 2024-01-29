@@ -1,12 +1,9 @@
 ## Shortlist
-- Max height for hand panel, with horizontal scroll
-- x marker for face up discard from draft
+- [ ] Laboratory is missing a menu
+- [ ] x marker for face up discard from draft
 - Fixup janky UI
-    - [ ] Abbot collect resources: 
-        - the textbox could have a background that blends with the theme. On firefox the input should be an inline-block
-
     - [ ] Warlord Menu:
-        - Destroy cost should be disaplyed prominently 
+        - Destroy cost should be displayed prominently 
 
     - [ ] Build Menu:
         - Reminder that you have a warrant; emoji + text
@@ -22,9 +19,8 @@
         - [ ] Necropolis
     - [ ] Bewitch
 
-- Daisy UI ify everything 
-    - [ ] Card for misc
 
+## Longer list
 - Notifications
     - Seer: card is taken. 
     - Seer: card is given.
@@ -35,6 +31,8 @@
     - Diplomat
     - Theater 
     - Wizard 
+
+- Max height for hand panel, with horizontal scroll
 
 ## Ideas
 - [ ] Persist game config to sqlite db
