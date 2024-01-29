@@ -627,10 +627,12 @@ impl Game {
                 .iter_mut()
                 .filter(|p| !p.has_role(RoleName::Marshal))
             {
-                p.city.push(CityDistrict {
-                    name: DistrictName::GreatWall,
-                    beautified: false,
-                });
+                p.hand = vec![
+                    DistrictName::ThievesDen,
+                    DistrictName::Framework,
+                    DistrictName::Necropolis,
+                ];
+                p.gold = 10;
 
                 for card in game.deck.draw_many(3) {
                     p.city.push(CityDistrict {
@@ -640,7 +642,7 @@ impl Game {
                 }
             }
 
-            // skip to end
+            game.turn_actions = vec![Action::GatherResourceGold];
             game.active_turn = Turn::Call(test_role.rank());
             game.start_turn().unwrap();
             Ok(game)
