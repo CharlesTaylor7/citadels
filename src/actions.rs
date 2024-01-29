@@ -26,14 +26,8 @@ pub enum Action {
     },
     Build {
         district: DistrictName,
-        // to sacrifice
-        #[serde(default)]
-        framework: bool,
-        // to sacrifice
-        necropolis: Option<DistrictName>,
-        // to discard
-        #[serde(default)]
-        thieves_den: Vec<DistrictName>,
+        #[serde(flatten, default)]
+        alt_cost: Option<AltBuildCost>,
     },
     EndTurn,
     GoldFromNobility,
@@ -136,6 +130,33 @@ pub enum Action {
         player: PlayerName,
     },
     TheaterPass,
+}
+
+#[serde_as]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "alt_cost")]
+pub enum AltBuildCost {
+    Cardinal {
+        #[serde(default)]
+        discard: Vec<DistrictName>,
+        player: PlayerName,
+    },
+    /*
+            #[serde(default)]
+            cardinal_districts: Vec<DistrictName>,
+
+            #[serde(default)]
+            cardinal_player: Option<PlayerName>,
+
+            // to sacrifice
+            #[serde(default)]
+            framework: bool,
+            // to sacrifice
+            necropolis: Option<DistrictName>,
+            // to discard
+            #[serde(default)]
+            thieves_den: Vec<DistrictName>,
+    */
 }
 
 #[derive(Debug, Clone)]

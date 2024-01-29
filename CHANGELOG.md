@@ -2,6 +2,7 @@
 - Roles:
     - Marshal
     - Diplomat
+    - Cardinal - WIP
 
 ## 0.6.0
 - Notification bell

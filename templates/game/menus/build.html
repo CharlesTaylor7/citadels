@@ -20,9 +20,16 @@ Select a district from your hand to build
     hx-swap="morph:innerHTML"
     name="action"
     value="Build"
+    hx-vals='{"discard": ["Temple"],"player": "Alph"}'
   >
     Build 
   </button>
+  <input 
+    class="checkbox"
+    type="checkbox"
+    name="alt_cost"
+    value="Cardinal"
+  />
   {% include "button/cancel.html" %}
 </div>
 <div id="error"></div>
