@@ -96,7 +96,8 @@ pub enum Action {
     },
     CollectTaxes,
     DiplomatTrade {
-        district: [CityDistrictTarget; 2],
+        mine: CityDistrictTarget,
+        theirs: CityDistrictTarget,
     },
     Spy {
         player: PlayerName,

@@ -2158,21 +2158,10 @@ impl Game {
                     followup: None,
                 }
             }
-            // TODO: cannot duplicate district in your city or target
-            Action::DiplomatTrade { district } => {
-                let my_name = self.active_player().unwrap().name.borrow();
-                let [district_a, district_b] = district;
-                let (my_target, their_target) = {
-                    //
-                    if district_a.player == *my_name && district_b.player != *my_name {
-                        (district_a, district_b)
-                    } else if district_b.player == *my_name && district_a.player != *my_name {
-                        (district_b, district_a)
-                    } else {
-                        Err("One of the districts should be your own, and the other should be someone else's")?
-                    }
-                };
-
+            Action::DiplomatTrade {
+                mine: my_target,
+                theirs: their_target,
+            } => {
                 if their_target.district == DistrictName::Keep {
                     return Err("Cannot target the Keep".into());
                 }
@@ -2204,6 +2193,18 @@ impl Game {
                 }
                 if trade_cost > self.active_player().unwrap().gold {
                     Err("Not enough gold")?
+                }
+
+                if player.city_has(my_target.district) {
+                    Err("The targeted player already has a copy of that district")?
+                }
+
+                if self
+                    .active_player()
+                    .unwrap()
+                    .city_has(their_target.district)
+                {
+                    Err("You already have a copy of that district")?
                 }
 
                 let my_city_index = self
