@@ -249,12 +249,17 @@ impl ActionTag {
                 format!("Gain {} cards from {}", count, suit).into()
             }
 
+            ActionTag::CardsFromReligion => {
+                let suit = CardSuit::Religious;
+                let count = player.count_suit_for_resource_gain(suit);
+                format!("Gain {} cards from {}", count, suit).into()
+            }
+
             ActionTag::ResourcesFromReligion => {
                 let suit = CardSuit::Religious;
                 let count = player.count_suit_for_resource_gain(suit);
                 format!("Gain {} resources from {}", count, suit).into()
             }
-
             ActionTag::DraftPick => "Pick".into(),
             ActionTag::DraftDiscard => "Discard".into(),
             ActionTag::Build => "Build".into(),
@@ -286,11 +291,17 @@ impl ActionTag {
             ActionTag::SeerTake => "Seer".into(),
             ActionTag::WizardPeek => "Wizard".into(),
             ActionTag::MarshalSeize => "Seize".into(),
-            ActionTag::DiplomatTrade => "Diplomacy".into(),
-            _ => {
-                log::debug!("Warning: default case for {:#?}", self);
-                format!("{:#?}", self).into()
-            }
+            ActionTag::DiplomatTrade => "Trade".into(),
+            ActionTag::CollectTaxes => "Collect Taxes".into(),
+            ActionTag::Bewitch => "Bewitch".into(),
+            ActionTag::EmperorGiveCrown => "Grant Crown".into(),
+            ActionTag::Blackmail => "Blackmail".into(),
+            ActionTag::Spy => "Spy".into(),
+            ActionTag::GatherCardsPick => "Pick".into(),
+            ActionTag::TheaterPass => "Pass".into(),
+            ActionTag::SpyAcknowledge => "Acknowledge".into(),
+            ActionTag::SeerDistribute => "Distribute".into(),
+            ActionTag::WizardPick => "Pick".into(),
         }
     }
 }

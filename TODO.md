@@ -98,6 +98,9 @@
 - [x] "Pause" menu button
 
 ## Tech Debt
+### Unwraps
+Just eliminate all sources of unwrap. It's not the worth the risks that panics pose to the app.
+
 ### Deserialization
 Json encoding with htmx still doesn't handle arrays well. I am using a kludge of the Select<> type to handle this
 
