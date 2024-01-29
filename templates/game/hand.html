@@ -10,7 +10,7 @@
       {% set input_type = "checkbox" %}
       {% set enabled = false %}
       {% set draggable = true %}
-      {% for (index, district) in my.hand.iter().enumerate() %} 
+      {% for district in my.hand %} 
         {% include "district/square-cropped.html" %} 
       {% endfor %}
   </div>

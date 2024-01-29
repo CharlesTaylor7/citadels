@@ -95,6 +95,16 @@
 - [x] "Pause" menu button
 
 ## Tech Debt
+
+### Anyhow
+Use anyhow instead of coercing all errors to a string type.
+
+### ActionTag
+Incomplete action submission conflates two scenarios:
+(1) the intent to open the relevant menu
+(2) the intent to submit a menu, but you are missing data in the form.
+
+
 ### Unwraps
 Just eliminate all sources of unwrap. It's not the worth the risks that panics pose to the app.
 

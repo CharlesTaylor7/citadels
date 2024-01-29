@@ -628,7 +628,7 @@ impl Game {
                     DistrictName::Framework,
                     DistrictName::Necropolis,
                 ];
-                p.gold = 10;
+                p.gold = 3;
 
                 for card in game.deck.draw_many(3) {
                     p.city.push(CityDistrict {
@@ -1333,7 +1333,9 @@ impl Game {
                             Err("Cannot give more cards than the target has gold")?;
                         }
 
+                        let cost_reduction = discard.len();
                         let mut discard = discard.clone();
+                        let mut copy = discard.clone();
                         let mut new_hand = Vec::with_capacity(active.hand.len());
                         for card in active.hand.iter() {
                             if let Some((i, _)) =
@@ -1349,11 +1351,11 @@ impl Game {
                             Err("Can't discard cards not in your hand")?;
                         }
 
-                        cost -= discard.len();
+                        cost -= cost_reduction;
                         self.active_player_mut().unwrap().hand = new_hand;
                         let target = self.players[target.0].borrow_mut();
                         target.gold -= discard.len();
-                        target.hand.append(&mut discard);
+                        target.hand.append(&mut copy);
                     }
 
                     BuildMethod::ThievesDen { discard } => {
@@ -1368,6 +1370,7 @@ impl Game {
                             Err("Not enough gold or cards discarded")?;
                         }
 
+                        let cost_reduction = discard.len();
                         let mut discard = discard.clone();
                         let mut new_hand = Vec::with_capacity(active.hand.len());
                         for card in active.hand.iter() {
@@ -1384,7 +1387,7 @@ impl Game {
                             Err("Can't discard cards not in your hand")?;
                         }
 
-                        cost -= discard.len();
+                        cost -= cost_reduction;
                         self.active_player_mut().unwrap().hand = new_hand;
                     }
 
@@ -1436,10 +1439,12 @@ impl Game {
                     }
                 }
 
-                let active = self.active_player()?;
-                let player = self.active_player_mut()?;
-                Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
-                player.gold -= cost;
+                let active = self.active_player_mut()?;
+                if cost > active.gold {
+                    Err("not enough gold")?;
+                }
+                Game::remove_first(&mut active.hand, district.name).ok_or("card not in hand")?;
+                active.gold -= cost;
                 if !is_free_build {
                     self.remaining_builds -= 1;
                 }

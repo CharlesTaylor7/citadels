@@ -456,6 +456,23 @@ async fn get_game_menu(
     }
 
     match path.0.borrow() {
+        "cardinal" => {
+            let rendered = CardinalMenu {
+                players: game
+                    .players
+                    .iter()
+                    .filter(|p| active_player.id != p.id)
+                    .map(|p| p.name.borrow())
+                    .collect(),
+                hand: active_player
+                    .hand
+                    .iter()
+                    .map(|d| DistrictTemplate::from(*d))
+                    .collect(),
+            }
+            .to_html()?;
+            Ok(rendered.into_response())
+        }
         "magic-swap-deck" => {
             let rendered = MagicSwapDeckMenu {}.to_html()?;
             Ok(rendered.into_response())
@@ -472,6 +489,6 @@ async fn get_game_menu(
             .to_html()?;
             Ok(rendered.into_response())
         }
-        _ => todo!(),
+        _ => Ok(StatusCode::NOT_FOUND.into_response()),
     }
 }

@@ -11,7 +11,7 @@
 >
   Build
 </h2>
-<div class="italic text-sm">Select a district from your hand and a method to build</div>
+<div class="italic text-sm">Select a district from your hand</div>
 <div class="flex flex-row gap-2">
   Method: 
   <label class="flex flex-row gap-1 items-center">
@@ -31,6 +31,9 @@
       type="radio"
       name="build_method"
       value="Cardinal"
+      hx-get="/game/menu/cardinal"
+      hx-target="#submenu"
+      hx-swap="innerHTML"
     />
     Cardinal
   </label>
@@ -70,7 +73,7 @@
   </label>
   {% endif %}
 </div>
-
+<div id="submenu"></div>
 <div class="flex flex-row flex-wrap gap-2">
   <button 
     class="btn btn-primary"
@@ -79,7 +82,6 @@
     hx-swap="morph:innerHTML"
     name="action"
     value="Build"
-    hx-vals='{"discard": "Temple","player": "Firefox", "sacrifice": "Watchtower,Firefox,false"}'
   >
     Build 
   </button>

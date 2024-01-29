@@ -4,11 +4,11 @@
     - Diplomat
     - Cardinal - WIP
 
-- Districts - WIP:
-    - Framework
-    - Thieves' Den
-    - Necropolis
+- Districts:
     - Laboratory
+    - Framework
+    - Thieves' Den - WIP
+    - Necropolis - WIP
 
 ## 0.6.0
 - Notification bell

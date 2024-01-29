@@ -2,7 +2,7 @@ use crate::actions::ActionTag;
 use crate::districts::DistrictName;
 use crate::game::{self, Game, Player};
 use crate::roles::RoleName;
-use crate::templates::{filters, RoleTemplate};
+use crate::templates::{filters, DistrictTemplate, RoleTemplate};
 use crate::types::CardSuit;
 use crate::types::Marker;
 use askama::Template;
@@ -255,4 +255,11 @@ impl<'a> DiplomatMenu<'a> {
                 .collect::<Vec<_>>(),
         }
     }
+}
+
+#[derive(Template)]
+#[template(path = "game/menus/cardinal.html")]
+pub struct CardinalMenu<'a> {
+    pub players: Vec<&'a str>,
+    pub hand: Vec<DistrictTemplate<'a>>,
 }
