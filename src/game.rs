@@ -1,4 +1,6 @@
-use crate::actions::{Action, ActionTag, CityDistrictTarget, MagicianAction, Resource};
+use crate::actions::{
+    Action, ActionTag, AltBuildCost, CityDistrictTarget, MagicianAction, Resource,
+};
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
 use crate::museum::Museum;
@@ -1240,7 +1242,7 @@ impl Game {
                 }
             }
 
-            Action::Build { district, .. } => {
+            Action::Build { district, alt_cost } => {
                 if self.active_role().unwrap().role == RoleName::Navigator {
                     return Err("The navigator is not allowed to build.".into());
                 }
@@ -1264,33 +1266,99 @@ impl Game {
                     )
                     .into());
                 }
-                // build
 
-                let player = self.active_player()?;
-                let district = district.data();
+                let active = self.active_player()?;
 
-                let mut cost = district.cost;
-                if district.suit == CardSuit::Unique
-                    && player.city.iter().any(|d| d.name == DistrictName::Factory)
-                {
-                    cost -= 1;
-                }
-
-                if cost > player.gold {
-                    return Err("not enough gold".into());
-                }
-
-                if !(player.city_has(DistrictName::Quarry)
+                if !(active.city_has(DistrictName::Quarry)
                     || self.active_role().unwrap().role == RoleName::Wizard)
-                    && player.city.iter().any(|d| d.name == district.name)
+                    && active.city.iter().any(|d| d.name == *district)
                 {
                     return Err("cannot build duplicate".into());
                 }
 
-                if district.name == DistrictName::Monument && player.city.len() >= 5 {
+                if *district == DistrictName::Monument && active.city.len() >= 5 {
                     return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
                 }
 
+                let district = district.data();
+
+                let mut cost = district.cost;
+                if district.suit == CardSuit::Unique
+                    && active.city.iter().any(|d| d.name == DistrictName::Factory)
+                {
+                    cost -= 1;
+                }
+
+                match alt_cost {
+                    Some(AltBuildCost::Cardinal { discard, player }) => {
+                        if active.gold + discard.len() < cost {
+                            Err("Not enough gold")?;
+                        }
+
+                        if active.gold + discard.len() > cost {
+                            Err("Must spend own gold first, before taking from others")?;
+                        }
+
+                        let target = self
+                            .players
+                            .iter()
+                            .find_map(|p| {
+                                if p.name == *player {
+                                    Some(p.index)
+                                } else {
+                                    None
+                                }
+                            })
+                            .ok_or("Player does not exist")?;
+
+                        if self.players[target.0].gold < discard.len() {
+                            Err("Cannot give more cards than the target has gold")?;
+                        }
+
+                        let mut discard = discard.clone();
+                        let mut new_hand = Vec::with_capacity(active.hand.len());
+                        for card in active.hand.iter() {
+                            if let Some((i, _)) =
+                                discard.iter().enumerate().find(|(_, d)| *d == card)
+                            {
+                                discard.swap_remove(i);
+                            } else {
+                                new_hand.push(*card);
+                            }
+                        }
+
+                        if discard.len() > 0 {
+                            Err("Can't discard cards not in your hand")?;
+                        }
+                        self.active_player_mut().unwrap().hand = new_hand;
+
+                        cost -= discard.len();
+                    }
+
+                    Some(AltBuildCost::ThievesDen { discard }) => {
+                        if discard.len() > cost {
+                            return Err("Cannot discard more cards than the cost".into());
+                        }
+                        // TODO: discard cards
+                        cost -= discard.len();
+                    }
+
+                    Some(AltBuildCost::Framework) => {
+                        // TODO: sacrifice framework
+                        cost = 0;
+                    }
+
+                    Some(AltBuildCost::Necropolis { district }) => {
+                        // TODO: sacrifice district
+                        cost = 0;
+                    }
+                    _ => todo!(),
+                }
+
+                let active = self.active_player()?;
+                if cost > active.gold {
+                    return Err("not enough gold".into());
+                }
                 let player = self.active_player_mut()?;
                 Game::remove_first(&mut player.hand, district.name).ok_or("card not in hand")?;
                 player.gold -= cost;
@@ -1430,15 +1498,21 @@ impl Game {
 
             Action::Magic(MagicianAction::TargetDeck { district }) => {
                 let active = self.active_player_mut()?;
-                let discard = district;
-                let backup = active.hand.clone();
+                let mut discard = district.clone();
+                let mut new_hand = Vec::with_capacity(active.hand.len());
 
-                for card in discard.iter() {
-                    if Game::remove_first(&mut active.hand, *card).is_none() {
-                        active.hand = backup;
-                        return Err("Can't discard a card that's not in your hand".into());
+                for card in active.hand.iter() {
+                    if let Some((i, _)) = discard.iter().enumerate().find(|(_, d)| *d == card) {
+                        discard.swap_remove(i);
+                    } else {
+                        new_hand.push(*card);
                     }
                 }
+
+                if discard.len() > 0 {
+                    Err("Can't discard cards not in your hand")?;
+                }
+                active.hand = new_hand;
 
                 for card in discard.iter() {
                     self.deck.discard_to_bottom(*card);
