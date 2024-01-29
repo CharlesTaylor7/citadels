@@ -40,6 +40,10 @@ pub struct MagicSwapPlayerMenu<'a> {
 pub struct MagicSwapDeckMenu {}
 
 #[derive(Template)]
+#[template(path = "game/menus/laboratory.html")]
+pub struct LaboratoryMenu {}
+
+#[derive(Template)]
 #[template(path = "game/menus/beautify.html")]
 pub struct BeautifyMenu;
 

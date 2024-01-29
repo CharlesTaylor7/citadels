@@ -622,11 +622,7 @@ impl Game {
                 game.players[index].roles.push(*role);
                 game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
             }
-            for p in game
-                .players
-                .iter_mut()
-                .filter(|p| !p.has_role(RoleName::Marshal))
-            {
+            for p in game.players.iter_mut() {
                 p.hand = vec![
                     DistrictName::ThievesDen,
                     DistrictName::Framework,
@@ -640,6 +636,10 @@ impl Game {
                         beautified: false,
                     });
                 }
+                p.city.push(CityDistrict {
+                    name: DistrictName::Laboratory,
+                    beautified: false,
+                });
             }
 
             game.turn_actions = vec![Action::GatherResourceGold];
