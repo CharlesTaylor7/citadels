@@ -1,3 +1,7 @@
+## 0.7.0
+- Roles:
+    - Marshal
+
 ## 0.6.0
 - Notification bell
 

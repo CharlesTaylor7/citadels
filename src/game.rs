@@ -65,6 +65,10 @@ impl Player {
         self.city.iter().any(|c| c.name == name)
     }
 
+    pub fn has_role(&self, name: RoleName) -> bool {
+        self.roles.iter().any(|c| *c == name)
+    }
+
     pub fn new(index: PlayerIndex, id: String, name: PlayerName) -> Self {
         Player {
             index,
@@ -601,8 +605,9 @@ impl Game {
             game.begin_draft();
             Ok(game)
         } else {
+            let test_role = RoleName::Marshal;
             // deal roles out randomly
-            game.characters.get_mut(Rank::Five).role = RoleName::Abbot;
+            game.characters.get_mut(test_role.rank()).role = test_role;
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
@@ -615,9 +620,33 @@ impl Game {
                 game.players[index].roles.push(*role);
                 game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
             }
+            for p in game
+                .players
+                .iter_mut()
+                .filter(|p| !p.has_role(RoleName::Marshal))
+            {
+                p.city.push(CityDistrict {
+                    name: DistrictName::Temple,
+                    beautified: true,
+                });
+                p.city.push(CityDistrict {
+                    name: DistrictName::Docks,
+                    beautified: true,
+                });
+
+                p.city.push(CityDistrict {
+                    name: DistrictName::Docks,
+                    beautified: false,
+                });
+
+                p.city.push(CityDistrict {
+                    name: DistrictName::GreatWall,
+                    beautified: false,
+                });
+            }
 
             // skip to end
-            game.active_turn = Turn::Call(Rank::Five);
+            game.active_turn = Turn::Call(test_role.rank());
             game.start_turn().unwrap();
             Ok(game)
         }
@@ -2069,8 +2098,9 @@ impl Game {
                     return Err("not enough gold to seize".into());
                 }
 
-                player.city.remove(city_index);
+                let district = player.city.remove(city_index);
                 self.active_player_mut()?.gold -= seize_cost;
+                self.active_player_mut()?.city.push(district);
                 self.discard_district(target.district);
 
                 ActionOutput {

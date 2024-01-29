@@ -181,3 +181,51 @@ impl<'a> ArmoryMenu<'a> {
         }
     }
 }
+
+#[derive(Template)]
+#[template(path = "game/menus/marshal.html")]
+pub struct MarshalMenu<'a> {
+    pub cities: Vec<CityTemplate<'a>>,
+}
+
+impl<'a> MarshalMenu<'a> {
+    pub fn from_game(game: &'a game::Game) -> Self {
+        Self {
+            cities: game
+                .players
+                .iter()
+                .filter(|p| {
+                    !game.characters.has_revealed_role(p, RoleName::Bishop)
+                        && p.city_size() < game.complete_city_size()
+                        && game.active_player().is_ok_and(|active| active.id != p.id)
+                })
+                .map(|p| CityTemplate::from(game, p.index, None))
+                .collect::<Vec<_>>(),
+        }
+    }
+}
+
+#[derive(Template)]
+#[template(path = "game/menus/marshal.html")]
+pub struct DiplomatMenu<'a> {
+    pub cities: Vec<CityTemplate<'a>>,
+    pub mine: CityTemplate<'a>,
+}
+
+impl<'a> DiplomatMenu<'a> {
+    pub fn from_game(game: &'a game::Game) -> Self {
+        Self {
+            mine: CityTemplate::from(game, game.active_player_index().unwrap(), None),
+            cities: game
+                .players
+                .iter()
+                .filter(|p| {
+                    !game.characters.has_revealed_role(p, RoleName::Bishop)
+                        && p.city_size() < game.complete_city_size()
+                        && game.active_player().is_ok_and(|active| active.id != p.id)
+                })
+                .map(|p| CityTemplate::from(game, p.index, None))
+                .collect::<Vec<_>>(),
+        }
+    }
+}

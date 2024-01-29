@@ -420,6 +420,16 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
 
+            ActionTag::MarshalSeize => {
+                let rendered = MarshalMenu::from_game(game).to_html()?;
+                Ok(rendered.into_response())
+            }
+
+            ActionTag::DiplomatTrade => {
+                let rendered = DiplomatMenu::from_game(game).to_html()?;
+                Ok(rendered.into_response())
+            }
+
             _ => Err(form_feedback("missing selection".into())),
         },
     }

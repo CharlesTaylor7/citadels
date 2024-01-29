@@ -139,8 +139,6 @@ impl RoleName {
             Self::Emperor => false,
             // needs warlordish menu with tweaks
             Self::Diplomat => false,
-            // needs warlordish menu with tweaks
-            Self::Marshal => false,
             // build menu with tweaks, just need to select a card from another player's hand
             Self::Wizard => false,
             // modify the build menu to allow alternative payments
