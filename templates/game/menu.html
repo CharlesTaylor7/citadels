@@ -1,4 +1,11 @@
-<div class="hidden" _="init add @disabled to <#main-panel input/> remove .hidden from #city remove .hidden from #hand-panel"></div>
+<div class="hidden" 
+  _="init 
+    add @disabled to <#main-panel input/> 
+    remove @required from <#main-panel input/> 
+    remove .hidden from #city 
+    remove .hidden from #hand-panel
+  end">
+</div>
 
 {% match menu %} 
 {% when MenuView::GameOver %}

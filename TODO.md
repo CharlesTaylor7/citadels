@@ -1,5 +1,6 @@
 ## Shortlist
-- [ ] x marker for face up discard from draft
+- [ ] Marshal menu should disable & grey districts that cost too much.
+- [ ] Warlord menu should disable & grey districts that cost too much.
 - [ ] Required form fields
 - Fixup janky UI
     - [ ] Warlord Menu:

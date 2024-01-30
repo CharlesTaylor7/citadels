@@ -607,7 +607,7 @@ impl Game {
             game.begin_draft();
             Ok(game)
         } else {
-            let test_role = RoleName::Abbot;
+            let test_role = RoleName::Diplomat;
             // deal roles out randomly
             game.characters.get_mut(test_role.rank()).role = test_role;
             let mut roles: Vec<_> = game.characters.iter().collect();
