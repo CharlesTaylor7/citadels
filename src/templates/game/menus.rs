@@ -267,7 +267,7 @@ pub struct CardinalMenu<'a> {
 #[derive(Template)]
 #[template(path = "game/menus/necropolis.html")]
 pub struct NecropolisMenu<'a> {
-    pub hand: Vec<DistrictTemplate<'a>>,
+    pub city: CityTemplate<'a>,
 }
 
 #[derive(Template)]

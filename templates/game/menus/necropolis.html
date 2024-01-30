@@ -7,11 +7,7 @@
 <div class="flex flex-row flex-wrap gap-2"
   _="init add @name=sacrifice to <input/> in me"
 >
-  {% set input_type = "radio" %}
   {% set enabled = true %}
-  {% set draggable = false %}
-  {% for district in hand %} 
-    {% include "district/square-cropped.html" %} 
-  {% endfor %}
+  {% include "game/city.html" %}
 </div>
 

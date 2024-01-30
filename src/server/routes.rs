@@ -476,11 +476,7 @@ async fn get_game_menu(
 
         "necropolis" => {
             let rendered = NecropolisMenu {
-                hand: active_player
-                    .hand
-                    .iter()
-                    .map(|d| DistrictTemplate::from(*d))
-                    .collect(),
+                city: CityTemplate::from(game, active_player.index, None),
             }
             .to_html()?;
             Ok(rendered.into_response())
