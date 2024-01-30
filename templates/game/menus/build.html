@@ -56,6 +56,9 @@
       type="radio"
       name="build_method"
       value="Necropolis"
+      hx-get="/game/menu/necropolis"
+      hx-target="#submenu"
+      hx-swap="innerHTML"
     />
 
     Necropolis
@@ -68,8 +71,11 @@
       type="radio"
       name="build_method"
       value="ThievesDen"
+      hx-get="/game/menu/thieves_den"
+      hx-target="#submenu"
+      hx-swap="innerHTML"
     />
-    ThievesDen
+    Thieves's Den
   </label>
   {% endif %}
 </div>

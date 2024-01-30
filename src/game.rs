@@ -627,6 +627,7 @@ impl Game {
                     DistrictName::ThievesDen,
                     DistrictName::Framework,
                     DistrictName::Necropolis,
+                    DistrictName::Temple,
                 ];
                 p.gold = 3;
 

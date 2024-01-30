@@ -2,7 +2,7 @@
 - Roles:
     - Marshal
     - Diplomat
-    - Cardinal - WIP
+    - Cardinal
 
 - Districts:
     - Laboratory

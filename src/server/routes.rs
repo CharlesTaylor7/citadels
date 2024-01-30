@@ -473,6 +473,30 @@ async fn get_game_menu(
             .to_html()?;
             Ok(rendered.into_response())
         }
+
+        "necropolis" => {
+            let rendered = NecropolisMenu {
+                hand: active_player
+                    .hand
+                    .iter()
+                    .map(|d| DistrictTemplate::from(*d))
+                    .collect(),
+            }
+            .to_html()?;
+            Ok(rendered.into_response())
+        }
+
+        "thieves_den" => {
+            let rendered = ThievesDenMenu {
+                hand: active_player
+                    .hand
+                    .iter()
+                    .map(|d| DistrictTemplate::from(*d))
+                    .collect(),
+            }
+            .to_html()?;
+            Ok(rendered.into_response())
+        }
         "magic-swap-deck" => {
             let rendered = MagicSwapDeckMenu {}.to_html()?;
             Ok(rendered.into_response())

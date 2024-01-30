@@ -263,3 +263,15 @@ pub struct CardinalMenu<'a> {
     pub players: Vec<&'a str>,
     pub hand: Vec<DistrictTemplate<'a>>,
 }
+
+#[derive(Template)]
+#[template(path = "game/menus/necropolis.html")]
+pub struct NecropolisMenu<'a> {
+    pub hand: Vec<DistrictTemplate<'a>>,
+}
+
+#[derive(Template)]
+#[template(path = "game/menus/thieves_den.html")]
+pub struct ThievesDenMenu<'a> {
+    pub hand: Vec<DistrictTemplate<'a>>,
+}
