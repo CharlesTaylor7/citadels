@@ -652,7 +652,7 @@ impl Game {
             game.turn_actions = vec![Action::GatherResourceGold];
             game.active_turn = Turn::Call(Call {
                 rank: test_role.rank(),
-                end_of_round: false,
+                end_of_round: true,
             });
             game.start_turn().unwrap();
             Ok(game)
@@ -812,8 +812,10 @@ impl Game {
                 if self.active_role().unwrap().role != RoleName::Emperor {
                     log::error!("What are you doing man?");
                     vec![]
-                } else {
+                } else if self.active_perform_count(ActionTag::EmperorGiveCrown) == 0 {
                     vec![ActionTag::EmperorGiveCrown]
+                } else {
+                    vec![]
                 }
             }
 
@@ -894,6 +896,8 @@ impl Game {
 
         if tag == ActionTag::EndTurn
             || self.active_turn.draft().is_ok() && self.active_player_actions().is_empty()
+            || self.active_turn.call().is_ok_and(|call| call.end_of_round)
+                && self.active_player_actions().is_empty()
         {
             self.end_turn()?;
         }

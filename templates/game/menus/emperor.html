@@ -1,0 +1,30 @@
+<h2 class="header">
+  Emperor
+</h2>
+
+<div class="flex flex-row gap-2">
+  {% for name in players %}
+    <label class="flex flex-row gap-1 items-center cursor-pointer">
+      <input required class="radio border-3" type="radio" name="player" value={{ name }} />
+      {{ name }}
+    </label>
+  {% endfor %}
+</div>
+
+<div class="tabs tabs-boxed">
+  <input required type="radio" name="resource" value="Gold" class="tab" aria-label="Gold" />
+  <input required type="radio" name="resource" value="Cards" class="tab" aria-label="Cards" />
+</div>
+
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    name="action"
+    value="EmperorGiveCrown"
+  >
+    Confirm 
+  </button>
+  {% include "button/cancel.html" %}
+</div>
+<div id="error"></div>

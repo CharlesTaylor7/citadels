@@ -6,6 +6,7 @@
     - Marshal
     - Diplomat
     - Cardinal
+    - Emperor
 
 - Districts:
     - Laboratory
