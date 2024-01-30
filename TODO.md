@@ -2,7 +2,7 @@
 - Finish Game engine    
     - [ ] Killed Emperor end of round action to grant crown
     - [ ] Bewitch
-
+    - [ ] Wizard build
 
 ## Longer list
 - Notifications
@@ -24,6 +24,7 @@
     - [ ] Build Menu:
         - Reminder that you have a warrant; emoji + text
         - Cost to build should be displayed
+        - Use tabs instead of radio buttons
 
     - [ ] Marshal menu should disable & grey districts that cost too much.
 - [ ] Max height for hand panel, with horizontal scroll
