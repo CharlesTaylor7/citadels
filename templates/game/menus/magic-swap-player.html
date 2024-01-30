@@ -5,7 +5,7 @@
 <div class="flex flex-row gap-2">
   {% for name in players %}
     <label class="flex flex-row gap-1 items-center cursor-pointer">
-      <input class="radio border-3" type="radio" name="player" value={{ name }} />
+      <input required class="radio border-3" type="radio" name="player" value={{ name }} />
       {{ name }}
     </label>
   {% endfor %}
@@ -13,9 +13,6 @@
 
 <button 
   class="btn btn-secondary"
-  hx-post="/game/action"
-  hx-target="#menu"
-  hx-swap="morph:innerHTML"
   name="action"
   value="Magic"
 >
