@@ -1,7 +1,7 @@
 <div
   id="init-beautify-menu"
   class="hidden"
-  _="init remove disabled from <#city input/>"
+  _="init remove disabled from <#city input/> add @required to <#city input/>"
 >
 </div>
 
@@ -11,9 +11,6 @@
 <div class="flex flex-row flex-wrap gap-2">
   <button 
     class="btn btn-secondary"
-    hx-post="/game/action"
-    hx-target="#menu"
-    hx-swap="morph:innerHTML"
     name="action"
     value="{{ ActionTag::Beautify.borrow()|debug }}"
   >
