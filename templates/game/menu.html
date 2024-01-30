@@ -72,9 +72,6 @@
       {% set action = ActionTag::EndTurn %}
       <button 
         class="btn {{ action|class }}"
-        hx-post="/game/action"
-        hx-target="#menu"
-        hx-swap="morph:innerHTML"
         name="action"
         value="{{ action|debug }}"
         {% if context.disabled(action) %}
@@ -168,7 +165,6 @@
     <button 
       id="confirm"
       class="btn btn-secondary"
-      hx-post="/game/action"
       name="action"
       value="SeerDistribute"
       disabled
