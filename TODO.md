@@ -1,17 +1,6 @@
 ## Shortlist
-- [ ] Marshal menu should disable & grey districts that cost too much.
-- [ ] Warlord menu should disable & grey districts that cost too much.
-- [ ] Required form fields
-- Fixup janky UI
-    - [ ] Warlord Menu:
-        - Destroy cost should be displayed prominently 
-
-    - [ ] Build Menu:
-        - Reminder that you have a warrant; emoji + text
-        - Cost to build should be displayed
-
 - Finish Game engine    
-    - [ ] killed Emperor end of round action to grant crown
+    - [ ] Killed Emperor end of round action to grant crown
     - [ ] Bewitch
 
 
@@ -27,19 +16,28 @@
     - Theater 
     - Wizard 
 
-- Max height for hand panel, with horizontal scroll
+- Fixup janky UI
+    - [ ] Warlord Menu:
+        - Destroy cost should be displayed prominently 
+        - should disable & grey districts that cost too much.
+
+    - [ ] Build Menu:
+        - Reminder that you have a warrant; emoji + text
+        - Cost to build should be displayed
+
+    - [ ] Marshal menu should disable & grey districts that cost too much.
+- [ ] Max height for hand panel, with horizontal scroll
+- [ ] Make log format and tenses consistent
+- [ ] Random audio notification
 
 ## Ideas
+- [ ] Randomizer mode: any role can be any rank
 - [ ] Persist game config to sqlite db
 - [ ] Keyboard based warrant assignment
 - [ ] Multi room support
-- [ ] Make log format and tenses consistent
 - [ ] Detect when building is impossible.
 - [ ] Pesist the dragged position of districts in a city.
 - [ ] Resizable windows, dimensions are saved per user and kept persistently between sessions
-- Optional Timers
-    - Basic
-    - Chess Clock (Pokemon showdown)
 
 ## Features if I wanted to make this bigger
 - [ ] A way for me to kick bots / spammers
@@ -47,14 +45,9 @@
 - [ ] Multi room support
 - [ ] Backup games and Restore from sqlite
 
-## Four+ player support
-- [ ] Need to show faceup discard. Use X marker on sidebar
 
-## Playtest 1 feedback
+## Playtest 1 
 - [x] Notification bell for start of turn.
-    - [x] audio tag, with ws event listener
-    - [ ] Server needs to send an html element with data-ring-bell, but only once when the turn begins
-    - [ ] Server shuffles audio files to send.
 - [ ] role and district description should have dedicated info icon for bringing up their tooltips.
 
 ## Playtest 2
@@ -81,7 +74,7 @@
 - [ ] Lock down game room permissions to Room host. Make myself room host, so I can configure the game.
 - [ ] Highlight active player in sidebar. It's too subtle to notice the active player.
 - [ ] Tooltips or faq links on every card. Logan didn't know what the seer did, and I can't blame him.
--
+- [ ] Seer names overflow the badge size
 
 ## Custom Roles
 - [ ] Nerfed Asssassin: Kill the role and all its abilities, but the player can still take normal actions. Gather, build, any district abilities
