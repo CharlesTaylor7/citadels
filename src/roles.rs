@@ -133,10 +133,8 @@ impl RoleName {
     }
 
     pub fn enabled(self) -> bool {
-        // 3 to go!
+        // 2 to go!
         match self {
-            // needs end of round action to grant crown when killed
-            Self::Emperor => false,
             // build menu with tweaks, just need to select a card from another player's hand
             Self::Wizard => false,
             // menu to bewitch is the same as ASSASSIN

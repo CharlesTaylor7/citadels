@@ -275,3 +275,25 @@ pub struct NecropolisMenu<'a> {
 pub struct ThievesDenMenu<'a> {
     pub hand: Vec<DistrictTemplate<'a>>,
 }
+
+#[derive(Template)]
+#[template(path = "game/menus/emperor.html")]
+pub struct EmperorMenu<'a> {
+    pub players: Vec<&'a str>,
+}
+
+impl<'a> EmperorMenu<'a> {
+    pub fn from_game(game: &'a game::Game) -> Self {
+        Self {
+            players: game
+                .players
+                .iter()
+                .filter(|p| {
+                    game.crowned != p.index
+                        && game.active_player().is_ok_and(|active| active.id != p.id)
+                })
+                .map(|p| p.name.borrow())
+                .collect::<Vec<_>>(),
+        }
+    }
+}

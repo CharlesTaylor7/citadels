@@ -154,15 +154,15 @@ impl<T> Deck<T> {
 pub enum Turn {
     GameOver,
     Draft(Draft),
-    Call(Rank),
+    Call(Call),
 }
 
 impl Turn {
-    pub fn call(&self) -> Option<Rank> {
-        if let Turn::Call(rank) = self {
-            Some(*rank)
+    pub fn call(&self) -> Result<&Call> {
+        if let Turn::Call(call) = self {
+            Ok(call)
         } else {
-            None
+            Err("not the call phase".into())
         }
     }
 
@@ -181,6 +181,12 @@ impl Turn {
             Err("not the draft".into())
         }
     }
+}
+
+#[derive(Debug)]
+pub struct Call {
+    pub rank: Rank,
+    pub end_of_round: bool,
 }
 
 #[derive(Debug)]
@@ -531,13 +537,13 @@ impl Game {
     }
 
     pub fn active_role(&self) -> Result<&GameRole> {
-        let rank = self.active_turn.call().ok_or("not the call phase")?;
-        Ok(self.characters.get(rank))
+        let call = self.active_turn.call()?;
+        Ok(self.characters.get(call.rank))
     }
 
-    pub fn active_role_mut(&mut self) -> Option<&mut GameRole> {
-        let rank = self.active_turn.call()?;
-        Some(self.characters.get_mut(rank))
+    pub fn active_role_mut(&mut self) -> Result<&mut GameRole> {
+        let call = self.active_turn.call()?;
+        Ok(self.characters.get_mut(call.rank))
     }
 
     pub fn start(lobby: Lobby, mut rng: Prng) -> Result<Game> {
@@ -607,7 +613,7 @@ impl Game {
             game.begin_draft();
             Ok(game)
         } else {
-            let test_role = RoleName::Seer;
+            let test_role = RoleName::Emperor;
             // deal roles out randomly
             game.characters.get_mut(test_role.rank()).role = test_role;
             let mut roles: Vec<_> = game.characters.iter().collect();
@@ -644,7 +650,10 @@ impl Game {
             }
 
             game.turn_actions = vec![Action::GatherResourceGold];
-            game.active_turn = Turn::Call(test_role.rank());
+            game.active_turn = Turn::Call(Call {
+                rank: test_role.rank(),
+                end_of_round: false,
+            });
             game.start_turn().unwrap();
             Ok(game)
         }
@@ -692,11 +701,11 @@ impl Game {
         match &self.active_turn {
             Turn::GameOver => Err("game over".into()),
             Turn::Draft(draft) => Ok(draft.player),
-            Turn::Call(rank) => self
+            Turn::Call(call) => self
                 .characters
-                .get(*rank)
+                .get(call.rank)
                 .player
-                .ok_or(format!("no player with rank {}", rank).into()),
+                .ok_or(format!("no player with rank {}", call.rank).into()),
         }
     }
 
@@ -797,7 +806,18 @@ impl Game {
                 }
             }
 
-            Turn::Call(rank) => {
+            Turn::Call(Call {
+                end_of_round: true, ..
+            }) => {
+                if self.active_role().unwrap().role != RoleName::Emperor {
+                    log::error!("What are you doing man?");
+                    vec![]
+                } else {
+                    vec![ActionTag::EmperorGiveCrown]
+                }
+            }
+
+            Turn::Call(call) => {
                 let player = if let Ok(player) = self.active_player() {
                     player
                 } else {
@@ -812,7 +832,7 @@ impl Game {
                 }
 
                 let mut actions = Vec::new();
-                let c = self.characters.get(*rank);
+                let c = self.characters.get(call.rank);
                 for (n, action) in c.role.data().actions {
                     if self.active_perform_count(*action) < *n {
                         actions.push(*action);
@@ -868,7 +888,7 @@ impl Game {
         log::info!("followup: {:#?}", self.followup);
 
         self.turn_actions.push(action.clone());
-        if let Some(role) = self.active_role_mut() {
+        if let Ok(role) = self.active_role_mut() {
             role.logs.push(log.into());
         }
 
@@ -883,7 +903,7 @@ impl Game {
 
     fn start_turn(&mut self) -> Result<()> {
         let c = self.active_role_mut();
-        if c.is_none() {
+        if c.is_err() {
             return Ok(());
         }
         let c_ref = c.unwrap();
@@ -2246,14 +2266,14 @@ impl Game {
                     .ok_or("does not exist in the targeted player's city")?;
                 let mut seize_cost = target.effective_cost();
                 if seize_cost > 3 {
-                    return Err("cannot seize district because it costs more than 3".into());
+                    return Err("Cannot seize district because it costs more than 3".into());
                 }
                 if player.city_has(DistrictName::GreatWall) {
                     seize_cost += 1;
                 }
 
                 if available_gold < seize_cost {
-                    return Err("not enough gold to seize".into());
+                    return Err("Not enough gold to seize".into());
                 }
 
                 let district = player.city.remove(city_index);
@@ -2275,45 +2295,58 @@ impl Game {
 
             Action::EmperorGiveCrown { player, resource } => {
                 if self.active_player().unwrap().name == *player {
-                    return Err("Cannot give the crown to yourself".into());
+                    Err("Cannot give the crown to yourself")?;
                 }
 
                 let target = self
                     .players
                     .iter_mut()
                     .find(|p| p.name == *player)
-                    .ok_or("player does not exist")?;
+                    .ok_or("Player does not exist")?;
 
                 if target.index == self.crowned {
-                    return Err("Cannot give the crown to the already crowned player".into());
+                    Err("Cannot give the crown to the already crowned player")?;
                 }
 
                 self.crowned = target.index;
-                match resource {
-                    Resource::Gold if target.gold > 0 => {
-                        target.gold -= 1;
-                        self.active_player_mut().unwrap().gold += 1;
-                    }
-                    Resource::Cards if target.hand.len() > 0 => {
-                        let index = self.rng.gen_range(0..target.hand.len());
-                        let card = target.hand.remove(index);
-                        self.active_player_mut().unwrap().hand.push(card);
-                    }
-                    _ => {}
-                }
 
-                ActionOutput {
-                    log: format!(
-                        "The Emperor ({}) gives {} the crown and takes one of their {}.",
-                        self.active_player()?.name,
-                        player,
-                        match resource {
-                            Resource::Gold => "gold",
-                            Resource::Cards => "cards",
+                if self.active_turn.call().is_ok_and(|c| c.end_of_round) {
+                    ActionOutput {
+                        log: format!(
+                            "The Emperor's heir ({}) gives {} the crown.",
+                            self.active_player()?.name,
+                            player,
+                        )
+                        .into(),
+                        followup: None,
+                    }
+                } else {
+                    match resource {
+                        Resource::Gold if target.gold > 0 => {
+                            target.gold -= 1;
+                            self.active_player_mut().unwrap().gold += 1;
                         }
-                    )
-                    .into(),
-                    followup: None,
+                        Resource::Cards if target.hand.len() > 0 => {
+                            let index = self.rng.gen_range(0..target.hand.len());
+                            let card = target.hand.remove(index);
+                            self.active_player_mut().unwrap().hand.push(card);
+                        }
+                        _ => {}
+                    }
+
+                    ActionOutput {
+                        log: format!(
+                            "The Emperor ({}) gives {} the crown and takes one of their {}.",
+                            self.active_player()?.name,
+                            player,
+                            match resource {
+                                Resource::Gold => "gold",
+                                Resource::Cards => "cards",
+                            }
+                        )
+                        .into(),
+                        followup: None,
+                    }
                 }
             }
             Action::DiplomatTrade {
@@ -2612,7 +2645,10 @@ impl Game {
                 theater_step: true, ..
             }) => {
                 // call
-                self.active_turn = Turn::Call(Rank::One)
+                self.active_turn = Turn::Call(Call {
+                    rank: Rank::One,
+                    end_of_round: false,
+                })
             }
             Turn::Draft(draft) => {
                 // discard cards between turns
@@ -2649,11 +2685,19 @@ impl Game {
                         draft.player = player.index;
                         draft.theater_step = true;
                     } else {
-                        self.active_turn = Turn::Call(Rank::One)
+                        self.active_turn = Turn::Call(Call {
+                            rank: Rank::One,
+                            end_of_round: false,
+                        });
                     }
                 } else {
                     draft.player = PlayerIndex((draft.player.0 + 1) % self.players.len());
                 };
+            }
+            Turn::Call(Call {
+                end_of_round: true, ..
+            }) => {
+                self.end_round();
             }
             Turn::Call(_) => {
                 if let Ok(player) = self.active_player() {
@@ -2694,11 +2738,19 @@ impl Game {
     }
 
     fn call_next(&mut self) {
-        match self.active_turn {
-            Turn::Call(rank) => {
-                let o = self.characters.next(rank);
+        match self.active_turn.borrow() {
+            Turn::Call(call) => {
+                let o = self.characters.next(call.rank);
                 if let Some(rank) = o {
-                    self.active_turn = Turn::Call(rank);
+                    self.active_turn = Turn::Call(Call {
+                        rank,
+                        end_of_round: false,
+                    });
+                } else if self.characters.get(Rank::Four).role == RoleName::Emperor {
+                    self.active_turn = Turn::Call(Call {
+                        rank: Rank::Four,
+                        end_of_round: true,
+                    });
                 } else {
                     self.end_round();
                 };
@@ -2723,10 +2775,6 @@ impl Game {
                         )
                         .into(),
                     );
-                }
-
-                if character.role == RoleName::Emperor {
-                    log::error!("The emperor's heir needs to grant the crown")
                 }
 
                 if self.characters.len() >= 9 {

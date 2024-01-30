@@ -17,6 +17,7 @@
     - Wizard 
 
 - Fixup janky UI
+    - [ ] The required rank 4 actions should have an indicator.
     - [ ] Warlord Menu:
         - Destroy cost should be displayed prominently 
         - should disable & grey districts that cost too much.
