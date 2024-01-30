@@ -1,4 +1,7 @@
 ## 0.7.0
+- 4 player support:
+    - Can see the discarded face up cards
+
 - Roles:
     - Marshal
     - Diplomat

@@ -19,6 +19,13 @@
           {{ role.rank }}. {{ role.name.display_name() }}
           {% for marker in character.markers %}
             {% match marker %} 
+            {% when Marker::Discarded %}            
+              <span 
+                data-tip="Discarded"
+                class="tooltip tooltip-bottom tooltip-secondary text-xl"
+              > 
+               ❌
+              </span>
             {% when Marker::Killed %}            
               <span 
                 data-tip="Killed"

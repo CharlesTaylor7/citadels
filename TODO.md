@@ -1,5 +1,6 @@
 ## Shortlist
 - [ ] x marker for face up discard from draft
+- [ ] Required form fields
 - Fixup janky UI
     - [ ] Warlord Menu:
         - Destroy cost should be displayed prominently 

@@ -38,6 +38,7 @@ pub enum CardSet {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Marker {
+    Discarded,
     Killed,
     Bewitched,
     Robbed,

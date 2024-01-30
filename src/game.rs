@@ -652,12 +652,19 @@ impl Game {
 
     pub fn begin_draft(&mut self) {
         self.round += 1;
-        self.active_turn = Turn::Draft(Draft::begin(
+        let draft = Draft::begin(
             self.players.len(),
             self.crowned,
             self.characters.iter().collect(),
             &mut self.rng,
-        ));
+        );
+        for c in draft.faceup_discard.iter() {
+            self.characters
+                .get_mut(c.rank())
+                .markers
+                .push(Marker::Discarded);
+        }
+        self.active_turn = Turn::Draft(draft);
     }
 
     pub fn responding_player_index(&self) -> Result<PlayerIndex> {
