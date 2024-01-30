@@ -7,8 +7,8 @@
 - Districts:
     - Laboratory
     - Framework
-    - Thieves' Den - WIP
-    - Necropolis - WIP
+    - Thieves' Den
+    - Necropolis
 
 ## 0.6.0
 - Notification bell
