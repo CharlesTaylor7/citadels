@@ -8,7 +8,7 @@
     - Cardinal
     - Emperor
     - Wizard
-    - Witch - WIP
+    - Witch
 
 - Districts:
     - Laboratory
