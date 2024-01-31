@@ -12,7 +12,11 @@
   Build
 </h2>
 <div class="italic text-sm">Select a district from your hand</div>
-<div class="flex flex-row gap-2">
+<div 
+  class="flex flex-row gap-2"
+  hx-target="#submenu"
+  hx-swap="innerHTML"
+>
   Method: 
   <label class="flex flex-row gap-1 items-center">
     <input 
@@ -20,6 +24,7 @@
       type="radio"
       name="build_method"
       value="Regular"
+      _="on click put '' into <#submenu/>'s innerHTML"
       checked
     />
     Normal
@@ -32,8 +37,6 @@
       name="build_method"
       value="Cardinal"
       hx-get="/game/menu/cardinal"
-      hx-target="#submenu"
-      hx-swap="innerHTML"
     />
     Cardinal
   </label>
@@ -45,6 +48,7 @@
       type="radio"
       name="build_method"
       value="Framework"
+      _="on click put '' into <#submenu/>'s innerHTML"
     />
     Framework
   </label>
@@ -57,8 +61,6 @@
       name="build_method"
       value="Necropolis"
       hx-get="/game/menu/necropolis"
-      hx-target="#submenu"
-      hx-swap="innerHTML"
     />
 
     Necropolis
