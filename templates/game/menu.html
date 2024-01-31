@@ -264,20 +264,5 @@
   </div>
 
 {% when MenuView::Wizard with { player, hand, build } %}
-  <h2 class="header">Wizard</h2>
-  <h2 class="header">{{ player}}'s Hand</h2>
-  <div class="flex flex-row flex-wrap gap-1" >
-      {% set input_type = "radio" %}
-      {% set enabled = true %}
-      {% set draggable = false %}
-      {% for district in hand %} 
-        {% include "district/square-cropped.html" %} 
-      {% endfor %}
-  </div>
-  {% set wizard = true %}
-  {% set cardinal = false %}
-  {% set necropolis = build.necropolis %}
-  {% set thieves_den = build.thieves_den %}
-  {% set framework = build.framework %}
-  {% include "menus/build.html" %}
+  {% include "menus/wizard-pick.html" %}
 {% endmatch %}
