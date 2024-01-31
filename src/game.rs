@@ -823,21 +823,13 @@ impl Game {
                     vec![ActionTag::Theater, ActionTag::TheaterPass]
                 }
             }
-            Turn::Draft(draft) => {
+            Turn::Draft(_draft) => {
                 if self.active_perform_count(ActionTag::DraftPick) == 0 {
                     vec![ActionTag::DraftPick]
-
-                    // the first player to draft in the two player game does not discard.
-                    // the last pick is between two cards.
-                    // the one they don't pick is automatically discarded.
-                    // So really only the middle two draft turns should show the discard button
-                } else if self.players.len() == 2
-                    && (draft.remaining.len() == 5 || draft.remaining.len() == 3)
-                {
-                    vec![ActionTag::DraftDiscard]
                 } else {
-                    vec![]
+                    vec![ActionTag::DraftDiscard]
                 }
+                //else { vec![] }
             }
 
             Turn::Call(Call {
@@ -924,7 +916,6 @@ impl Game {
 
         self.followup = followup;
 
-        let tag = action.tag();
         log::info!("{:#?}", log);
         log::info!("followup: {:#?}", self.followup);
 
@@ -933,11 +924,7 @@ impl Game {
             role.logs.push(log.into());
         }
 
-        if tag == ActionTag::EndTurn
-            || self.active_turn.draft().is_ok() && self.active_player_actions().is_empty()
-            || self.active_turn.call().is_ok_and(|call| call.end_of_round)
-                && self.active_player_actions().is_empty()
-        {
+        if end_turn {
             self.end_turn()?;
         }
 
@@ -1182,7 +1169,19 @@ impl Game {
                 player.roles.push(*role);
                 player.roles.sort_by_key(|r| r.rank());
 
-                ActionOutput::new(format!("{} drafted a role.", player.name))
+                let output = ActionOutput::new(format!("{} drafted a role.", player.name));
+
+                // the first player to draft in the two player game does not discard.
+                // the last pick is between two cards.
+                // the one they don't pick is automatically discarded.
+                // So really only the middle two draft turns should show the discard button
+                if self.players.len() == 2
+                    && (draft.remaining.len() == 5 || draft.remaining.len() == 3)
+                {
+                    output
+                } else {
+                    output.end_turn()
+                }
             }
 
             Action::DraftDiscard { role } => {
