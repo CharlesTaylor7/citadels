@@ -3,6 +3,7 @@ use crate::actions::ActionTag;
 use crate::game::{Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
 use crate::roles::{Rank, RoleName};
 use crate::templates::filters;
+use crate::templates::game::menus::EmperorMenu;
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use askama::Template;
 use std::borrow::{Borrow, Cow};
@@ -28,6 +29,7 @@ impl<'a> MenuTemplate<'a> {
 
 pub enum MenuView<'a> {
     TODO,
+    Emperor(EmperorMenu<'a>),
     Theater {
         players: Vec<&'a str>,
         roles: Vec<RoleTemplate>,
@@ -104,8 +106,10 @@ impl<'a> MenuView<'a> {
                     player: game.active_player().unwrap().name.borrow(),
                     actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
                 },
-
                 Followup::WizardPick { .. } => MenuView::TODO,
+                Followup::EmperorsHeirGrantsCrown => {
+                    MenuView::Emperor(EmperorMenu::from_game(game))
+                }
                 Followup::SeerDistribute { players } => MenuView::SeerDistribute {
                     hand: game
                         .active_player()

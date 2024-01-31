@@ -138,6 +138,9 @@
     </button>
   </div>
 
+{% when MenuView::Emperor with (EmperorMenu { players} )%}
+{% include "menus/emperor.html" %}
+
 {% when MenuView::SeerDistribute with { players, hand } %}
   <div class="hidden" _="init add .hidden to #hand-panel enableSeer()"></div>
   <h2 class="header">
