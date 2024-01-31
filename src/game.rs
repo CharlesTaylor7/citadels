@@ -1169,7 +1169,7 @@ impl Game {
                 player.roles.push(*role);
                 player.roles.sort_by_key(|r| r.rank());
 
-                let output = ActionOutput::new(format!("{} drafted a role.", player.name));
+                let output = ActionOutput::new(format!("{} drafts a role.", player.name));
 
                 // the first player to draft in the two player game does not discard.
                 // the last pick is between two cards.
@@ -1192,7 +1192,7 @@ impl Game {
 
                 draft.remaining.remove(i);
                 ActionOutput::new(format!(
-                    "{} discarded a role face down.",
+                    "{} discards a role face down.",
                     self.active_player()?.name
                 ))
                 .end_turn()
@@ -1200,7 +1200,7 @@ impl Game {
 
             Action::EndTurn => {
                 //
-                ActionOutput::new(format!("{} ended their turn.", self.active_player()?.name))
+                ActionOutput::new(format!("{} ends their turn.", self.active_player()?.name))
                     .end_turn()
             }
 
@@ -1209,9 +1209,9 @@ impl Game {
                 let mut amount = 2;
                 let log = if self.players[active.0].city_has(DistrictName::GoldMine) {
                     amount += 1;
-                    "They gathered 3 gold. (1 extra from their Gold Mine)."
+                    "They gather 3 gold. (1 extra from their Gold Mine)."
                 } else {
-                    "They gathered 2 gold."
+                    "They gather 2 gold."
                 };
 
                 self.players[active.0].gold += amount;
@@ -1231,9 +1231,10 @@ impl Game {
                     self.active_player_mut()?.hand.append(&mut drawn);
 
                     ActionOutput::new(format!(
-                        "They gathered cards. With the aid of their library they kept all {} cards.", 
+                        "They gather cards. With the aid of their library they keep all {} cards.",
                         draw_amount
-                    )).maybe_followup(self.after_gather_resources())
+                    ))
+                    .maybe_followup(self.after_gather_resources())
                 } else {
                     let followup = if drawn.len() > 0 {
                         Some(Followup::GatherCardsPick { revealed: drawn })
@@ -1241,7 +1242,7 @@ impl Game {
                         self.after_gather_resources()
                     };
                     ActionOutput::new(format!(
-                        "They revealed {} cards from the top of the deck.",
+                        "They reveal {} cards from the top of the deck.",
                         draw_amount
                     ))
                     .maybe_followup(followup)
@@ -1264,8 +1265,7 @@ impl Game {
                     self.deck.discard_to_bottom(*remaining);
                 }
                 self.active_player_mut()?.hand.push(*district);
-                ActionOutput::new("They picked a card.")
-                    .maybe_followup(self.after_gather_resources())
+                ActionOutput::new("They pick a card.").maybe_followup(self.after_gather_resources())
             }
             Action::GoldFromNobility => self.gain_gold_for_suit(CardSuit::Noble)?,
             Action::GoldFromReligion => self.gain_gold_for_suit(CardSuit::Religious)?,
@@ -1279,7 +1279,7 @@ impl Game {
                 let player = self.active_player_mut()?;
                 player.gold += 1;
                 ActionOutput::new(format!(
-                    "The Merchant ({}) gained 1 extra gold.",
+                    "The Merchant ({}) gains 1 extra gold.",
                     player.name
                 ))
             }
@@ -1287,7 +1287,7 @@ impl Game {
                 self.gain_cards(2);
                 let player = self.active_player()?;
                 ActionOutput::new(format!(
-                    "The Architect ({}) gained 2 extra cards.",
+                    "The Architect ({}) gains 2 extra cards.",
                     player.name
                 ))
             }
@@ -1615,8 +1615,11 @@ impl Game {
                 self.active_player_mut()?.hand = hand;
 
                 ActionOutput::new(format!(
-                    "They swapped their hand of {} cards with {}'s hand of {} cards.",
-                    hand_count, player, target_count,
+                    "The Magician ({}) swaps their hand of {} cards with {}'s hand of {} cards.",
+                    self.active_player()?.name,
+                    hand_count,
+                    player,
+                    target_count,
                 ))
             }
 
@@ -1699,7 +1702,7 @@ impl Game {
                 self.discard_district(target.district);
 
                 ActionOutput::new(format!(
-                    "The Warlord ({}) destroyed {}'s {}.",
+                    "The Warlord ({}) destroys {}'s {}.",
                     self.active_player()?.name,
                     target.player,
                     target.district.data().display_name,
@@ -1749,7 +1752,7 @@ impl Game {
                 self.discard_district(target.district);
 
                 ActionOutput::new(format!(
-                    "They sacrificed their Armory to destroy {}'s {}.",
+                    "They sacrifice their Armory to destroy {}'s {}.",
                     target.player,
                     target.district.data().display_name,
                 ))
@@ -1774,7 +1777,7 @@ impl Game {
                 player.gold -= 1;
 
                 ActionOutput::new(format!(
-                    "The Artist ({}) beautified their {}.",
+                    "The Artist ({}) beautifies their {}.",
                     self.active_player()?.name,
                     district.data().display_name,
                 ))
@@ -1785,7 +1788,7 @@ impl Game {
             } => {
                 self.gain_cards(4);
                 ActionOutput::new(format!(
-                    "The Navigator ({}) gained 4 extra cards.",
+                    "The Navigator ({}) gains 4 extra cards.",
                     self.active_player()?.name
                 ))
             }
@@ -1797,7 +1800,7 @@ impl Game {
                 player.gold += 4;
 
                 ActionOutput::new(format!(
-                    "The Navigator ({}) gained 4 extra gold.",
+                    "The Navigator ({}) gains 4 extra gold.",
                     player.name
                 ))
             }
@@ -1859,7 +1862,7 @@ impl Game {
                     self.players[index.0].hand.push(district);
                 }
 
-                ActionOutput::new(format!("The Seer distributed cards back."))
+                ActionOutput::new(format!("The Seer gives cards back."))
             }
 
             Action::ResourcesFromReligion { gold, cards, .. } => {
@@ -2008,7 +2011,8 @@ impl Game {
                         .push(Marker::Warrant { signed: false });
                 }
                 ActionOutput::new(format!(
-                    "Magistrate sends warrants to the {}, the {}, and the {}.",
+                    "The Magistrate ({}) sends warrants to the {}, the {}, and the {}.",
+                    self.active_player().unwrap().name,
                     roles[0].display_name(),
                     roles[1].display_name(),
                     roles[2].display_name()
@@ -2054,7 +2058,8 @@ impl Game {
                 roles.sort_by_key(|r| r.rank());
 
                 ActionOutput::new(format!(
-                    "The Blackmailer sends blackmail to the {} and the {}",
+                    "The Blackmailer ({}) sends blackmail to the {} and the {}",
+                    self.active_player().unwrap().name,
                     roles[0].display_name(),
                     roles[1].display_name(),
                 ))
@@ -2096,7 +2101,7 @@ impl Game {
                 let card = active.hand.remove(index);
                 self.museum.tuck(card);
 
-                ActionOutput::new("They tucked a card face down under their Museum.")
+                ActionOutput::new("They tuck a card face down under their Museum.")
             }
 
             Action::ScholarReveal => {
@@ -2126,7 +2131,7 @@ impl Game {
                 self.active_player_mut()?.hand.push(*district);
 
                 ActionOutput::new(format!(
-                    "The Scholar ({}) picked a card, discarded the rest and shuffled the deck.",
+                    "The Scholar ({}) picks a card, discarding the rest and shuffling the deck.",
                     self.active_player()?.name,
                 ))
             }
