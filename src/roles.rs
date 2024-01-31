@@ -131,18 +131,6 @@ impl RoleName {
             _ => 1,
         }
     }
-
-    pub fn enabled(self) -> bool {
-        // 2 to go!
-        match self {
-            // build menu with tweaks, just need to select a card from another player's hand
-            Self::Wizard => false,
-            // menu to bewitch is the same as ASSASSIN
-            // lots of game engine changes
-            Self::Witch => false,
-            _ => true,
-        }
-    }
 }
 
 /// Immutable data

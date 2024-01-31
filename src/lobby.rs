@@ -44,7 +44,7 @@ impl Lobby {
             "Helen",
         ];
         Self {
-            config: GameConfig::demo(),
+            config: GameConfig::default(),
             players: players
                 .into_iter()
                 .take(count)
@@ -99,33 +99,16 @@ impl Default for GameConfig {
     fn default() -> Self {
         let mut roles = HashSet::new();
         for role in RoleName::iter() {
-            if role.enabled() {
-                roles.insert(role);
-            }
+            roles.insert(role);
         }
 
-        let mut districts = HashMap::from([]);
-
-        for district in crate::districts::UNIQUE {
-            if !district.name.enabled() {
-                districts.insert(district.name, ConfigOption::Never);
-            }
-        }
+        let districts = HashMap::new();
 
         Self { roles, districts }
     }
 }
 
 impl GameConfig {
-    pub fn demo() -> Self {
-        let mut config = Self::default();
-        config.roles.remove(&RoleName::Assassin);
-        config.roles.remove(&RoleName::Bishop);
-        config.roles.remove(&RoleName::Cardinal);
-        config.roles.insert(RoleName::Abbot);
-        config
-    }
-
     pub fn set_roles(
         &mut self,
         roles: HashSet<RoleName>,

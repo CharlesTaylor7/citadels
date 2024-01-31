@@ -127,12 +127,6 @@ impl DistrictName {
         }
     }
 
-    pub fn enabled(self) -> bool {
-        match self {
-            _ => true,
-        }
-    }
-
     pub fn multiplicity(self) -> usize {
         match self {
             Self::Palace => 3,

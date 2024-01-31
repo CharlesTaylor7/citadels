@@ -7,6 +7,7 @@
     - Diplomat
     - Cardinal
     - Emperor
+    - Wizard
 
 - Districts:
     - Laboratory

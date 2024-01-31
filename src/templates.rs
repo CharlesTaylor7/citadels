@@ -51,7 +51,7 @@ impl<'a> DistrictTemplate<'a> {
         let full_height = length * scale / 5.0;
         let full_width = length * (125.8 / 200.0) * (scale / 5.0);
         Self {
-            enabled: district.enabled(),
+            enabled: true,
             name: data.display_name,
             cost: if district == DistrictName::SecretVault {
                 None
@@ -237,7 +237,7 @@ impl RoleTemplate {
         let full_height = height * 267.0 / 200.0;
         Self {
             min_player_count: role.min_player_count(),
-            enabled: role.enabled(),
+            enabled: true,
             name: role.display_name(),
             rank: data.rank,
             value: format!("{:#?}", role),
