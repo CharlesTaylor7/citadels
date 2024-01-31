@@ -303,3 +303,22 @@ impl<'a> EmperorMenu<'a> {
         }
     }
 }
+
+#[derive(Template)]
+#[template(path = "game/menus/wizard.html")]
+pub struct WizardMenu<'a> {
+    pub players: Vec<&'a str>,
+}
+
+impl<'a> WizardMenu<'a> {
+    pub fn from_game(game: &'a game::Game) -> Self {
+        Self {
+            players: game
+                .players
+                .iter()
+                .filter(|p| game.active_player().is_ok_and(|active| active.id != p.id))
+                .map(|p| p.name.borrow())
+                .collect::<Vec<_>>(),
+        }
+    }
+}

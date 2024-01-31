@@ -1,0 +1,25 @@
+<h2 class="header">
+  Wizard
+</h2>
+
+<div class="flex flex-row gap-2">
+  {% for name in players %}
+    <label class="flex flex-row gap-1 items-center cursor-pointer">
+      <input required class="radio border-3" type="radio" name="player" value={{ name }} />
+      {{ name }}
+    </label>
+  {% endfor %}
+</div>
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    name="action"
+    value="WizardPeek"
+  >
+    Peek 
+  </button>
+  {% include "button/cancel.html" %}
+</div>
+
+<div id="error"></div>
