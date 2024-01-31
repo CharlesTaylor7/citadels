@@ -662,6 +662,7 @@ impl Game {
             let test_role = RoleName::Witch;
             // deal roles out randomly
             game.characters.get_mut(test_role.rank()).role = test_role;
+            game.characters.get_mut(Rank::Three).role = RoleName::Wizard;
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
@@ -1243,9 +1244,12 @@ impl Game {
                 let mut amount = 2;
                 let log = if self.players[active.0].city_has(DistrictName::GoldMine) {
                     amount += 1;
-                    "They gather 3 gold. (1 extra from their Gold Mine)."
+                    format!(
+                        "{} gathers 3 gold. (1 extra from their Gold Mine).",
+                        self.players[active.0].name
+                    )
                 } else {
-                    "They gather 2 gold."
+                    format!("{} gathers 2 gold.", self.players[active.0].name)
                 };
 
                 self.players[active.0].gold += amount;
@@ -1265,7 +1269,8 @@ impl Game {
                     self.active_player_mut()?.hand.append(&mut drawn);
 
                     ActionOutput::new(format!(
-                        "They gather cards. With the aid of their library they keep all {} cards.",
+                        "{} gathers cards. With the aid of their library they keep all {} cards.",
+                        self.active_player()?.name,
                         draw_amount
                     ))
                     .maybe_followup(self.after_gather_resources())
@@ -1276,7 +1281,8 @@ impl Game {
                         self.after_gather_resources()
                     };
                     ActionOutput::new(format!(
-                        "They reveal {} cards from the top of the deck.",
+                        "{} reveals {} cards from the top of the deck.",
+                        self.active_player()?.name,
                         draw_amount
                     ))
                     .maybe_followup(followup)
@@ -1557,7 +1563,8 @@ impl Game {
                     && !self.turn_actions.iter().any(|act| act.is_build())
                 {
                     ActionOutput::new(format!(
-                        "They begin to build a {}; waiting on the Magistrate's response.",
+                        "{} begins to build a {}; waiting on the Magistrate's response.",
+                        self.active_player().unwrap().name,
                         district.display_name
                     ))
                     .followup(Followup::Warrant {
@@ -1573,7 +1580,11 @@ impl Game {
                     })
                 } else {
                     self.complete_build(self.active_player().unwrap().index, cost, district.name);
-                    ActionOutput::new(format!("They build a {}.", district.display_name))
+                    ActionOutput::new(format!(
+                        "{} build a {}.",
+                        self.active_player().unwrap().name,
+                        district.display_name
+                    ))
                 }
             }
 
@@ -1791,7 +1802,8 @@ impl Game {
                 self.discard_district(target.district);
 
                 ActionOutput::new(format!(
-                    "They sacrifice their Armory to destroy {}'s {}.",
+                    "{} sacrifices their Armory to destroy {}'s {}.",
+                    self.active_player()?.name,
                     target.player,
                     target.district.data().display_name,
                 ))
@@ -1982,7 +1994,8 @@ impl Game {
                 self.active_player_mut().unwrap().gold += gold_taken;
                 let cards_drawn = self.gain_cards(matches);
                 ActionOutput::new(format!(
-                    "The Spy is counting {} districts. They spy on {}, and find {} matches. They take {} gold, and draw {} cards.",
+                    "The Spy ({}) is counting {} districts. They spy on {}, and find {} matches. They take {} gold, and draw {} cards.",
+                    self.active_player()?.name,
                     suit,
                     self.players[target.0].name,
                     matches,
@@ -2022,7 +2035,11 @@ impl Game {
                 target.gold -= 1;
                 let name = target.name.clone();
                 self.active_player_mut().unwrap().gold += 1;
-                ActionOutput::new(format!("The Abbot takes 1 gold from the richest: {}", name))
+                ActionOutput::new(format!(
+                    "The Abbot ({}) takes 1 gold from the richest: {}",
+                    self.active_player()?.name,
+                    name
+                ))
             }
             Action::SendWarrants { signed, unsigned } => {
                 let mut roles = Vec::with_capacity(3);
@@ -2111,7 +2128,10 @@ impl Game {
                 }
                 active.gold -= 2;
                 self.gain_cards(3);
-                ActionOutput::new("At the Smithy, they forge 2 gold into 3 cards.")
+                ActionOutput::new(format!(
+                    "At the Smithy, {} forges 2 gold into 3 cards.",
+                    self.active_player()?.name
+                ))
             }
 
             Action::Laboratory { district } => {
@@ -2126,7 +2146,10 @@ impl Game {
                 active.gold += 2;
                 self.deck.discard_to_bottom(card);
 
-                ActionOutput::new("At the Laboratory, they transmute 1 card into 2 gold.")
+                ActionOutput::new(format!(
+                    "At the Laboratory, {} transmutes 1 card into 2 gold.",
+                    self.active_player()?.name
+                ))
             }
 
             Action::Museum { district } => {
@@ -2140,7 +2163,10 @@ impl Game {
                 let card = active.hand.remove(index);
                 self.museum.tuck(card);
 
-                ActionOutput::new("They tuck a card face down under their Museum.")
+                ActionOutput::new(format!(
+                    "{} tucks a card face down under their Museum.",
+                    self.active_player()?.name
+                ))
             }
 
             Action::ScholarReveal => {
@@ -2701,8 +2727,11 @@ impl Game {
         player.gold += amount;
 
         Ok(ActionOutput::new(format!(
-            "They gained {} gold from their {} districts",
-            amount, suit
+            "The {} ({}) gains {} gold from their {} districts.",
+            self.active_role()?.role.display_name(),
+            self.active_player()?.name,
+            amount,
+            suit
         )))
     }
 
@@ -2719,8 +2748,11 @@ impl Game {
         let amount = self.gain_cards(count);
 
         Ok(ActionOutput::new(format!(
-            "They gained {} cards from their {} districts",
-            amount, suit
+            "The {} ({}) gains {} cards from their {} districts.",
+            self.active_role()?.role.display_name(),
+            self.active_player()?.name,
+            amount,
+            suit
         )))
     }
 
@@ -2884,7 +2916,8 @@ impl Game {
                         self.players[ninth.player.unwrap().0].gold += 3;
                         self.logs.push(
                             format!(
-                                "The Queen is seated next to the dead {}; they gain 3 gold.",
+                                "The Queen ({}) is seated next to the dead {}; they gain 3 gold.",
+                                self.players[ninth.player.unwrap().0].name,
                                 character.role.display_name()
                             )
                             .into(),
