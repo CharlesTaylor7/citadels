@@ -2293,9 +2293,10 @@ impl Game {
                 }
 
                 let district = player.city.remove(city_index);
-                self.active_player_mut()?.gold -= seize_cost;
-                self.active_player_mut()?.city.push(district);
-                self.discard_district(target.district);
+                player.gold += seize_cost;
+                let active = self.active_player_mut().unwrap();
+                active.gold -= seize_cost;
+                active.city.push(district);
 
                 ActionOutput {
                     log: format!(
