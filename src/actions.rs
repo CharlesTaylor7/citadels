@@ -112,7 +112,8 @@ pub enum Action {
     },
     WizardPick {
         district: DistrictName,
-        build: bool,
+        #[serde(flatten, default)]
+        build: Option<BuildMethod>,
     },
     Smithy,
     Laboratory {
@@ -191,7 +192,7 @@ impl Action {
     pub fn is_build(&self) -> bool {
         match self {
             Action::Build { .. } => true,
-            Action::WizardPick { build: true, .. } => true,
+            Action::WizardPick { build: Some(_), .. } => true,
             _ => false,
         }
     }

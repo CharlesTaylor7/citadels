@@ -976,7 +976,7 @@ impl Game {
         }
     }
 
-    fn build(&mut self, player: PlayerIndex, spent: usize, district: DistrictName) {
+    fn complete_build(&mut self, player: PlayerIndex, spent: usize, district: DistrictName) {
         let player = self.players[player.0].borrow_mut();
 
         player.city.push(CityDistrict::from(district));
@@ -1125,7 +1125,7 @@ impl Game {
                         ..
                     }) => {
                         // t
-                        self.build(self.active_player_index()?, gold, district);
+                        self.complete_build(self.active_player_index()?, gold, district);
                         ActionOutput {
                             log: format!(
                                 "The Magistrate ({}) did not reveal the warrant.",
@@ -1294,7 +1294,7 @@ impl Game {
 
                 let active = self.active_player()?;
                 if active.hand.iter().all(|d| *d != district) {
-                    Err("card not in hand")?;
+                    Err("Card not in hand")?;
                 }
 
                 if self
@@ -1350,6 +1350,9 @@ impl Game {
                     BuildMethod::Cardinal {
                         discard, player, ..
                     } => {
+                        if self.active_role()?.role != RoleName::Cardinal {
+                            Err("You are not the cardinal")?;
+                        }
                         if active.gold + discard.len() < cost {
                             Err("Not enough gold or discarded")?;
                         }
@@ -1455,7 +1458,7 @@ impl Game {
                                     None
                                 }
                             })
-                            .ok_or("Cannot sacrifice a district you don't own!")?;
+                            .ok_or("You don't own a framework!")?;
 
                         let active = self.active_player_mut().unwrap();
                         Game::remove_first(&mut active.hand, district.name)
@@ -1526,7 +1529,7 @@ impl Game {
                         }),
                     }
                 } else {
-                    self.build(self.active_player().unwrap().index, cost, district.name);
+                    self.complete_build(self.active_player().unwrap().index, cost, district.name);
 
                     ActionOutput {
                         log: format!("They build a {}.", district.display_name).into(),
@@ -2511,89 +2514,193 @@ impl Game {
                     }),
                 }
             }
-            // only works as a regular build
-            // doesn't allow for alternate payment methods
-            Action::WizardPick { district, build } => match self.followup {
+            Action::WizardPick {
+                district,
+                build: None,
+            } => match self.followup {
                 Some(Followup::WizardPick { player: target }) => {
                     Game::remove_first(&mut self.players[target.0].hand, *district)
                         .ok_or("district not in target player's hand")?;
-                    if *build {
-                        let active = self.active_player_mut()?;
-                        let district = district.data();
-
-                        let mut cost = district.cost;
-                        if district.suit == CardSuit::Unique
-                            && active.city_has(DistrictName::Factory)
-                        {
-                            cost -= 1;
-                        }
-
-                        if cost > active.gold {
-                            return Err("not enough gold".into());
-                        }
-
-                        if district.name == DistrictName::Monument && active.city.len() >= 5 {
-                            return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
-                        }
-
-                        active.gold -= cost;
-
-                        if self.characters.has_tax_collector() {
-                            let player = self.active_player_mut()?;
-                            if player.gold > 0 {
-                                player.gold -= 1;
-                                self.tax_collector += 1;
-                            }
-                        }
-
-                        // The magistrate can only confiscate the first build of a turn
-                        if self.active_role().unwrap().has_warrant()
-                            && !self.turn_actions.iter().any(|act| act.is_build())
-                        {
-                            ActionOutput {
+                    self.active_player_mut().unwrap().hand.push(*district);
+                    ActionOutput {
                         log: format!(
-                            "The Wizard begins to build a {}; waiting on the Magistrate's response.",
-                            district.display_name
+                            "The Wizard ({}) takes a card from {}'s hand.",
+                            self.active_player().unwrap().name,
+                            self.players[target.0].name,
                         )
                         .into(),
-                        followup: Some(Followup::Warrant {
-                            magistrate: self.characters.get(Rank::One).player.unwrap(),
-                            gold: cost,
-                            district: district.name,
-                            signed: self
-                                .active_role()
-                                .unwrap()
-                                .markers
-                                .iter()
-                                .any(|m| *m == Marker::Warrant { signed: true }),
-                        }),
+                        followup: None,
                     }
-                        } else {
-                            self.build(self.active_player().unwrap().index, cost, district.name);
-                            ActionOutput {
-                                log: format!(
-                                    "The Wizard ({}) builds the {} from {}'s hand.",
-                                    self.active_player().unwrap().name,
-                                    district.display_name,
-                                    self.players[target.0].name,
-                                )
-                                .into(),
-                                followup: None,
+                }
+                _ => Err("impossible")?,
+            },
+
+            Action::WizardPick {
+                build: Some(method),
+                ..
+            } => match self.followup {
+                Some(Followup::WizardPick { player: target }) => {
+                    let district = match method {
+                        BuildMethod::Regular { district } => *district,
+                        BuildMethod::Cardinal { .. } => Err("Not the cardinal!")?,
+                        BuildMethod::Framework { district } => *district,
+                        BuildMethod::ThievesDen { .. } => DistrictName::ThievesDen,
+                        BuildMethod::Necropolis { .. } => DistrictName::Necropolis,
+                    };
+
+                    if self.players[target.0].hand.iter().all(|d| *d != district) {
+                        Err("Card not in hand")?;
+                    }
+
+                    let active = self.active_player().unwrap();
+                    if district == DistrictName::Monument && active.city.len() >= 5 {
+                        return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
+                    }
+
+                    let district = district.data();
+
+                    let mut cost = district.cost;
+                    if district.suit == CardSuit::Unique
+                        && active.city.iter().any(|d| d.name == DistrictName::Factory)
+                    {
+                        cost -= 1;
+                    }
+
+                    match method {
+                        BuildMethod::Regular { .. } => {
+                            if cost > active.gold {
+                                Err("Not enough gold")?;
+                            }
+
+                            let active = self.active_player_mut()?;
+                            active.gold -= cost;
+                        }
+                        BuildMethod::Cardinal { .. } => Err("Not the Cardinal")?,
+                        BuildMethod::ThievesDen { discard } => {
+                            if district.name != DistrictName::ThievesDen {
+                                Err("You are not building the ThievesDen!")?;
+                            }
+                            if discard.len() > cost {
+                                Err("Cannot discard more cards than the cost")?;
+                            }
+
+                            if active.gold + discard.len() < cost {
+                                Err("Not enough gold or cards discarded")?;
+                            }
+
+                            cost -= discard.len();
+                            let mut discard_set = discard.clone();
+                            let mut new_hand = Vec::with_capacity(active.hand.len());
+                            for card in active.hand.iter() {
+                                if let Some((i, _)) =
+                                    discard_set.iter().enumerate().find(|(_, d)| *d == card)
+                                {
+                                    discard_set.swap_remove(i);
+                                } else {
+                                    new_hand.push(*card);
+                                }
+                            }
+
+                            if discard_set.len() > 0 {
+                                Err("Can't discard cards not in your hand")?;
+                            }
+
+                            let active = self.active_player_mut().unwrap();
+                            active.gold -= cost;
+                            active.hand = new_hand;
+                            for card in discard {
+                                self.deck.discard_to_bottom(*card);
                             }
                         }
-                    } else {
-                        self.active_player_mut().unwrap().hand.push(*district);
+
+                        BuildMethod::Framework { .. } => {
+                            let city_index = active
+                                .city
+                                .iter()
+                                .enumerate()
+                                .find_map(|(i, c)| {
+                                    if c.name == DistrictName::Framework {
+                                        Some(i)
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .ok_or("Cannot sacrifice a district you don't own!")?;
+
+                            let active = self.active_player_mut().unwrap();
+                            active.city.swap_remove(city_index);
+                        }
+
+                        BuildMethod::Necropolis { sacrifice: target } => {
+                            if district.name != DistrictName::Necropolis {
+                                Err("You are not building the necropolis!")?;
+                            }
+                            let city_index = active
+                                .city
+                                .iter()
+                                .enumerate()
+                                .find_map(|(i, c)| {
+                                    if c.name == target.district
+                                        && c.beautified == target.beautified
+                                    {
+                                        Some(i)
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .ok_or("Cannot sacrifice a district you don't own!")?;
+
+                            let active = self.active_player_mut().unwrap();
+                            let district = active.city.swap_remove(city_index);
+                            self.discard_district(district.name);
+                        }
+                    }
+                    Game::remove_first(&mut self.players[target.0].hand, district.name).unwrap();
+
+                    if self.characters.has_tax_collector() {
+                        let player = self.active_player_mut()?;
+                        if player.gold > 0 {
+                            player.gold -= 1;
+                            self.tax_collector += 1;
+                        }
+                    }
+
+                    // the magistrate can only confiscate the first build of a turn
+                    if self.active_role().unwrap().has_warrant()
+                        && !self.turn_actions.iter().any(|act| act.is_build())
+                    {
                         ActionOutput {
                             log: format!(
-                                "The Wizard ({}) takes a card from {}'s hand.",
-                                self.active_player().unwrap().name,
-                                self.players[target.0].name,
+                                "The Wizard begins to build a {}; waiting on the Magistrate's response.",
+                                district.display_name
                             )
                             .into(),
+                            followup: Some(Followup::Warrant {
+                                magistrate: self.characters.get(Rank::One).player.unwrap(),
+                                gold: cost,
+                                district: district.name,
+                                signed: self
+                                    .active_role()
+                                    .unwrap()
+                                    .markers
+                                    .iter()
+                                    .any(|m| *m == Marker::Warrant { signed: true }),
+                            }),
+                        }
+                    } else {
+                        self.complete_build(
+                            self.active_player().unwrap().index,
+                            cost,
+                            district.name,
+                        );
+
+                        ActionOutput {
+                            log: format!("The Wizard builds a {}.", district.display_name).into(),
                             followup: None,
                         }
                     }
                 }
+
                 _ => Err("impossible")?,
             },
             Action::Bewitch { .. } => Err("Not implemented")?,

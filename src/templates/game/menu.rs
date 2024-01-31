@@ -28,7 +28,10 @@ impl<'a> MenuTemplate<'a> {
 }
 
 pub enum MenuView<'a> {
-    TODO,
+    Wizard {
+        player: &'a str,
+        hand: Vec<DistrictTemplate<'a>>,
+    },
     Emperor {
         players: Vec<&'a str>,
     },
@@ -108,7 +111,14 @@ impl<'a> MenuView<'a> {
                     player: game.active_player().unwrap().name.borrow(),
                     actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
                 },
-                Followup::WizardPick { .. } => MenuView::TODO,
+                Followup::WizardPick { player } => MenuView::Wizard {
+                    player: game.players[player.0].name.borrow(),
+                    hand: game.players[player.0]
+                        .hand
+                        .iter()
+                        .map(|d| DistrictTemplate::from(*d))
+                        .collect(),
+                },
                 Followup::SeerDistribute { players } => MenuView::SeerDistribute {
                     hand: game
                         .active_player()
