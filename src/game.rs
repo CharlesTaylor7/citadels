@@ -755,7 +755,7 @@ impl Game {
                     && c.markers.iter().any(|m| *m == Marker::Bewitched)
                 {
                     self.characters
-                        .get(Rank::Two)
+                        .get(Rank::One)
                         .player
                         .ok_or("no witch!".into())
                 } else {
