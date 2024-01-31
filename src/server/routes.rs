@@ -440,7 +440,7 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
 
-            ActionTag::WizardPick => {
+            ActionTag::WizardPeek => {
                 let rendered = WizardMenu::from_game(game).to_html()?;
                 Ok(rendered.into_response())
             }
