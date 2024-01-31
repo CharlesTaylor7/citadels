@@ -613,10 +613,9 @@ impl Game {
             game.begin_draft();
             Ok(game)
         } else {
-            let test_role = RoleName::Emperor;
+            let test_role = RoleName::Cardinal;
             // deal roles out randomly
             game.characters.get_mut(test_role.rank()).role = test_role;
-            game.characters.get_mut(Rank::One).role = RoleName::Assassin;
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
@@ -650,9 +649,9 @@ impl Game {
                 });
             }
 
-            //game.turn_actions = vec![Action::GatherResourceGold];
+            game.turn_actions = vec![Action::GatherResourceGold];
             game.active_turn = Turn::Call(Call {
-                rank: Rank::One,
+                rank: test_role.rank(),
                 end_of_round: false,
             });
             game.start_turn().unwrap();
@@ -1418,19 +1417,19 @@ impl Game {
                         }
 
                         cost -= discard.len();
-                        let mut discard = discard.clone();
+                        let mut discard_set = discard.clone();
                         let mut new_hand = Vec::with_capacity(active.hand.len());
                         for card in active.hand.iter() {
                             if let Some((i, _)) =
-                                discard.iter().enumerate().find(|(_, d)| *d == card)
+                                discard_set.iter().enumerate().find(|(_, d)| *d == card)
                             {
-                                discard.swap_remove(i);
+                                discard_set.swap_remove(i);
                             } else {
                                 new_hand.push(*card);
                             }
                         }
 
-                        if discard.len() > 0 {
+                        if discard_set.len() > 0 {
                             Err("Can't discard cards not in your hand")?;
                         }
                         Game::remove_first(&mut new_hand, district.name)
@@ -1439,6 +1438,9 @@ impl Game {
                         let active = self.active_player_mut().unwrap();
                         active.gold -= cost;
                         active.hand = new_hand;
+                        for card in discard {
+                            self.deck.discard_to_bottom(*card);
+                        }
                     }
 
                     BuildMethod::Framework { .. } => {
