@@ -13,72 +13,58 @@
 </h2>
 <div class="italic text-sm">Select a district from your hand</div>
 <div 
-  class="flex flex-row gap-2"
+  class="tabs tabs-boxed"
   hx-target="#submenu"
   hx-swap="innerHTML"
 >
-  Method: 
-  <label class="flex flex-row gap-1 items-center">
-    <input 
-      class="radio"
-      type="radio"
-      name="build_method"
-      value="Regular"
-      _="on click put '' into <#submenu/>'s innerHTML"
-      checked
-    />
-    Normal
-  </label>
+  <input 
+    aria-label="Normal"
+    class="tab"
+    type="radio"
+    name="build_method"
+    value="Regular"
+    _="on click put '' into <#submenu/>'s innerHTML"
+    checked
+  />
   {% if cardinal %}
-  <label class="flex flex-row gap-1 items-center">
-    <input 
-      class="radio"
-      type="radio"
-      name="build_method"
-      value="Cardinal"
-      hx-get="/game/menu/cardinal"
-    />
-    Cardinal
-  </label>
+  <input 
+    aria-label="Cardinal"
+    class="tab"
+    type="radio"
+    name="build_method"
+    value="Cardinal"
+    hx-get="/game/menu/cardinal"
+  />
   {% endif %}
   {% if framework %}
-  <label class="flex flex-row gap-1 items-center">
-    <input 
-      class="radio"
-      type="radio"
-      name="build_method"
-      value="Framework"
-      _="on click put '' into <#submenu/>'s innerHTML"
-    />
-    Framework
-  </label>
+  <input 
+    aria-label="Framework"
+    class="tab"
+    type="radio"
+    name="build_method"
+    value="Framework"
+    _="on click put '' into <#submenu/>'s innerHTML"
+  />
   {% endif %}
   {% if necropolis %}
-  <label class="flex flex-row gap-1 items-center">
-    <input 
-      class="radio"
-      type="radio"
-      name="build_method"
-      value="Necropolis"
-      hx-get="/game/menu/necropolis"
-    />
-
-    Necropolis
-  </label>
+  <input 
+    aria-label="Necropolis"
+    class="tab"
+    type="radio"
+    name="build_method"
+    value="Necropolis"
+    hx-get="/game/menu/necropolis"
+  />
   {% endif %}
   {% if thieves_den %}
-  <label class="flex flex-row gap-1 items-center">
-    <input 
-      class="radio"
-      type="radio"
-      name="build_method"
-      value="ThievesDen"
-      hx-get="/game/menu/thieves_den"
-      hx-target="#submenu"
-      hx-swap="innerHTML"
-    />
-    Thieves's Den
-  </label>
+  <input 
+    aria-label="Thieves' Den"
+    class="tab"
+    type="radio"
+    name="build_method"
+    value="ThievesDen"
+    hx-get="/game/menu/thieves_den"
+  />
   {% endif %}
 </div>
 <div id="submenu"></div>

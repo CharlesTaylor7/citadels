@@ -1,7 +1,3 @@
-<h2 class="header">
-  Cardinal
-</h2>
-
 <div class="flex flex-row gap-2">
   {% for name in players %}
     <label class="flex flex-row gap-1 items-center cursor-pointer">
@@ -11,7 +7,7 @@
   {% endfor %}
 </div>
 
-<div class="italic text-sm">Select cards to give</div>
+<div class="italic text-sm text-center">Select cards to give</div>
 
 <div class="flex flex-row flex-wrap gap-2"
   _="init add @name=discard to <input/> in me"
