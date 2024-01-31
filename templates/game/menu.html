@@ -265,4 +265,25 @@
 
 {% when MenuView::Wizard with { player, hand, build } %}
   {% include "menus/wizard-pick.html" %}
+
+{% when MenuView::Bewitch with { roles } %}
+<h2 class="header">
+  Witch
+</h2>
+
+<div class="flex flex-row flex-wrap gap-2 items-center" _="init add @required to <input[name=role]/> in me">
+  {% set input_type = "radio" %} 
+  {% set enabled = true %} 
+  {% for role in roles %} 
+    {% include "game/role-card.html" %}
+  {% endfor %}
+</div>
+
+<div class="m-2 flex flex-row flex-wrap gap-2 items-center">
+  {% set action = ActionTag::Bewitch %}
+  {% include "game/action.html" %}
+</div>
+
+<div id="error"></div>
+
 {% endmatch %}

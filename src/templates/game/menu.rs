@@ -28,6 +28,9 @@ impl<'a> MenuTemplate<'a> {
 }
 
 pub enum MenuView<'a> {
+    Bewitch {
+        roles: Vec<RoleTemplate>,
+    },
     Wizard {
         player: &'a str,
         hand: Vec<DistrictTemplate<'a>>,
@@ -101,6 +104,15 @@ impl<'a> MenuView<'a> {
         if my_response {
             let o = game.followup.as_ref().unwrap();
             return match o {
+                Followup::Bewitch => MenuView::Bewitch {
+                    roles: game
+                        .characters
+                        .iter_c()
+                        .filter(|c| c.role.rank() > Rank::One)
+                        .map(|c| RoleTemplate::from(c.role, 150.0))
+                        .collect(),
+                },
+
                 Followup::HandleBlackmail { .. } => MenuView::HandleBlackmail {
                     blackmailer: game.players[game.characters.get(Rank::Two).player.unwrap().0]
                         .name

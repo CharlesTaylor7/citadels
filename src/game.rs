@@ -306,6 +306,7 @@ pub struct ActionOutput {
 
 #[derive(Debug)]
 pub enum Followup {
+    Bewitch,
     GatherCardsPick {
         revealed: Vec<DistrictName>,
     },
@@ -337,6 +338,7 @@ pub enum Followup {
 impl Followup {
     pub fn actions(&self) -> Vec<ActionTag> {
         match self {
+            Self::Bewitch { .. } => vec![ActionTag::Bewitch],
             Self::HandleBlackmail { .. } => vec![ActionTag::PayBribe, ActionTag::IgnoreBlackmail],
             Self::SpyAcknowledge { .. } => vec![ActionTag::SpyAcknowledge],
             Self::GatherCardsPick { .. } => vec![ActionTag::GatherCardsPick],
@@ -613,7 +615,7 @@ impl Game {
             game.begin_draft();
             Ok(game)
         } else {
-            let test_role = RoleName::Wizard;
+            let test_role = RoleName::Witch;
             // deal roles out randomly
             game.characters.get_mut(test_role.rank()).role = test_role;
             let mut roles: Vec<_> = game.characters.iter().collect();
@@ -649,7 +651,6 @@ impl Game {
                 });
             }
 
-            game.turn_actions = vec![Action::GatherResourceGold];
             game.active_turn = Turn::Call(Call {
                 rank: test_role.rank(),
                 end_of_round: false,
@@ -681,6 +682,7 @@ impl Game {
             return match o {
                 Followup::Warrant { magistrate, .. } => Ok(*magistrate),
                 Followup::Blackmail { blackmailer, .. } => Ok(*blackmailer),
+                Followup::Bewitch { .. } => self.active_player_index(),
                 Followup::HandleBlackmail { .. } => self.active_player_index(),
                 Followup::SpyAcknowledge { .. } => self.active_player_index(),
                 Followup::WizardPick { .. } => self.active_player_index(),
@@ -994,10 +996,10 @@ impl Game {
         }
     }
     fn after_gather_resources(&self) -> Option<Followup> {
-        log::info!("After gathering, are they forced to followup?");
+        log::info!("After gathering, is there a forced followup?");
         self.forced_to_gather_resources()
             .and_then(|reason| match reason {
-                ForcedToGatherReason::Witch => None,
+                ForcedToGatherReason::Witch => Some(Followup::Bewitch),
                 ForcedToGatherReason::Bewitched => None,
                 ForcedToGatherReason::Blackmailed => Some(Followup::HandleBlackmail),
             })
@@ -2697,7 +2699,20 @@ impl Game {
 
                 _ => Err("impossible")?,
             },
-            Action::Bewitch { .. } => Err("Not implemented")?,
+            Action::Bewitch { role } => {
+                if role.rank() == Rank::One {
+                    Err("Cannot target self")?;
+                }
+                self.characters
+                    .get_mut(role.rank())
+                    .markers
+                    .push(Marker::Bewitched);
+
+                ActionOutput {
+                    log: format!("The Witch bewitches {}.", role.display_name()).into(),
+                    followup: None,
+                }
+            }
         })
     }
 
