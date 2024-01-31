@@ -464,8 +464,20 @@ impl Characters {
         &mut self.0[rank.to_index()]
     }
 
-    pub fn has_revealed_role(&self, player: &Player, role: RoleName) -> bool {
-        player.roles.iter().any(|r| *r == role) && self.get(role.rank()).revealed
+    pub fn has_bishop_protection(&self, player: PlayerIndex) -> bool {
+        let bishop = self.get(Rank::Five);
+        if bishop.role != RoleName::Bishop {
+            return false;
+        }
+        if !bishop.revealed {
+            return false;
+        }
+
+        if bishop.markers.iter().any(|m| *m == Marker::Bewitched) {
+            return self.get(Rank::One).player.is_some_and(|w| w == player);
+        }
+
+        bishop.player.is_some_and(|p| p == player)
     }
 
     pub fn has_tax_collector(&self) -> bool {
@@ -1684,7 +1696,7 @@ impl Game {
                     .find(|p| p.name == target.player)
                     .ok_or("Player does not exist")?;
 
-                if self.characters.has_revealed_role(player, RoleName::Bishop) {
+                if self.characters.has_bishop_protection(player.index) {
                     Err("Cannot target the Bishop")?
                 }
                 if player.city_size() >= complete_size {
@@ -2212,7 +2224,7 @@ impl Game {
                     .find(|p| p.name == target.player)
                     .ok_or("Player does not exist")?;
 
-                if self.characters.has_revealed_role(player, RoleName::Bishop) {
+                if self.characters.has_bishop_protection(player.index) {
                     Err("Cannot target the Bishop")?
                 }
                 if player.city_size() >= complete_size {
@@ -2337,7 +2349,7 @@ impl Game {
                     .find(|p| p.name == their_target.player)
                     .ok_or("invalid player target")?;
 
-                if self.characters.has_revealed_role(player, RoleName::Bishop) {
+                if self.characters.has_bishop_protection(player.index) {
                     Err("Cannot target the Bishop")?
                 }
                 if player.city_size() >= complete_city_size {

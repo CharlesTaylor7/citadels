@@ -189,7 +189,7 @@ impl<'a> WarlordMenu<'a> {
                 .players
                 .iter()
                 .filter(|p| {
-                    !game.characters.has_revealed_role(p, RoleName::Bishop)
+                    !game.characters.has_bishop_protection(p.index)
                         && p.city_size() < game.complete_city_size()
                 })
                 .map(|p| CityTemplate::from(game, p.index, None))
@@ -230,7 +230,7 @@ impl<'a> MarshalMenu<'a> {
                 .players
                 .iter()
                 .filter(|p| {
-                    !game.characters.has_revealed_role(p, RoleName::Bishop)
+                    !game.characters.has_bishop_protection(p.index)
                         && p.city_size() < game.complete_city_size()
                         && game.active_player().is_ok_and(|active| active.id != p.id)
                 })
@@ -253,7 +253,7 @@ impl<'a> DiplomatMenu<'a> {
                 .players
                 .iter()
                 .filter(|p| {
-                    !game.characters.has_revealed_role(p, RoleName::Bishop)
+                    !game.characters.has_bishop_protection(p.index)
                         && p.city_size() < game.complete_city_size()
                         && game.active_player().is_ok_and(|active| active.id != p.id)
                 })
