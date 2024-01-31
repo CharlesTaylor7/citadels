@@ -3,7 +3,7 @@ use crate::actions::ActionTag;
 use crate::game::{Call, Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
 use crate::roles::{Rank, RoleName};
 use crate::templates::filters;
-use crate::templates::game::menus::EmperorMenu;
+use crate::templates::game::menus::{BuildMenu, EmperorMenu};
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use askama::Template;
 use std::borrow::{Borrow, Cow};
@@ -31,6 +31,7 @@ pub enum MenuView<'a> {
     Wizard {
         player: &'a str,
         hand: Vec<DistrictTemplate<'a>>,
+        build: BuildMenu,
     },
     Emperor {
         players: Vec<&'a str>,
@@ -112,6 +113,7 @@ impl<'a> MenuView<'a> {
                     actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
                 },
                 Followup::WizardPick { player } => MenuView::Wizard {
+                    build: BuildMenu::from_game(game),
                     player: game.players[player.0].name.borrow(),
                     hand: game.players[player.0]
                         .hand

@@ -5,7 +5,6 @@ use crate::actions::ActionTag;
 use crate::game::{Game, GameRole, Player, PlayerIndex, Turn};
 use crate::roles::RoleName;
 use crate::templates::game::menu::{MenuTemplate, MenuView};
-use crate::templates::game::menus::EmperorMenu;
 use crate::templates::MyTemplate;
 use crate::templates::{filters, DAISY_THEMES};
 use crate::templates::{DistrictTemplate, RoleTemplate};

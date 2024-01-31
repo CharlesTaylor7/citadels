@@ -1,6 +1,6 @@
 use crate::actions::ActionTag;
 use crate::districts::DistrictName;
-use crate::game::{self, Game, Player};
+use crate::game::{self, Followup, Game, Player};
 use crate::roles::RoleName;
 use crate::templates::{filters, DistrictTemplate, RoleTemplate};
 use crate::types::CardSuit;
@@ -25,15 +25,21 @@ pub struct SelectRoleMenu<'a> {
 #[derive(Template)]
 #[template(path = "game/menus/build.html")]
 pub struct BuildMenu {
-    cardinal: bool,
-    thieves_den: bool,
-    framework: bool,
-    necropolis: bool,
+    pub wizard: bool,
+    pub cardinal: bool,
+    pub thieves_den: bool,
+    pub framework: bool,
+    pub necropolis: bool,
 }
 
 impl BuildMenu {
     pub fn from_game(game: &Game) -> Self {
         Self {
+            wizard: if let Some(Followup::WizardPick { .. }) = game.followup {
+                true
+            } else {
+                false
+            },
             cardinal: game
                 .active_role()
                 .is_ok_and(|c| c.role == RoleName::Cardinal),

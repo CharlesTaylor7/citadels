@@ -263,6 +263,11 @@
     </button>
   </div>
 
-{% when MenuView::Wizard with { player, hand } %}
-
+{% when MenuView::Wizard with { player, hand, build } %}
+{% set wizard = true %}
+{% set cardinal = false %}
+{% set necropolis = build.necropolis %}
+{% set thieves_den = build.thieves_den %}
+{% set framework = build.framework %}
+{% include "menus/build.html" %}
 {% endmatch %}

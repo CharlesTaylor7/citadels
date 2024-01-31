@@ -613,7 +613,7 @@ impl Game {
             game.begin_draft();
             Ok(game)
         } else {
-            let test_role = RoleName::Cardinal;
+            let test_role = RoleName::Wizard;
             // deal roles out randomly
             game.characters.get_mut(test_role.rank()).role = test_role;
             let mut roles: Vec<_> = game.characters.iter().collect();

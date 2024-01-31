@@ -11,20 +11,30 @@
 >
   Build
 </h2>
-<div class="italic text-sm">Select a district from your hand</div>
+<div class="italic text-sm">Select a district from hand</div>
 <div 
   class="tabs tabs-boxed"
   hx-target="#submenu"
   hx-swap="innerHTML"
 >
+  {% if wizard %}
   <input 
-    aria-label="Normal"
+    aria-label="Pick"
+    class="tab"
+    type="radio"
+    name="build_method"
+    value=""
+    _="on click put '' into <#submenu/>'s innerHTML"
+    checked
+  />
+  {% endif %}
+  <input 
+    aria-label="Build"
     class="tab"
     type="radio"
     name="build_method"
     value="Regular"
     _="on click put '' into <#submenu/>'s innerHTML"
-    checked
   />
   {% if cardinal %}
   <input 
