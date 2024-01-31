@@ -335,7 +335,7 @@ async fn submit_game_action(
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
                     context: GameContext::from_game(game, Some(cookie.value())),
-                    header: "Select a role".into(),
+                    header: "Assassin".into(),
                     action: ActionTag::Assassinate,
                 }
                 .to_html()?;
@@ -355,7 +355,7 @@ async fn submit_game_action(
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
                     context: GameContext::from_game(game, Some(cookie.value())),
-                    header: "Select a role".into(),
+                    header: "Thief".into(),
                     action: ActionTag::Steal,
                 }
                 .to_html()?;
