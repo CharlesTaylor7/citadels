@@ -42,7 +42,7 @@ pub fn derive(ast: DeriveInput) -> TokenStream {
 
     quote! {
         #trait_list
-        #[repr(usize)]
+        #[repr(u8)]
         #vis enum #tag_enum_name {
             #( #tags, )*
         }

@@ -300,8 +300,40 @@ impl GameRole {
 pub type ActionResult = Result<ActionOutput>;
 
 pub struct ActionOutput {
-    pub followup: Option<Followup>,
     pub log: Cow<'static, str>,
+    pub followup: Option<Followup>,
+    pub end_turn: bool,
+    pub notifications: Vec<()>,
+}
+impl ActionOutput {
+    pub fn new(log: impl Into<Cow<'static, str>>) -> Self {
+        Self {
+            log: log.into(),
+            followup: None,
+            end_turn: false,
+            notifications: vec![],
+        }
+    }
+
+    pub fn end_turn(mut self) -> Self {
+        self.end_turn = true;
+        self
+    }
+
+    pub fn followup(mut self, followup: Followup) -> Self {
+        self.followup = Some(followup);
+        self
+    }
+
+    pub fn maybe_followup(mut self, followup: Option<Followup>) -> Self {
+        self.followup = followup;
+        self
+    }
+
+    pub fn notify(mut self, notification: ()) -> Self {
+        self.notifications.push(notification);
+        self
+    }
 }
 
 #[derive(Debug)]
@@ -875,7 +907,12 @@ impl Game {
             return Err("not allowed".into());
         }
 
-        let ActionOutput { followup, log } = self.perform_action(&action)?;
+        let ActionOutput {
+            followup,
+            log,
+            end_turn,
+            notifications: _,
+        } = self.perform_action(&action)?;
 
         if let Some(log) = self.db_log.as_mut() {
             if let Err(err) = log.append(&action) {
@@ -1035,15 +1072,13 @@ impl Game {
                         }
                     }
 
-                    ActionOutput {
-                        log: format!(
+                    ActionOutput::new(format!(
                             "The Magistrate ({}) reveals a signed warrant and confiscates the {}; {} gold is refunded.",
                             name,
                             district.data().display_name, 
                             gold
-                        ).into(),
-                        followup: None,
-                    }
+                        )
+                    )
                 }
                 _ => return Err("cannot reveal warrant".into()),
             },
@@ -1055,22 +1090,22 @@ impl Game {
 
                 let blackmailer = self.characters.get(Rank::Two).player.unwrap();
                 self.players[blackmailer.0].gold += half;
-                ActionOutput {
-                    log: format!(
-                        "They bribed the Blackmailer ({}) with {} gold.",
-                        self.players[blackmailer.0].name, half
-                    )
-                    .into(),
-                    followup: None,
-                }
+
+                ActionOutput::new(format!(
+                    "They bribed the Blackmailer ({}) with {} gold.",
+                    self.players[blackmailer.0].name, half
+                ))
             }
 
-            Action::IgnoreBlackmail => ActionOutput {
-                log: "They ignored the blackmail. Waiting on the Blackmailer's response.".into(),
-                followup: Some(Followup::Blackmail {
+            Action::IgnoreBlackmail => {
+                //
+                ActionOutput::new(
+                    "They ignored the blackmail. Waiting on the Blackmailer's response.",
+                )
+                .followup(Followup::Blackmail {
                     blackmailer: self.characters.get(Rank::Two).player.unwrap(),
-                }),
-            },
+                })
+            }
 
             Action::RevealBlackmail => match self.followup {
                 Some(Followup::Blackmail { blackmailer }) => {
@@ -1094,24 +1129,17 @@ impl Game {
                             }
                         }
 
-                        ActionOutput {
-                        log: format!(
+                        ActionOutput::new(format!(
                             "The Blackmailer ({}) reveals an active threat, and takes all {} of their gold.", 
                             self.players[blackmailer.0].name,
                             gold 
-                        ).into(),
-                        followup: None,
-                        }
+                        ))
                     } else {
                         let name = self.active_player().unwrap().name.clone();
-                        ActionOutput {
-                            log: format!(
-                                "The Blackmailer ({}) reveals an empty threat. Nothing happens.",
-                                name
-                            )
-                            .into(),
-                            followup: None,
-                        }
+                        ActionOutput::new(format!(
+                            "The Blackmailer ({}) reveals an empty threat. Nothing happens.",
+                            name
+                        ))
                     }
                 }
                 _ => return Err("Cannot reveal blackmail".into()),
@@ -1126,25 +1154,20 @@ impl Game {
                         magistrate,
                         ..
                     }) => {
-                        // t
+                        //
                         self.complete_build(self.active_player_index()?, gold, district);
-                        ActionOutput {
-                            log: format!(
-                                "The Magistrate ({}) did not reveal the warrant.",
-                                self.players[magistrate.0].name
-                            )
-                            .into(),
-                            followup: None,
-                        }
+                        ActionOutput::new(format!(
+                            "The Magistrate ({}) did not reveal the warrant.",
+                            self.players[magistrate.0].name
+                        ))
                     }
-                    Some(Followup::Blackmail { blackmailer }) => ActionOutput {
-                        log: format!(
+                    Some(Followup::Blackmail { blackmailer }) => {
+                        //
+                        ActionOutput::new(format!(
                             "The Blackmailer ({}) did not reveal the blackmail.",
                             self.players[blackmailer.0].name,
-                        )
-                        .into(),
-                        followup: None,
-                    },
+                        ))
+                    }
                     _ => return Err("impossible".into()),
                 }
             }
@@ -1159,10 +1182,7 @@ impl Game {
                 player.roles.push(*role);
                 player.roles.sort_by_key(|r| r.rank());
 
-                ActionOutput {
-                    log: format!("{} drafted a role.", player.name).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!("{} drafted a role.", player.name))
             }
 
             Action::DraftDiscard { role } => {
@@ -1172,19 +1192,17 @@ impl Game {
                     .ok_or("selected role is not available")?;
 
                 draft.remaining.remove(i);
-                ActionOutput {
-                    log: format!("{} discarded a role face down.", self.active_player()?.name)
-                        .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "{} discarded a role face down.",
+                    self.active_player()?.name
+                ))
+                .end_turn()
             }
 
             Action::EndTurn => {
-                // this is handled after the logs are updated.
-                ActionOutput {
-                    log: format!("{} ended their turn.", self.active_player()?.name).into(),
-                    followup: None,
-                }
+                //
+                ActionOutput::new(format!("{} ended their turn.", self.active_player()?.name))
+                    .end_turn()
             }
 
             Action::GatherResourceGold => {
@@ -1192,17 +1210,14 @@ impl Game {
                 let mut amount = 2;
                 let log = if self.players[active.0].city_has(DistrictName::GoldMine) {
                     amount += 1;
-                    "They gathered 3 gold. (1 extra from their Gold Mine).".into()
+                    "They gathered 3 gold. (1 extra from their Gold Mine)."
                 } else {
-                    "They gathered 2 gold.".into()
+                    "They gathered 2 gold."
                 };
 
                 self.players[active.0].gold += amount;
 
-                ActionOutput {
-                    log,
-                    followup: self.after_gather_resources(),
-                }
+                ActionOutput::new(log).maybe_followup(self.after_gather_resources())
             }
 
             Action::GatherResourceCards => {
@@ -1216,23 +1231,21 @@ impl Game {
                 if self.active_player()?.city_has(DistrictName::Library) {
                     self.active_player_mut()?.hand.append(&mut drawn);
 
-                    ActionOutput {
-                        log: format!("They gathered cards. With the aid of their library they kept all {} cards.", draw_amount).into(),
-                        followup: self.after_gather_resources(),
-                    }
+                    ActionOutput::new(format!(
+                        "They gathered cards. With the aid of their library they kept all {} cards.", 
+                        draw_amount
+                    )).maybe_followup(self.after_gather_resources())
                 } else {
-                    ActionOutput {
-                        log: format!(
-                            "They revealed {} cards from the top of the deck.",
-                            draw_amount
-                        )
-                        .into(),
-                        followup: if drawn.len() > 0 {
-                            Some(Followup::GatherCardsPick { revealed: drawn })
-                        } else {
-                            self.after_gather_resources()
-                        },
-                    }
+                    let followup = if drawn.len() > 0 {
+                        Some(Followup::GatherCardsPick { revealed: drawn })
+                    } else {
+                        self.after_gather_resources()
+                    };
+                    ActionOutput::new(format!(
+                        "They revealed {} cards from the top of the deck.",
+                        draw_amount
+                    ))
+                    .maybe_followup(followup)
                 }
             }
 
@@ -1252,10 +1265,8 @@ impl Game {
                     self.deck.discard_to_bottom(*remaining);
                 }
                 self.active_player_mut()?.hand.push(*district);
-                ActionOutput {
-                    log: "They picked a card.".into(),
-                    followup: self.after_gather_resources(),
-                }
+                ActionOutput::new("They picked a card.")
+                    .maybe_followup(self.after_gather_resources())
             }
             Action::GoldFromNobility => self.gain_gold_for_suit(CardSuit::Noble)?,
             Action::GoldFromReligion => self.gain_gold_for_suit(CardSuit::Religious)?,
@@ -1268,18 +1279,18 @@ impl Game {
             Action::MerchantGainOneGold => {
                 let player = self.active_player_mut()?;
                 player.gold += 1;
-                ActionOutput {
-                    log: format!("The Merchant ({}) gained 1 extra gold.", player.name).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Merchant ({}) gained 1 extra gold.",
+                    player.name
+                ))
             }
             Action::ArchitectGainCards => {
                 self.gain_cards(2);
                 let player = self.active_player()?;
-                ActionOutput {
-                    log: format!("The Architect ({}) gained 2 extra cards.", player.name).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Architect ({}) gained 2 extra cards.",
+                    player.name
+                ))
             }
 
             Action::Build(method) => {
@@ -1512,41 +1523,34 @@ impl Game {
                 if self.active_role().unwrap().has_warrant()
                     && !self.turn_actions.iter().any(|act| act.is_build())
                 {
-                    ActionOutput {
-                        log: format!(
-                            "They begin to build a {}; waiting on the Magistrate's response.",
-                            district.display_name
-                        )
-                        .into(),
-                        followup: Some(Followup::Warrant {
-                            magistrate: self.characters.get(Rank::One).player.unwrap(),
-                            gold: cost,
-                            district: district.name,
-                            signed: self
-                                .active_role()
-                                .unwrap()
-                                .markers
-                                .iter()
-                                .any(|m| *m == Marker::Warrant { signed: true }),
-                        }),
-                    }
+                    ActionOutput::new(format!(
+                        "They begin to build a {}; waiting on the Magistrate's response.",
+                        district.display_name
+                    ))
+                    .followup(Followup::Warrant {
+                        magistrate: self.characters.get(Rank::One).player.unwrap(),
+                        gold: cost,
+                        district: district.name,
+                        signed: self
+                            .active_role()
+                            .unwrap()
+                            .markers
+                            .iter()
+                            .any(|m| *m == Marker::Warrant { signed: true }),
+                    })
                 } else {
                     self.complete_build(self.active_player().unwrap().index, cost, district.name);
-
-                    ActionOutput {
-                        log: format!("They build a {}.", district.display_name).into(),
-                        followup: None,
-                    }
+                    ActionOutput::new(format!("They build a {}.", district.display_name))
                 }
             }
 
             Action::TakeCrown => {
                 self.crowned = self.active_player_index()?;
 
-                ActionOutput {
-                    log: format!("{} takes the crown.", self.active_player().unwrap().name).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "{} takes the crown.",
+                    self.active_player().unwrap().name
+                ))
             }
 
             Action::Assassinate { role } => {
@@ -1556,15 +1560,11 @@ impl Game {
                 let target = self.characters.get_mut(role.rank());
                 target.markers.push(Marker::Killed);
 
-                ActionOutput {
-                    log: format!(
-                        "The Assassin ({}) kills the {}; Their turn will be skipped.",
-                        self.active_player()?.name,
-                        role.display_name(),
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Assassin ({}) kills the {}; Their turn will be skipped.",
+                    self.active_player()?.name,
+                    role.display_name(),
+                ))
             }
 
             Action::Steal { role } => {
@@ -1592,14 +1592,11 @@ impl Game {
 
                 target.markers.push(Marker::Robbed);
 
-                ActionOutput {
-                    log: format!(
-                        "The Thief ({}) robs the {}; At the start of their turn, all their gold will be taken.",
-                        self.active_player()?.name,
-                        role.display_name(),
-                    ).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!( 
+                    "The Thief ({}) robs the {}; At the start of their turn, all their gold will be taken.",
+                    self.active_player()?.name,
+                    role.display_name(),
+                ))
             }
 
             Action::Magic(MagicianAction::TargetPlayer { player }) => {
@@ -1618,14 +1615,10 @@ impl Game {
                 std::mem::swap(&mut hand, &mut target.hand);
                 self.active_player_mut()?.hand = hand;
 
-                ActionOutput {
-                    log: format!(
-                        "They swapped their hand of {} cards with {}'s hand of {} cards.",
-                        hand_count, player, target_count,
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "They swapped their hand of {} cards with {}'s hand of {} cards.",
+                    hand_count, player, target_count,
+                ))
             }
 
             Action::Magic(MagicianAction::TargetDeck { district }) => {
@@ -1652,16 +1645,12 @@ impl Game {
 
                 self.gain_cards(discard.len());
 
-                ActionOutput {
-                    log: format!(
-                        "The Magician ({}) discarded {} cards and drew {} more.",
-                        self.active_player()?.name,
-                        discard.len(),
-                        discard.len(),
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Magician ({}) discarded {} cards and drew {} more.",
+                    self.active_player()?.name,
+                    discard.len(),
+                    discard.len(),
+                ))
             }
 
             Action::WarlordDestroy { district: target } => {
@@ -1710,16 +1699,12 @@ impl Game {
                 self.active_player_mut()?.gold -= destroy_cost;
                 self.discard_district(target.district);
 
-                ActionOutput {
-                    log: format!(
-                        "The Warlord ({}) destroyed {}'s {}.",
-                        self.active_player()?.name,
-                        target.player,
-                        target.district.data().display_name,
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Warlord ({}) destroyed {}'s {}.",
+                    self.active_player()?.name,
+                    target.player,
+                    target.district.data().display_name,
+                ))
             }
 
             Action::Armory { district: target } => {
@@ -1764,15 +1749,11 @@ impl Game {
                 self.discard_district(DistrictName::Armory);
                 self.discard_district(target.district);
 
-                ActionOutput {
-                    log: format!(
-                        "They sacrificed their Armory to destroy {}'s {}.",
-                        target.player,
-                        target.district.data().display_name,
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "They sacrificed their Armory to destroy {}'s {}.",
+                    target.player,
+                    target.district.data().display_name,
+                ))
             }
 
             Action::Beautify {
@@ -1793,29 +1774,21 @@ impl Game {
                 city_district.beautified = true;
                 player.gold -= 1;
 
-                ActionOutput {
-                    log: format!(
-                        "The Artist ({}) beautified their {}.",
-                        self.active_player()?.name,
-                        district.data().display_name,
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Artist ({}) beautified their {}.",
+                    self.active_player()?.name,
+                    district.data().display_name,
+                ))
             }
 
             Action::NavigatorGain {
                 resource: Resource::Cards,
             } => {
                 self.gain_cards(4);
-                ActionOutput {
-                    log: format!(
-                        "The Navigator ({}) gained 4 extra cards.",
-                        self.active_player()?.name
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Navigator ({}) gained 4 extra cards.",
+                    self.active_player()?.name
+                ))
             }
 
             Action::NavigatorGain {
@@ -1824,10 +1797,10 @@ impl Game {
                 let player = self.active_player_mut()?;
                 player.gold += 4;
 
-                ActionOutput {
-                    log: format!("The Navigator ({}) gained 4 extra gold.", player.name).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Navigator ({}) gained 4 extra gold.",
+                    player.name
+                ))
             }
 
             Action::SeerTake => {
@@ -1843,20 +1816,17 @@ impl Game {
                     }
                 }
                 self.active_player_mut()?.hand = active_hand;
-                ActionOutput {
-                    log: format!(
-                        "The Seer ({}) takes 1 card from everyone.",
-                        self.active_player()?.name
-                    )
-                    .into(),
-                    followup: if taken_from.is_empty() {
-                        None
-                    } else {
-                        Some(Followup::SeerDistribute {
-                            players: taken_from,
-                        })
-                    },
-                }
+                ActionOutput::new(format!(
+                    "The Seer ({}) takes 1 card from everyone.",
+                    self.active_player()?.name
+                ))
+                .maybe_followup(if taken_from.is_empty() {
+                    None
+                } else {
+                    Some(Followup::SeerDistribute {
+                        players: taken_from,
+                    })
+                })
             }
 
             Action::SeerDistribute { seer } => {
@@ -1890,10 +1860,7 @@ impl Game {
                     self.players[index.0].hand.push(district);
                 }
 
-                ActionOutput {
-                    log: format!("The Seer distributed cards back.").into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!("The Seer distributed cards back."))
             }
 
             Action::ResourcesFromReligion { gold, cards, .. } => {
@@ -1910,23 +1877,19 @@ impl Game {
                 let _amount = self.gain_cards(count);
                 let player = self.active_player()?;
 
-                ActionOutput {
-                    followup: None,
-                    log: format!(
-                        "The Abbot ({}) gained {} gold and {} cards from their Religious districts",
-                        player.name, gold, cards
-                    )
-                    .into(),
-                }
+                ActionOutput::new(format!(
+                    "The Abbot ({}) gained {} gold and {} cards from their Religious districts",
+                    player.name, gold, cards
+                ))
             }
             Action::CollectTaxes => {
                 let taxes = self.tax_collector;
                 self.active_player_mut()?.gold += taxes;
                 self.tax_collector = 0;
-                ActionOutput {
-                    log: format!("The Tax Collector collects {} gold in taxes.", taxes).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Tax Collector collects {} gold in taxes.",
+                    taxes
+                ))
             }
             Action::QueenGainGold => {
                 let active = self.active_player_index()?;
@@ -1945,23 +1908,18 @@ impl Game {
                         c.role.display_name()
                     )
                 };
-                ActionOutput {
-                    log: log.into(),
-                    followup: None,
-                }
+                ActionOutput::new(log)
             }
 
-            Action::SpyAcknowledge => ActionOutput {
-                followup: None,
-                log: format!("Spy is done peeking at the revealed hand").into(),
-            },
+            Action::SpyAcknowledge => {
+                //
+                ActionOutput::new(format!("Spy is done peeking at the revealed hand"))
+            }
 
             Action::Spy { player, suit } => {
                 if player == self.active_player().unwrap().name {
                     return Err("Cannot spy on self.".into());
                 }
-                // TODO: show them the hand.
-                // dismissible popup? store inbox of messages for each player?
                 let target = self
                     .players
                     .iter()
@@ -1982,20 +1940,19 @@ impl Game {
                 self.players[target.0].gold -= gold_taken;
                 self.active_player_mut().unwrap().gold += gold_taken;
                 let cards_drawn = self.gain_cards(matches);
-                ActionOutput {
-                    log: format!(
-                        "The Spy is counting {} districts. They spy on {}, and find {} matches. They take {} gold, and draw {} cards.",
-                        suit,
-                        self.players[target.0].name,
-                        matches,
-                        gold_taken,
-                        cards_drawn
-                    ).into(),
-                    followup: Some(Followup::SpyAcknowledge {
+                ActionOutput::new(format!(
+                    "The Spy is counting {} districts. They spy on {}, and find {} matches. They take {} gold, and draw {} cards.",
+                    suit,
+                    self.players[target.0].name,
+                    matches,
+                    gold_taken,
+                    cards_drawn
+                )).followup(
+                    Followup::SpyAcknowledge {
                         player: self.players[target.0].name.clone(),
                         revealed: self.players[target.0].hand.clone(),
-                    }),
-                }
+                    },
+                )
             }
             Action::TakeFromRich { player } => {
                 if player == self.active_player().unwrap().name {
@@ -2024,10 +1981,7 @@ impl Game {
                 target.gold -= 1;
                 let name = target.name.clone();
                 self.active_player_mut().unwrap().gold += 1;
-                ActionOutput {
-                    log: format!("The Abbot takes 1 gold from the richest: {}", name).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!("The Abbot takes 1 gold from the richest: {}", name))
             }
             Action::SendWarrants { signed, unsigned } => {
                 let mut roles = Vec::with_capacity(3);
@@ -2054,16 +2008,12 @@ impl Game {
                         .markers
                         .push(Marker::Warrant { signed: false });
                 }
-                ActionOutput {
-                    log: format!(
-                        "Magistrate sends warrants to the {}, the {}, and the {}.",
-                        roles[0].display_name(),
-                        roles[1].display_name(),
-                        roles[2].display_name()
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "Magistrate sends warrants to the {}, the {}, and the {}.",
+                    roles[0].display_name(),
+                    roles[1].display_name(),
+                    roles[2].display_name()
+                ))
             }
             Action::Blackmail { flowered, unmarked } => {
                 if flowered == unmarked {
@@ -2104,15 +2054,11 @@ impl Game {
                 let mut roles = vec![flowered, unmarked];
                 roles.sort_by_key(|r| r.rank());
 
-                ActionOutput {
-                    log: format!(
-                        "The Blackmailer sends blackmail to the {} and the {}",
-                        roles[0].display_name(),
-                        roles[1].display_name(),
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Blackmailer sends blackmail to the {} and the {}",
+                    roles[0].display_name(),
+                    roles[1].display_name(),
+                ))
             }
 
             Action::Smithy => {
@@ -2122,10 +2068,7 @@ impl Game {
                 }
                 active.gold -= 2;
                 self.gain_cards(3);
-                ActionOutput {
-                    log: "At the Smithy, they forge 2 gold into 3 cards.".into(),
-                    followup: None,
-                }
+                ActionOutput::new("At the Smithy, they forge 2 gold into 3 cards.")
             }
 
             Action::Laboratory { district } => {
@@ -2140,10 +2083,7 @@ impl Game {
                 active.gold += 2;
                 self.deck.discard_to_bottom(card);
 
-                ActionOutput {
-                    log: "At the Laboratory, they transmute 1 card into 2 gold.".into(),
-                    followup: None,
-                }
+                ActionOutput::new("At the Laboratory, they transmute 1 card into 2 gold.")
             }
 
             Action::Museum { district } => {
@@ -2157,24 +2097,18 @@ impl Game {
                 let card = active.hand.remove(index);
                 self.museum.tuck(card);
 
-                ActionOutput {
-                    log: "They tucked a card face down under their Museum.".into(),
-                    followup: None,
-                }
+                ActionOutput::new("They tucked a card face down under their Museum.")
             }
 
             Action::ScholarReveal => {
                 let drawn = self.deck.draw_many(7).collect::<Vec<_>>();
 
-                ActionOutput {
-                    log: format!(
-                        "The Scholar ({}) is choosing from the top {} cards of the deck.",
-                        self.active_player()?.name,
-                        drawn.len(),
-                    )
-                    .into(),
-                    followup: Some(Followup::ScholarPick { revealed: drawn }),
-                }
+                ActionOutput::new(format!(
+                    "The Scholar ({}) is choosing from the top {} cards of the deck.",
+                    self.active_player()?.name,
+                    drawn.len(),
+                ))
+                .followup(Followup::ScholarPick { revealed: drawn })
             }
 
             Action::ScholarPick { district } => {
@@ -2192,25 +2126,20 @@ impl Game {
                 self.deck.shuffle(&mut self.rng);
                 self.active_player_mut()?.hand.push(*district);
 
-                ActionOutput {
-                    log: format!(
-                        "The Scholar ({}) picked a card, discarded the rest and shuffled the deck.",
-                        self.active_player()?.name,
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Scholar ({}) picked a card, discarded the rest and shuffled the deck.",
+                    self.active_player()?.name,
+                ))
             }
 
-            Action::TheaterPass => ActionOutput {
-                log: format!(
+            Action::TheaterPass => {
+                //
+                ActionOutput::new(format!(
                     "{} decided not to use the Theatre",
                     self.active_player()?.name
-                )
-                .into(),
-
-                followup: None,
-            },
+                ))
+                .end_turn()
+            }
             Action::Theater { role, player } => {
                 if self.active_player().unwrap().name == *player {
                     return Err("Cannot swap with self".into());
@@ -2240,15 +2169,12 @@ impl Game {
                     self.characters.get_mut(role.rank()).player = Some(index);
                 }
 
-                ActionOutput {
-                    log: format!(
-                        "Theater: {} swaps roles with {}",
-                        self.active_player().unwrap().name,
-                        player
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "Theater: {} swaps roles with {}",
+                    self.active_player().unwrap().name,
+                    player
+                ))
+                .end_turn()
             }
 
             Action::MarshalSeize { district: target } => {
@@ -2303,16 +2229,12 @@ impl Game {
                 active.gold -= seize_cost;
                 active.city.push(district);
 
-                ActionOutput {
-                    log: format!(
-                        "The Marshal ({}) seizes {}'s {}.",
-                        self.active_player()?.name,
-                        target.player,
-                        target.district.data().display_name,
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Marshal ({}) seizes {}'s {}.",
+                    self.active_player()?.name,
+                    target.player,
+                    target.district.data().display_name,
+                ))
             }
 
             Action::EmperorGiveCrown { player, resource } => {
@@ -2345,19 +2267,15 @@ impl Game {
                     _ => {}
                 }
 
-                ActionOutput {
-                    log: format!(
-                        "The Emperor ({}) gives {} the crown and takes one of their {}.",
-                        self.active_player()?.name,
-                        player,
-                        match resource {
-                            Resource::Gold => "gold",
-                            Resource::Cards => "cards",
-                        }
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Emperor ({}) gives {} the crown and takes one of their {}.",
+                    self.active_player()?.name,
+                    player,
+                    match resource {
+                        Resource::Gold => "gold",
+                        Resource::Cards => "cards",
+                    }
+                ))
             }
 
             Action::EmperorHeirGiveCrown { player } => {
@@ -2377,15 +2295,12 @@ impl Game {
 
                 self.crowned = target.index;
 
-                ActionOutput {
-                    log: format!(
-                        "The Emperor's heir ({}) gives {} the crown.",
-                        self.active_player()?.name,
-                        player,
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Emperor's heir ({}) gives {} the crown.",
+                    self.active_player()?.name,
+                    player,
+                ))
+                .end_turn()
             }
             Action::DiplomatTrade {
                 district: my_target,
@@ -2480,22 +2395,18 @@ impl Game {
                     beautified: their_target.beautified,
                 };
 
-                ActionOutput {
-                    log: format!(
-                        "The Diplomat ({}) traded their {} for {}'s {}{}.",
-                        active.name,
-                        my_target.district.data().display_name,
-                        their_target.player,
-                        their_target.district.data().display_name,
-                        if trade_cost > 0 {
-                            format!("; they paid {} gold for the difference", trade_cost)
-                        } else {
-                            "".into()
-                        }
-                    )
-                    .into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!(
+                    "The Diplomat ({}) traded their {} for {}'s {}{}.",
+                    active.name,
+                    my_target.district.data().display_name,
+                    their_target.player,
+                    their_target.district.data().display_name,
+                    if trade_cost > 0 {
+                        format!("; they paid {} gold for the difference", trade_cost)
+                    } else {
+                        "".into()
+                    }
+                ))
             }
             Action::WizardPeek { player } => {
                 let target = self
@@ -2504,32 +2415,25 @@ impl Game {
                     .find(|p| p.name == *player)
                     .ok_or("invalid player target")?;
 
-                ActionOutput {
-                    log: format!(
-                        "The Wizard ({}) peeks at {}'s hand.",
-                        self.active_player().unwrap().name,
-                        player,
-                    )
-                    .into(),
-                    followup: Some(Followup::WizardPick {
-                        player: target.index,
-                    }),
-                }
+                ActionOutput::new(format!(
+                    "The Wizard ({}) peeks at {}'s hand.",
+                    self.active_player().unwrap().name,
+                    player,
+                ))
+                .followup(Followup::WizardPick {
+                    player: target.index,
+                })
             }
             Action::WizardPick(WizardMethod::Pick { district }) => match self.followup {
                 Some(Followup::WizardPick { player: target }) => {
                     Game::remove_first(&mut self.players[target.0].hand, *district)
                         .ok_or("district not in target player's hand")?;
                     self.active_player_mut().unwrap().hand.push(*district);
-                    ActionOutput {
-                        log: format!(
-                            "The Wizard ({}) takes a card from {}'s hand.",
-                            self.active_player().unwrap().name,
-                            self.players[target.0].name,
-                        )
-                        .into(),
-                        followup: None,
-                    }
+                    ActionOutput::new(format!(
+                        "The Wizard ({}) takes a card from {}'s hand.",
+                        self.active_player().unwrap().name,
+                        self.players[target.0].name,
+                    ))
                 }
                 _ => Err("impossible")?,
             },
@@ -2665,13 +2569,12 @@ impl Game {
                     if self.active_role().unwrap().has_warrant()
                         && !self.turn_actions.iter().any(|act| act.is_build())
                     {
-                        ActionOutput {
-                            log: format!(
+                        ActionOutput::new(
+                             format!(
                                 "The Wizard begins to build a {}; waiting on the Magistrate's response.",
                                 district.display_name
-                            )
-                            .into(),
-                            followup: Some(Followup::Warrant {
+                           ) ).followup(
+                            Followup::Warrant {
                                 magistrate: self.characters.get(Rank::One).player.unwrap(),
                                 gold: cost,
                                 district: district.name,
@@ -2681,8 +2584,7 @@ impl Game {
                                     .markers
                                     .iter()
                                     .any(|m| *m == Marker::Warrant { signed: true }),
-                            }),
-                        }
+                            })
                     } else {
                         self.complete_build(
                             self.active_player().unwrap().index,
@@ -2690,10 +2592,7 @@ impl Game {
                             district.name,
                         );
 
-                        ActionOutput {
-                            log: format!("The Wizard builds a {}.", district.display_name).into(),
-                            followup: None,
-                        }
+                        ActionOutput::new(format!("The Wizard builds a {}.", district.display_name))
                     }
                 }
 
@@ -2708,10 +2607,8 @@ impl Game {
                     .markers
                     .push(Marker::Bewitched);
 
-                ActionOutput {
-                    log: format!("The Witch bewitches {}.", role.display_name()).into(),
-                    followup: None,
-                }
+                ActionOutput::new(format!("The Witch bewitches {}.", role.display_name()))
+                    .end_turn()
             }
         })
     }
@@ -2760,10 +2657,10 @@ impl Game {
         let amount = player.count_suit_for_resource_gain(suit);
         player.gold += amount;
 
-        Ok(ActionOutput {
-            followup: None,
-            log: format!("They gained {} gold from their {} districts", amount, suit).into(),
-        })
+        Ok(ActionOutput::new(format!(
+            "They gained {} gold from their {} districts",
+            amount, suit
+        )))
     }
 
     fn gain_cards_for_suit(&mut self, suit: CardSuit) -> Result<ActionOutput> {
@@ -2778,10 +2675,10 @@ impl Game {
         // if the deck was low on cards.
         let amount = self.gain_cards(count);
 
-        Ok(ActionOutput {
-            followup: None,
-            log: format!("They gained {} cards from their {} districts", amount, suit).into(),
-        })
+        Ok(ActionOutput::new(format!(
+            "They gained {} cards from their {} districts",
+            amount, suit
+        )))
     }
 
     fn end_turn(&mut self) -> Result<()> {
