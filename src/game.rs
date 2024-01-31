@@ -977,7 +977,7 @@ impl Game {
         }
 
         if c.player.is_none() {
-            c.logs.push("No one responded".into());
+            c.logs.push("No one responds".into());
 
             *c_ref = c;
             self.call_next();
@@ -986,11 +986,22 @@ impl Game {
         c.revealed = true;
         self.remaining_builds = c.role.build_limit();
 
-        let player = self.players[c.player.unwrap().0].borrow_mut();
+        let player = self.players[c.player.unwrap().0].borrow();
         c.logs
             .push(format!("{} starts their turn.", player.name).into());
 
+        if c.markers.iter().any(|m| *m == Marker::Bewitched) {
+            c.logs.push(
+                format!(
+                    "They are bewitched! After gathering resources, their turn will be yielded to the Witch ({}).",
+                    self.players[self.characters.get(RoleName::Witch.rank()).player.unwrap().0].name
+                )
+                .into(),
+            );
+        }
+
         if c.markers.iter().any(|m| *m == Marker::Robbed) {
+            let player = self.players[c.player.unwrap().0].borrow_mut();
             let gold = player.gold;
             player.gold = 0;
             let thief = self.characters.get(RoleName::Thief.rank()).player.unwrap();

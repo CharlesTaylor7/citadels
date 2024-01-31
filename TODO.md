@@ -1,8 +1,4 @@
 ## Shortlist
-- Witch
-    - [ ] Log that the witch player is taking over.
-    - [x] Steal passive protection from Bishop.
-    - [x] Patrician & King override
 
 ## Longer list
 - Notifications
