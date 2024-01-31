@@ -55,6 +55,9 @@ pub enum Action {
         player: PlayerName,
         resource: Resource,
     },
+    EmperorHeirGiveCrown {
+        player: PlayerName,
+    },
     ResourcesFromReligion {
         #[serde_as(as = "serde_with::DisplayFromStr")]
         gold: usize,
@@ -311,6 +314,7 @@ impl ActionTag {
             ActionTag::CollectTaxes => "Collect Taxes".into(),
             ActionTag::Bewitch => "Bewitch".into(),
             ActionTag::EmperorGiveCrown => "Grant Crown".into(),
+            ActionTag::EmperorHeirGiveCrown => "Grant Crown".into(),
             ActionTag::Blackmail => "Blackmail".into(),
             ActionTag::Spy => "Spy".into(),
             ActionTag::GatherCardsPick => "Pick".into(),

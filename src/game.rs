@@ -812,8 +812,8 @@ impl Game {
                 if self.active_role().unwrap().role != RoleName::Emperor {
                     log::error!("What are you doing man?");
                     vec![]
-                } else if self.active_perform_count(ActionTag::EmperorGiveCrown) == 0 {
-                    vec![ActionTag::EmperorGiveCrown]
+                } else if self.active_perform_count(ActionTag::EmperorHeirGiveCrown) == 0 {
+                    vec![ActionTag::EmperorHeirGiveCrown]
                 } else {
                     vec![]
                 }
@@ -2314,43 +2314,59 @@ impl Game {
 
                 self.crowned = target.index;
 
-                if self.active_turn.call().is_ok_and(|c| c.end_of_round) {
-                    ActionOutput {
-                        log: format!(
-                            "The Emperor's heir ({}) gives {} the crown.",
-                            self.active_player()?.name,
-                            player,
-                        )
-                        .into(),
-                        followup: None,
+                match resource {
+                    Resource::Gold if target.gold > 0 => {
+                        target.gold -= 1;
+                        self.active_player_mut().unwrap().gold += 1;
                     }
-                } else {
-                    match resource {
-                        Resource::Gold if target.gold > 0 => {
-                            target.gold -= 1;
-                            self.active_player_mut().unwrap().gold += 1;
-                        }
-                        Resource::Cards if target.hand.len() > 0 => {
-                            let index = self.rng.gen_range(0..target.hand.len());
-                            let card = target.hand.remove(index);
-                            self.active_player_mut().unwrap().hand.push(card);
-                        }
-                        _ => {}
+                    Resource::Cards if target.hand.len() > 0 => {
+                        let index = self.rng.gen_range(0..target.hand.len());
+                        let card = target.hand.remove(index);
+                        self.active_player_mut().unwrap().hand.push(card);
                     }
+                    _ => {}
+                }
 
-                    ActionOutput {
-                        log: format!(
-                            "The Emperor ({}) gives {} the crown and takes one of their {}.",
-                            self.active_player()?.name,
-                            player,
-                            match resource {
-                                Resource::Gold => "gold",
-                                Resource::Cards => "cards",
-                            }
-                        )
-                        .into(),
-                        followup: None,
-                    }
+                ActionOutput {
+                    log: format!(
+                        "The Emperor ({}) gives {} the crown and takes one of their {}.",
+                        self.active_player()?.name,
+                        player,
+                        match resource {
+                            Resource::Gold => "gold",
+                            Resource::Cards => "cards",
+                        }
+                    )
+                    .into(),
+                    followup: None,
+                }
+            }
+
+            Action::EmperorHeirGiveCrown { player } => {
+                if self.active_player().unwrap().name == *player {
+                    Err("Cannot give the crown to yourself")?;
+                }
+
+                let target = self
+                    .players
+                    .iter_mut()
+                    .find(|p| p.name == *player)
+                    .ok_or("Player does not exist")?;
+
+                if target.index == self.crowned {
+                    Err("Cannot give the crown to the already crowned player")?;
+                }
+
+                self.crowned = target.index;
+
+                ActionOutput {
+                    log: format!(
+                        "The Emperor's heir ({}) gives {} the crown.",
+                        self.active_player()?.name,
+                        player,
+                    )
+                    .into(),
+                    followup: None,
                 }
             }
             Action::DiplomatTrade {

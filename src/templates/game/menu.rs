@@ -1,6 +1,6 @@
 use super::{get_myself, GameContext};
 use crate::actions::ActionTag;
-use crate::game::{Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
+use crate::game::{Call, Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
 use crate::roles::{Rank, RoleName};
 use crate::templates::filters;
 use crate::templates::game::menus::EmperorMenu;
@@ -29,7 +29,9 @@ impl<'a> MenuTemplate<'a> {
 
 pub enum MenuView<'a> {
     TODO,
-    Emperor(EmperorMenu<'a>),
+    Emperor {
+        players: Vec<&'a str>,
+    },
     Theater {
         players: Vec<&'a str>,
         roles: Vec<RoleTemplate>,
@@ -107,9 +109,6 @@ impl<'a> MenuView<'a> {
                     actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
                 },
                 Followup::WizardPick { .. } => MenuView::TODO,
-                Followup::EmperorsHeirGrantsCrown => {
-                    MenuView::Emperor(EmperorMenu::from_game(game))
-                }
                 Followup::SeerDistribute { players } => MenuView::SeerDistribute {
                     hand: game
                         .active_player()
@@ -177,6 +176,17 @@ impl<'a> MenuView<'a> {
                     },
                 };
             }
+
+            if let Ok(Call {
+                rank: Rank::Four,
+                end_of_round: true,
+            }) = game.active_turn.call()
+            {
+                return MenuView::Emperor {
+                    players: EmperorMenu::from_game(game).players,
+                };
+            }
+
             let allowed = game.active_player_actions();
             let abilities = game
                 .active_player_actions()

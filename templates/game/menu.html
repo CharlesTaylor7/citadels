@@ -138,8 +138,29 @@
     </button>
   </div>
 
-{% when MenuView::Emperor with (EmperorMenu { players} )%}
-{% include "menus/emperor.html" %}
+{% when MenuView::Emperor with { players } %}
+<h2 class="header">
+  Emperor's heir
+</h2>
+<div class="italic text-sm">You were killed, but as the emperor's heir you get to pick the next crowned player.</div>
+<div class="flex flex-row gap-2">
+  {% for name in players %}
+    <label class="flex flex-row gap-1 items-center cursor-pointer">
+      <input required class="radio border-3" type="radio" name="player" value={{ name }} />
+      {{ name }}
+    </label>
+  {% endfor %}
+</div>
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    name="action"
+    value="EmperorHeirGiveCrown"
+  >
+    Give Crown 
+  </button>
+</div>
 
 {% when MenuView::SeerDistribute with { players, hand } %}
   <div class="hidden" _="init add .hidden to #hand-panel enableSeer()"></div>
