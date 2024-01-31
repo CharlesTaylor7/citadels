@@ -1,8 +1,8 @@
 ## Shortlist
-- Finish Game engine    
-    - [ ] Killed Emperor end of round action to grant crown
-    - [ ] Bewitch
-    - [ ] Wizard build
+- Witch
+    - [ ] Log that the witch player is taking over.
+    - [ ] Steal passive protection from Bishop.
+    - [x] Patrician & King override
 
 ## Longer list
 - Notifications

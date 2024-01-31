@@ -662,7 +662,9 @@ impl Game {
                 game.players[index].roles.push(*role);
                 game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
             }
+
             for p in game.players.iter_mut() {
+                p.roles.sort_by_key(|c| c.rank());
                 p.hand = vec![
                     DistrictName::ThievesDen,
                     DistrictName::Framework,
@@ -735,11 +737,20 @@ impl Game {
         match &self.active_turn {
             Turn::GameOver => Err("game over".into()),
             Turn::Draft(draft) => Ok(draft.player),
-            Turn::Call(call) => self
-                .characters
-                .get(call.rank)
-                .player
-                .ok_or(format!("no player with rank {}", call.rank).into()),
+            Turn::Call(call) => {
+                let c = self.characters.get(call.rank);
+                if self.has_gathered_resources()
+                    && c.markers.iter().any(|m| *m == Marker::Bewitched)
+                {
+                    self.characters
+                        .get(Rank::Two)
+                        .player
+                        .ok_or("no witch!".into())
+                } else {
+                    c.player
+                        .ok_or(format!("no player with rank {}", call.rank).into())
+                }
+            }
         }
     }
 
@@ -1544,11 +1555,16 @@ impl Game {
             }
 
             Action::TakeCrown => {
-                self.crowned = self.active_player_index()?;
+                // Hard coded to rank four. This overrides the Witch.
+                self.crowned = self
+                    .characters
+                    .get(Rank::Four)
+                    .player
+                    .ok_or("No Royalty to take crown!")?;
 
                 ActionOutput::new(format!(
                     "{} takes the crown.",
-                    self.active_player().unwrap().name
+                    self.players[self.crowned.0].name,
                 ))
             }
 
@@ -2300,7 +2316,7 @@ impl Game {
                 self.crowned = target.index;
 
                 ActionOutput::new(format!(
-                    "The Emperor's heir ({}) gives {} the crown.",
+                    "The Emperor's advisor ({}) gives {} the crown.",
                     self.active_player()?.name,
                     player,
                 ))
@@ -2751,18 +2767,24 @@ impl Game {
             }
             Turn::Call(_) => {
                 if let Ok(player) = self.active_player() {
-                    let gains_gold = player.gold == 0 && player.city_has(DistrictName::PoorHouse);
-                    let gains_cards = player.hand.len() == 0 && player.city_has(DistrictName::Park);
+                    let role = self.active_role().unwrap().role;
+                    let poor_house = role != RoleName::Witch
+                        && player.gold == 0
+                        && player.city_has(DistrictName::PoorHouse);
+
+                    let park = role != RoleName::Witch
+                        && player.hand.len() == 0
+                        && player.city_has(DistrictName::Park);
                     let name = self.active_player().unwrap().name.clone();
-                    if gains_gold {
+                    if poor_house {
                         self.active_player_mut().unwrap().gold += 1;
                         self.active_role_mut()
                             .unwrap()
                             .logs
-                            .push(format!("{} gains 1 gold from their Poor House.", name,).into());
+                            .push(format!("{} gains 1 gold from their Poor House.", name).into());
                     }
 
-                    if gains_cards {
+                    if park {
                         self.gain_cards(2);
                         self.active_role_mut()
                             .unwrap()
