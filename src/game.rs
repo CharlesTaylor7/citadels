@@ -616,6 +616,7 @@ impl Game {
             let test_role = RoleName::Emperor;
             // deal roles out randomly
             game.characters.get_mut(test_role.rank()).role = test_role;
+            game.characters.get_mut(Rank::One).role = RoleName::Assassin;
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
@@ -649,10 +650,10 @@ impl Game {
                 });
             }
 
-            game.turn_actions = vec![Action::GatherResourceGold];
+            //game.turn_actions = vec![Action::GatherResourceGold];
             game.active_turn = Turn::Call(Call {
-                rank: test_role.rank(),
-                end_of_round: true,
+                rank: Rank::One,
+                end_of_round: false,
             });
             game.start_turn().unwrap();
             Ok(game)
@@ -906,6 +907,10 @@ impl Game {
     }
 
     fn start_turn(&mut self) -> Result<()> {
+        if self.active_turn.call().is_ok_and(|call| call.end_of_round) {
+            return Ok(());
+        }
+
         let c = self.active_role_mut();
         if c.is_err() {
             return Ok(());
