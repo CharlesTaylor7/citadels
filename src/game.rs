@@ -1,5 +1,5 @@
 use crate::actions::{
-    Action, ActionTag, BuildMethod, CityDistrictTarget, MagicianAction, Resource,
+    Action, ActionTag, BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
 };
 use crate::districts::DistrictName;
 use crate::lobby::{self, Lobby};
@@ -2514,10 +2514,7 @@ impl Game {
                     }),
                 }
             }
-            Action::WizardPick {
-                district,
-                build: None,
-            } => match self.followup {
+            Action::WizardPick(WizardMethod::Pick { district }) => match self.followup {
                 Some(Followup::WizardPick { player: target }) => {
                     Game::remove_first(&mut self.players[target.0].hand, *district)
                         .ok_or("district not in target player's hand")?;
@@ -2535,17 +2532,14 @@ impl Game {
                 _ => Err("impossible")?,
             },
 
-            Action::WizardPick {
-                build: Some(method),
-                ..
-            } => match self.followup {
+            Action::WizardPick(method) => match self.followup {
                 Some(Followup::WizardPick { player: target }) => {
                     let district = match method {
-                        BuildMethod::Regular { district } => *district,
-                        BuildMethod::Cardinal { .. } => Err("Not the cardinal!")?,
-                        BuildMethod::Framework { district } => *district,
-                        BuildMethod::ThievesDen { .. } => DistrictName::ThievesDen,
-                        BuildMethod::Necropolis { .. } => DistrictName::Necropolis,
+                        WizardMethod::Pick { .. } => Err("Impossible!")?,
+                        WizardMethod::Build { district } => *district,
+                        WizardMethod::Framework { district } => *district,
+                        WizardMethod::ThievesDen { .. } => DistrictName::ThievesDen,
+                        WizardMethod::Necropolis { .. } => DistrictName::Necropolis,
                     };
 
                     if self.players[target.0].hand.iter().all(|d| *d != district) {
@@ -2567,7 +2561,8 @@ impl Game {
                     }
 
                     match method {
-                        BuildMethod::Regular { .. } => {
+                        WizardMethod::Pick { .. } => Err("Impossible")?,
+                        WizardMethod::Build { .. } => {
                             if cost > active.gold {
                                 Err("Not enough gold")?;
                             }
@@ -2575,8 +2570,7 @@ impl Game {
                             let active = self.active_player_mut()?;
                             active.gold -= cost;
                         }
-                        BuildMethod::Cardinal { .. } => Err("Not the Cardinal")?,
-                        BuildMethod::ThievesDen { discard } => {
+                        WizardMethod::ThievesDen { discard } => {
                             if district.name != DistrictName::ThievesDen {
                                 Err("You are not building the ThievesDen!")?;
                             }
@@ -2613,7 +2607,7 @@ impl Game {
                             }
                         }
 
-                        BuildMethod::Framework { .. } => {
+                        WizardMethod::Framework { .. } => {
                             let city_index = active
                                 .city
                                 .iter()
@@ -2631,7 +2625,7 @@ impl Game {
                             active.city.swap_remove(city_index);
                         }
 
-                        BuildMethod::Necropolis { sacrifice: target } => {
+                        WizardMethod::Necropolis { sacrifice: target } => {
                             if district.name != DistrictName::Necropolis {
                                 Err("You are not building the necropolis!")?;
                             }

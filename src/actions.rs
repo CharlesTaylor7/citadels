@@ -110,11 +110,7 @@ pub enum Action {
     WizardPeek {
         player: PlayerName,
     },
-    WizardPick {
-        district: DistrictName,
-        #[serde(flatten, default)]
-        build: Option<BuildMethod>,
-    },
+    WizardPick(WizardMethod),
     Smithy,
     Laboratory {
         district: DistrictName,
@@ -157,6 +153,27 @@ pub enum BuildMethod {
     },
 }
 
+#[serde_as]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "wizard_method")]
+pub enum WizardMethod {
+    Pick {
+        district: DistrictName,
+    },
+    Build {
+        district: DistrictName,
+    },
+    Framework {
+        district: DistrictName,
+    },
+    Necropolis {
+        sacrifice: CityDistrictTarget,
+    },
+    ThievesDen {
+        #[serde_as(as = "serde_with::OneOrMany<_>")]
+        discard: Vec<DistrictName>,
+    },
+}
 #[derive(Debug, Clone)]
 pub struct CityDistrictTarget {
     pub player: PlayerName,
@@ -192,7 +209,8 @@ impl Action {
     pub fn is_build(&self) -> bool {
         match self {
             Action::Build { .. } => true,
-            Action::WizardPick { build: Some(_), .. } => true,
+            Action::WizardPick(WizardMethod::Pick { .. }) => false,
+            Action::WizardPick(_) => true,
             _ => false,
         }
     }
