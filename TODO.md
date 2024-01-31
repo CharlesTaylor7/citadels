@@ -1,6 +1,3 @@
-## Short list
-- [ ] Logs are a bit confusing when the Witch is active. Should list the player name instead of "they".
-
 ## Longer list
 - Notifications
     - Seer: card is taken. 
@@ -26,8 +23,7 @@
 
     - [ ] Marshal menu should disable & grey districts that cost too much.
 - [ ] Max height for hand panel, with horizontal scroll
-- [ ] Make log format and tenses consistent
-- [ ] Random audio notification
+- [ ] Randomize audio notification
 
 ## Ideas
 - [ ] Randomizer mode: any role can be any rank
