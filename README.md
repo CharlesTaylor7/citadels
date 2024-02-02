@@ -68,8 +68,8 @@ How to release:
 ## Secret management
 
 Script to generate a new signing key:
-```js
-require('crypto').randomBytes(64).toString('hex')
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 In prod use `fly secret`.
 In dev, use the .env file.

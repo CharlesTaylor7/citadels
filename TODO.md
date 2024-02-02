@@ -1,3 +1,9 @@
+## Short list
+- [ ] Multi room support
+- [ ] Game host
+- [ ] Bots
+
+
 ## Longer list
 - Notifications
     - Seer: card is taken. 
@@ -29,7 +35,6 @@
 - [ ] Randomizer mode: any role can be any rank
 - [ ] Persist game config to sqlite db
 - [ ] Keyboard based warrant assignment
-- [ ] Multi room support
 - [ ] Detect when building is impossible.
 - [ ] Pesist the dragged position of districts in a city.
 - [ ] Resizable windows, dimensions are saved per user and kept persistently between sessions
