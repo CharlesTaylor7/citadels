@@ -1,19 +1,22 @@
 use crate::server::ws;
+use crate::types::PlayerId;
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::cookie;
-use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex, RwLock, Weak};
 
 #[derive(Clone)]
 pub struct AppState {
     cookie_signing_key: cookie::Key,
-    pub lobby: Arc<Mutex<Lobby>>,
-    pub game: Arc<Mutex<Option<Game>>>,
+    pub rooms: Arc<RwLock<Vec<Arc<Mutex<Room>>>>>,
     pub connections: Arc<Mutex<ws::Connections>>,
+    pub lookup: HashMap<PlayerId, Weak<Room>>,
 }
 
-fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
-    Arc::new(Mutex::new(item))
+pub enum Room {
+    Lobby(Lobby),
+    Game(Game),
 }
 
 impl Default for AppState {
@@ -21,10 +24,11 @@ impl Default for AppState {
         let key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
         Self {
             cookie_signing_key: cookie::Key::from(key.as_bytes()),
-            connections: new_arc_mutex(ws::Connections::default()),
-            lobby: new_arc_mutex(Lobby::default()),
-            game: new_arc_mutex(None),
-            // game: new_arc_mutex(Game::start(Lobby::demo(3), SeedableRng::from_entropy()).ok()),
+            connections: Arc::new(Mutex::new(ws::Connections::default())),
+            rooms: Arc::new(RwLock::new(Vec::new())),
+            lookup: HashMap::new(),
+            //    games: Arc::new(RwLock::new(Vec::new())),
+            //   lobbies: Arc::new(RwLock::new(Vec::new())),
         }
     }
 }

@@ -408,7 +408,7 @@ pub struct Game {
 
     // logs
     pub logs: Vec<Cow<'static, str>>,
-    pub db_log: Option<DbLog>,
+    //pub db_log: Option<DbLog>,
 
     // card specific metadata
     pub museum: Museum,
@@ -598,9 +598,11 @@ impl Game {
             config,
         } = lobby;
 
+        /*
         let db_log = DbLog::new(rng.seed, &players)
             .map_err(|e| log::error!("{}", e))
             .ok();
+            */
 
         // randomize the seating order
         players.shuffle(&mut rng);
@@ -639,7 +641,7 @@ impl Game {
         let mut game = Game {
             rng,
             players,
-            db_log,
+            // db_log,
             crowned,
             characters,
             round: 0,
@@ -930,6 +932,7 @@ impl Game {
             notifications: _,
         } = self.perform_action(&action)?;
 
+        /*
         if let Some(log) = self.db_log.as_mut() {
             if let Err(err) = log.append(&action) {
                 log::error!("{}", err);
@@ -937,6 +940,7 @@ impl Game {
                 self.db_log = None;
             }
         }
+        */
 
         self.followup = followup;
 
