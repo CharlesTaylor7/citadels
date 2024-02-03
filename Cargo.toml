@@ -36,6 +36,7 @@ dotenv = "0.15.0"
 axum-core = "0.4.3"
 mime = "0.3.17"
 serde_with = "3.5.0"
+maud = { version = "0.26.0", features = ["axum"] }
 
 [features]
 dev = []

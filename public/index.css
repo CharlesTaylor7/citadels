@@ -5312,6 +5312,11 @@ details.collapse summary::-webkit-details-marker {
   border-color: transparent;
 }
 
+.border-base-200 {
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-border-opacity)));
+}
+
 .bg-\[rgba\(30\2c 30\2c 30\2c 0\.5\)\] {
   background-color: rgba(30,30,30,0.5);
 }

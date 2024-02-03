@@ -11,7 +11,7 @@ pub struct AppState {
     cookie_signing_key: cookie::Key,
     pub rooms: Arc<RwLock<Vec<Arc<Mutex<Room>>>>>,
     pub connections: Arc<Mutex<ws::Connections>>,
-    pub lookup: HashMap<PlayerId, Weak<Room>>,
+    pub lookup: Arc<RwLock<HashMap<PlayerId, Weak<Room>>>>,
 }
 
 pub enum Room {
@@ -26,7 +26,7 @@ impl Default for AppState {
             cookie_signing_key: cookie::Key::from(key.as_bytes()),
             connections: Arc::new(Mutex::new(ws::Connections::default())),
             rooms: Arc::new(RwLock::new(Vec::new())),
-            lookup: HashMap::new(),
+            lookup: Arc::new(RwLock::new(HashMap::new())),
             //    games: Arc::new(RwLock::new(Vec::new())),
             //   lobbies: Arc::new(RwLock::new(Vec::new())),
         }
