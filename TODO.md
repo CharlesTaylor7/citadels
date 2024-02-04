@@ -1,10 +1,15 @@
+## Bugs / Issues
+- [ ] Bewitch action wipes out the whole screen and forces a page reload.
+- [x] Build action doesn't work, or is not intuitive. Logan had issues.
+
+
 ## Short list
-- [ ] Multi room support
+
 - [ ] Game host
-- [ ] Bots
 
 
 ## Longer list
+- [ ] Multi room support
 - Notifications
     - Seer: card is taken. 
     - Seer: card is given.
@@ -32,6 +37,7 @@
 - [ ] Randomize audio notification
 
 ## Ideas
+- [ ] Bots
 - [ ] Randomizer mode: any role can be any rank
 - [ ] Persist game config to sqlite db
 - [ ] Keyboard based warrant assignment
