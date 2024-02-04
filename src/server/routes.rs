@@ -23,10 +23,26 @@ use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
+use tower::{ServiceBuilder, ServiceExt};
 use tower_http::services::ServeDir;
 use uuid::Uuid;
 
 pub fn get_router() -> Router {
+    let static_dir =
+        ServiceBuilder::new().service(ServeDir::new("static").map_response(|mut record| {
+            let headers = record.headers_mut();
+            headers.insert(
+                "Cache-Control",
+                "no-cache, no-store, must-revalidate".parse().unwrap(),
+            );
+            headers.insert("Pragma", "no-cache".parse().unwrap());
+            headers.insert("Expires", "0".parse().unwrap());
+            record
+        }));
+
+    let app = Router::new().nest_service("/static", static_dir);
+    app
+    /*
     let context = AppState::default();
 
     Router::new()
@@ -48,6 +64,7 @@ pub fn get_router() -> Router {
         .route("/game/menu/:menu", get(get_game_menu))
         .nest_service("/public", ServeDir::new("public"))
         .with_state(context)
+        */
 }
 
 pub async fn index() -> impl IntoResponse {
