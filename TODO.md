@@ -1,10 +1,10 @@
 ## Bugs / Issues
 - [ ] Bewitch action wipes out the whole screen and forces a page reload.
-- [x] Build action doesn't work, or is not intuitive. Logan had issues.
 - [ ] Need request logging badly. This would help so much in troubleshooting bugs in the middle of a game.
 - [ ] Arrows overlap text in role logs.
 - [ ] No logs for draft phase
 - [ ] No logs for end of previous turn. Very easy to miss Actions of last player
+- [ ] public/index.css is being cached across multiple browsers. I need to look into how axum serves directories, and invalidate the cache on this file. Because its ridiculous william had to disable his cache and reload.
 
 
 ## Short list
@@ -74,7 +74,6 @@
 - [ ] William found the button highlighting behavior in the config menu to be confusing. Didn't realize I was going for tab like interface. How can I make it more tab like?
 
 ## Playtest 3
-- [ ] public/index.css is being cached across multiple browsers. I need to look into how axum serves directories, and invalidate the cache on this file. Because its ridiculous william had to disable his cache and reload.
 - [ ] All Cities in 1 panel, scroll.
 - [ ] Timer:  2 minute timer, +20secs every turn, capped at 2 minutes.
 - [ ] Logan's audio notification didn't work.
