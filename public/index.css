@@ -5219,6 +5219,10 @@ details.collapse summary::-webkit-details-marker {
   overflow-y: scroll;
 }
 
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
 .text-wrap {
   text-wrap: wrap;
 }
@@ -5364,6 +5368,10 @@ details.collapse summary::-webkit-details-marker {
 .bg-suit-unique {
   --tw-bg-opacity: 1;
   background-color: rgb(169 107 244 / var(--tw-bg-opacity));
+}
+
+.bg-inherit {
+  background-color: inherit;
 }
 
 .bg-gradient-radial {

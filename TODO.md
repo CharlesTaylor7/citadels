@@ -1,6 +1,10 @@
 ## Bugs / Issues
 - [ ] Bewitch action wipes out the whole screen and forces a page reload.
 - [x] Build action doesn't work, or is not intuitive. Logan had issues.
+- [ ] Need request logging badly. This would help so much in troubleshooting bugs in the middle of a game.
+- [ ] Arrows overlap text in role logs.
+- [ ] No logs for draft phase
+- [ ] No logs for end of previous turn. Very easy to miss Actions of last player
 
 
 ## Short list
