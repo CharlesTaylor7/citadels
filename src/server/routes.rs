@@ -17,32 +17,35 @@ use axum::routing::{get, post};
 use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-use http::StatusCode;
+use http::{Request, StatusCode};
 use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
 use tower::{ServiceBuilder, ServiceExt};
+use tower_http::services::fs;
 use tower_http::services::ServeDir;
 use uuid::Uuid;
 
+async fn not_found() -> impl IntoResponse {
+    StatusCode::NOT_FOUND
+}
 pub fn get_router() -> Router {
     let static_dir =
-        ServiceBuilder::new().service(ServeDir::new("static").map_response(|mut record| {
-            let headers = record.headers_mut();
-            headers.insert(
-                "Cache-Control",
-                "no-cache, no-store, must-revalidate".parse().unwrap(),
-            );
-            headers.insert("Pragma", "no-cache".parse().unwrap());
-            headers.insert("Expires", "0".parse().unwrap());
-            record
-        }));
+        ServiceBuilder::new().service(ServeDir::new("public").fallback(not_found).map_response(
+            |record| {
+                let headers = record.headers_mut();
+                headers.insert(
+                    "Cache-Control",
+                    "no-cache, no-store, must-revalidate".parse().unwrap(),
+                );
+                headers.insert("Pragma", "no-cache".parse().unwrap());
+                headers.insert("Expires", "0".parse().unwrap());
+                record
+            },
+        ));
 
-    let app = Router::new().nest_service("/static", static_dir);
-    app
-    /*
     let context = AppState::default();
 
     Router::new()
@@ -62,9 +65,8 @@ pub fn get_router() -> Router {
         .route("/game", post(start))
         .route("/game/action", post(submit_game_action))
         .route("/game/menu/:menu", get(get_game_menu))
-        .nest_service("/public", ServeDir::new("public"))
+        .nest_service("/public", static_dir)
         .with_state(context)
-        */
 }
 
 pub async fn index() -> impl IntoResponse {
