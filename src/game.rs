@@ -666,10 +666,10 @@ impl Game {
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
-            let role_count = if game.players.len() <= 3 { 2 } else { 1 };
+            let _role_count = if game.players.len() <= 3 { 2 } else { 1 };
 
             let roles = roles.iter().enumerate();
-            // .take(role_count * game.players.len());
+            // .take(_role_count * game.players.len());
             for (i, role) in roles {
                 let index = i % game.players.len();
                 game.players[index].roles.push(*role);
