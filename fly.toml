@@ -1,8 +1,4 @@
-# fly.toml app configuration file generated for citadels on 2023-12-25T19:58:04-05:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
+# https://fly.io/docs/reference/configuration/
 app = "citadels"
 primary_region = "iad"
 
