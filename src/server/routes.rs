@@ -55,7 +55,11 @@ pub async fn index() -> impl IntoResponse {
 }
 
 pub async fn get_version() -> impl IntoResponse {
-    env!("CARGO_PKG_VERSION").into_response()
+    std::env::var("GIT_SHA")
+        .map_or(Cow::Borrowed("github.com/CharlesTaylor7/citadels"), |sha| {
+            format!("github.com/CharlesTaylor7/citadels/commit/{sha}").into()
+        })
+        .into_response()
 }
 
 pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {

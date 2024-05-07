@@ -1,6 +1,6 @@
 procs:
   Server:
-    shell: RUST_BACKTRACE=1 cargo watch --features="dev,dotenv" -c -x run
+    shell: GIT_SHA=main RUST_BACKTRACE=1 cargo watch --features="dev,dotenv" -c -x run
 
   Tunnel:
     shell: ngrok start --all
