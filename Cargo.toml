@@ -8,9 +8,6 @@ version = "0.7.1"
 name = "citadels"
 path = "src/main.rs" 
 
-[[bin]]
-name = "sqlite"
-path = "src/bins/reset_db.rs"
 
 [dependencies]
 askama = "0.12.1"
@@ -32,7 +29,6 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 serde = { version = "1.0.195", features = ["derive","rc"] }
 serde_json = "1.0.111"
 time = "0.3.31"
-rusqlite = "0.30.0"
 dotenv = "0.15.0"
 axum-core = "0.4.3"
 mime = "0.3.17"
