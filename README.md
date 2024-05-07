@@ -57,9 +57,9 @@ Evaluating:
         - game backups via action logs
         - saving preferred game configuration
 
-## Releases
-How to release:
-- deploy.sh
+## Releases & monitoring
+Release script: `deploy.sh`.
+Monitor the app on the dashboard: https://fly.io/apps/citadels/
 
 ## Secret management
 

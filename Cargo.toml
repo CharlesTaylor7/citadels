@@ -29,14 +29,14 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 serde = { version = "1.0.195", features = ["derive","rc"] }
 serde_json = "1.0.111"
 time = "0.3.31"
-dotenv = "0.15.0"
+dotenv = { version = "0.15.0", optional = true }
 axum-core = "0.4.3"
 mime = "0.3.17"
 serde_with = "3.5.0"
 
 [features]
 dev = []
-dotenv = []
+dotenv = ["dep:dotenv"]
 
 # https://old.reddit.com/r/rust/comments/gvrgca/this_is_a_neat_trick_for_getting_good_runtime/
 [profile.dev.package."*"]

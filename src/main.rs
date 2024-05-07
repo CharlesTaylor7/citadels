@@ -2,9 +2,9 @@ use citadels::server::routes::get_router;
 
 #[tokio::main]
 async fn main() {
-    if cfg!(feature = "dotenv") {
-        dotenv::dotenv().expect(".env not found");
-    }
+    #[cfg(feature = "dotenv")]
+    dotenv::dotenv().expect(".env not found");
+
     citadels::logger::init();
 
     let port = "localhost:8080";

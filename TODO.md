@@ -14,6 +14,7 @@
 - [ ] Game host with elevated permissions
 - [ ] Auth via Supabase
 - [ ] Multi room support
+- [ ] Optimize binary size (After removing all panics)
 - Notifications
     - Seer: card is taken. 
     - Seer: card is given.
