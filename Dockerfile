@@ -49,4 +49,3 @@ ENTRYPOINT ["/usr/local/bin/citadels"]
 # COPY --from=builder /app/target/debug/citadels /app/citadels
 # COPY public/ public/
 # CMD ["/app/citadels"]
-# 
