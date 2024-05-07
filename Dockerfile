@@ -9,9 +9,6 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder 
 COPY --from=planner /app/recipe.json recipe.json
 
-# Copy vendored deps
-COPY .cargo/ .cargo/
-COPY vendor/ vendor/
 COPY macros/ macros/
 COPY macros-impl/ macros-impl/
 
