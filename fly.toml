@@ -25,6 +25,3 @@ primary_region = "iad"
   [[services.ports]]
     handlers = ["tls", "http"]
     port = "443"
-
-[env]
-  VERSION = "0.7.1"

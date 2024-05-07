@@ -2,6 +2,7 @@
 name = "citadels"
 edition = "2021"
 default-run = "citadels"
+version = "0.7.1"
 
 [[bin]]
 name = "citadels"

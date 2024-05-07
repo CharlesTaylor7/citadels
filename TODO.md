@@ -1,4 +1,4 @@
-## Bugs / Issues
+## Defects
 - [ ] Bewitch action wipes out the whole screen and forces a page reload.
 - [ ] Need request logging badly. This would help so much in troubleshooting bugs in the middle of a game.
 - [ ] Arrows overlap text in role logs.
@@ -7,12 +7,12 @@
 - [ ] public/index.css is being cached across multiple browsers. I need to look into how axum serves directories, and invalidate the cache on this file. Because its ridiculous william had to disable his cache and reload.
 
 
-## Short list
-
-- [ ] Game host
-
-
-## Longer list
+## Work
+- [ ] Implement Continuous deployment.
+- [ ] Make git commit visible on site instead of opaque version number.
+- [ ] Remove sqlite storage
+- [ ] Game host with elevated permissions
+- [ ] Auth via Supabase
 - [ ] Multi room support
 - Notifications
     - Seer: card is taken. 

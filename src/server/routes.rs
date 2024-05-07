@@ -55,9 +55,7 @@ pub async fn index() -> impl IntoResponse {
 }
 
 pub async fn get_version() -> impl IntoResponse {
-    std::env::var("VERSION")
-        .map_or(Cow::Borrowed("dev"), Cow::Owned)
-        .into_response()
+    env!("CARGO_PKG_VERSION").into_response()
 }
 
 pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {

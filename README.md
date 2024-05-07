@@ -59,11 +59,11 @@ Evaluating:
 
 ## Releases
 How to release:
-- Bump the version in fly.toml
+- Bump the version in Cargo.toml
 - Update changelog
+- commit changes
+- Use Git to tag the release 
 - Run: `fly deploy`
-- git commit changes
-- Git tag the release 
 
 ## Secret management
 
