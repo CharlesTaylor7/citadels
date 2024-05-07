@@ -1,11 +1,12 @@
 ## Defects
-- [ ] Bewitch action wipes out the whole screen and forces a page reload.
 - [ ] Need request logging badly. This would help so much in troubleshooting bugs in the middle of a game.
+- [ ] Docker dependency caching doesn't seem to actually work
+- [ ] etag the public/index.css or disable caching altogether.
+
 - [ ] Arrows overlap text in role logs.
 - [ ] No logs for draft phase
 - [ ] No logs for end of previous turn. Very easy to miss Actions of last player
-- [ ] public/index.css is being cached across multiple browsers. I need to look into how axum serves directories, and invalidate the cache on this file. Because its ridiculous william had to disable his cache and reload.
-- [ ] Docker dependency caching doesn't seem to actually work
+- [ ] Bewitch action wipes out the whole screen and forces a page reload.
 
 ## Work
 - [ ] Implement Continuous deployment.

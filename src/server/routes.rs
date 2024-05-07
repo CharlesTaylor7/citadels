@@ -24,6 +24,7 @@ use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
 use tower_http::services::ServeDir;
+use tower_http::trace::TraceLayer;
 use uuid::Uuid;
 
 pub fn get_router() -> Router {
@@ -47,6 +48,7 @@ pub fn get_router() -> Router {
         .route("/game/action", post(submit_game_action))
         .route("/game/menu/:menu", get(get_game_menu))
         .nest_service("/public", ServeDir::new("public"))
+        .layer(TraceLayer::new_for_http())
         .with_state(context)
 }
 

@@ -5,7 +5,11 @@ async fn main() {
     #[cfg(feature = "dotenv")]
     dotenv::dotenv().expect(".env not found");
 
-    citadels::logger::init();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
+    //citadels::logger::init();
 
     let port = "localhost:8080";
     let listener = tokio::net::TcpListener::bind(port).await.unwrap();
