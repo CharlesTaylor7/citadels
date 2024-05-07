@@ -1,5 +1,4 @@
-name: Build
-description: Build and publish Docker image to the Github Container Registry
+name: Build and publish Docker image to the Github Container Registry
 
 on:
   push:
