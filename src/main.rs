@@ -11,7 +11,7 @@ async fn main() {
 
     //citadels::logger::init();
 
-    let port = "localhost:8080";
+    let port = "0.0.0.0:8080";
     let listener = tokio::net::TcpListener::bind(port).await.unwrap();
 
     log::info!("Listening on port: {}", port);
