@@ -10,7 +10,7 @@ pub fn stylesheet(_: &()) -> askama::Result<&'static str> {
     if cfg!(feature = "dev") {
         Ok("/styles/index.css")
     } else {
-        Ok("/")
+        Ok("https://ryvsflpspddwwacxrnst.supabase.co/storage/v1/object/public/styles/index.css")
     }
 }
 pub fn class(item: &ActionTag) -> askama::Result<&'static str> {

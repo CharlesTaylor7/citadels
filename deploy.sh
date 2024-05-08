@@ -1,4 +1,4 @@
-set -e
+set -eo pipefail
 
 # load .env for supabase env vars
 export $(cat .env | xargs)
@@ -10,7 +10,7 @@ NODE_PATH=/opt/homebrew/lib/node_modules tailwindcss --input tailwind.source.css
 # supabase db push
 
 # upload stylesheet to supabase cdn
-supabase storage --experimental rm ss:///styles/index.css
+yes y | supabase storage --experimental rm ss:///styles/index.css || true
 supabase storage --experimental cp styles/index.css ss:///styles/index.css
 
 # deploy to citadels.fly.dev
