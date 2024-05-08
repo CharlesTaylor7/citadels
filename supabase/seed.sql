@@ -37,8 +37,8 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 RESET ALL;
 
 -- storage setup --
-insert into "storage"."buckets"
-  ("styles", "styles", true)
+insert into "storage"."buckets"("id", "name", "public", "allowed_mime_types")
+  ("styles", "styles", true, '{"text/css"}')
 values
 on conflict do nothing;
 
