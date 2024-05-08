@@ -6,6 +6,13 @@ pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
     Ok(format!("{:#?}", item))
 }
 
+pub fn stylesheet(_: &()) -> askama::Result<&'static str> {
+    if cfg!(feature = "dev") {
+        Ok("/styles/index.css")
+    } else {
+        Ok("/")
+    }
+}
 pub fn class(item: &ActionTag) -> askama::Result<&'static str> {
     let cls = match item {
         ActionTag::EndTurn => "btn-error",

@@ -2,6 +2,9 @@ procs:
   Server:
     shell: GIT_SHA=main RUST_BACKTRACE=1 cargo watch --features="dev,dotenv" -c -x run
 
+  DB:
+    shell: supabase db start
+
   # Tailwind 3 & daisyUI 4 are installed globally 
   Tailwind:
     shell: NODE_PATH=/opt/homebrew/lib/node_modules tailwindcss --input tailwind.source.css --output styles/index.css --watch
