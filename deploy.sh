@@ -4,7 +4,7 @@ set -eo pipefail
 export $(cat .env | xargs)
 
 # generate minified stylesheet
-NODE_PATH=/opt/homebrew/lib/node_modules tailwindcss --input tailwind.source.css --output styles/index.min.css --minify
+tailwindcss --input tailwind.source.css --output styles/index.min.css --minify
 
 # run supabase migrations
 supabase db push

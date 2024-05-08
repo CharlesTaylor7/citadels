@@ -1,3 +1,4 @@
 /target/
 /.env
 /styles/
+/node_modules/
