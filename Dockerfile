@@ -1,8 +1,11 @@
 # syntax=docker/dockerfile:1.3.1
 # https://github.com/LukeMathWalker/cargo-chef?tab=readme-ov-file#without-the-pre-built-image
 FROM rust:alpine AS chef
+RUN apk add --no-cache musl-dev
+RUN cargo --version
 RUN cargo install cargo-chef
-WORKDIR app
+
+WORKDIR /app
 
 FROM chef AS planner
 COPY . .
