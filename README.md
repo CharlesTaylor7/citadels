@@ -72,6 +72,13 @@ Supabase is used for:
 - cdn for static assets
 - database for game data
 
+To release:
+- push changes to the repo's `main` branch. this will trigger a docker build.
+- Run the deploy.sh script when its done. You can do this automatically with:
+```
+gh run watch && ./deploy.sh
+```
+
 
 ## Secret management
 
