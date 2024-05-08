@@ -8,7 +8,7 @@ procs:
 
   # Tailwind 3 & daisyUI 4 are installed globally 
   Tailwind:
-    shell: NODE_PATH=/opt/homebrew/lib/node_modules tailwindcss --input tailwind.source.css --output public/index.css --watch
+    shell: NODE_PATH=/opt/homebrew/lib/node_modules tailwindcss --input tailwind.source.css --output styles/index.css --watch
 
   Docs:
     shell: cargo doc --offline --lib --open
