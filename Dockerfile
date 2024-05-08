@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.3.1
-FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
-WORKDIR /app
+# https://github.com/LukeMathWalker/cargo-chef?tab=readme-ov-file#without-the-pre-built-image
+FROM rust:alpine AS chef
+RUN cargo install cargo-chef
+WORKDIR app
 
 FROM chef AS planner
 COPY . .
@@ -12,14 +14,12 @@ COPY --from=planner /app/recipe.json recipe.json
 COPY macros/ macros/
 COPY macros-impl/ macros-impl/
 
-# Build dependencies - this is the caching Docker layer!
 RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
 RUN cargo build --release --bin citadels
 
-# We do not need the Rust toolchain to run the binary!
-FROM debian:bookworm-slim AS runtime
+FROM alpine AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/citadels /usr/local/bin
 COPY public/ public/
