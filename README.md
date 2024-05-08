@@ -58,8 +58,20 @@ Evaluating:
         - saving preferred game configuration
 
 ## Releases & monitoring
-Release script: `deploy.sh`.
-Monitor the app on the dashboard: https://fly.io/apps/citadels/
+Github handles publishing a docker image on every push to `main`.  
+Deployments are done manually with the `deploy.sh` script.
+This is because the services are not yet stateless, and I don't want to disrupt ongoing games with a deploy.
+
+Monitor the app on these dashboards: 
+- https://fly.io/apps/citadels/
+- https://supabase.com/dashboard/project/ryvsflpspddwwacxrnst
+
+Fly.io hosts and runs the Rust axum server as a docker image.
+Supabase is used for:
+- auth
+- cdn for static assets
+- database for game data
+
 
 ## Secret management
 
