@@ -10,11 +10,7 @@ tailwindcss --input tailwind.source.css --output styles/index.min.css --minify
 supabase db push
 
 # upload stylesheet to supabase cdn
-curl --location --request POST "${SUPABASE_PROJECT_URL}/bucket" \
-  --header "Authorization: Bearer ${SUPABASE_KEY}" \
-  --header 'Content-Type: application/json' \
-  --data-raw '{ "name": "avatars" }'
-
+node upload-css.js
 # yes y | supabase storage --experimental rm ss:///styles/index.css || true
 # supabase storage --experimental cp styles/index.min.css ss:///styles/index.css
 
