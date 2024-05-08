@@ -9,8 +9,8 @@ alter table "public"."games" enable row level security;
 
 create table "public"."hands" (
     "id" uuid not null,
-    "user_id" bigint not null,
-    "game_id" bigint not null
+    "user_id" uuid not null references "auth"."users"(id),
+    "game_id" bigint not null references "public"."games"(id)
 );
 
 
