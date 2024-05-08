@@ -28,19 +28,6 @@ This is excessive, and I will try to stick to 3:
     - debug
     - info
 
-### Installing deps
-
-To install a new dep:
-1. Comment out the 2nd line from .cargo/config.toml. So it looks like:
-`# replace-with = "vendored-sources"`
-2. `cargo add foo`
-3. `cargo vendor`
-4. Uncomment .cargo/config.toml. 
-
-You might think this is a lot of friction for adding deps. This is a good thing. Vendoring deps makes it so that the docker image can build more readily, and makes our codebase more resistant to supply chain attacks. 
-The friction makes me think twice before adding a new dep.
-
-
 ## Tech Stack 
 Tech Stack:
 - Frontend:
@@ -78,7 +65,6 @@ To release:
 ```
 gh run watch && ./deploy.sh
 ```
-
 
 ## Secret management
 

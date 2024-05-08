@@ -11,8 +11,6 @@ supabase db push
 
 # upload stylesheet to supabase cdn
 node upload-css.js
-# yes y | supabase storage --experimental rm ss:///styles/index.css || true
-# supabase storage --experimental cp styles/index.min.css ss:///styles/index.css
 
 # deploy to citadels.fly.dev
 fly secrets set GIT_SHA=$(git show -s --format=%H)

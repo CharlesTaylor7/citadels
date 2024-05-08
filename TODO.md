@@ -1,19 +1,12 @@
-## Defects
-- [ ] etag the public/index.css or disable caching altogether.
-- [ ] Prevent tracing subscriber from overwriting the env_logger
-
-- [ ] Arrows overlap text in role logs.
-- [ ] No logs for draft phase
-- [ ] No logs for end of previous turn. Very easy to miss Actions of last player
-- [ ] Bewitch action wipes out the whole screen and forces a page reload.
-
 ## Work
-- [ ] Implement Continuous deployment.
-- [ ] Game host with elevated permissions
 - [ ] Auth via Supabase
+- [ ] Game host with elevated permissions
+- [ ] Prevent tracing subscriber from overwriting the env_logger
 - [ ] Multi room support
 - [ ] Optimize binary size (After removing all panics)
-- Notifications
+- [ ] Max height for hand panel, with horizontal scroll
+- [ ] Randomize audio notification
+- [ ] Notifications
     - Seer: card is taken. 
     - Seer: card is given.
     - Magician
@@ -24,25 +17,24 @@
     - Theater 
     - Wizard 
 
-- Fixup janky UI
-    - [ ] The required rank 4 actions should have an indicator.
-    - [ ] Warlord Menu:
-        - Destroy cost should be displayed prominently 
-        - should disable & grey districts that cost too much.
-
-    - [ ] Build Menu:
-        - Reminder that you have a warrant; emoji + text
-        - Cost to build should be displayed
-        - Use tabs instead of radio buttons
-
-    - [ ] Marshal menu should disable & grey districts that cost too much.
-- [ ] Max height for hand panel, with horizontal scroll
-- [ ] Randomize audio notification
+## UI Defects
+- [ ] Arrows overlap text in role logs.
+- [ ] No logs for draft phase
+- [ ] No logs for end of previous turn. Very easy to miss Actions of last player
+- [ ] Bewitch action wipes out the whole screen and forces a page reload.
+- [ ] The required rank 4 actions should have an indicator.
+- [ ] Rank 8 Menus (Warlord, Diplomat, Marshal):
+    - Costs should be displayed prominently 
+    - Should disable & grey districts that cost too much.
+- [ ] Build Menu:
+    - Reminder that you have a warrant; emoji + text
+    - Cost to build should be displayed
+    - Use tabs instead of radio buttons
 
 ## Ideas
-- [ ] Bots
+- [ ] Bots to play against
 - [ ] Randomizer mode: any role can be any rank
-- [ ] Persist game config to sqlite db
+- [ ] Persist game config
 - [ ] Keyboard based warrant assignment
 - [ ] Detect when building is impossible.
 - [ ] Pesist the dragged position of districts in a city.
