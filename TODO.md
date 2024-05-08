@@ -1,7 +1,6 @@
 ## Defects
-- [ ] Need request logging badly. This would help so much in troubleshooting bugs in the middle of a game.
-- [ ] Docker dependency caching doesn't seem to actually work
 - [ ] etag the public/index.css or disable caching altogether.
+- [ ] Prevent tracing subscriber from overwriting the env_logger
 
 - [ ] Arrows overlap text in role logs.
 - [ ] No logs for draft phase
@@ -10,8 +9,6 @@
 
 ## Work
 - [ ] Implement Continuous deployment.
-- [ ] Make git commit visible on site instead of opaque version number.
-- [ ] Remove sqlite storage
 - [ ] Game host with elevated permissions
 - [ ] Auth via Supabase
 - [ ] Multi room support
