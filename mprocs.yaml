@@ -2,17 +2,11 @@ procs:
   Server:
     shell: GIT_SHA=main RUST_BACKTRACE=1 cargo watch --features="dev,dotenv" -c -x run
 
-  Tunnel:
-    shell: ngrok start --all
-    autostart: false
-
   # Tailwind 3 & daisyUI 4 are installed globally 
   Tailwind:
     shell: NODE_PATH=/opt/homebrew/lib/node_modules tailwindcss --input tailwind.source.css --output styles/index.css --watch
+    autostart: false
 
   Docs:
     shell: cargo doc --offline --lib --open
-    autostart: false
-
-  Deploy:
     autostart: false
