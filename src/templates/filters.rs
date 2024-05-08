@@ -1,16 +1,21 @@
 use crate::actions::ActionTag;
 use crate::types::CardSuit;
+use std::borrow::Cow;
 use std::fmt::Debug;
 
 pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
     Ok(format!("{:#?}", item))
 }
 
-pub fn stylesheet(_: &()) -> askama::Result<&'static str> {
+pub fn stylesheet(_: &()) -> askama::Result<Cow<'_, str>> {
     if cfg!(feature = "dev") {
-        Ok("/styles/index.css")
+        Ok("/styles/index.css".into())
     } else {
-        Ok("https://ryvsflpspddwwacxrnst.supabase.co/storage/v1/object/public/styles/index.css")
+        Ok(format!(
+            "{}/storage/v1/object/public/styles/index.css",
+            env!("SUPABASE_PROJECT_URL")
+        )
+        .into())
     }
 }
 pub fn class(item: &ActionTag) -> askama::Result<&'static str> {

@@ -10,8 +10,13 @@ NODE_PATH=/opt/homebrew/lib/node_modules tailwindcss --input tailwind.source.css
 supabase db push
 
 # upload stylesheet to supabase cdn
-yes y | supabase storage --experimental rm ss:///styles/index.css || true
-supabase storage --experimental cp styles/index.min.css ss:///styles/index.css
+curl --location --request POST "${SUPABASE_PROJECT_URL}/bucket" \
+  --header "Authorization: Bearer ${SUPABASE_KEY}" \
+  --header 'Content-Type: application/json' \
+  --data-raw '{ "name": "avatars" }'
+
+# yes y | supabase storage --experimental rm ss:///styles/index.css || true
+# supabase storage --experimental cp styles/index.min.css ss:///styles/index.css
 
 # deploy to citadels.fly.dev
 fly secrets set GIT_SHA=$(git show -s --format=%H)
