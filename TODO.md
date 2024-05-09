@@ -1,5 +1,5 @@
 ## Work
-- [ ] Auth via Supabase
+- [ ] signin via Supabase
 - [ ] Game host with elevated permissions
 - [ ] Prevent tracing subscriber from overwriting the env_logger
 - [ ] Multi room support
