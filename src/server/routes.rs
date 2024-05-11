@@ -58,7 +58,11 @@ pub fn get_router() -> Router {
 pub async fn index() -> impl IntoResponse {
     let supabase = SupabaseAnonClient::new();
     supabase
-        .signup_email_password("charlestaylor95@gmail.com", "another")
+        .signup_email_password("charlestaylor97@gmail.com", "itsame")
+        .await;
+
+    supabase
+        .sign_in_password("charlestaylor95@gmail.com", "another")
         .await;
     "TODO"
 }

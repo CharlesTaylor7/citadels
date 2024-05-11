@@ -1,10 +1,9 @@
-use std::env;
-
 use anyhow;
-use jsonwebtoken::{Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{Algorithm, DecodingKey};
 use reqwest::Client;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
+use std::env;
 
 #[derive(Serialize, Deserialize)]
 pub struct BasicAuth<'a> {
@@ -44,7 +43,6 @@ pub struct SupabaseAnonClient {
     pub url: String,
     pub api_key: String,
     pub jwt_secret: Secret<jsonwebtoken::DecodingKey>,
-
     pub jwt_validation: jsonwebtoken::Validation,
 }
 
@@ -76,10 +74,7 @@ impl SupabaseAnonClient {
             .json(&BasicAuth { email, password })
             .send()
             .await?;
-        log::info!("{:#?}", response);
-        log::info!("{}", response.status());
-        let body = response.json::<serde_json::value::Value>().await;
-        log::info!("{:#?}", body);
+        std::fs::write("./sample-signup.json", response.text().await?)?;
         Ok(())
     }
 
@@ -97,8 +92,7 @@ impl SupabaseAnonClient {
             .json(&BasicAuth { email, password })
             .send()
             .await?;
-        let body = response.json::<serde_json::value::Value>().await;
-        log::info!("{:#?}", body);
+        std::fs::write("./sample-signin.json", response.text().await?)?;
         Ok(())
     }
 
@@ -115,27 +109,24 @@ impl SupabaseAnonClient {
             .send()
             .await?;
 
-        let body = response.json::<serde_json::value::Value>().await;
-        log::info!("{:#?}", body);
+        std::fs::write("./sample-refresh.json", response.text().await?)?;
         Ok(())
     }
 }
 
 impl SupabaseClient {
     pub async fn logout(&self) -> anyhow::Result<()> {
-        let request_url: String = format!("{}/auth/v1/logout", self.anon.url);
-        let response: Response = self
+        let response = self
             .anon
             .client
-            .post(&request_url)
+            .post(&format!("{}/auth/v1/logout", self.anon.url))
             .header("apikey", &self.anon.api_key)
             .header("Content-Type", "application/json")
             .bearer_auth(&self.bearer_token)
             .send()
             .await?;
 
-        let body = response.json::<serde_json::value::Value>().await;
-        log::info!("{:#?}", body);
+        std::fs::write("./sample-logout.json", response.text().await?)?;
         Ok(())
     }
 }

@@ -1,3 +1,4 @@
+use crate::server::auth::SupabaseAnonClient;
 use crate::server::ws;
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
@@ -10,7 +11,7 @@ pub struct AppState {
     pub lobby: Arc<Mutex<Lobby>>,
     pub game: Arc<Mutex<Option<Game>>>,
     pub connections: Arc<Mutex<ws::Connections>>,
-    //pub supabase: SupabaseClient,
+    pub supabase: SupabaseAnonClient,
 }
 
 fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
@@ -26,7 +27,7 @@ impl Default for AppState {
             connections: new_arc_mutex(ws::Connections::default()),
             lobby: new_arc_mutex(Lobby::default()),
             game: new_arc_mutex(None),
-            //  supabase,
+            supabase: SupabaseAnonClient::new(),
             // game: new_arc_mutex(Game::start(Lobby::demo(3), SeedableRng::from_entropy()).ok()),
         }
     }
