@@ -3,15 +3,19 @@ use crate::server::ws;
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::cookie;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex};
+use tokio::sync::RwLock;
+
+use super::supabase::SupabaseUserClient;
 
 #[derive(Clone)]
 pub struct AppState {
     cookie_signing_key: cookie::Key,
     pub lobby: Arc<Mutex<Lobby>>,
     pub game: Arc<Mutex<Option<Game>>>,
-    pub connections: Arc<RwLock<ws::Connections>>,
+    pub connections: Arc<Mutex<ws::Connections>>,
     pub supabase: SupabaseAnonClient,
+    pub sessions: Arc<RwLock<Vec<SupabaseUserClient>>>,
 }
 
 fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
@@ -24,10 +28,11 @@ impl Default for AppState {
 
         Self {
             cookie_signing_key: cookie::Key::from(key.as_bytes()),
-            connections: Arc::new(RwLock::new(ws::Connections::default())),
             lobby: new_arc_mutex(Lobby::default()),
             game: new_arc_mutex(None),
             supabase: SupabaseAnonClient::new(),
+            connections: Arc::new(Mutex::new(ws::Connections::default())),
+            sessions: Arc::new(RwLock::new(Vec::new())),
         }
     }
 }
