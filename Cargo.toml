@@ -38,12 +38,11 @@ macros = { path = "./macros"}
 reqwest = { version = "0.12.4", features = ["json"] }
 jsonwebtoken = "9.3.0"
 anyhow = "1.0.83"
-# debug_handler!
-axum-macros = "0.4.1"
+axum-macros = { version = "0.4.1", optional = true}
 lru = "0.12.3"
 
 [features]
-dev = []
+dev = ["dep:axum-macros"]
 dotenv = ["dep:dotenv"]
 
 # https://old.reddit.com/r/rust/comments/gvrgca/this_is_a_neat_trick_for_getting_good_runtime/
