@@ -1,6 +1,7 @@
 use crate::actions::ActionTag;
 use crate::types::CardSuit;
 use std::borrow::Cow;
+use std::env;
 use std::fmt::Debug;
 
 pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
@@ -13,7 +14,7 @@ pub fn stylesheet(_: &()) -> askama::Result<Cow<'_, str>> {
     } else {
         Ok(format!(
             "{}/storage/v1/object/public/styles/index.css",
-            env!("SUPABASE_PROJECT_URL")
+            env::var("SUPABASE_PROJECT_URL").unwrap()
         )
         .into())
     }
