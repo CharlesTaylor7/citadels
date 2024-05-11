@@ -1,7 +1,7 @@
 use anyhow;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
 use reqwest::Client;
-use reqwest::Response;
+use reqwest::{Error, Response};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
