@@ -36,6 +36,8 @@ tracing-subscriber = { version ="0.3.18", features = ["fmt"], default-features =
 tracing = "0.1.40"
 macros = { path = "./macros"}
 supabase-rust = { path = "./supabase-rust" }
+reqwest = "0.12.4"
+jsonwebtoken = "9.3.0"
 
 [features]
 dev = []
