@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import fs from 'node:fs';
 
 // Create a single supabase client for interacting with your database
-const supabase = createClient(process.env.SUPABASE_PROJECT_URL, process.env.SUPABASE_ADMIN_KEY);
+const supabase = createClient(process.env.PROD_SUPABASE_PROJECT_URL, process.env.PROD_SUPABASE_SERVICE_ROLE_KEY);
 
 const create = await supabase
   .storage
@@ -17,7 +17,6 @@ if (create.error) {
 }
 
 const buffer = fs.readFileSync("styles/index.min.css");
-console.log(buffer);
 await supabase
   .storage
   .from('styles')
