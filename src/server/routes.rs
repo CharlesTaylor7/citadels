@@ -86,10 +86,7 @@ where
     }
 }
 
-pub async fn index(
-    state: State<AppState>,
-    cookies: PrivateCookieJar,
-) -> Result<Response, AnyhowError> {
+async fn index(state: State<AppState>, cookies: PrivateCookieJar) -> Result<Response, AnyhowError> {
     let creds = &EmailCreds {
         email: "charlestaylor99@gmail.com",
         password: Secret::new("nobody"),
@@ -98,7 +95,7 @@ pub async fn index(
     Ok(cookies.into_response())
 }
 
-pub async fn get_version() -> impl IntoResponse {
+async fn get_version() -> impl IntoResponse {
     std::env::var("GIT_SHA")
         .map_or(Cow::Borrowed("github.com/CharlesTaylor7/citadels"), |sha| {
             format!("github.com/CharlesTaylor7/citadels/commit/{sha}").into()
@@ -106,7 +103,7 @@ pub async fn get_version() -> impl IntoResponse {
         .into_response()
 }
 
-pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
     let player_id = cookies.get("player_id");
 
     if player_id.is_none() {
@@ -136,14 +133,14 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
         .into_response()
 }
 
-pub async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
+async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
     let lobby = app.lobby.lock().unwrap();
     DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
         .to_html()
         .into_response()
 }
 
-pub async fn post_district_config(
+async fn post_district_config(
     app: State<AppState>,
     form: Json<HashMap<DistrictName, ConfigOption>>,
 ) -> impl IntoResponse {
@@ -154,14 +151,14 @@ pub async fn post_district_config(
         .into_response()
 }
 
-pub async fn get_role_config(app: State<AppState>) -> impl IntoResponse {
+async fn get_role_config(app: State<AppState>) -> impl IntoResponse {
     let lobby = app.lobby.lock().unwrap();
     RoleConfigTemplate::from_config(lobby.config.roles.borrow(), &HashSet::new())
         .to_html()
         .into_response()
 }
 
-pub async fn post_role_config(
+async fn post_role_config(
     app: State<AppState>,
     form: Json<HashMap<RoleName, String>>,
 ) -> Result<Response, ErrorResponse> {
@@ -189,7 +186,7 @@ pub struct Register {
     username: String,
 }
 
-pub async fn register(
+async fn register(
     app: State<AppState>,
     cookies: PrivateCookieJar,
     form: axum::Json<Register>,
@@ -229,7 +226,7 @@ pub async fn register(
     Ok(StatusCode::OK.into_response())
 }
 
-pub async fn start(app: State<AppState>) -> Result<Response> {
+async fn start(app: State<AppState>) -> Result<Response> {
     let mut lobby = app.lobby.lock().unwrap();
     if lobby.players.len() < 2 {
         return Err(form_feedback(
@@ -269,7 +266,7 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
     unreachable!()
 }
 
-pub async fn game(
+async fn game(
     app: State<AppState>,
     cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
@@ -284,7 +281,7 @@ pub async fn game(
     }
 }
 
-pub async fn get_game_actions(
+async fn get_game_actions(
     app: State<AppState>,
     cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
@@ -295,7 +292,7 @@ pub async fn get_game_actions(
     MenuTemplate::from(game, cookie.as_ref().map(|c| c.value())).to_html()
 }
 
-pub async fn get_game_city(
+async fn get_game_city(
     app: State<AppState>,
     cookies: PrivateCookieJar,
     path: Path<PlayerName>,
@@ -315,14 +312,14 @@ pub async fn get_game_city(
     }
 }
 
-pub async fn get_game_logs(
+async fn get_game_logs(
     _app: State<AppState>,
     _cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
     todo!()
 }
 
-pub async fn get_ws(
+async fn get_ws(
     state: State<AppState>,
     cookies: PrivateCookieJar,
     ws: WebSocketUpgrade,

@@ -12,7 +12,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
 
 #[derive(Default)]
-pub struct Connections(HashMap<String, WebSocketSink>);
+pub struct Connections(pub HashMap<String, WebSocketSink>);
 
 impl Connections {
     pub fn broadcast(&mut self, html: Html<String>) {

@@ -8,15 +8,15 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
 use tokio::time::Duration;
 
-fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
-    Arc::new(Mutex::new(item))
+fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
+    Arc::new(std::sync::Mutex::new(item))
 }
 
 #[derive(Clone)]
 pub struct AppState {
     cookie_signing_key: cookie::Key,
-    pub lobby: Arc<Mutex<Lobby>>,
-    pub game: Arc<Mutex<Option<Game>>>,
+    pub lobby: Arc<std::sync::Mutex<Lobby>>,
+    pub game: Arc<std::sync::Mutex<Option<Game>>>,
     pub connections: Arc<Mutex<ws::Connections>>,
     pub supabase: SupabaseAnonClient,
     pub sessions: Arc<RwLock<Sessions>>,
@@ -57,8 +57,12 @@ impl AppState {
             .ok_or(anyhow::anyhow!("lost track of session"))?;
         let access_token = session.access_token.clone();
         drop(lock);
-        self.sessions.write().await.0.swap_remove(index);
-        self.supabase.logout(&access_token).await?;
+        let pair = tokio::join!(
+            self.supabase.logout(&access_token),
+            async { self.sessions.write().await.0.swap_remove(index) },
+            //async { self.connections.lock().await.0.remove(session_id) },
+        );
+        pair.0?;
         Ok(())
     }
 
