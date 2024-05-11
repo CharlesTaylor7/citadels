@@ -242,8 +242,8 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
 
     if let Some(game) = game.as_ref() {
         app.connections
-            .read()
-            .await
+            .lock()
+            .unwrap()
             .broadcast_each(move |id| GameTemplate::render_with(game, Some(id)));
         return Ok((StatusCode::OK).into_response());
     }
