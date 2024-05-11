@@ -18,7 +18,12 @@ async fn main() {
     let state = AppState::default();
     let sessions = state.sessions.clone();
     let supabase = state.supabase.clone();
-    tokio::spawn(refresh_sessions(Duration::from_secs(3), sessions, supabase));
+    tokio::spawn(refresh_sessions(
+        // refresh every 30 minutes
+        Duration::from_secs(30 * 60),
+        sessions,
+        supabase,
+    ));
 
     let host = "0.0.0.0:8080";
     let listener = tokio::net::TcpListener::bind(host).await.unwrap();

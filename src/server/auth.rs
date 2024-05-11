@@ -67,22 +67,42 @@ pub async fn refresh_sessions(
     duration: Duration,
     sessions: Arc<RwLock<Sessions>>,
     supabase: SupabaseAnonClient,
-) -> anyhow::Result<()> {
-    // half an hour
+) {
     let mut interval = interval(duration);
     loop {
         interval.tick().await;
+        log::info!("Refreshing sessions");
         let mut index = 0;
         loop {
-            let s = sessions.read().await;
-            if index >= s.0.len() {
+            let sessions_lock = sessions.read().await;
+            if let Some(session) = sessions_lock.0.get(index) {
+                log::info!("Refreshing {}", session.session_id);
+
+                let token = session.refresh_token.clone();
+                let session_id = session.session_id.clone();
+                drop(sessions_lock);
+                let signin = supabase.refresh(&token).await;
+                match signin {
+                    Ok(signin) => {
+                        let sessions_lock = &mut sessions.write().await;
+                        if let Some(session) = sessions_lock.0.get_mut(index) {
+                            if session.session_id == session_id {
+                                session.update(signin);
+                            } else {
+                                continue;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        log::error!("{}", e);
+                    }
+                }
+                index += 1;
+            } else {
                 break;
             }
-            let token = s.0[index].refresh_token.clone();
-            drop(s);
-            let signin = supabase.refresh(&token).await?;
-            sessions.write().await.0[index].update(signin);
-            index += 1;
         }
     }
 }
