@@ -27,7 +27,7 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use uuid::Uuid;
 
-use super::auth::SupabaseAnonClient;
+use super::auth::{EmailCreds, Secret};
 
 pub fn get_router() -> Router {
     let context = AppState::default();
@@ -55,15 +55,22 @@ pub fn get_router() -> Router {
         .with_state(context)
 }
 
-pub async fn index() -> impl IntoResponse {
-    let supabase = SupabaseAnonClient::new();
+pub async fn index(state: State<AppState>) -> impl IntoResponse {
+    let supabase = &state.supabase;
     supabase
-        .signup_email_password("charlestaylor97@gmail.com", "itsame")
+        .signup_email(&EmailCreds {
+            email: "charlestaylor97@gmail.com",
+            password: Secret::new("itsame"),
+        })
         .await;
 
     supabase
-        .sign_in_password("charlestaylor95@gmail.com", "another")
+        .signin_email(&EmailCreds {
+            email: "charlestaylor95@gmail.com",
+            password: Secret::new("another"),
+        })
         .await;
+
     "TODO"
 }
 
