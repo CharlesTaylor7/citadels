@@ -10,6 +10,7 @@ pub struct AppState {
     pub lobby: Arc<Mutex<Lobby>>,
     pub game: Arc<Mutex<Option<Game>>>,
     pub connections: Arc<Mutex<ws::Connections>>,
+    //pub supabase: SupabaseClient,
 }
 
 fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
@@ -19,11 +20,13 @@ fn new_arc_mutex<T>(item: T) -> Arc<Mutex<T>> {
 impl Default for AppState {
     fn default() -> Self {
         let key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
+
         Self {
             cookie_signing_key: cookie::Key::from(key.as_bytes()),
             connections: new_arc_mutex(ws::Connections::default()),
             lobby: new_arc_mutex(Lobby::default()),
             game: new_arc_mutex(None),
+            //  supabase,
             // game: new_arc_mutex(Game::start(Lobby::demo(3), SeedableRng::from_entropy()).ok()),
         }
     }
