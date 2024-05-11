@@ -1,4 +1,7 @@
+use citadels::server::auth::refresh_sessions;
 use citadels::server::routes::get_router;
+use citadels::server::state::AppState;
+use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() {
@@ -12,9 +15,14 @@ async fn main() {
 
     citadels::logger::init();
 
-    let port = "0.0.0.0:8080";
-    let listener = tokio::net::TcpListener::bind(port).await.unwrap();
+    let state = AppState::default();
+    let sessions = state.sessions.clone();
+    let supabase = state.supabase.clone();
+    tokio::spawn(refresh_sessions(Duration::from_secs(3), sessions, supabase));
 
-    log::info!("Listening on port: {}", port);
-    axum::serve(listener, get_router()).await.unwrap();
+    let host = "0.0.0.0:8080";
+    let listener = tokio::net::TcpListener::bind(host).await.unwrap();
+
+    log::info!("Listening on: {}", host);
+    axum::serve(listener, get_router(state)).await.unwrap();
 }

@@ -28,9 +28,9 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use uuid::Uuid;
 
-pub fn get_router() -> Router {
-    let context = AppState::default();
+use super::auth;
 
+pub fn get_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(index))
         .route("/version", get(get_version))
@@ -51,32 +51,16 @@ pub fn get_router() -> Router {
         .nest_service("/public", ServeDir::new("public"))
         .nest_service("/styles", ServeDir::new("styles"))
         .layer(TraceLayer::new_for_http())
-        .with_state(context)
+        .with_state(state)
 }
 
-pub async fn index(state: State<AppState>) -> impl IntoResponse {
+pub async fn index(state: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
     let creds = &EmailCreds {
         email: "charlestaylor99@gmail.com",
         password: Secret::new("nobody"),
     };
-    let supabase = &state.supabase;
-    let signin = supabase.signin_email("session", creds).await;
-
-    match signin {
-        Ok(client) => "signin",
-        Err(e) => {
-            log::error!("{}", e);
-
-            let signup = supabase.signup_email("session", creds).await;
-            match signup {
-                Ok(client) => "signup",
-                Err(e) => {
-                    log::error!("{}", e);
-                    "error"
-                }
-            }
-        }
-    }
+    let _ = auth::signin_or_signup(state.0, cookies, creds).await;
+    "DONE"
 }
 
 pub async fn get_version() -> impl IntoResponse {

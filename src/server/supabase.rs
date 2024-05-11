@@ -74,7 +74,7 @@ impl SupabaseAnonClient {
         &self,
         session_id: &str,
         creds: &EmailCreds<'_>,
-    ) -> anyhow::Result<SupabaseUserClient> {
+    ) -> anyhow::Result<SupabaseSession> {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/signup", self.url))
@@ -84,7 +84,7 @@ impl SupabaseAnonClient {
             .send()
             .await?;
         let json = response.json::<SignInResponse>().await?;
-        let client = SupabaseUserClient {
+        let client = SupabaseSession {
             session_id: session_id.to_owned(),
             anon: self.clone(),
             access_token: json.access_token,
@@ -98,7 +98,7 @@ impl SupabaseAnonClient {
         &self,
         session_id: &str,
         creds: &EmailCreds<'_>,
-    ) -> anyhow::Result<SupabaseUserClient> {
+    ) -> anyhow::Result<SupabaseSession> {
         let response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=password", self.url))
@@ -108,7 +108,7 @@ impl SupabaseAnonClient {
             .send()
             .await?;
         let json = response.json::<SignInResponse>().await?;
-        let client = SupabaseUserClient {
+        let client = SupabaseSession {
             session_id: session_id.to_owned(),
             anon: self.clone(),
             access_token: json.access_token,
@@ -117,19 +117,42 @@ impl SupabaseAnonClient {
         };
         Ok(client)
     }
+
+    pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<SignInResponse> {
+        let data = self
+            .client
+            .post(&format!(
+                "{}/auth/v1/token?grant_type=refresh_token",
+                self.url
+            ))
+            .header("apikey", self.api_key.as_ref())
+            .header("Content-Type", "application/json")
+            .json(&RefreshToken { refresh_token })
+            .send()
+            .await?
+            .json()
+            .await?;
+        Ok(data)
+    }
 }
 
-pub struct SupabaseUserClient {
+pub struct SupabaseSession {
     pub session_id: String,
     anon: SupabaseAnonClient,
     access_token: String,
-    refresh_token: String,
-    expires_at: usize, // utc epoch in seconds
+    pub refresh_token: String,
+    pub expires_at: usize, // utc epoch in seconds
 }
 
-impl SupabaseUserClient {
-    pub async fn refresh(&self) -> anyhow::Result<()> {
-        let response = self
+impl SupabaseSession {
+    pub fn update(&mut self, response: SignInResponse) {
+        self.refresh_token = response.refresh_token;
+        self.access_token = response.access_token;
+        self.expires_at = response.expires_at;
+    }
+
+    pub async fn refresh(&self) -> anyhow::Result<SignInResponse> {
+        let data = self
             .anon
             .client
             .post(&format!(
@@ -142,10 +165,10 @@ impl SupabaseUserClient {
                 refresh_token: &self.refresh_token,
             })
             .send()
+            .await?
+            .json()
             .await?;
-
-        std::fs::write("./sample-refresh.json", response.text().await?)?;
-        Ok(())
+        Ok(data)
     }
 
     pub async fn logout(&self) -> anyhow::Result<()> {
