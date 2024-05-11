@@ -54,13 +54,48 @@ pub fn get_router(state: AppState) -> Router {
         .with_state(state)
 }
 
-pub async fn index(state: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
+// Make our own error that wraps `anyhow::Error`.
+struct AnyhowError(anyhow::Error);
+
+// Tell axum how to convert `AppError` into a response.
+impl IntoResponse for AnyhowError {
+    fn into_response(self) -> Response {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!(
+                "Internal Server Error\n{}",
+                if cfg!(feature = "dev") {
+                    self.0
+                } else {
+                    anyhow::anyhow!("")
+                }
+            ),
+        )
+            .into_response()
+    }
+}
+
+// This enables using `?` on functions that return `Result<_, anyhow::Error>` to turn them into
+// `Result<_, AppError>`. That way you don't need to do that manually.
+impl<E> From<E> for AnyhowError
+where
+    E: Into<anyhow::Error>,
+{
+    fn from(err: E) -> Self {
+        Self(err.into())
+    }
+}
+
+pub async fn index(
+    state: State<AppState>,
+    cookies: PrivateCookieJar,
+) -> Result<Response, AnyhowError> {
     let creds = &EmailCreds {
         email: "charlestaylor99@gmail.com",
         password: Secret::new("nobody"),
     };
-    let _ = auth::signin_or_signup(state.0, cookies, creds).await;
-    "DONE"
+    let cookies = auth::signin_or_signup(&state.0, cookies, creds).await?;
+    Ok(cookies.into_response())
 }
 
 pub async fn get_version() -> impl IntoResponse {

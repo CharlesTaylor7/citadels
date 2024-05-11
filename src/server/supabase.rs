@@ -1,10 +1,11 @@
 use anyhow;
-use jsonwebtoken::{Algorithm, DecodingKey};
 use reqwest::Client;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::sync::Arc;
+
+use super::auth::SupabaseSession;
 
 #[derive(Serialize)]
 pub struct EmailCreds<'a> {
@@ -17,18 +18,11 @@ pub struct RefreshToken<'a> {
     refresh_token: &'a str,
 }
 
-#[derive(Clone, Debug, Deserialize)]
-pub struct Claims {
-    pub sub: String,
-    pub email: String,
-    pub exp: usize,
-}
-
 #[derive(Deserialize)]
 pub struct SignInResponse {
-    access_token: String,
-    refresh_token: String,
-    expires_at: usize,
+    pub access_token: String,
+    pub refresh_token: String,
+    pub expires_at: usize,
 }
 
 #[derive(Clone)]
@@ -85,8 +79,7 @@ impl SupabaseAnonClient {
             .await?;
         let json = response.json::<SignInResponse>().await?;
         let client = SupabaseSession {
-            session_id: session_id.to_owned(),
-            anon: self.clone(),
+            id: session_id.to_owned(),
             access_token: json.access_token,
             refresh_token: json.refresh_token,
             expires_at: json.expires_at,
@@ -109,8 +102,7 @@ impl SupabaseAnonClient {
             .await?;
         let json = response.json::<SignInResponse>().await?;
         let client = SupabaseSession {
-            session_id: session_id.to_owned(),
-            anon: self.clone(),
+            id: session_id.to_owned(),
             access_token: json.access_token,
             refresh_token: json.refresh_token,
             expires_at: json.expires_at,
@@ -134,57 +126,26 @@ impl SupabaseAnonClient {
             .await?;
         Ok(data)
     }
-}
 
-pub struct SupabaseSession {
-    pub session_id: String,
-    anon: SupabaseAnonClient,
-    access_token: String,
-    pub refresh_token: String,
-    pub expires_at: usize, // utc epoch in seconds
-}
-
-impl SupabaseSession {
-    pub fn update(&mut self, response: SignInResponse) {
-        self.refresh_token = response.refresh_token;
-        self.access_token = response.access_token;
-        self.expires_at = response.expires_at;
-    }
-
-    pub async fn refresh(&self) -> anyhow::Result<SignInResponse> {
-        let data = self
-            .anon
-            .client
-            .post(&format!(
-                "{}/auth/v1/token?grant_type=refresh_token",
-                self.anon.url
-            ))
-            .header("apikey", self.anon.api_key.as_ref())
+    pub async fn logout(&self, access_token: &str) -> anyhow::Result<()> {
+        self.client
+            .post(&format!("{}/auth/v1/logout", self.url))
+            .header("apikey", self.api_key.as_ref())
             .header("Content-Type", "application/json")
-            .json(&RefreshToken {
-                refresh_token: &self.refresh_token,
-            })
-            .send()
-            .await?
-            .json()
-            .await?;
-        Ok(data)
-    }
-
-    pub async fn logout(&self) -> anyhow::Result<()> {
-        let response = self
-            .anon
-            .client
-            .post(&format!("{}/auth/v1/logout", self.anon.url))
-            .header("apikey", self.anon.api_key.as_ref())
-            .header("Content-Type", "application/json")
-            .bearer_auth(&self.access_token)
+            .bearer_auth(access_token)
             .send()
             .await?;
-
-        std::fs::write("./sample-logout.json", response.text().await?)?;
         Ok(())
     }
+}
+
+/*
+use jsonwebtoken::{Algorithm, DecodingKey};
+#[derive(Clone, Debug, Deserialize)]
+pub struct Claims {
+    pub sub: String,
+    pub email: String,
+    pub exp: usize,
 }
 
 pub struct JwtDecoder {
@@ -207,3 +168,4 @@ impl JwtDecoder {
         Ok(token.claims)
     }
 }
+*/

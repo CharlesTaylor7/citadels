@@ -1,11 +1,22 @@
-use crate::server::supabase::SupabaseAnonClient;
-use crate::server::supabase::SupabaseSession;
+use super::supabase::SignInResponse;
 use crate::server::{state::AppState, supabase::EmailCreds};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use tokio::time::{interval, Duration};
 use uuid::Uuid;
+
+pub struct SupabaseSession {
+    pub id: String,
+    pub access_token: String,
+    pub refresh_token: String,
+    pub expires_at: usize, // utc epoch in seconds
+}
+
+impl SupabaseSession {
+    pub fn update(&mut self, response: SignInResponse) {
+        self.refresh_token = response.refresh_token;
+        self.access_token = response.access_token;
+        self.expires_at = response.expires_at;
+    }
+}
 
 #[derive(Default)]
 pub struct Sessions(pub Vec<SupabaseSession>);
@@ -18,14 +29,12 @@ impl Sessions {
     }
 
     pub fn client_from_session_id(&self, session_id: &str) -> Option<&SupabaseSession> {
-        self.0
-            .iter()
-            .find(|client| session_id == &client.session_id)
+        self.0.iter().find(|client| session_id == &client.id)
     }
 }
 
 pub async fn signin_or_signup(
-    state: AppState,
+    state: &AppState,
     mut cookies: PrivateCookieJar,
     creds: &EmailCreds<'_>,
 ) -> anyhow::Result<PrivateCookieJar> {
@@ -61,48 +70,4 @@ pub async fn signin_or_signup(
     };
 
     Ok(cookies)
-}
-
-pub async fn refresh_sessions(
-    duration: Duration,
-    sessions: Arc<RwLock<Sessions>>,
-    supabase: SupabaseAnonClient,
-) {
-    let mut interval = interval(duration);
-    loop {
-        interval.tick().await;
-        log::info!("Refreshing sessions");
-        let mut index = 0;
-        loop {
-            let sessions_lock = sessions.read().await;
-            if let Some(session) = sessions_lock.0.get(index) {
-                log::info!("Refreshing {}", session.session_id);
-
-                let token = session.refresh_token.clone();
-                let session_id = session.session_id.clone();
-                drop(sessions_lock);
-                let signin = supabase.refresh(&token).await;
-                match signin {
-                    Ok(signin) => {
-                        let sessions_lock = &mut sessions.write().await;
-                        if let Some(session) = sessions_lock.0.get_mut(index) {
-                            if session.session_id == session_id {
-                                session.update(signin);
-                            } else {
-                                continue;
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                    Err(e) => {
-                        log::error!("{}", e);
-                    }
-                }
-                index += 1;
-            } else {
-                break;
-            }
-        }
-    }
 }

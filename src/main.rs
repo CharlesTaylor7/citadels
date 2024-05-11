@@ -1,4 +1,3 @@
-use citadels::server::auth::refresh_sessions;
 use citadels::server::routes::get_router;
 use citadels::server::state::AppState;
 use tokio::time::Duration;
@@ -7,6 +6,7 @@ use tokio::time::Duration;
 async fn main() {
     #[cfg(feature = "dotenv")]
     dotenv::dotenv().expect(".env not found");
+
     /*
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
@@ -16,13 +16,9 @@ async fn main() {
     citadels::logger::init();
 
     let state = AppState::default();
-    let sessions = state.sessions.clone();
-    let supabase = state.supabase.clone();
-    tokio::spawn(refresh_sessions(
+    tokio::spawn(state.clone().refresh_sessions(
         // refresh every 30 minutes
         Duration::from_secs(30 * 60),
-        sessions,
-        supabase,
     ));
 
     let host = "0.0.0.0:8080";
