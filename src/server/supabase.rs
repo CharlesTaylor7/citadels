@@ -4,7 +4,6 @@ use reqwest::Client;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::env;
-use std::rc::Rc;
 use std::sync::Arc;
 
 #[derive(Serialize)]
@@ -73,7 +72,7 @@ impl SupabaseAnonClient {
 
     pub async fn signup_email(
         &self,
-        session_id: String,
+        session_id: &str,
         creds: &EmailCreds<'_>,
     ) -> anyhow::Result<SupabaseUserClient> {
         let response: Response = self
@@ -86,7 +85,7 @@ impl SupabaseAnonClient {
             .await?;
         let json = response.json::<SignInResponse>().await?;
         let client = SupabaseUserClient {
-            session_id,
+            session_id: session_id.to_owned(),
             anon: self.clone(),
             access_token: json.access_token,
             refresh_token: json.refresh_token,
@@ -97,7 +96,7 @@ impl SupabaseAnonClient {
 
     pub async fn signin_email(
         &self,
-        session_id: String,
+        session_id: &str,
         creds: &EmailCreds<'_>,
     ) -> anyhow::Result<SupabaseUserClient> {
         let response = self
@@ -110,6 +109,7 @@ impl SupabaseAnonClient {
             .await?;
         let json = response.json::<SignInResponse>().await?;
         let client = SupabaseUserClient {
+            session_id: session_id.to_owned(),
             anon: self.clone(),
             access_token: json.access_token,
             refresh_token: json.refresh_token,
@@ -120,7 +120,7 @@ impl SupabaseAnonClient {
 }
 
 pub struct SupabaseUserClient {
-    session_id: Rc<str>,
+    pub session_id: String,
     anon: SupabaseAnonClient,
     access_token: String,
     refresh_token: String,

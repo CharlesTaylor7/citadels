@@ -60,14 +60,14 @@ pub async fn index(state: State<AppState>) -> impl IntoResponse {
         password: Secret::new("nobody"),
     };
     let supabase = &state.supabase;
-    let signin = supabase.signin_email(creds).await;
+    let signin = supabase.signin_email("session", creds).await;
 
     match signin {
         Ok(client) => "signin",
         Err(e) => {
             log::error!("{}", e);
 
-            let signup = supabase.signup_email(creds).await;
+            let signup = supabase.signup_email("session", creds).await;
             match signup {
                 Ok(client) => "signup",
                 Err(e) => {

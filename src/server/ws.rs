@@ -1,5 +1,4 @@
 use crate::server::state::AppState;
-use crate::server::supabase::SupabaseUserClient;
 use axum::extract::ws::{Message, WebSocket};
 use axum::extract::State;
 use axum::response::{ErrorResponse, Html};
@@ -12,17 +11,13 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
 
-pub struct Client {
-    ws: WebSocketSink,
-    supabase: SupabaseUserClient,
-}
 #[derive(Default)]
-pub struct Connections(HashMap<String, Client>);
+pub struct Connections(HashMap<String, WebSocketSink>);
 
 impl Connections {
     pub fn broadcast(&mut self, html: Html<String>) {
-        self.0.values_mut().for_each(|client| {
-            let _ = client.ws.send(Ok(Message::Text(html.0.clone())));
+        self.0.values_mut().for_each(|ws| {
+            let _ = ws.send(Ok(Message::Text(html.0.clone())));
         });
     }
 
@@ -30,10 +25,10 @@ impl Connections {
     where
         F: Fn(&'a str) -> Result<Html<String>, ErrorResponse>,
     {
-        for (key, client) in self.0.iter_mut() {
+        for (key, ws) in self.0.iter_mut() {
             match to_html(key) {
                 Ok(html) => {
-                    let _ = client.ws.send(Ok(Message::Text(html.0.clone())));
+                    let _ = ws.send(Ok(Message::Text(html.0.clone())));
                 }
                 Err(e) => log::debug!("{:#?}", e),
             }
@@ -65,10 +60,10 @@ pub async fn handle_socket(state: State<AppState>, player_id: String, socket: We
 fn process_message(msg: Message) -> Result<(), ()> {
     match msg {
         Message::Text(t) => {
-            log::debug!("WS - client sent str: {t:?}");
+            log::debug!("WS -  sent str: {t:?}");
         }
         Message::Binary(d) => {
-            log::debug!("WS - client sent {} bytes: {:?}", d.len(), d);
+            log::debug!("WS -  sent {} bytes: {:?}", d.len(), d);
         }
         Message::Close(_) => {
             log::debug!("WS - closed connection");
