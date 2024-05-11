@@ -31,6 +31,7 @@ pub async fn signin_or_signup(
             let session_id = cookie.value();
             let sessions = state.sessions.read().await;
             if sessions.client_from_session_id(session_id).is_none() {
+                drop(sessions);
                 let client = state.supabase.signin_email(session_id, creds).await?;
                 state.sessions.write().await.0.push(client);
             };
