@@ -17,3 +17,8 @@ primary_region = "iad"
   [[services.ports]]
     handlers = ["tls", "http"]
     port = "443"
+
+
+[env]
+SUPABASE_PROJECT_URL="https://ryvsflpspddwwacxrnst.supabase.co"
+SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5dnNmbHBzcGRkd3dhY3hybnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQ4NDQ0NjQsImV4cCI6MjAzMDQyMDQ2NH0.H7ZyujXJmUaIiF7wF_8k71DD2fw6sOJ0rYOxUbtjzn8"

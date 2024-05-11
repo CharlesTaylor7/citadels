@@ -52,7 +52,7 @@ This is excessive, and I will try to stick to 3:
     - debug
     - info
 
-## Secret management
+## Env & Secret management
 Script to generate a new signing key:
 ```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
@@ -60,4 +60,11 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 In prod use `fly secret`.
 In dev, use the .env file.
 
-Non secret env vars can go in fly.toml
+Env vars for development go in:
+- .env
+
+For production go in:
+- Use the `fly.toml`: for non secret configured env vars.
+- Use `fly secret`, for the secret env vars.
+
+Don't use `.config/cargo.toml` or the env! macro. We need runtime env lookup, not compile time.

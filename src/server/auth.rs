@@ -1,7 +1,7 @@
 use anyhow;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
 use reqwest::Client;
-use reqwest::{Error, Response};
+use reqwest::Response;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -34,10 +34,8 @@ impl Clone for Claims {
 
 #[derive(Clone, Debug)]
 pub struct SupabaseAnonClient {
+    pub url: &'static str,
     pub client: reqwest::Client,
-    pub url: String,
-    pub api_key: String,
-    pub jwt: String,
 }
 
 #[derive(Clone, Debug)]
@@ -52,10 +50,7 @@ impl SupabaseAnonClient {
 
         Self {
             client,
-            url: env!("SUPABASE_PROJECT_URL").to_string(),
-            api_key: env!("SUPABASE_ANON_KEY").to_string(),
-            jwt: "TODO".to_owned(),
-            //env!("SUPABASE_JWT_SECRET").to_string(),
+            url: env!("SUPABASE_PROJECT_URL"),
         }
     }
 
@@ -64,18 +59,20 @@ impl SupabaseAnonClient {
         let response: Response = self
             .client
             .post(&request_url)
-            .header("apikey", &self.api_key)
+            .header("apikey", env!("SUPABASE_ANON_KEY"))
             .header("Content-Type", "application/json")
             .json(&BasicAuth { email, password })
             .send()
             .await?;
+        log::info!("{}", response);
+        log::info!("{}", response.status());
         let body = response.json::<serde_json::value::Value>().await;
         log::info!("{:#?}", body);
         Ok(())
     }
 
-    pub async fn decode_jwt(&self, jwt: &str) -> anyhow::Result<Claims> {
-        let decoding_key = DecodingKey::from_secret(self.jwt.as_ref());
+    pub async fn decode_jwt(&self, jwt: &str, secret_key: &str) -> anyhow::Result<Claims> {
+        let decoding_key = DecodingKey::from_secret(secret_key.as_ref());
         let validation = Validation::new(Algorithm::HS256);
         let token = jsonwebtoken::decode::<Claims>(&jwt, &decoding_key, &validation)?;
         Ok(token.claims)
@@ -86,7 +83,7 @@ impl SupabaseAnonClient {
         let response: Response = self
             .client
             .post(&request_url)
-            .header("apikey", &self.api_key)
+            .header("apikey", env!("SUPABASE_ANON_KEY"))
             .header("Content-Type", "application/json")
             .json(&BasicAuth { email, password })
             .send()
@@ -101,7 +98,7 @@ impl SupabaseAnonClient {
         let response: Response = self
             .client
             .post(&request_url)
-            .header("apikey", &self.api_key)
+            .header("apikey", env!("SUPABASE_ANON_KEY"))
             .header("Content-Type", "application/json")
             .json(&RefreshToken { refresh_token })
             .send()
@@ -119,7 +116,7 @@ impl SupabaseClient {
             .anon
             .client
             .post(&request_url)
-            .header("apikey", &self.anon.api_key)
+            .header("apikey", env!("SUPABASE_ANON_KEY"))
             .header("Content-Type", "application/json")
             .bearer_auth(&self.bearer_token)
             .send()
