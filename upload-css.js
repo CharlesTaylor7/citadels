@@ -2,7 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 import fs from 'node:fs';
 
 // Create a single supabase client for interacting with your database
-const supabase = createClient(process.env.PROD_SUPABASE_PROJECT_URL, process.env.PROD_SUPABASE_SERVICE_ROLE_KEY);
+const url = "https://ryvsflpspddwwacxrnst.supabase.co";
+
+const supabase = createClient(url, process.env.PROD_SUPABASE_SERVICE_ROLE_KEY);
 
 const create = await supabase
   .storage
