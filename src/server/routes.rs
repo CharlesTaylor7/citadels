@@ -54,17 +54,7 @@ pub fn get_router() -> Router {
 }
 
 pub async fn index() -> impl IntoResponse {
-    let supabase = supabase_js_rs::create_client(env!("SUPABASE_PROJECT_URL"), "key");
-    let chans = supabase.get_channels();
-    log::info!("{:#?}", chans);
     "TODO"
-    /*
-          SignInWithOAuthCredentials {
-        provider: "github".to_owned(),
-        options: JsValue::UNDEFINED,
-    }
-    })
-    */
 }
 
 pub async fn get_version() -> impl IntoResponse {

@@ -1,5 +1,4 @@
 use citadels::server::routes::get_router;
-use supabase_rust;
 
 #[tokio::main]
 async fn main() {

@@ -35,9 +35,9 @@ serde_with = "3.5.0"
 tracing-subscriber = { version ="0.3.18", features = ["fmt"], default-features = false }
 tracing = "0.1.40"
 macros = { path = "./macros"}
-supabase-rust = { path = "./supabase-rust" }
-reqwest = "0.12.4"
+reqwest = { version = "0.12.4", features = ["json"] }
 jsonwebtoken = "9.3.0"
+anyhow = "1.0.83"
 
 [features]
 dev = []

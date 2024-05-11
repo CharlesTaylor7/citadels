@@ -1,17 +1,18 @@
-use jsonwebtoken::{DecodingKey, Validation, Algorithm, decode};
-use reqwest::{Client};
+use anyhow;
+use jsonwebtoken::{Algorithm, DecodingKey, Validation};
+use reqwest::Client;
 use reqwest::{Error, Response};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct Password {
-    email: String,
-    password: String,
+pub struct BasicAuth<'a> {
+    email: &'a str,
+    password: &'a str,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct RefreshToken {
-    refresh_token: String,
+pub struct RefreshToken<'a> {
+    refresh_token: &'a str,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -32,98 +33,89 @@ impl Clone for Claims {
 }
 
 #[derive(Clone, Debug)]
-pub struct Supabase {
-    client: Client,
-    url: String,
-    api_key: String,
-    jwt: String,
-    bearer_token: Option<String>,
+pub struct SupabaseAnonClient {
+    pub client: reqwest::Client,
+    pub url: String,
+    pub api_key: String,
+    pub jwt: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct SupabaseClient {
+    bearer_token: String,
+    client: SupabaseAnonClient,
 }
 
 impl Supabase {
-    // Creates a new Supabase client. If no parameters are provided, it will attempt to read the
-    // environment variables `SUPABASE_URL`, `SUPABASE_API_KEY`, and `SUPABASE_JWT_SECRET`.
-    pub fn new(url: Option<&str>, api_key: Option<&str>, jwt: Option<&str>) -> Self {
+    pub fn new() -> Self {
         let client: Client = Client::new();
-        let url: String = url
-            .map(String::from)
-            .unwrap_or_else(|| env::var("SUPABASE_URL").unwrap_or_else(|_| String::new()));
-        let api_key: String = api_key
-            .map(String::from)
-            .unwrap_or_else(|| env::var("SUPABASE_API_KEY").unwrap_or_else(|_| String::new()));
-        let jwt: String = jwt
-            .map(String::from)
-            .unwrap_or_else(|| env::var("SUPABASE_JWT_SECRET").unwrap_or_else(|_| String::new()));
 
         Supabase {
             client,
             url: env!("SUPABASE_PROJECT_URL").to_string(),
             api_key: env!("SUPABASE_ANON_KEY").to_string(),
-            jwt: env!("SUPABASE_JWT_SECRET").to_string(),
+            jwt: "TODO".to_owned(),
             bearer_token: None,
+            //env!("SUPABASE_JWT_SECRET").to_string(),
         }
     }
-    pub async fn jwt_valid(
-        &self,
-        jwt: &str,
-    ) -> Result<Claims, jsonwebtoken::errors::Error> {
-        let secret = self.jwt.clone();
 
-        let decoding_key = DecodingKey::from_secret(secret.as_ref()).into();
+    pub async fn signup_email_password(&self, email: &str, password: &str) -> anyhow::Result<()> {
+        let request_url: String = format!("{}/auth/v1/signup", self.url);
+        let response: Response = self
+            .client
+            .post(&request_url)
+            .header("apikey", &self.api_key)
+            .header("Content-Type", "application/json")
+            .json(&BasicAuth { email, password })
+            .send()
+            .await?;
+        let body = response.json::<serde_json::value::Value>().await;
+        log::info!("{:#?}", body);
+        Ok(())
+    }
+
+    pub async fn decode_jwt(&self, jwt: &str) -> anyhow::Result<Claims> {
+        let decoding_key = DecodingKey::from_secret(self.jwt.as_ref());
         let validation = Validation::new(Algorithm::HS256);
-        let decoded_token = decode::<Claims>(&jwt, &decoding_key, &validation);
-
-        match decoded_token {
-            Ok(token_data) => {
-                println!("Token is valid. Claims: {:?}", token_data.claims);
-                Ok(token_data.claims)
-            }
-            Err(err) => {
-                println!("Error decoding token: {:?}", err);
-                Err(err)
-            }
-        }
+        let token = jsonwebtoken::decode::<Claims>(&jwt, &decoding_key, &validation)?;
+        Ok(token.claims)
     }
 
-    pub async fn sign_in_password(
-        &self,
-        email: &str,
-        password: &str,
-    ) -> Result<Response, Error> {
+    pub async fn sign_in_password(&self, email: &str, password: &str) -> anyhow::Result<()> {
         let request_url: String = format!("{}/auth/v1/token?grant_type=password", self.url);
         let response: Response = self
             .client
             .post(&request_url)
             .header("apikey", &self.api_key)
             .header("Content-Type", "application/json")
-            .json(&Password {
-                email: email.to_string(),
-                password: password.to_string(),
-            })
+            .json(&BasicAuth { email, password })
             .send()
             .await?;
-        Ok(response)
+        let body = response.json::<serde_json::value::Value>().await;
+        log::info!("{:#?}", body);
+        Ok(())
     }
 
-    // This test will fail unless you disable "Enable automatic reuse detection" in Supabase
-    pub async fn refresh_token(&self, refresh_token: &str) -> Result<Response, Error> {
+    pub async fn refresh_token(&self, refresh_token: &str) -> anyhow::Result<()> {
         let request_url: String = format!("{}/auth/v1/token?grant_type=refresh_token", self.url);
         let response: Response = self
             .client
             .post(&request_url)
             .header("apikey", &self.api_key)
             .header("Content-Type", "application/json")
-            .json(&RefreshToken {
-                refresh_token: refresh_token.to_string(),
-            })
+            .json(&RefreshToken { refresh_token })
             .send()
             .await?;
-        Ok(response)
+
+        let body = response.json::<serde_json::value::Value>().await;
+        log::info!("{:#?}", body);
+        Ok(())
     }
 
-    pub async fn logout(&self) -> Result<Response, Error> {
+    pub async fn logout(&self) -> anyhow::Result<()> {
         let request_url: String = format!("{}/auth/v1/logout", self.url);
-        let token = self.bearer_token.clone().unwrap();
+        let token = self.bearer_token.ok_or(anyhow::anyhow!("Need to login"))).clone().unwrap();
         let response: Response = self
             .client
             .post(&request_url)
@@ -132,26 +124,9 @@ impl Supabase {
             .bearer_auth(token)
             .send()
             .await?;
-        Ok(response)
-    }
 
-    pub async fn signup_email_password(
-        &self,
-        email: &str,
-        password: &str,
-    ) -> Result<Response, Error> {
-        let request_url: String = format!("{}/auth/v1/signup", self.url);
-        let response: Response = self
-            .client
-            .post(&request_url)
-            .header("apikey", &self.api_key)
-            .header("Content-Type", "application/json")
-            .json(&Password {
-                email: email.to_string(),
-                password: password.to_string(),
-            })
-            .send()
-            .await?;
-        Ok(response)
+        let body = response.json::<serde_json::value::Value>().await;
+        log::info!("{:#?}", body);
+        Ok(())
     }
 }
