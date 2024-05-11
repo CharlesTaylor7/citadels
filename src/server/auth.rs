@@ -1,7 +1,7 @@
 use anyhow;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
 use reqwest::Client;
-use reqwest::{Error, Response};
+use reqwest::Response;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -43,19 +43,18 @@ pub struct SupabaseAnonClient {
 #[derive(Clone, Debug)]
 pub struct SupabaseClient {
     bearer_token: String,
-    client: SupabaseAnonClient,
+    anon: SupabaseAnonClient,
 }
 
-impl Supabase {
+impl SupabaseAnonClient {
     pub fn new() -> Self {
         let client: Client = Client::new();
 
-        Supabase {
+        Self {
             client,
             url: env!("SUPABASE_PROJECT_URL").to_string(),
             api_key: env!("SUPABASE_ANON_KEY").to_string(),
             jwt: "TODO".to_owned(),
-            bearer_token: None,
             //env!("SUPABASE_JWT_SECRET").to_string(),
         }
     }
@@ -112,16 +111,17 @@ impl Supabase {
         log::info!("{:#?}", body);
         Ok(())
     }
-
+}
+impl SupabaseClient {
     pub async fn logout(&self) -> anyhow::Result<()> {
-        let request_url: String = format!("{}/auth/v1/logout", self.url);
-        let token = self.bearer_token.ok_or(anyhow::anyhow!("Need to login"))).clone().unwrap();
+        let request_url: String = format!("{}/auth/v1/logout", self.anon.url);
         let response: Response = self
+            .anon
             .client
             .post(&request_url)
-            .header("apikey", &self.api_key)
+            .header("apikey", &self.anon.api_key)
             .header("Content-Type", "application/json")
-            .bearer_auth(token)
+            .bearer_auth(&self.bearer_token)
             .send()
             .await?;
 
