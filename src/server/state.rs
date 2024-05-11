@@ -1,16 +1,16 @@
-use crate::server::auth::SupabaseAnonClient;
+use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::cookie;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 
 #[derive(Clone)]
 pub struct AppState {
     cookie_signing_key: cookie::Key,
     pub lobby: Arc<Mutex<Lobby>>,
     pub game: Arc<Mutex<Option<Game>>>,
-    pub connections: Arc<Mutex<ws::Connections>>,
+    pub connections: Arc<RwLock<ws::Connections>>,
     pub supabase: SupabaseAnonClient,
 }
 
@@ -24,11 +24,10 @@ impl Default for AppState {
 
         Self {
             cookie_signing_key: cookie::Key::from(key.as_bytes()),
-            connections: new_arc_mutex(ws::Connections::default()),
+            connections: Arc::new(RwLock::new(ws::Connections::default())),
             lobby: new_arc_mutex(Lobby::default()),
             game: new_arc_mutex(None),
             supabase: SupabaseAnonClient::new(),
-            // game: new_arc_mutex(Game::start(Lobby::demo(3), SeedableRng::from_entropy()).ok()),
         }
     }
 }

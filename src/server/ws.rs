@@ -1,4 +1,5 @@
 use crate::server::state::AppState;
+use crate::server::supabase::SupabaseUserClient;
 use axum::extract::ws::{Message, WebSocket};
 use axum::extract::State;
 use axum::response::{ErrorResponse, Html};
@@ -11,13 +12,17 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
 
+pub struct Client {
+    ws: WebSocketSink,
+    supabase: SupabaseUserClient,
+}
 #[derive(Default)]
-pub struct Connections(HashMap<String, WebSocketSink>);
+pub struct Connections(HashMap<String, Client>);
 
 impl Connections {
     pub fn broadcast(&mut self, html: Html<String>) {
-        self.0.values_mut().for_each(|ws| {
-            let _ = ws.send(Ok(Message::Text(html.0.clone())));
+        self.0.values_mut().for_each(|client| {
+            let _ = client.ws.send(Ok(Message::Text(html.0.clone())));
         });
     }
 
@@ -25,10 +30,10 @@ impl Connections {
     where
         F: Fn(&'a str) -> Result<Html<String>, ErrorResponse>,
     {
-        for (key, ws) in self.0.iter_mut() {
+        for (key, client) in self.0.iter_mut() {
             match to_html(key) {
                 Ok(html) => {
-                    let _ = ws.send(Ok(Message::Text(html.0.clone())));
+                    let _ = client.ws.send(Ok(Message::Text(html.0.clone())));
                 }
                 Err(e) => log::debug!("{:#?}", e),
             }

@@ -4,6 +4,7 @@ use crate::game::Game;
 use crate::lobby::{ConfigOption, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
+use crate::server::supabase::{EmailCreds, Secret};
 use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
@@ -26,8 +27,6 @@ use time::Duration;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use uuid::Uuid;
-
-use super::auth::{EmailCreds, Secret};
 
 pub fn get_router() -> Router {
     let context = AppState::default();
@@ -56,22 +55,28 @@ pub fn get_router() -> Router {
 }
 
 pub async fn index(state: State<AppState>) -> impl IntoResponse {
+    let creds = &EmailCreds {
+        email: "charlestaylor99@gmail.com",
+        password: Secret::new("nobody"),
+    };
     let supabase = &state.supabase;
-    supabase
-        .signup_email(&EmailCreds {
-            email: "charlestaylor97@gmail.com",
-            password: Secret::new("itsame"),
-        })
-        .await;
+    let signin = supabase.signin_email(creds).await;
 
-    supabase
-        .signin_email(&EmailCreds {
-            email: "charlestaylor95@gmail.com",
-            password: Secret::new("another"),
-        })
-        .await;
+    match signin {
+        Ok(client) => "signin",
+        Err(e) => {
+            log::error!("{}", e);
 
-    "TODO"
+            let signup = supabase.signup_email(creds).await;
+            match signup {
+                Ok(client) => "signup",
+                Err(e) => {
+                    log::error!("{}", e);
+                    "error"
+                }
+            }
+        }
+    }
 }
 
 pub async fn get_version() -> impl IntoResponse {

@@ -4,12 +4,7 @@ use reqwest::Client;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::env;
-
-#[derive(Deserialize)]
-pub struct SignIn<'a> {
-    pub email: &'a str,
-    pub password: Secret<&'a str>,
-}
+use std::sync::Arc;
 
 #[derive(Serialize)]
 pub struct EmailCreds<'a> {
@@ -27,6 +22,13 @@ pub struct Claims {
     pub sub: String,
     pub email: String,
     pub exp: usize,
+}
+
+#[derive(Deserialize)]
+pub struct SignInResponse {
+    access_token: String,
+    refresh_token: String,
+    expires_at: usize,
 }
 
 #[derive(Clone)]
@@ -55,62 +57,62 @@ impl<T> std::fmt::Debug for Secret<T> {
 #[derive(Clone, Debug)]
 pub struct SupabaseAnonClient {
     pub client: reqwest::Client,
-    pub url: String,
-    pub api_key: String,
-    pub jwt_secret: Secret<jsonwebtoken::DecodingKey>,
-    pub jwt_validation: jsonwebtoken::Validation,
+    pub url: Arc<str>,
+    pub api_key: Arc<str>,
 }
 
 impl SupabaseAnonClient {
     pub fn new() -> Self {
         Self {
             client: Client::new(),
-            url: env::var("SUPABASE_PROJECT_URL").unwrap(),
-            api_key: env::var("SUPABASE_ANON_KEY").unwrap(),
-            jwt_validation: jsonwebtoken::Validation::new(Algorithm::HS256),
-            jwt_secret: Secret::new(DecodingKey::from_secret(
-                env::var("SUPABASE_JWT_SECRET").unwrap().as_ref(),
-            )),
+            url: env::var("SUPABASE_PROJECT_URL").unwrap().into(),
+            api_key: env::var("SUPABASE_ANON_KEY").unwrap().into(),
         }
     }
 
-    pub async fn signup_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<()> {
+    pub async fn signup_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SupabaseUserClient> {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/signup", self.url))
-            .header("apikey", &self.api_key)
+            .header("apikey", self.api_key.as_ref())
             .header("Content-Type", "application/json")
             .json(creds)
             .send()
             .await?;
-        std::fs::write("./sample-signup.json", response.text().await?)?;
-        Ok(())
+        let json = response.json::<SignInResponse>().await?;
+        let client = SupabaseUserClient {
+            anon: self.clone(),
+            access_token: json.access_token,
+            refresh_token: json.refresh_token,
+            expires_at: json.expires_at,
+        };
+        Ok(client)
     }
 
-    pub async fn decode_jwt(&self, jwt: &str) -> anyhow::Result<Claims> {
-        let token = jsonwebtoken::decode::<Claims>(&jwt, &self.jwt_secret.0, &self.jwt_validation)?;
-        Ok(token.claims)
-    }
-
-    pub async fn signin_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<()> {
+    pub async fn signin_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SupabaseUserClient> {
         let response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=password", self.url))
-            .header("apikey", &self.api_key)
+            .header("apikey", self.api_key.as_ref())
             .header("Content-Type", "application/json")
             .json(creds)
             .send()
             .await?;
-        std::fs::write("./sample-signin.json", response.text().await?)?;
-        Ok(())
+        let json = response.json::<SignInResponse>().await?;
+        let client = SupabaseUserClient {
+            anon: self.clone(),
+            access_token: json.access_token,
+            refresh_token: json.refresh_token,
+            expires_at: json.expires_at,
+        };
+        Ok(client)
     }
 }
 
-#[derive(Clone)]
 pub struct SupabaseUserClient {
+    anon: SupabaseAnonClient,
     access_token: String,
     refresh_token: String,
-    anon: SupabaseAnonClient,
     expires_at: usize, // utc epoch in seconds
 }
 
@@ -123,7 +125,7 @@ impl SupabaseUserClient {
                 "{}/auth/v1/token?grant_type=refresh_token",
                 self.anon.url
             ))
-            .header("apikey", &self.anon.api_key)
+            .header("apikey", self.anon.api_key.as_ref())
             .header("Content-Type", "application/json")
             .json(&RefreshToken {
                 refresh_token: &self.refresh_token,
@@ -140,7 +142,7 @@ impl SupabaseUserClient {
             .anon
             .client
             .post(&format!("{}/auth/v1/logout", self.anon.url))
-            .header("apikey", &self.anon.api_key)
+            .header("apikey", self.anon.api_key.as_ref())
             .header("Content-Type", "application/json")
             .bearer_auth(&self.access_token)
             .send()
@@ -148,5 +150,26 @@ impl SupabaseUserClient {
 
         std::fs::write("./sample-logout.json", response.text().await?)?;
         Ok(())
+    }
+}
+
+pub struct JwtDecoder {
+    pub secret: Secret<jsonwebtoken::DecodingKey>,
+    pub validation: jsonwebtoken::Validation,
+}
+
+impl JwtDecoder {
+    pub fn new() -> Self {
+        Self {
+            validation: jsonwebtoken::Validation::new(Algorithm::HS256),
+            secret: Secret::new(DecodingKey::from_secret(
+                env::var("SUPABASE_JWT_SECRET").unwrap().as_ref(),
+            )),
+        }
+    }
+
+    pub async fn decode(&self, jwt: &str) -> anyhow::Result<Claims> {
+        let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret.0, &self.validation)?;
+        Ok(token.claims)
     }
 }
