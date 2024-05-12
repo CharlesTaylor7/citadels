@@ -23,7 +23,7 @@ pub const ROLES: [RoleData; 27] =
     , actions: &[(1, Bewitch)]
     , description: "Gather resources, call a character you wish to bewitch, then put your turn on hold. After the bewitched character gathers resources, you resume your turn as that character."
     , reminder: "Gathering resources becomes a forced first step of your turn and of the bewitched player's turn. You gain both most active and passive abilities from the target, i.e. architect increased build limit, and bishop's protection from warlord. But you still rely on your own hand , own city and own gold. If you bewitch the King or Patrician, then they still get the crown. But you can use their other ability.
-    You can bewitch the Emperor as normal. " 
+    You can bewitch the Emperor as normal." 
     }
   , RoleData 
     { rank: Rank::One 

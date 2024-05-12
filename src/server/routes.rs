@@ -98,13 +98,13 @@ async fn get_version() -> impl IntoResponse {
         .into_response()
 }
 
-async fn post_logout(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn get_signup(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
     "TODO".into_response()
 }
 async fn get_login(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
     "TODO".into_response()
 }
-async fn get_signup(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn post_logout(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
     "TODO".into_response()
 }
 
