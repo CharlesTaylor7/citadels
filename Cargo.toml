@@ -29,7 +29,6 @@ time = "0.3.31"
 dotenv = { version = "0.15.0", optional = true }
 axum-core = "0.4.3"
 serde_with = "3.5.0"
-tracing-subscriber = { version ="0.3.18", features = ["fmt"], default-features = false }
 tracing = { version = "0.1.40", default-features = false }
 macros = { path = "./macros"}
 reqwest = { version = "0.12.4", features = ["json"], default-features = false }
