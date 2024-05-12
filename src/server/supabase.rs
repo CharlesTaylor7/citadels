@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::sync::Arc;
 
-use super::auth::SupabaseSession;
+use super::auth::Session;
 
 #[derive(Serialize)]
 pub struct EmailCreds<'a> {
@@ -23,6 +23,12 @@ pub struct SignInResponse {
     pub access_token: String,
     pub refresh_token: String,
     pub expires_at: usize,
+    pub user: UserSignInResponse,
+}
+
+#[derive(Deserialize)]
+pub struct UserSignInResponse {
+    pub id: String,
 }
 
 #[derive(Clone)]
@@ -64,11 +70,7 @@ impl SupabaseAnonClient {
         }
     }
 
-    pub async fn signup_email(
-        &self,
-        session_id: &str,
-        creds: &EmailCreds<'_>,
-    ) -> anyhow::Result<SupabaseSession> {
+    pub async fn signup_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<Session> {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/signup", self.url))
@@ -78,8 +80,8 @@ impl SupabaseAnonClient {
             .send()
             .await?;
         let json = response.json::<SignInResponse>().await?;
-        let client = SupabaseSession {
-            id: session_id.to_owned(),
+        let client = Session {
+            user_id: json.user.id,
             access_token: json.access_token,
             refresh_token: json.refresh_token,
             expires_at: json.expires_at,
@@ -87,11 +89,7 @@ impl SupabaseAnonClient {
         Ok(client)
     }
 
-    pub async fn signin_email(
-        &self,
-        session_id: &str,
-        creds: &EmailCreds<'_>,
-    ) -> anyhow::Result<SupabaseSession> {
+    pub async fn signin_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<Session> {
         let response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=password", self.url))
@@ -101,8 +99,8 @@ impl SupabaseAnonClient {
             .send()
             .await?;
         let json = response.json::<SignInResponse>().await?;
-        let client = SupabaseSession {
-            id: session_id.to_owned(),
+        let client = Session {
+            user_id: json.user.id,
             access_token: json.access_token,
             refresh_token: json.refresh_token,
             expires_at: json.expires_at,

@@ -1,16 +1,18 @@
+use std::collections::HashMap;
+
 use super::supabase::SignInResponse;
 use crate::server::{state::AppState, supabase::EmailCreds};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use uuid::Uuid;
 
-pub struct SupabaseSession {
-    pub id: String,
+pub struct Session {
+    pub user_id: String,
     pub access_token: String,
     pub refresh_token: String,
     pub expires_at: usize, // utc epoch in seconds
 }
 
-impl SupabaseSession {
+impl Session {
     pub fn update(&mut self, response: SignInResponse) {
         self.refresh_token = response.refresh_token;
         self.access_token = response.access_token;
@@ -19,17 +21,17 @@ impl SupabaseSession {
 }
 
 #[derive(Default)]
-pub struct Sessions(pub Vec<SupabaseSession>);
+pub struct Sessions(pub HashMap<String, Session>);
 
 impl Sessions {
-    pub fn client_from_cookies(&self, cookies: &PrivateCookieJar) -> Option<&SupabaseSession> {
+    pub fn session_from_cookies(&self, cookies: &PrivateCookieJar) -> Option<&Session> {
         let session_id = cookies.get("session_id")?;
         let session_id = session_id.value();
-        self.client_from_session_id(session_id)
+        self.session_from_id(session_id)
     }
 
-    pub fn client_from_session_id(&self, session_id: &str) -> Option<&SupabaseSession> {
-        self.0.iter().find(|client| session_id == &client.id)
+    pub fn session_from_id(&self, session_id: &str) -> Option<&Session> {
+        self.0.get(session_id)
     }
 }
 
@@ -42,10 +44,15 @@ pub async fn signin_or_signup(
         Some(cookie) => {
             let session_id = cookie.value();
             let sessions = state.sessions.read().await;
-            if sessions.client_from_session_id(session_id).is_none() {
+            if sessions.session_from_id(session_id).is_none() {
                 drop(sessions);
-                let client = state.supabase.signin_email(session_id, creds).await?;
-                state.sessions.write().await.0.push(client);
+                let session = state.supabase.signin_email(creds).await?;
+                state
+                    .sessions
+                    .write()
+                    .await
+                    .0
+                    .insert(session.user_id.clone(), session);
             };
         }
         None => {
@@ -53,17 +60,21 @@ pub async fn signin_or_signup(
             let session_id = Uuid::new_v4().to_string();
 
             let supabase = &state.supabase;
-            let signin = supabase.signin_email(&session_id, creds).await;
+            let signin = supabase.signin_email(creds).await;
 
-            let client = match signin {
-                Ok(client) => client,
+            let session = match signin {
+                Ok(session) => session,
                 Err(e) => {
                     log::error!("{}", e);
-                    supabase.signup_email(&session_id, creds).await?
+                    supabase.signup_email(creds).await?
                 }
             };
-            state.sessions.write().await.0.push(client);
-
+            state
+                .sessions
+                .write()
+                .await
+                .0
+                .insert(session.user_id.clone(), session);
             let cookie = Cookie::build(("session_id", session_id)).max_age(time::Duration::WEEK);
             cookies = cookies.add(cookie);
         }

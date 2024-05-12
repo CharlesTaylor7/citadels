@@ -48,21 +48,15 @@ impl AppState {
             .get("session_id")
             .ok_or(anyhow::anyhow!("not actually logged in"))?;
         let session_id = session_id.value();
-        let lock = self.sessions.read().await;
-        let (index, session) = lock
+        let mut lock = self.sessions.write().await;
+        let session = lock
             .0
-            .iter()
-            .enumerate()
-            .find(|(_, session)| session_id == &session.id)
+            .remove(session_id)
             .ok_or(anyhow::anyhow!("lost track of session"))?;
-        let access_token = session.access_token.clone();
         drop(lock);
-        let pair = tokio::join!(
-            self.supabase.logout(&access_token),
-            async { self.sessions.write().await.0.swap_remove(index) },
-            //async { self.connections.lock().await.0.remove(session_id) },
-        );
-        pair.0?;
+
+        self.supabase.logout(&session.access_token).await?;
+        //async { self.connections.lock().await.0.remove(session_id) },
         Ok(())
     }
 
@@ -71,36 +65,26 @@ impl AppState {
         loop {
             interval.tick().await;
             log::info!("Refreshing sessions");
-            let mut index = 0;
-            loop {
-                let sessions_lock = self.sessions.read().await;
-                if let Some(session) = sessions_lock.0.get(index) {
-                    log::info!("Refreshing {}", session.id);
-
+            let ids: Vec<String> = self.sessions.read().await.0.keys().cloned().collect();
+            for id in ids {
+                let lock = self.sessions.read().await;
+                if let Some(session) = lock.0.get(&id) {
+                    log::info!("Refreshing {}", session.user_id);
                     let token = session.refresh_token.clone();
-                    let session_id = session.id.clone();
-                    drop(sessions_lock);
+                    drop(lock);
                     let signin = self.supabase.refresh(&token).await;
                     match signin {
                         Ok(signin) => {
-                            let sessions_lock = &mut self.sessions.write().await;
-                            if let Some(session) = sessions_lock.0.get_mut(index) {
-                                if session.id == session_id {
-                                    session.update(signin);
-                                } else {
-                                    continue;
-                                }
-                            } else {
-                                break;
+                            if let Some(session) =
+                                self.sessions.write().await.0.get_mut(&signin.user.id)
+                            {
+                                session.update(signin);
                             }
                         }
                         Err(e) => {
                             log::error!("{}", e);
                         }
                     }
-                    index += 1;
-                } else {
-                    break;
                 }
             }
         }
