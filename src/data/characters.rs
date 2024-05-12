@@ -259,13 +259,13 @@ pub const ROLES: [RoleData; 27] =
 
 #[cfg(test)]
 mod tests {
-  use super::ROLES;
+    use super::ROLES;
 
-  #[test]
-  pub fn test_role_names_align_with_character_data() {
-    for (index, c) in ROLES.iter().enumerate() {
-      assert_eq!(c.name as usize, index, "name");
-      assert_eq!(c.rank as usize, index / 3, "rank");
+    #[test]
+    pub fn test_role_names_align_with_character_data() {
+        for (index, c) in ROLES.iter().enumerate() {
+            assert_eq!(c.name as usize, index, "name");
+            assert_eq!(c.rank as usize, index / 3, "rank");
+        }
     }
-  }
 }

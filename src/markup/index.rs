@@ -2,12 +2,12 @@ use super::base;
 use maud::{html, Markup};
 
 pub fn page() -> Markup {
-  base::page(
-    html!(),
-    html! {
-        (base::nav(false))
-    },
-  )
+    base::page(
+        html!(),
+        html! {
+            (base::nav(false))
+        },
+    )
 }
 /*
 <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js"></script>

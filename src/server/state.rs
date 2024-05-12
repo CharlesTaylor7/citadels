@@ -9,91 +9,93 @@ use tokio::sync::RwLock;
 use tokio::time::Duration;
 
 fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
-  Arc::new(std::sync::Mutex::new(item))
+    Arc::new(std::sync::Mutex::new(item))
 }
 
 #[derive(Clone)]
 pub struct AppState {
-  cookie_signing_key: cookie::Key,
-  pub lobby: Arc<std::sync::Mutex<Lobby>>,
-  pub game: Arc<std::sync::Mutex<Option<Game>>>,
-  pub connections: Arc<Mutex<ws::Connections>>,
-  pub supabase: SupabaseAnonClient,
-  pub sessions: Arc<RwLock<Sessions>>,
+    cookie_signing_key: cookie::Key,
+    pub lobby: Arc<std::sync::Mutex<Lobby>>,
+    pub game: Arc<std::sync::Mutex<Option<Game>>>,
+    pub connections: Arc<Mutex<ws::Connections>>,
+    pub supabase: SupabaseAnonClient,
+    pub sessions: Arc<RwLock<Sessions>>,
 }
 
 impl Default for AppState {
-  fn default() -> Self {
-    let key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
+    fn default() -> Self {
+        let key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
 
-    Self {
-      cookie_signing_key: cookie::Key::from(key.as_bytes()),
-      lobby: new_arc_mutex(Lobby::default()),
-      game: new_arc_mutex(None),
-      supabase: SupabaseAnonClient::new(),
-      connections: Arc::new(Mutex::new(ws::Connections::default())),
-      sessions: Arc::new(RwLock::new(Sessions::default())),
+        Self {
+            cookie_signing_key: cookie::Key::from(key.as_bytes()),
+            lobby: new_arc_mutex(Lobby::default()),
+            game: new_arc_mutex(None),
+            supabase: SupabaseAnonClient::new(),
+            connections: Arc::new(Mutex::new(ws::Connections::default())),
+            sessions: Arc::new(RwLock::new(Sessions::default())),
+        }
     }
-  }
 }
 
 impl FromRef<AppState> for cookie::Key {
-  fn from_ref(state: &AppState) -> Self {
-    state.cookie_signing_key.clone()
-  }
+    fn from_ref(state: &AppState) -> Self {
+        state.cookie_signing_key.clone()
+    }
 }
 impl AppState {
-  pub async fn logout(&self, cookies: &PrivateCookieJar) -> anyhow::Result<()> {
-    let session_id = cookies
-      .get("session_id")
-      .ok_or(anyhow::anyhow!("not actually logged in"))?;
-    let session_id = session_id.value();
-    let mut lock = self.sessions.write().await;
-    let session = lock
-      .0
-      .remove(session_id)
-      .ok_or(anyhow::anyhow!("lost track of session"))?;
-    drop(lock);
+    pub async fn logout(&self, cookies: &PrivateCookieJar) -> anyhow::Result<()> {
+        let session_id = cookies
+            .get("session_id")
+            .ok_or(anyhow::anyhow!("not actually logged in"))?;
+        let session_id = session_id.value();
+        let mut lock = self.sessions.write().await;
+        let session = lock
+            .0
+            .remove(session_id)
+            .ok_or(anyhow::anyhow!("lost track of session"))?;
+        drop(lock);
 
-    self.supabase.logout(&session.access_token).await?;
-    self.connections.lock().unwrap().0.remove(session_id);
-    Ok(())
-  }
-  pub async fn add_session(&self, session: Session) {
-    self.clone().spawn_session_refresh_task(&session);
-    self
-      .sessions
-      .write()
-      .await
-      .0
-      .insert(session.user_id.clone(), session);
-  }
+        self.supabase.logout(&session.access_token).await?;
+        self.connections.lock().unwrap().0.remove(session_id);
+        Ok(())
+    }
 
-  pub fn spawn_session_refresh_task(self, session: &Session) {
-    let token = session.refresh_token.clone();
-    let session_id = session.user_id.clone();
-    let duration = tokio::time::Duration::from_secs(session.expires_in / 2);
-    tokio::task::spawn(async move {
-      let mut interval = tokio::time::interval(duration);
-      interval.tick().await;
-      loop {
-        interval.tick().await;
-        match self.supabase.refresh(&token).await {
-          Ok(signin) => {
-            if let Some(session) = self.sessions.write().await.0.get_mut(&signin.user.id) {
-              session.update(signin);
-            } else {
-              break;
+    pub async fn add_session(&self, session: Session) {
+        self.clone().spawn_session_refresh_task(&session);
+        self.sessions
+            .write()
+            .await
+            .0
+            .insert(session.user_id.clone(), session);
+    }
+
+    pub fn spawn_session_refresh_task(self, session: &Session) {
+        let token = session.refresh_token.clone();
+        let session_id = session.user_id.clone();
+        let duration = tokio::time::Duration::from_secs(session.expires_in / 2);
+        tokio::task::spawn(async move {
+            let mut interval = tokio::time::interval(duration);
+            interval.tick().await;
+            loop {
+                interval.tick().await;
+                match self.supabase.refresh(&token).await {
+                    Ok(signin) => {
+                        if let Some(session) =
+                            self.sessions.write().await.0.get_mut(&signin.user.id)
+                        {
+                            session.update(signin);
+                        } else {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        log::error!("{}", e);
+                        self.sessions.write().await.0.remove(&session_id);
+                        break;
+                    }
+                }
             }
-          }
-          Err(e) => {
-            log::error!("{}", e);
-            self.sessions.write().await.0.remove(&session_id);
-            break;
-          }
-        }
-      }
-      self.connections.lock().unwrap().0.remove(&session_id)
-    });
-  }
+            self.connections.lock().unwrap().0.remove(&session_id)
+        });
+    }
 }
