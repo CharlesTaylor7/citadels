@@ -1,5 +1,3 @@
-use anyhow;
-use reqwest::Client;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -22,7 +20,7 @@ pub struct RefreshToken<'a> {
 pub struct SignInResponse {
     pub access_token: String,
     pub refresh_token: String,
-    pub expires_at: usize,
+    pub expires_in: u64,
     pub user: UserSignInResponse,
 }
 
@@ -64,7 +62,7 @@ pub struct SupabaseAnonClient {
 impl SupabaseAnonClient {
     pub fn new() -> Self {
         Self {
-            client: Client::new(),
+            client: reqwest::Client::new(),
             url: env::var("SUPABASE_PROJECT_URL").unwrap().into(),
             api_key: env::var("SUPABASE_ANON_KEY").unwrap().into(),
         }
@@ -80,12 +78,7 @@ impl SupabaseAnonClient {
             .send()
             .await?;
         let json = response.json::<SignInResponse>().await?;
-        let client = Session {
-            user_id: json.user.id,
-            access_token: json.access_token,
-            refresh_token: json.refresh_token,
-            expires_at: json.expires_at,
-        };
+        let client = Session::new(json);
         Ok(client)
     }
 
@@ -99,12 +92,7 @@ impl SupabaseAnonClient {
             .send()
             .await?;
         let json = response.json::<SignInResponse>().await?;
-        let client = Session {
-            user_id: json.user.id,
-            access_token: json.access_token,
-            refresh_token: json.refresh_token,
-            expires_at: json.expires_at,
-        };
+        let client = Session::new(json);
         Ok(client)
     }
 

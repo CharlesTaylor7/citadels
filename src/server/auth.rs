@@ -1,22 +1,29 @@
-use std::collections::HashMap;
-
 use super::supabase::SignInResponse;
 use crate::server::{state::AppState, supabase::EmailCreds};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 pub struct Session {
     pub user_id: String,
     pub access_token: String,
     pub refresh_token: String,
-    pub expires_at: usize, // utc epoch in seconds
+    pub expires_in: u64,
 }
 
 impl Session {
+    pub fn new(json: SignInResponse) -> Self {
+        Self {
+            user_id: json.user.id,
+            access_token: json.access_token,
+            refresh_token: json.refresh_token,
+            expires_in: json.expires_in,
+        }
+    }
+
     pub fn update(&mut self, response: SignInResponse) {
         self.refresh_token = response.refresh_token;
         self.access_token = response.access_token;
-        self.expires_at = response.expires_at;
     }
 }
 
@@ -47,12 +54,7 @@ pub async fn signin_or_signup(
             if sessions.session_from_id(session_id).is_none() {
                 drop(sessions);
                 let session = state.supabase.signin_email(creds).await?;
-                state
-                    .sessions
-                    .write()
-                    .await
-                    .0
-                    .insert(session.user_id.clone(), session);
+                state.add_session(session).await;
             };
         }
         None => {
@@ -69,12 +71,7 @@ pub async fn signin_or_signup(
                     supabase.signup_email(creds).await?
                 }
             };
-            state
-                .sessions
-                .write()
-                .await
-                .0
-                .insert(session.user_id.clone(), session);
+            state.add_session(session).await;
             let cookie = Cookie::build(("session_id", session_id)).max_age(time::Duration::WEEK);
             cookies = cookies.add(cookie);
         }

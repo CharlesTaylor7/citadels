@@ -1,6 +1,5 @@
 use citadels::server::routes::get_router;
 use citadels::server::state::AppState;
-use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() {
@@ -15,15 +14,10 @@ async fn main() {
 
     citadels::logger::init();
 
-    let state = AppState::default();
-    tokio::spawn(state.clone().refresh_sessions(
-        // refresh every 30 minutes
-        Duration::from_secs(30 * 60),
-    ));
-
     let host = "0.0.0.0:8080";
     let listener = tokio::net::TcpListener::bind(host).await.unwrap();
 
     log::info!("Listening on: {}", host);
+    let state = AppState::default();
     axum::serve(listener, get_router(state)).await.unwrap();
 }

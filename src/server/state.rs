@@ -1,4 +1,4 @@
-use super::auth::Sessions;
+use super::auth::{Session, Sessions};
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
 use crate::{game::Game, lobby::Lobby};
@@ -56,37 +56,45 @@ impl AppState {
         drop(lock);
 
         self.supabase.logout(&session.access_token).await?;
-        //async { self.connections.lock().await.0.remove(session_id) },
+        self.connections.lock().unwrap().0.remove(session_id);
         Ok(())
     }
+    pub async fn add_session(&self, session: Session) {
+        self.clone().spawn_session_refresh_task(&session);
+        self.sessions
+            .write()
+            .await
+            .0
+            .insert(session.user_id.clone(), session);
+    }
 
-    pub async fn refresh_sessions(self, duration: Duration) {
-        let mut interval = tokio::time::interval(duration);
-        loop {
+    pub fn spawn_session_refresh_task(self, session: &Session) {
+        let token = session.refresh_token.clone();
+        let session_id = session.user_id.clone();
+        let duration = tokio::time::Duration::from_secs(session.expires_in / 2);
+        tokio::task::spawn(async move {
+            let mut interval = tokio::time::interval(duration);
             interval.tick().await;
-            log::info!("Refreshing sessions");
-            let ids: Vec<String> = self.sessions.read().await.0.keys().cloned().collect();
-            for id in ids {
-                let lock = self.sessions.read().await;
-                if let Some(session) = lock.0.get(&id) {
-                    log::info!("Refreshing {}", session.user_id);
-                    let token = session.refresh_token.clone();
-                    drop(lock);
-                    let signin = self.supabase.refresh(&token).await;
-                    match signin {
-                        Ok(signin) => {
-                            if let Some(session) =
-                                self.sessions.write().await.0.get_mut(&signin.user.id)
-                            {
-                                session.update(signin);
-                            }
+            loop {
+                interval.tick().await;
+                match self.supabase.refresh(&token).await {
+                    Ok(signin) => {
+                        if let Some(session) =
+                            self.sessions.write().await.0.get_mut(&signin.user.id)
+                        {
+                            session.update(signin);
+                        } else {
+                            break;
                         }
-                        Err(e) => {
-                            log::error!("{}", e);
-                        }
+                    }
+                    Err(e) => {
+                        log::error!("{}", e);
+                        self.sessions.write().await.0.remove(&session_id);
+                        break;
                     }
                 }
             }
-        }
+            self.connections.lock().unwrap().0.remove(&session_id)
+        });
     }
 }
