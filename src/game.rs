@@ -1082,7 +1082,7 @@ impl Game {
                     ActionOutput::new(format!(
                             "The Magistrate ({}) reveals a signed warrant and confiscates the {}; {} gold is refunded.",
                             name,
-                            district.data().display_name, 
+                            district.data().display_name,
                             gold
                         )
                     )
