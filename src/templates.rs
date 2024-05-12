@@ -1,8 +1,7 @@
+/// Older askama based templates
 pub mod filters;
 pub mod game;
 pub mod lobby;
-
-use std::borrow::Cow;
 
 use crate::districts::DistrictName;
 use crate::game::{CityDistrict, Game};
@@ -10,6 +9,7 @@ use crate::roles::{Rank, RoleName};
 use crate::types::CardSuit;
 use askama::Template;
 use axum::response::Html;
+use std::borrow::Cow;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum GamePhase {

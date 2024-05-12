@@ -28,16 +28,23 @@ Tech Stack:
 - Frontend:
     - htmx w/ extensions
         - json-enc (serde with form data doesn't work very well)
-        - ws
-        - clientsidetemplates
-        - idiomorph
+        - ws (Web sockets for realtime gameplay)
+        - client-side-templates (
+        - morph (idiomorph allows me to not to have to worry about careful targeted diffs and isntead send the current page state)
     - hyperscript
+        - I like how well it interops with htmx, I don't love how some of my JS code is not scoped. 
     - interactjs for drag 'n drop
 
 - Backend 
     - Rust, stable compiler. No nightly features
     - axum
-    - Askama for templating. (Jinja clone for Rust)
+    - Templating:
+        - Askama (Jinja clone for Rust)
+        - Migrating to maud:
+            - https://maud.lambda.xyz/text-escaping.html
+            - Easier to escape client side templates
+            - Hopefully better feedback loop.
+             w
 
 Supabase is handling:
 - Auth layer
