@@ -8,173 +8,173 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 #[repr(usize)]
 pub enum DistrictName {
-    Temple,
-    Church,
-    Monastery,
-    Cathedral,
+  Temple,
+  Church,
+  Monastery,
+  Cathedral,
 
-    Watchtower,
-    Prison,
-    Baracks,
-    Fortress,
+  Watchtower,
+  Prison,
+  Baracks,
+  Fortress,
 
-    Manor,
-    Castle,
-    Palace,
+  Manor,
+  Castle,
+  Palace,
 
-    Tavern,
-    Market,
-    TradingPost,
-    Docks,
-    Harbor,
-    TownHall,
+  Tavern,
+  Market,
+  TradingPost,
+  Docks,
+  Harbor,
+  TownHall,
 
-    Smithy,
-    Laboratory,
-    SchoolOfMagic,
-    Keep,
-    DragonGate,
-    HauntedQuarter,
-    GreatWall,
-    Observatory,
-    Library,
-    Quarry,
-    Armory,
-    Factory,
-    Park,
-    Museum,
-    PoorHouse,
-    MapRoom,
-    WishingWell,
-    ImperialTreasury,
-    Framework,
-    Statue,
-    GoldMine,
-    IvoryTower,
-    Necropolis,
-    ThievesDen,
-    Theater,
-    Stables,
-    Basilica,
-    SecretVault,
-    Capitol,
-    Monument,
+  Smithy,
+  Laboratory,
+  SchoolOfMagic,
+  Keep,
+  DragonGate,
+  HauntedQuarter,
+  GreatWall,
+  Observatory,
+  Library,
+  Quarry,
+  Armory,
+  Factory,
+  Park,
+  Museum,
+  PoorHouse,
+  MapRoom,
+  WishingWell,
+  ImperialTreasury,
+  Framework,
+  Statue,
+  GoldMine,
+  IvoryTower,
+  Necropolis,
+  ThievesDen,
+  Theater,
+  Stables,
+  Basilica,
+  SecretVault,
+  Capitol,
+  Monument,
 }
 
 // Immutable data
 #[derive(Clone, Debug)]
 pub struct DistrictData {
-    pub name: DistrictName,
-    pub display_name: &'static str,
-    pub cost: usize,
-    pub suit: CardSuit,
-    pub set: CardSet,
-    pub description: Option<&'static str>,
+  pub name: DistrictName,
+  pub display_name: &'static str,
+  pub cost: usize,
+  pub suit: CardSuit,
+  pub set: CardSet,
+  pub description: Option<&'static str>,
 }
 
 impl DistrictName {
-    pub const fn normal(
-        self,
-        set: CardSet,
-        suit: CardSuit,
-        cost: usize,
-        display_name: &'static str,
-    ) -> DistrictData {
-        DistrictData {
-            name: self,
-            set,
-            suit,
-            cost,
-            display_name,
-            description: None,
-        }
+  pub const fn normal(
+    self,
+    set: CardSet,
+    suit: CardSuit,
+    cost: usize,
+    display_name: &'static str,
+  ) -> DistrictData {
+    DistrictData {
+      name: self,
+      set,
+      suit,
+      cost,
+      display_name,
+      description: None,
     }
+  }
 
-    pub const fn unique(
-        self,
-        set: CardSet,
-        display_name: &'static str,
-        cost: usize,
-        description: &'static str,
-    ) -> DistrictData {
-        DistrictData {
-            name: self,
-            set,
-            suit: Unique,
-            cost,
-            display_name,
-            description: Some(description),
-        }
+  pub const fn unique(
+    self,
+    set: CardSet,
+    display_name: &'static str,
+    cost: usize,
+    description: &'static str,
+  ) -> DistrictData {
+    DistrictData {
+      name: self,
+      set,
+      suit: Unique,
+      cost,
+      display_name,
+      description: Some(description),
     }
+  }
 
-    pub fn data(self) -> &'static DistrictData {
-        let i = self as usize;
-        let n = NORMAL.len();
-        if i < n {
-            &NORMAL[i]
-        } else {
-            &UNIQUE[i - n]
-        }
+  pub fn data(self) -> &'static DistrictData {
+    let i = self as usize;
+    let n = NORMAL.len();
+    if i < n {
+      &NORMAL[i]
+    } else {
+      &UNIQUE[i - n]
     }
+  }
 
-    pub fn action(self) -> Option<ActionTag> {
-        match self {
-            DistrictName::Smithy => Some(ActionTag::Smithy),
-            DistrictName::Museum => Some(ActionTag::Museum),
-            DistrictName::Laboratory => Some(ActionTag::Laboratory),
-            DistrictName::Armory => Some(ActionTag::Armory),
-            _ => None,
-        }
+  pub fn action(self) -> Option<ActionTag> {
+    match self {
+      DistrictName::Smithy => Some(ActionTag::Smithy),
+      DistrictName::Museum => Some(ActionTag::Museum),
+      DistrictName::Laboratory => Some(ActionTag::Laboratory),
+      DistrictName::Armory => Some(ActionTag::Armory),
+      _ => None,
     }
+  }
 
-    pub fn multiplicity(self) -> usize {
-        match self {
-            Self::Palace => 3,
-            Self::Castle => 4,
-            Self::Manor => 5,
+  pub fn multiplicity(self) -> usize {
+    match self {
+      Self::Palace => 3,
+      Self::Castle => 4,
+      Self::Manor => 5,
 
-            Self::Fortress => 2,
-            Self::Baracks => 3,
-            Self::Prison => 3,
-            Self::Watchtower => 3,
+      Self::Fortress => 2,
+      Self::Baracks => 3,
+      Self::Prison => 3,
+      Self::Watchtower => 3,
 
-            Self::Cathedral => 2,
-            Self::Monastery => 3,
-            Self::Church => 3,
-            Self::Temple => 3,
+      Self::Cathedral => 2,
+      Self::Monastery => 3,
+      Self::Church => 3,
+      Self::Temple => 3,
 
-            Self::TownHall => 2,
-            Self::Harbor => 3,
-            Self::Docks => 3,
-            Self::Market => 4,
-            Self::TradingPost => 3,
-            Self::Tavern => 5,
-            _ => {
-                assert!(self as usize >= NORMAL.len());
-                1
-            }
-        }
+      Self::TownHall => 2,
+      Self::Harbor => 3,
+      Self::Docks => 3,
+      Self::Market => 4,
+      Self::TradingPost => 3,
+      Self::Tavern => 5,
+      _ => {
+        assert!(self as usize >= NORMAL.len());
+        1
+      }
     }
+  }
 }
 
 pub const NORMAL: [DistrictData; 17] = [
-    DistrictName::Temple.normal(Base, Religious, 1, "Temple"),
-    DistrictName::Church.normal(Base, Religious, 2, "Church"),
-    DistrictName::Monastery.normal(Base, Religious, 3, "Monastery"),
-    DistrictName::Cathedral.normal(Base, Religious, 5, "Cathedral"),
-    DistrictName::Watchtower.normal(Base, Military, 1, "Watchtower"),
-    DistrictName::Prison.normal(Base, Military, 2, "Prison"),
-    DistrictName::Baracks.normal(Base, Military, 3, "Baracks"),
-    DistrictName::Fortress.normal(Base, Military, 5, "Fortress"),
-    DistrictName::Manor.normal(Base, Noble, 3, "Manor"),
-    DistrictName::Castle.normal(Base, Noble, 4, "Castle"),
-    DistrictName::Palace.normal(Base, Noble, 5, "Palace"),
-    DistrictName::Tavern.normal(Base, Trade, 1, "Tavern"),
-    DistrictName::Market.normal(Base, Trade, 2, "Market"),
-    DistrictName::TradingPost.normal(Base, Trade, 2, "Trading Post"),
-    DistrictName::Docks.normal(Base, Trade, 3, "Docks"),
-    DistrictName::Harbor.normal(Base, Trade, 4, "Harbor"),
-    DistrictName::TownHall.normal(Base, Trade, 5, "Town Hall"),
+  DistrictName::Temple.normal(Base, Religious, 1, "Temple"),
+  DistrictName::Church.normal(Base, Religious, 2, "Church"),
+  DistrictName::Monastery.normal(Base, Religious, 3, "Monastery"),
+  DistrictName::Cathedral.normal(Base, Religious, 5, "Cathedral"),
+  DistrictName::Watchtower.normal(Base, Military, 1, "Watchtower"),
+  DistrictName::Prison.normal(Base, Military, 2, "Prison"),
+  DistrictName::Baracks.normal(Base, Military, 3, "Baracks"),
+  DistrictName::Fortress.normal(Base, Military, 5, "Fortress"),
+  DistrictName::Manor.normal(Base, Noble, 3, "Manor"),
+  DistrictName::Castle.normal(Base, Noble, 4, "Castle"),
+  DistrictName::Palace.normal(Base, Noble, 5, "Palace"),
+  DistrictName::Tavern.normal(Base, Trade, 1, "Tavern"),
+  DistrictName::Market.normal(Base, Trade, 2, "Market"),
+  DistrictName::TradingPost.normal(Base, Trade, 2, "Trading Post"),
+  DistrictName::Docks.normal(Base, Trade, 3, "Docks"),
+  DistrictName::Harbor.normal(Base, Trade, 4, "Harbor"),
+  DistrictName::TownHall.normal(Base, Trade, 5, "Town Hall"),
 ];
 
 pub const UNIQUE: [DistrictData; 30] = [

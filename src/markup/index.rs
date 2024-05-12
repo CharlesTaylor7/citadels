@@ -1,38 +1,13 @@
-use maud::{html, Markup, DOCTYPE};
+use super::base;
+use maud::{html, Markup};
 
 pub fn page() -> Markup {
+  base::page(
+    html!(),
     html! {
-        (DOCTYPE)
-        html data-theme="retro" {
-            head {
-                title { "Citadels" }
-                meta charset="utf-8";
-                link name="viewport" content="width=device-width, initial-scale=1";
-                link rel="shortcut icon" href="/public/htmx.png";
-                link rel="stylesheet" href="/styles/index.css";
-            }
-            body {
-                ul class="menu menu-horizontal bg-base-200 rounded-box" {
-                    li {
-                        a href="/public/rulebook.pdf" target="_blank" {
-                            "Rules 3"
-                        }
-                    }
-                    /*
-                       li {
-                       "Home"
-                       }
-                       li {
-                       "Open Rooms"
-                       }
-                       li {
-                       "Active Games"
-                       }
-                       */
-                }
-            }
-        }
-    }
+        (base::nav(false))
+    },
+  )
 }
 /*
 <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js"></script>
