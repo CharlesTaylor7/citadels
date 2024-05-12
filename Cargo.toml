@@ -9,7 +9,7 @@ name = "citadels"
 path = "src/main.rs" 
 
 [dependencies]
-askama = "0.12.1"
+askama = { version = "0.12.1", default-features = false }
 axum = { version = "0.7.2", features = ["ws"] }
 axum-extra = { version = "0.9.0", features = ["cookie-private"] }
 futures = "0.3.30"
