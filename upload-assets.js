@@ -11,13 +11,13 @@ const supabase = createClient(url, process.env.PROD_SUPABASE_SERVICE_ROLE_KEY);
 await supabase.storage
   .createBucket("assets", {
     public: true,
-  })
-  .then(console.log);
+  });
 
+// refresh styles
 await supabase.storage
   .from("assets")
   .remove(["styles/index.css"])
-  .then(console.log);
+
 uploadDir("public");
 
 function uploadDir(dir) {
@@ -27,14 +27,11 @@ function uploadDir(dir) {
     } else {
       let filePath = path.join(entry.parentPath, entry.name);
       let contents = fs.readFileSync(filePath);
-      const uploaded = supabase.storage
+      supabase.storage
         .from("assets")
         .upload(filePath.substring(7), contents, {
           contentType: mimeType(filePath),
         });
-      if (filePath.endsWith(".css")) {
-        console.log(uploaded);
-      }
     }
   }
 }
