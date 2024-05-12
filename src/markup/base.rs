@@ -1,4 +1,16 @@
+use std::env;
+
 use maud::{html, Markup, DOCTYPE};
+pub fn cdn(path: &'static str) -> String {
+    if cfg!(feature = "dev") {
+        format!("/public/{path}")
+    } else {
+        format!(
+            "{}/storage/v1/object/public/assets/{path}",
+            env::var("SUPABASE_PROJECT_URL").unwrap()
+        )
+    }
+}
 
 pub fn page(head: Markup, main: Markup) -> Markup {
     html! {
@@ -8,8 +20,8 @@ pub fn page(head: Markup, main: Markup) -> Markup {
           title { "Citadels" }
           meta charset="utf-8";
           link name="viewport" content="width=device-width, initial-scale=1";
-          link rel="shortcut icon" href="/public/htmx.png";
-          link rel="stylesheet" href="/styles/index.css";
+          link rel="shortcut icon" href=(cdn("/htmx.png"));
+          link rel="stylesheet" href=(cdn("/styles/index.css"));
           (head)
         }
         body {

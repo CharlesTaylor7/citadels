@@ -20,4 +20,4 @@ primary_region = "iad"
 
 
 [env]
-_SUPABASE_PROJECT_URL="https://ryvsflpspddwwacxrnst.supabase.co"
+SUPABASE_PROJECT_URL="https://ryvsflpspddwwacxrnst.supabase.co"

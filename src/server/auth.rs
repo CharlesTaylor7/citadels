@@ -1,11 +1,7 @@
 use super::supabase::SignInResponse;
 use crate::server::{state::AppState, supabase::EmailCreds};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-use core::borrow;
-use std::{
-    borrow::{Borrow, Cow},
-    collections::HashMap,
-};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 pub struct Session {
@@ -67,14 +63,13 @@ pub async fn login(
             };
         }
         None => {
-            log::info!("Setting new session_id cookie with 1 week expiry");
-            let supabase = &state.supabase;
-            let session = supabase.signin_email(creds).await?;
-            let cookie =
-                Cookie::build((Cow::Borrowed("session_id"), Cow::Borrowed(&session.user_id)))
-                    .max_age(time::Duration::WEEK);
+            let session = state.supabase.signin_email(creds).await?;
+            log::info!("Setting session cookie with 1 week expiry");
+            cookies = cookies.add(
+                Cookie::build(("session_id", (session.user_id.clone())))
+                    .max_age(time::Duration::WEEK),
+            );
             state.add_session(session).await;
-            cookies = cookies.add(cookie);
         }
     };
 

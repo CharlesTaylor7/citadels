@@ -6,7 +6,7 @@ procs:
     shell: supabase db start
 
   Tailwind:
-    shell: tailwindcss --input tailwind.source.css --output styles/index.css --watch
+    shell: tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
     autostart: true
 
   Docs:

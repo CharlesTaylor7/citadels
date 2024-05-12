@@ -4,13 +4,13 @@ set -eo pipefail
 export $(cat .env | xargs)
 
 # generate minified stylesheet
-tailwindcss --input tailwind.source.css --output styles/index.min.css --minify
+tailwindcss --input tailwind.source.css --output public/styles/index.css --minify
 
 # run supabase migrations
 supabase db push
 
-# upload stylesheet to supabase cdn
-node upload-css.js
+# upload assets to supabase cdn
+node upload-assets.js
 
 # deploy to citadels.fly.dev
 fly secrets set GIT_SHA=$(git show -s --format=%H)
