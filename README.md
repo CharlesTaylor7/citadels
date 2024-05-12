@@ -26,15 +26,27 @@ gh run watch && ./deploy.sh
 ## Tech Stack 
 Tech Stack:
 - Frontend:
-    - htmx
-    - hyperscript (as needed)
+    - htmx w/ extensions
+        - json-enc (serde with form data doesn't work very well)
+        - ws
+        - clientsidetemplates
+        - idiomorph
+    - hyperscript
     - interactjs for drag 'n drop
+
 - Backend 
     - Rust, stable compiler. No nightly features
     - axum
     - Askama for templating. (Jinja clone for Rust)
 
-Evaluating:
+Supabase is handling:
+- Auth layer
+    - email, password
+    - Discord SSO
+- Postgres database
+    - games
+    - rooms
+    - realtime websocket access for both of these.
     - sqlite for two use cases:
         - game backups via action logs
         - saving preferred game configuration

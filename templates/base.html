@@ -305,11 +305,9 @@
     </script>
   </head>
   <body
-    id="ws"
     data-theme="retro"
     class="h-screen text-base-content text-xl"
     hx-ext="ws,morph,json-enc"
-    ws-connect="/ws"
     _="init get the theme of localStorage if it exists set my @data-theme to it"
   >
     {% block content %} 
