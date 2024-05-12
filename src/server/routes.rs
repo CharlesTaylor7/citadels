@@ -9,8 +9,8 @@ use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
 use crate::templates::lobby::*;
-use crate::templates::*;
 use crate::types::{Marker, PlayerName};
+use crate::{markup, templates::*};
 use askama::Template;
 use axum::extract::{Json, Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
@@ -92,7 +92,7 @@ async fn index(state: State<AppState>, cookies: PrivateCookieJar) -> Result<Resp
         password: Secret::new("nobody"),
     };
     let cookies = auth::signin_or_signup(&state.0, cookies, creds).await?;
-    Ok(cookies.into_response())
+    Ok((cookies, markup::index::page()).into_response())
 }
 
 async fn get_version() -> impl IntoResponse {
