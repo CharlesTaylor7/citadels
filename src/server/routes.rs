@@ -16,16 +16,14 @@ use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
 use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
-use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
+use axum_extra::extract::PrivateCookieJar;
 use http::StatusCode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
-use time::Duration;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
-use uuid::Uuid;
 
 pub fn get_router(state: AppState) -> Router {
     Router::new()

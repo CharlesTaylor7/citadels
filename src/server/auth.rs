@@ -2,7 +2,6 @@ use super::supabase::SignInResponse;
 use crate::server::{state::AppState, supabase::EmailCreds};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use std::collections::HashMap;
-use uuid::Uuid;
 
 pub struct Session {
     pub user_id: String,
@@ -81,35 +80,13 @@ pub async fn signup(
     mut cookies: PrivateCookieJar,
     creds: &EmailCreds<'_>,
 ) -> anyhow::Result<PrivateCookieJar> {
-    match cookies.get("session_id") {
-        Some(cookie) => {
-            let session_id = cookie.value();
-            let sessions = state.sessions.read().await;
-            if sessions.session_from_id(session_id).is_none() {
-                drop(sessions);
-                let session = state.supabase.signin_email(creds).await?;
-                state.add_session(session).await;
-            };
-        }
-        None => {
-            log::info!("Setting new player_id cookie with 1 week expiry");
-            let session_id = Uuid::new_v4().to_string();
-
-            let supabase = &state.supabase;
-            let signin = supabase.signin_email(creds).await;
-
-            let session = match signin {
-                Ok(session) => session,
-                Err(e) => {
-                    log::error!("{}", e);
-                    supabase.signup_email(creds).await?
-                }
-            };
-            state.add_session(session).await;
-            let cookie = Cookie::build(("session_id", session_id)).max_age(time::Duration::WEEK);
-            cookies = cookies.add(cookie);
-        }
-    };
-
+    if cookies.get("session_id").is_some() {
+        anyhow::bail!("Already has a session cookie");
+    }
+    let session = state.supabase.signup_email(creds).await?;
+    let cookie =
+        Cookie::build(("session_id", session.user_id.clone())).max_age(time::Duration::WEEK);
+    cookies = cookies.add(cookie);
+    state.add_session(session).await;
     Ok(cookies)
 }
