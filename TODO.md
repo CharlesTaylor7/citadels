@@ -1,13 +1,11 @@
 ## Work
 - [ ] signin via Supabase
-    - [ ] email
+    - [x] email
     - [ ] discord
 - [ ] Game host with elevated permissions
-- [ ] Prevent tracing subscriber from overwriting the env_logger
 - [ ] Multi room support
 - [ ] Optimize binary size (After removing all panics)
-- [ ] Max height for hand panel, with horizontal scroll
-- [ ] Randomize audio notification
+- [ ] Randomize audio notifications
 - [ ] Notifications
     - Seer: card is taken. 
     - Seer: card is given.
@@ -41,12 +39,6 @@
 - [ ] Detect when building is impossible.
 - [ ] Pesist the dragged position of districts in a city.
 - [ ] Resizable windows, dimensions are saved per user and kept persistently between sessions
-
-## Features if I wanted to make this bigger
-- [ ] A way for me to kick bots / spammers
-- [ ] Integrate w/ Google OAuth
-- [ ] Multi room support
-- [ ] Backup games and Restore from sqlite
 
 
 ## Playtest 1 
@@ -87,8 +79,12 @@
 
 ## Tech Debt
 
-### Anyhow
-Use anyhow instead of coercing all errors to a string type.
+### Web server
+I'm not using many of Axum / Tower's features. I'm considering switching to Hyper.
+I'm also considering dropping Reqwest for Hyper.
+
+### Error types
+Should probably use anyhow and or thiserror instead of coercing all errors to a string type.
 
 ### ActionTag
 Incomplete action submission conflates two scenarios:

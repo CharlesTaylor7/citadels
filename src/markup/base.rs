@@ -1,7 +1,7 @@
+use maud::{html, Markup, DOCTYPE};
 use std::env;
 
-use maud::{html, Markup, DOCTYPE};
-pub fn cdn(path: &'static str) -> String {
+pub fn asset(path: &str) -> String {
     if cfg!(feature = "dev") {
         format!("/public/{path}")
     } else {
@@ -20,8 +20,8 @@ pub fn page(head: Markup, main: Markup) -> Markup {
           title { "Citadels" }
           meta charset="utf-8";
           link name="viewport" content="width=device-width, initial-scale=1";
-          link rel="shortcut icon" href=(cdn("/htmx.png"));
-          link rel="stylesheet" href=(cdn("/styles/index.css"));
+          link rel="shortcut icon" href=(asset("/htmx.png"));
+          link rel="stylesheet" href=(asset("/styles/index.css"));
           (head)
         }
         body {
@@ -45,7 +45,7 @@ pub fn nav(logged_in: bool) -> Markup {
              }
           }
           li {
-             a href="/public/rulebook.pdf" target="_blank" {
+             a href=(asset("rulebook.pdf")) target="_blank" {
               "Rules"
              }
           }

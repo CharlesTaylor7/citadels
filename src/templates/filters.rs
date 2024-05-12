@@ -1,24 +1,16 @@
 use crate::actions::ActionTag;
 use crate::types::CardSuit;
 use std::borrow::Cow;
-use std::env;
 use std::fmt::Debug;
 
 pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
     Ok(format!("{:#?}", item))
 }
 
-pub fn stylesheet(_: &()) -> askama::Result<Cow<'_, str>> {
-    if cfg!(feature = "dev") {
-        Ok("/styles/index.css".into())
-    } else {
-        Ok(format!(
-            "{}/storage/v1/object/public/styles/index.css",
-            env::var("SUPABASE_PROJECT_URL").unwrap()
-        )
-        .into())
-    }
+pub fn asset(path: &str) -> askama::Result<Cow<'_, str>> {
+    Ok(crate::markup::base::asset(path).into())
 }
+
 pub fn class(item: &ActionTag) -> askama::Result<&'static str> {
     let cls = match item {
         ActionTag::EndTurn => "btn-error",

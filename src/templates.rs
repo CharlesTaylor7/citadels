@@ -5,6 +5,7 @@ pub mod lobby;
 
 use crate::districts::DistrictName;
 use crate::game::{CityDistrict, Game};
+use crate::markup::base::asset;
 use crate::roles::{Rank, RoleName};
 use crate::types::CardSuit;
 use askama::Template;
@@ -67,7 +68,7 @@ impl<'a> DistrictTemplate<'a> {
             asset: ImageAssetTemplate {
                 saturate,
                 brightness,
-                path: "/public/districts.jpeg",
+                path: asset("districts.jpeg"),
                 height: length,
                 width: length,
                 scale_percentage: scale * 100.0,
@@ -216,7 +217,7 @@ pub struct ImageAssetTemplate {
     offset_x: f64,
     offset_y: f64,
     scale_percentage: f64,
-    path: &'static str,
+    path: String,
 }
 
 pub struct RoleTemplate {
@@ -246,7 +247,7 @@ impl RoleTemplate {
             asset: ImageAssetTemplate {
                 brightness: 1.0,
                 saturate: 1.0,
-                path: "/public/roles.jpeg",
+                path: asset("roles.jpeg"),
                 height,
                 width,
                 scale_percentage: 400.0,
