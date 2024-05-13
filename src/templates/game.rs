@@ -86,7 +86,7 @@ pub struct GameContext<'a> {
 }
 
 impl<'a> GameContext<'a> {
-    pub fn from_game(game: &'a Game, id: Option<&'a str>) -> Self {
+    pub fn from_game(game: &'a Game, id: Option<UserId>) -> Self {
         Self {
             game,
             allowed: game.allowed_for(id),
@@ -128,14 +128,14 @@ impl<'a> GameTemplate<'a> {
         game: &'a Game,
         my_id: Option<UserId>,
     ) -> axum::response::Result<Html<String>> {
-        let myself = get_myself(game, my_id);
+        let myself = get_myself(game, my_id.clone());
         let player_template = PlayerTemplate::from(myself);
         let players: Vec<_> = game
             .players
             .iter()
             .map(|p| PlayerInfoTemplate::from(p, game))
             .collect();
-        let MenuTemplate { menu, context } = MenuTemplate::from(game, my_id);
+        let MenuTemplate { menu, context } = MenuTemplate::from(game, my_id.clone());
         let mut scores = game
             .players
             .iter()

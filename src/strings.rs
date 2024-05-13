@@ -1,7 +1,7 @@
 use arcstr::ArcStr;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
-use std::fmt::{self, Debug, Display};
+use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
 
 pub type UserName = ImmutableString<tags::UserName>;
@@ -14,6 +14,14 @@ pub type AccessToken = ImmutableString<tags::AccessToken>;
 pub struct ImmutableString<Tag> {
     str: ArcStr,
     _phantom: PhantomData<Tag>,
+}
+impl<Tag> ImmutableString<Tag> {
+    pub fn new<T: Into<ArcStr>>(str: T) -> Self {
+        Self {
+            str: str.into(),
+            _phantom: PhantomData,
+        }
+    }
 }
 
 impl<Tag> Borrow<str> for ImmutableString<Tag> {

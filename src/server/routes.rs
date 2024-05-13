@@ -4,7 +4,7 @@ use crate::game::Game;
 use crate::lobby::{ConfigOption, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
-use crate::strings::UserName;
+use crate::strings::{UserId, UserName};
 use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
@@ -260,11 +260,14 @@ async fn get_game_actions(
     app: State<AppState>,
     cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
-    let cookie = cookies.get("player_id");
+    let user_id = cookies
+        .get("player_id")
+        .as_ref()
+        .map(|c| UserId::new(c.value()));
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
 
-    MenuTemplate::from(game, cookie.as_ref().map(|c| c.value())).to_html()
+    MenuTemplate::from(game, user_id).to_html()
 }
 
 async fn get_game_city(
@@ -273,7 +276,7 @@ async fn get_game_city(
     path: Path<UserName>,
 ) -> Result<Html<String>, ErrorResponse> {
     let cookie = cookies.get("player_id");
-    let id = cookie.as_ref().map(|c| c.value().into());
+    let id = cookie.as_ref().map(|c| UserId::new(c.value()));
     let game = app.game.lock().unwrap();
     if let Some(game) = game.as_ref() {
         let p = game
@@ -301,7 +304,7 @@ async fn get_ws(
 ) -> impl IntoResponse {
     if let Some(cookie) = cookies.get("player_id") {
         ws.on_upgrade(move |socket| {
-            crate::server::ws::handle_socket(state, cookie.value().to_owned(), socket)
+            crate::server::ws::handle_socket(state, UserId::new(cookie.value()), socket)
         })
         .into_response()
     } else {
@@ -324,12 +327,13 @@ async fn submit_game_action(
     action: axum::Json<ActionSubmission>,
 ) -> Result<Response> {
     let cookie = cookies.get("player_id").ok_or("missing cookie")?;
+    let user_id = UserId::new(cookie.value());
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
     log::info!("{:#?}", action.0);
     match action.0 {
         ActionSubmission::Complete(action) => {
-            match game.perform(action, cookie.value()) {
+            match game.perform(action, user_id) {
                 Ok(()) => {
                     // TODO: broadcast other
                     let g = &game;
@@ -352,7 +356,7 @@ async fn submit_game_action(
                         .filter(|c| c.role.rank() > Rank::One)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(game, Some(cookie.value())),
+                    context: GameContext::from_game(game, Some(user_id)),
                     header: "Assassin".into(),
                     action: ActionTag::Assassinate,
                 }
@@ -372,7 +376,7 @@ async fn submit_game_action(
                         })
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(game, Some(cookie.value())),
+                    context: GameContext::from_game(game, Some(user_id)),
                     header: "Thief".into(),
                     action: ActionTag::Steal,
                 }
@@ -479,7 +483,7 @@ async fn get_game_menu(
 
     let active_player = game.active_player()?;
 
-    if cookie.value() != active_player.id {
+    if cookie.value() != active_player.id.borrow() as &str {
         return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
     }
 

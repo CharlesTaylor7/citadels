@@ -5,7 +5,6 @@ use axum::extract::State;
 use axum::response::{ErrorResponse, Html};
 use axum::Error;
 use futures::stream::StreamExt;
-use std::borrow::Borrow;
 use std::collections::hash_map::HashMap;
 use tokio;
 use tokio::sync::mpsc;

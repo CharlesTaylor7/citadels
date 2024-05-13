@@ -19,8 +19,8 @@ pub struct Player {
 impl Player {
     pub fn demo(name: &'static str) -> Self {
         Self {
-            id: name.into(),
-            name: name.into(),
+            id: UserId::new(name),
+            name: UserName::new(name),
         }
     }
 }
@@ -50,8 +50,8 @@ impl Lobby {
                 .take(count)
                 .enumerate()
                 .map(|(i, p)| Player {
-                    id: format!("{}", i + 1).into(),
-                    name: p.into(),
+                    id: UserId::new(format!("{}", i + 1)),
+                    name: UserName::new(p),
                 })
                 .collect(),
         }

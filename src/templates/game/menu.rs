@@ -17,11 +17,11 @@ pub struct MenuTemplate<'a> {
 }
 impl<'a> MenuTemplate<'a> {
     pub fn from(game: &'a Game, my_id: Option<UserId>) -> Self {
-        let myself = get_myself(game, my_id);
+        let myself = get_myself(game, my_id.clone());
         Self {
             context: GameContext {
                 game,
-                allowed: game.allowed_for(my_id),
+                allowed: game.allowed_for(my_id.clone()),
             },
             menu: MenuView::from(game, myself),
         }
