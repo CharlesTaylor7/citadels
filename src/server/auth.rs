@@ -1,24 +1,29 @@
-use super::supabase::SignInResponse;
-use crate::server::{state::AppState, supabase::EmailCreds};
+use super::supabase::{RefreshTokenBody, SignInResponse};
+use crate::{
+    server::{state::AppState, supabase::EmailCreds},
+    strings::{AccessToken, RefreshToken, SessionId, UserId},
+};
 use arcstr::ArcStr;
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Session {
-    pub access_token: ArcStr,
-    pub refresh_token: ArcStr,
+    pub session_id: SessionId,
+    pub user_id: UserId,
+    pub access_token: AccessToken,
+    pub refresh_token: RefreshToken,
 }
 
 impl Session {
     pub fn update(&mut self, response: SignInResponse) {
-        self.refresh_token = response.refresh_token;
         self.access_token = response.access_token;
+        self.refresh_token = response.refresh_token;
     }
 }
 
 #[derive(Default)]
-pub struct Sessions(pub HashMap<ArcStr, Session>);
+pub struct Sessions(pub HashMap<SessionId, Session>);
 
 impl Sessions {
     pub fn session_from_cookies(&self, cookies: &PrivateCookieJar) -> Option<Session> {

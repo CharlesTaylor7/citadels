@@ -1,3 +1,4 @@
+use crate::strings::{AccessToken, RefreshToken, UserId};
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
@@ -10,21 +11,21 @@ pub struct EmailCreds<'a> {
 }
 
 #[derive(Serialize)]
-pub struct RefreshToken<'a> {
-    refresh_token: &'a str,
+pub struct RefreshTokenBody {
+    refresh_token: RefreshToken,
 }
 
 #[derive(Deserialize)]
 pub struct SignInResponse {
-    pub access_token: ArcStr,
-    pub refresh_token: ArcStr,
+    pub access_token: AccessToken,
+    pub refresh_token: RefreshToken,
     pub expires_in: u64,
     pub user: UserSignInResponse,
 }
 
 #[derive(Deserialize)]
 pub struct UserSignInResponse {
-    pub id: ArcStr,
+    pub id: UserId,
 }
 
 #[derive(Clone)]
@@ -92,7 +93,7 @@ impl SupabaseAnonClient {
         Ok(json)
     }
 
-    pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<SignInResponse> {
+    pub async fn refresh(&self, refresh_token: RefreshToken) -> anyhow::Result<SignInResponse> {
         let data = self
             .client
             .post(&format!(
@@ -101,7 +102,7 @@ impl SupabaseAnonClient {
             ))
             .header("apikey", self.api_key.as_str())
             .header("Content-Type", "application/json")
-            .json(&RefreshToken { refresh_token })
+            .json(&RefreshTokenBody { refresh_token })
             .send()
             .await?
             .json()
@@ -109,7 +110,7 @@ impl SupabaseAnonClient {
         Ok(data)
     }
 
-    pub async fn logout(&self, access_token: &str) -> anyhow::Result<()> {
+    pub async fn logout(&self, access_token: AccessToken) -> anyhow::Result<()> {
         self.client
             .post(&format!("{}/auth/v1/logout", self.url))
             .header("apikey", self.api_key.as_str())

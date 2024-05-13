@@ -55,35 +55,44 @@ impl AppState {
             .ok_or(anyhow::anyhow!("lost track of session"))?;
         drop(lock);
 
-        self.supabase.logout(&session.access_token).await?;
+        self.supabase.logout(session.access_token).await?;
         self.connections.lock().unwrap().0.remove(session_id);
         Ok(())
     }
 
     pub async fn add_session(&self, signin: SignInResponse) {
         let session = Session {
-            access_token: signin.access_token.clone(),
-            refresh_token: signin.refresh_token.clone(),
+            user_id: signin.user.id,
+            session_id: todo!(),
+            access_token: signin.access_token,
+            refresh_token: signin.refresh_token,
         };
         self.sessions
             .write()
             .await
             .0
-            .insert(signin.user.id.clone(), session);
-        self.clone().spawn_session_refresh_task(signin);
+            .insert(session.session_id.clone(), session.clone());
+        self.clone()
+            .spawn_session_refresh_task(session, signin.expires_in);
     }
 
-    pub fn spawn_session_refresh_task(self, signin: SignInResponse) {
-        let duration = tokio::time::Duration::from_secs(signin.expires_in / 2);
+    pub fn spawn_session_refresh_task(self, session: Session, expires_in: u64) {
+        let duration = tokio::time::Duration::from_secs(expires_in / 2);
         tokio::task::spawn(async move {
             let mut interval = tokio::time::interval(duration);
             interval.tick().await;
             loop {
                 interval.tick().await;
-                match self.supabase.refresh(&signin.refresh_token).await {
+                let token =
+                    if let Some(session) = self.sessions.read().await.0.get(&session.session_id) {
+                        session.refresh_token.clone()
+                    } else {
+                        break;
+                    };
+                match self.supabase.refresh(token).await {
                     Ok(signin) => {
                         if let Some(session) =
-                            self.sessions.write().await.0.get_mut(&signin.user.id)
+                            self.sessions.write().await.0.get_mut(&session.session_id)
                         {
                             session.update(signin);
                         } else {
@@ -92,12 +101,12 @@ impl AppState {
                     }
                     Err(e) => {
                         log::error!("{}", e);
-                        self.sessions.write().await.0.remove(&signin.user.id);
+                        self.sessions.write().await.0.remove(&session.session_id);
                         break;
                     }
                 }
             }
-            //self.connections.lock().unwrap().0.remove(&signin.user.id)
+            self.connections.lock().unwrap().0.remove(&session.user_id)
         });
     }
 }
