@@ -1,5 +1,6 @@
 use crate::actions::CityDistrictTarget;
 use crate::districts::DistrictName;
+use crate::strings::UserName;
 use serde::de;
 use serde::ser::{Serialize, Serializer};
 use std::fmt;
@@ -52,7 +53,7 @@ impl<'de> de::Visitor<'de> for Visitor {
         E: de::Error,
     {
         let mut district = None as Option<DistrictName>;
-        let mut player = None as Option<PlayerName>;
+        let mut player = None as Option<UserName>;
         let mut beautified = None as Option<bool>;
         for (i, raw) in csv.split(",").enumerate() {
             if i == 0 {

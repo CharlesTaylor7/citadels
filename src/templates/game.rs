@@ -4,6 +4,7 @@ pub mod menus;
 use crate::actions::ActionTag;
 use crate::game::{Game, GameRole, Player, PlayerIndex, Turn};
 use crate::roles::RoleName;
+use crate::strings::UserId;
 use crate::templates::game::menu::{MenuTemplate, MenuView};
 use crate::templates::MyTemplate;
 use crate::templates::{filters, DAISY_THEMES};
@@ -20,7 +21,7 @@ pub struct CityRootTemplate<'a> {
 }
 
 impl<'a> CityRootTemplate<'a> {
-    pub fn from(game: &'a Game, target: PlayerIndex, my_id: Option<&'a str>) -> Self {
+    pub fn from(game: &'a Game, target: PlayerIndex, my_id: Option<UserId>) -> Self {
         Self {
             city: CityTemplate::from(game, target, my_id),
         }
@@ -28,7 +29,7 @@ impl<'a> CityRootTemplate<'a> {
 }
 
 impl<'a> CityTemplate<'a> {
-    pub fn from(game: &'a Game, target: PlayerIndex, my_id: Option<&'a str>) -> Self {
+    pub fn from(game: &'a Game, target: PlayerIndex, my_id: Option<UserId>) -> Self {
         let myself = get_myself(game, my_id);
 
         let header: Cow<'a, str> = if myself.is_some_and(|p| p.index == target) {
@@ -49,7 +50,7 @@ impl<'a> CityTemplate<'a> {
             col.sort_by_key(|d| d.name.data().cost);
         }
 
-        let name = &game.players[target.0].name.0;
+        let name = game.players[target.0].name.borrow();
         let columns = columns
             .iter()
             .map(|col| {
@@ -125,7 +126,7 @@ pub struct GameTemplate<'a> {
 impl<'a> GameTemplate<'a> {
     pub fn render_with(
         game: &'a Game,
-        my_id: Option<&'a str>,
+        my_id: Option<UserId>,
     ) -> axum::response::Result<Html<String>> {
         let myself = get_myself(game, my_id);
         let player_template = PlayerTemplate::from(myself);
@@ -138,7 +139,7 @@ impl<'a> GameTemplate<'a> {
         let mut scores = game
             .players
             .iter()
-            .map(|p| (p.name.0.borrow(), game.total_score(p)))
+            .map(|p| (p.name.borrow(), game.total_score(p)))
             .collect::<Vec<_>>();
         scores.sort_by_key(|(_, score)| -(*score as isize));
 
@@ -176,7 +177,7 @@ impl<'a> GameTemplate<'a> {
     }
 }
 
-pub fn get_myself<'a>(game: &'a Game, myself: Option<&'a str>) -> Option<&'a Player> {
+pub fn get_myself<'a>(game: &'a Game, myself: Option<UserId>) -> Option<&'a Player> {
     if let Some(id) = myself {
         game.players.iter().find(|p| p.id == id)
     } else {
@@ -219,7 +220,7 @@ impl<'a> PlayerTemplate<'a> {
     pub fn from(player: Option<&'a Player>) -> Self {
         if let Some(p) = player {
             Self {
-                name: p.name.0.borrow(),
+                name: p.name.borrow(),
                 gold: p.gold,
                 hand: p
                     .hand
@@ -273,7 +274,7 @@ impl<'a> PlayerInfoTemplate<'a> {
 
         Self {
             active: game.active_player_index().is_ok_and(|i| i == player.index),
-            name: player.name.0.borrow(),
+            name: player.name.borrow(),
             gold: player.gold,
             hand: player.hand.len(),
             city: player.city.len(),

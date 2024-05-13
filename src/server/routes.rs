@@ -4,11 +4,12 @@ use crate::game::Game;
 use crate::lobby::{ConfigOption, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
+use crate::strings::UserName;
 use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
 use crate::templates::lobby::*;
-use crate::types::{Marker, PlayerName};
+use crate::types::Marker;
 use crate::{markup, templates::*};
 use askama::Template;
 use axum::extract::{Json, Path, State};
@@ -177,7 +178,9 @@ async fn register(
             format!("username cannot be more than {} characters long.", MAX_LEN).into(),
         ));
     }
-
+    // set profile's username in the db.
+    Ok("TODO".into_response())
+    /*
     let cookie = cookies.get("player_id").unwrap();
     let player_id = cookie.value();
     let mut lobby = app.lobby.lock().unwrap();
@@ -195,6 +198,7 @@ async fn register(
     app.connections.lock().unwrap().broadcast(html);
 
     Ok(StatusCode::OK.into_response())
+    */
 }
 
 async fn start(app: State<AppState>) -> Result<Response> {
@@ -266,10 +270,10 @@ async fn get_game_actions(
 async fn get_game_city(
     app: State<AppState>,
     cookies: PrivateCookieJar,
-    path: Path<PlayerName>,
+    path: Path<UserName>,
 ) -> Result<Html<String>, ErrorResponse> {
     let cookie = cookies.get("player_id");
-    let id = cookie.as_ref().map(|c| c.value());
+    let id = cookie.as_ref().map(|c| c.value().into());
     let game = app.game.lock().unwrap();
     if let Some(game) = game.as_ref() {
         let p = game

@@ -6,7 +6,8 @@ use crate::lobby::{self, Lobby};
 use crate::museum::Museum;
 use crate::random::Prng;
 use crate::roles::{Rank, RoleName};
-use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
+use crate::strings::{UserId, UserName};
+use crate::types::{CardSuit, Marker};
 use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut, Cow};
@@ -30,8 +31,8 @@ pub struct PlayerIndex(pub usize);
 #[derive(Debug)]
 pub struct Player {
     pub index: PlayerIndex,
-    pub id: PlayerId,
-    pub name: PlayerName,
+    pub id: UserId,
+    pub name: UserName,
     pub gold: usize,
     pub hand: Vec<DistrictName>,
     pub city: Vec<CityDistrict>,
@@ -70,7 +71,7 @@ impl Player {
         self.roles.iter().any(|c| *c == name)
     }
 
-    pub fn new(index: PlayerIndex, id: String, name: PlayerName) -> Self {
+    pub fn new(index: PlayerIndex, id: UserId, name: UserName) -> Self {
         Player {
             index,
             id,
@@ -351,7 +352,7 @@ pub enum Followup {
         players: Vec<PlayerIndex>,
     },
     SpyAcknowledge {
-        player: PlayerName,
+        player: UserName,
         revealed: Vec<DistrictName>,
     },
     Warrant {
@@ -599,7 +600,7 @@ impl Game {
         // randomize the seating order
         players.shuffle(&mut rng);
 
-        // create players from the lobby, and filter players who were kicked
+        // create players from the lobby
         let mut players: Vec<_> = players
             .into_iter()
             .enumerate()
@@ -777,7 +778,7 @@ impl Game {
             .count()
     }
 
-    pub fn allowed_for(&self, id: Option<&str>) -> Vec<ActionTag> {
+    pub fn allowed_for(&self, id: Option<UserId>) -> Vec<ActionTag> {
         let id = if let Some(id) = id { id } else { return vec![] };
         if let Ok(p) = self.responding_player() {
             if p.id == id {
@@ -911,7 +912,7 @@ impl Game {
         }
     }
 
-    pub fn perform(&mut self, action: Action, id: &str) -> Result<()> {
+    pub fn perform(&mut self, action: Action, id: UserId) -> Result<()> {
         if !self.allowed_for(Some(id)).contains(&action.tag()) {
             return Err("not allowed".into());
         }

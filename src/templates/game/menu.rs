@@ -2,6 +2,7 @@ use super::{get_myself, GameContext};
 use crate::actions::ActionTag;
 use crate::game::{Call, Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
 use crate::roles::{Rank, RoleName};
+use crate::strings::UserId;
 use crate::templates::filters;
 use crate::templates::game::menus::{BuildMenu, EmperorMenu};
 use crate::templates::{DistrictTemplate, RoleTemplate};
@@ -15,7 +16,7 @@ pub struct MenuTemplate<'a> {
     pub context: GameContext<'a>,
 }
 impl<'a> MenuTemplate<'a> {
-    pub fn from(game: &'a Game, my_id: Option<&'a str>) -> Self {
+    pub fn from(game: &'a Game, my_id: Option<UserId>) -> Self {
         let myself = get_myself(game, my_id);
         Self {
             context: GameContext {

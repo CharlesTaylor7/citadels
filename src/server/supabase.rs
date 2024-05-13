@@ -1,4 +1,3 @@
-use crate::utils::infer;
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
@@ -71,7 +70,7 @@ impl SupabaseAnonClient {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/signup", self.url))
-            .header("apikey", infer::<&str>(self.api_key.as_ref()))
+            .header("apikey", self.api_key.as_str())
             .header("Content-Type", "application/json")
             .json(creds)
             .send()

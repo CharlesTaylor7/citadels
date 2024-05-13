@@ -4,6 +4,12 @@ use std::borrow::Borrow;
 use std::fmt::{self, Debug, Display};
 use std::marker::PhantomData;
 
+pub type UserName = ImmutableString<tags::UserName>;
+pub type UserId = ImmutableString<tags::UserId>;
+pub type SessionId = ImmutableString<tags::SessionId>;
+pub type RefreshToken = ImmutableString<tags::RefreshToken>;
+pub type AccessToken = ImmutableString<tags::AccessToken>;
+
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
 pub struct ImmutableString<Tag> {
     str: ArcStr,
@@ -16,6 +22,12 @@ impl<Tag> Borrow<str> for ImmutableString<Tag> {
     }
 }
 
+impl<Tag> From<ImmutableString<Tag>> for ArcStr {
+    fn from(value: ImmutableString<Tag>) -> Self {
+        value.str
+    }
+}
+/*
 impl<Tag, T: Into<ArcStr>> From<T> for ImmutableString<Tag> {
     fn from(str: T) -> Self {
         ImmutableString {
@@ -24,6 +36,7 @@ impl<Tag, T: Into<ArcStr>> From<T> for ImmutableString<Tag> {
         }
     }
 }
+*/
 
 impl<Tag: tags::Tag> Debug for ImmutableString<Tag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -42,10 +55,6 @@ impl<Tag> PartialEq<ImmutableString<Tag>> for &ImmutableString<Tag> {
         self.str.eq(&other.str)
     }
 }
-
-pub type UserName = ImmutableString<tags::UserName>;
-pub type UserId = ImmutableString<tags::UserId>;
-pub type SessionId = ImmutableString<tags::SessionId>;
 
 mod tags {
     pub trait Tag {
@@ -74,4 +83,10 @@ mod tags {
     pub enum UserId {}
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
     pub enum SessionId {}
+
+    #[derive(Debug, Eq, PartialEq, Clone, Hash)]
+    pub enum RefreshToken {}
+
+    #[derive(Debug, Eq, PartialEq, Clone, Hash)]
+    pub enum AccessToken {}
 }

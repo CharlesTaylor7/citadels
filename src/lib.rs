@@ -1,5 +1,4 @@
 #![allow(clippy::len_zero)]
-
 pub mod actions;
 pub mod data;
 pub mod districts;
@@ -14,4 +13,3 @@ pub mod server;
 pub mod strings;
 pub mod templates;
 pub mod types;
-pub mod utils;

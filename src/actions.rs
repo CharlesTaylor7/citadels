@@ -1,7 +1,8 @@
 mod deserializer;
 
 use crate::game::Player;
-use crate::types::{CardSuit, PlayerName};
+use crate::strings::UserName;
+use crate::types::CardSuit;
 use crate::{districts::DistrictName, roles::RoleName};
 use macros::tag::Tag;
 use serde::{Deserialize, Serialize};
@@ -52,11 +53,11 @@ pub enum Action {
         district: DistrictName,
     },
     EmperorGiveCrown {
-        player: PlayerName,
+        player: UserName,
         resource: Resource,
     },
     EmperorHeirGiveCrown {
-        player: PlayerName,
+        player: UserName,
     },
     ResourcesFromReligion {
         #[serde_as(as = "serde_with::DisplayFromStr")]
@@ -65,7 +66,7 @@ pub enum Action {
         cards: usize,
     },
     TakeFromRich {
-        player: PlayerName,
+        player: UserName,
     },
     CardsFromReligion,
     Bewitch {
@@ -93,7 +94,7 @@ pub enum Action {
         theirs: CityDistrictTarget,
     },
     Spy {
-        player: PlayerName,
+        player: UserName,
         suit: CardSuit,
     },
     SpyAcknowledge,
@@ -105,10 +106,10 @@ pub enum Action {
     SeerDistribute {
         #[serde_as(as = "serde_with::Map<_, _>")]
         #[serde(flatten)]
-        seer: Vec<(PlayerName, DistrictName)>,
+        seer: Vec<(UserName, DistrictName)>,
     },
     WizardPeek {
-        player: PlayerName,
+        player: UserName,
     },
     WizardPick(WizardMethod),
     Smithy,
@@ -123,7 +124,7 @@ pub enum Action {
     },
     Theater {
         role: RoleName,
-        player: PlayerName,
+        player: UserName,
     },
     TheaterPass,
 }
@@ -149,7 +150,7 @@ pub enum BuildMethod {
         district: DistrictName,
         #[serde_as(as = "serde_with::OneOrMany<_>")]
         discard: Vec<DistrictName>,
-        player: PlayerName,
+        player: UserName,
     },
 }
 
@@ -176,7 +177,7 @@ pub enum WizardMethod {
 }
 #[derive(Debug, Clone)]
 pub struct CityDistrictTarget {
-    pub player: PlayerName,
+    pub player: UserName,
     pub district: DistrictName,
     pub beautified: bool,
 }
@@ -198,7 +199,7 @@ pub enum Resource {
 #[serde(untagged)]
 pub enum MagicianAction {
     TargetPlayer {
-        player: PlayerName,
+        player: UserName,
     },
     TargetDeck {
         #[serde_as(as = "serde_with::OneOrMany<_>")]
