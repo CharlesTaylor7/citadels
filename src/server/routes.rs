@@ -25,6 +25,8 @@ use std::collections::{HashMap, HashSet};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
+use super::auth;
+
 pub fn get_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(get_index))
@@ -51,38 +53,6 @@ pub fn get_router(state: AppState) -> Router {
         .with_state(state)
 }
 
-// Make our own error that wraps `anyhow::Error`.
-struct AnyhowError(anyhow::Error);
-
-// Tell axum how to convert `AppError` into a response.
-impl IntoResponse for AnyhowError {
-    fn into_response(self) -> Response {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!(
-                "Internal Server Error\n{}",
-                if cfg!(feature = "dev") {
-                    self.0
-                } else {
-                    anyhow::anyhow!("")
-                }
-            ),
-        )
-            .into_response()
-    }
-}
-
-// This enables using `?` on functions that return `Result<_, anyhow::Error>` to turn them into
-// `Result<_, AppError>`. That way you don't need to do that manually.
-impl<E> From<E> for AnyhowError
-where
-    E: Into<anyhow::Error>,
-{
-    fn from(err: E) -> Self {
-        Self(err.into())
-    }
-}
-
 async fn get_index() -> Result<Response, AnyhowError> {
     Ok((markup::index::page()).into_response())
 }
@@ -101,8 +71,15 @@ async fn get_signup(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl
 async fn get_login(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
     "TODO".into_response()
 }
-async fn post_logout(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
-    "TODO".into_response()
+
+async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResponse {
+    let session = app.sessions.read().await.session_from_cookies(&cookies);
+    if let Some(session) = session {
+        app.supabase.logout(&session.access_token).await?;
+        Ok(().into_response())
+    } else {
+        Ok((StatusCode::BAD_REQUEST, "not logged in").into_response())
+    }
 }
 
 async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
@@ -556,5 +533,39 @@ async fn get_game_menu(
             Ok(rendered.into_response())
         }
         _ => Ok(StatusCode::NOT_FOUND.into_response()),
+    }
+}
+
+type AppResponse = Result<Response, AnyhowError>;
+
+// Make our own error that wraps `anyhow::Error`.
+struct AnyhowError(anyhow::Error);
+
+// Tell axum how to convert `AppError` into a response.
+impl IntoResponse for AnyhowError {
+    fn into_response(self) -> Response {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!(
+                "Internal Server Error\n{}",
+                if cfg!(feature = "dev") {
+                    self.0
+                } else {
+                    anyhow::anyhow!("")
+                }
+            ),
+        )
+            .into_response()
+    }
+}
+
+// This enables using `?` on functions that return `Result<_, anyhow::Error>` to turn them into
+// `Result<_, AppError>`. That way you don't need to do that manually.
+impl<E> From<E> for AnyhowError
+where
+    E: Into<anyhow::Error>,
+{
+    fn from(err: E) -> Self {
+        Self(err.into())
     }
 }

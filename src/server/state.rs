@@ -1,4 +1,5 @@
 use super::auth::{Session, Sessions};
+use super::supabase::SignInResponse;
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
 use crate::{game::Game, lobby::Lobby};
@@ -60,25 +61,27 @@ impl AppState {
         Ok(())
     }
 
-    pub async fn add_session(&self, session: Session) {
-        self.clone().spawn_session_refresh_task(&session);
+    pub async fn add_session(&self, signin: SignInResponse) {
+        let session = Session {
+            access_token: signin.access_token.clone(),
+            refresh_token: signin.refresh_token.clone(),
+        };
         self.sessions
             .write()
             .await
             .0
-            .insert(session.user_id.clone(), session);
+            .insert(signin.user.id.clone(), session);
+        self.clone().spawn_session_refresh_task(signin);
     }
 
-    pub fn spawn_session_refresh_task(self, session: &Session) {
-        let token = session.refresh_token.clone();
-        let session_id = session.user_id.clone();
-        let duration = tokio::time::Duration::from_secs(session.expires_in / 2);
+    pub fn spawn_session_refresh_task(self, signin: SignInResponse) {
+        let duration = tokio::time::Duration::from_secs(signin.expires_in / 2);
         tokio::task::spawn(async move {
             let mut interval = tokio::time::interval(duration);
             interval.tick().await;
             loop {
                 interval.tick().await;
-                match self.supabase.refresh(&token).await {
+                match self.supabase.refresh(&signin.refresh_token).await {
                     Ok(signin) => {
                         if let Some(session) =
                             self.sessions.write().await.0.get_mut(&signin.user.id)
@@ -90,12 +93,12 @@ impl AppState {
                     }
                     Err(e) => {
                         log::error!("{}", e);
-                        self.sessions.write().await.0.remove(&session_id);
+                        self.sessions.write().await.0.remove(&signin.user.id);
                         break;
                     }
                 }
             }
-            self.connections.lock().unwrap().0.remove(&session_id)
+            //self.connections.lock().unwrap().0.remove(&signin.user.id)
         });
     }
 }

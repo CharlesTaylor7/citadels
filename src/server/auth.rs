@@ -1,25 +1,16 @@
 use super::supabase::SignInResponse;
 use crate::server::{state::AppState, supabase::EmailCreds};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-use std::collections::HashMap;
+use std::borrow::Cow;
+use std::{collections::HashMap, sync::Arc};
 
+#[derive(Clone)]
 pub struct Session {
-    pub user_id: String,
-    pub access_token: String,
-    pub refresh_token: String,
-    pub expires_in: u64,
+    pub access_token: Arc<str>,
+    pub refresh_token: Arc<str>,
 }
 
 impl Session {
-    pub fn new(json: SignInResponse) -> Self {
-        Self {
-            user_id: json.user.id,
-            access_token: json.access_token,
-            refresh_token: json.refresh_token,
-            expires_in: json.expires_in,
-        }
-    }
-
     pub fn update(&mut self, response: SignInResponse) {
         self.refresh_token = response.refresh_token;
         self.access_token = response.access_token;
@@ -27,17 +18,17 @@ impl Session {
 }
 
 #[derive(Default)]
-pub struct Sessions(pub HashMap<String, Session>);
+pub struct Sessions(pub HashMap<Arc<str>, Session>);
 
 impl Sessions {
-    pub fn session_from_cookies(&self, cookies: &PrivateCookieJar) -> Option<&Session> {
+    pub fn session_from_cookies(&self, cookies: &PrivateCookieJar) -> Option<Session> {
         let session_id = cookies.get("session_id")?;
         let session_id = session_id.value();
         self.session_from_id(session_id)
     }
 
-    pub fn session_from_id(&self, session_id: &str) -> Option<&Session> {
-        self.0.get(session_id)
+    pub fn session_from_id(&self, session_id: &str) -> Option<Session> {
+        self.0.get(session_id).cloned()
     }
 }
 
@@ -64,10 +55,11 @@ pub async fn login(
         None => {
             let session = state.supabase.signin_email(creds).await?;
             log::info!("Setting session cookie with 1 week expiry");
-            cookies = cookies.add(
-                Cookie::build(("session_id", (session.user_id.clone())))
-                    .max_age(time::Duration::WEEK),
-            );
+
+            let user_id = session.user.id.as_ref().to_owned();
+            let mut cookie = Cookie::new("session_id", user_id);
+            cookie.set_max_age(time::Duration::WEEK);
+            cookies = cookies.add(cookie);
             state.add_session(session).await;
         }
     };
@@ -84,8 +76,8 @@ pub async fn signup(
         anyhow::bail!("Already has a session cookie");
     }
     let session = state.supabase.signup_email(creds).await?;
-    let cookie =
-        Cookie::build(("session_id", session.user_id.clone())).max_age(time::Duration::WEEK);
+    let cookie = Cookie::build(("session_id", String::from(session.user.id.as_ref())))
+        .max_age(time::Duration::WEEK);
     cookies = cookies.add(cookie);
     state.add_session(session).await;
     Ok(cookies)

@@ -18,15 +18,15 @@ pub struct RefreshToken<'a> {
 
 #[derive(Deserialize)]
 pub struct SignInResponse {
-    pub access_token: String,
-    pub refresh_token: String,
+    pub access_token: Arc<str>,
+    pub refresh_token: Arc<str>,
     pub expires_in: u64,
     pub user: UserSignInResponse,
 }
 
 #[derive(Deserialize)]
 pub struct UserSignInResponse {
-    pub id: String,
+    pub id: Arc<str>,
 }
 
 #[derive(Clone)]
@@ -68,7 +68,7 @@ impl SupabaseAnonClient {
         }
     }
 
-    pub async fn signup_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<Session> {
+    pub async fn signup_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SignInResponse> {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/signup", self.url))
@@ -78,11 +78,10 @@ impl SupabaseAnonClient {
             .send()
             .await?;
         let json = response.json::<SignInResponse>().await?;
-        let client = Session::new(json);
-        Ok(client)
+        Ok(json)
     }
 
-    pub async fn signin_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<Session> {
+    pub async fn signin_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SignInResponse> {
         let response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=password", self.url))
@@ -92,8 +91,7 @@ impl SupabaseAnonClient {
             .send()
             .await?;
         let json = response.json::<SignInResponse>().await?;
-        let client = Session::new(json);
-        Ok(client)
+        Ok(json)
     }
 
     pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<SignInResponse> {
