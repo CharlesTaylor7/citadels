@@ -1,9 +1,8 @@
+use crate::utils::infer;
+use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::env;
-use std::sync::Arc;
-
-use super::auth::Session;
 
 #[derive(Serialize)]
 pub struct EmailCreds<'a> {
@@ -18,15 +17,15 @@ pub struct RefreshToken<'a> {
 
 #[derive(Deserialize)]
 pub struct SignInResponse {
-    pub access_token: Arc<str>,
-    pub refresh_token: Arc<str>,
+    pub access_token: ArcStr,
+    pub refresh_token: ArcStr,
     pub expires_in: u64,
     pub user: UserSignInResponse,
 }
 
 #[derive(Deserialize)]
 pub struct UserSignInResponse {
-    pub id: Arc<str>,
+    pub id: ArcStr,
 }
 
 #[derive(Clone)]
@@ -55,8 +54,8 @@ impl<T> std::fmt::Debug for Secret<T> {
 #[derive(Clone, Debug)]
 pub struct SupabaseAnonClient {
     pub client: reqwest::Client,
-    pub url: Arc<str>,
-    pub api_key: Arc<str>,
+    pub url: ArcStr,
+    pub api_key: ArcStr,
 }
 
 impl SupabaseAnonClient {
@@ -72,7 +71,7 @@ impl SupabaseAnonClient {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/signup", self.url))
-            .header("apikey", self.api_key.as_ref())
+            .header("apikey", infer::<&str>(self.api_key.as_ref()))
             .header("Content-Type", "application/json")
             .json(creds)
             .send()
@@ -85,7 +84,7 @@ impl SupabaseAnonClient {
         let response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=password", self.url))
-            .header("apikey", self.api_key.as_ref())
+            .header::<_, &str>("apikey", self.api_key.as_ref())
             .header("Content-Type", "application/json")
             .json(creds)
             .send()
@@ -101,7 +100,7 @@ impl SupabaseAnonClient {
                 "{}/auth/v1/token?grant_type=refresh_token",
                 self.url
             ))
-            .header("apikey", self.api_key.as_ref())
+            .header("apikey", self.api_key.as_str())
             .header("Content-Type", "application/json")
             .json(&RefreshToken { refresh_token })
             .send()
@@ -114,7 +113,7 @@ impl SupabaseAnonClient {
     pub async fn logout(&self, access_token: &str) -> anyhow::Result<()> {
         self.client
             .post(&format!("{}/auth/v1/logout", self.url))
-            .header("apikey", self.api_key.as_ref())
+            .header("apikey", self.api_key.as_str())
             .header("Content-Type", "application/json")
             .bearer_auth(access_token)
             .send()

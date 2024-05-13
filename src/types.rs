@@ -1,7 +1,7 @@
+use arcstr::ArcStr;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::fmt::{self, Debug, Display};
-use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub enum CardSuit {
@@ -68,7 +68,7 @@ pub type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
-pub struct PlayerName(pub Arc<str>);
+pub struct PlayerName(pub ArcStr);
 
 impl Borrow<str> for PlayerName {
     fn borrow(&self) -> &str {
@@ -76,7 +76,7 @@ impl Borrow<str> for PlayerName {
     }
 }
 
-impl<T: Into<Arc<str>>> From<T> for PlayerName {
+impl<T: Into<ArcStr>> From<T> for PlayerName {
     fn from(str: T) -> Self {
         PlayerName(str.into())
     }

@@ -1,3 +1,4 @@
+use super::auth;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -24,8 +25,6 @@ use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
-
-use super::auth;
 
 pub fn get_router(state: AppState) -> Router {
     Router::new()

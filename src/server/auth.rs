@@ -1,13 +1,13 @@
 use super::supabase::SignInResponse;
 use crate::server::{state::AppState, supabase::EmailCreds};
+use arcstr::ArcStr;
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-use std::borrow::Cow;
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Session {
-    pub access_token: Arc<str>,
-    pub refresh_token: Arc<str>,
+    pub access_token: ArcStr,
+    pub refresh_token: ArcStr,
 }
 
 impl Session {
@@ -18,7 +18,7 @@ impl Session {
 }
 
 #[derive(Default)]
-pub struct Sessions(pub HashMap<Arc<str>, Session>);
+pub struct Sessions(pub HashMap<ArcStr, Session>);
 
 impl Sessions {
     pub fn session_from_cookies(&self, cookies: &PrivateCookieJar) -> Option<Session> {
@@ -56,9 +56,10 @@ pub async fn login(
             let session = state.supabase.signin_email(creds).await?;
             log::info!("Setting session cookie with 1 week expiry");
 
-            let user_id = session.user.id.as_ref().to_owned();
-            let mut cookie = Cookie::new("session_id", user_id);
-            cookie.set_max_age(time::Duration::WEEK);
+            let cookie = Cookie::build(("session_id", session.user.id.to_string()))
+                .max_age(time::Duration::WEEK)
+                .secure(true)
+                .http_only(true);
             cookies = cookies.add(cookie);
             state.add_session(session).await;
         }
@@ -76,8 +77,11 @@ pub async fn signup(
         anyhow::bail!("Already has a session cookie");
     }
     let session = state.supabase.signup_email(creds).await?;
-    let cookie = Cookie::build(("session_id", String::from(session.user.id.as_ref())))
-        .max_age(time::Duration::WEEK);
+
+    let cookie = Cookie::build(("session_id", session.user.id.to_string()))
+        .max_age(time::Duration::WEEK)
+        .secure(true)
+        .http_only(true);
     cookies = cookies.add(cookie);
     state.add_session(session).await;
     Ok(cookies)
