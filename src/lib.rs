@@ -11,6 +11,7 @@ pub mod museum;
 pub mod random;
 pub mod roles;
 pub mod server;
+pub mod strings;
 pub mod templates;
 pub mod types;
 pub mod utils;

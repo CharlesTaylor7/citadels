@@ -2,7 +2,7 @@ use crate::{
     districts::DistrictName,
     game,
     roles::{Rank, RoleName},
-    types::{PlayerId, PlayerName},
+    strings::{UserId, UserName},
 };
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
@@ -12,8 +12,8 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Player {
-    pub id: PlayerId,
-    pub name: PlayerName,
+    pub id: UserId,
+    pub name: UserName,
 }
 
 impl Player {
@@ -50,33 +50,17 @@ impl Lobby {
                 .take(count)
                 .enumerate()
                 .map(|(i, p)| Player {
-                    id: format!("{}", i + 1),
-                    name: PlayerName::from(p.to_owned()),
+                    id: format!("{}", i + 1).into(),
+                    name: p.into(),
                 })
                 .collect(),
         }
     }
 
-    pub fn register(&mut self, id: &str, name: &str) -> game::Result<()> {
-        if self
-            .players
-            .iter()
-            .any(|p| p.id != id && p.name.borrow() as &str == name)
-        {
-            return Err("username taken".into());
-        }
-        match self.players.iter_mut().find(|p| p.id == id) {
-            Some(p) => {
-                p.name = PlayerName::from(name.to_owned());
-            }
-            None => {
-                self.players.push(Player {
-                    id: id.to_owned(),
-                    name: PlayerName::from(name.to_owned()),
-                });
-            }
-        }
-        Ok(())
+    pub async fn register(&mut self, id: &str, name: &str) -> game::Result<()> {
+        // save username to db
+        // add player to room
+        todo!()
     }
 }
 

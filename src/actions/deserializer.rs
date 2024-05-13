@@ -1,5 +1,5 @@
 use crate::actions::CityDistrictTarget;
-use crate::{districts::DistrictName, types::PlayerName};
+use crate::districts::DistrictName;
 use serde::de;
 use serde::ser::{Serialize, Serializer};
 use std::fmt;

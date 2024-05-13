@@ -1,4 +1,5 @@
 use crate::server::state::AppState;
+use crate::types::UserId;
 use axum::extract::ws::{Message, WebSocket};
 use axum::extract::State;
 use axum::response::{ErrorResponse, Html};
@@ -12,7 +13,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
 
 #[derive(Default)]
-pub struct Connections(pub HashMap<String, WebSocketSink>);
+pub struct Connections(pub HashMap<UserId, WebSocketSink>);
 
 impl Connections {
     pub fn broadcast(&mut self, html: Html<String>) {
