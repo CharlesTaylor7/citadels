@@ -4,7 +4,7 @@ use maud::{html, Markup};
 pub fn page() -> Markup {
     base::page(
         html! {
-            (base::htmx_scripts())
+            (base::scripts())
         },
         html! {
             (base::nav(false))

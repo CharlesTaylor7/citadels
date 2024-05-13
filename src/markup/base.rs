@@ -4,7 +4,7 @@ use std::env;
 pub fn page(head: Markup, main: Markup) -> Markup {
     html! {
       (DOCTYPE)
-      html data-theme="dark" {
+      html _="init get the theme of localStorage if it exists set my @data-theme to it" data-theme="dark" {
         head {
           title { "Citadels" }
           meta charset="utf-8";
@@ -62,13 +62,15 @@ pub fn nav(logged_in: bool) -> Markup {
     }
 }
 
-pub fn htmx_scripts() -> Markup {
+pub fn scripts() -> Markup {
     html! {
         script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js" { }
         script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" { }
         script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js" { }
         // script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/client-side-templates.js" { }
         script src=(asset("vendor/idiomorph.js")) { }
+        script src="https://unpkg.com/hyperscript.org@0.9.12" { }
+        script src="https://unpkg.com/interactjs/dist/interact.min.js" { }
     }
 }
 
