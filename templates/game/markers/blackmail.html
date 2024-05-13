@@ -23,7 +23,7 @@
   >
     <image id="img" x="-30" y="-70"
           height="{{scale * 100.0}}%"
-          xlink:href="{% if flowered %}/public/flowered-threat.png{% else %}/public/unmarked-threat.png{% endif %}"
+          xlink:href="{% if flowered %}{{"flowered-threat.png"|asset}}{% else %}{{"unmarked-threat.png"|asset}}{% endif %}"
           preserveAspectRatio="xMinYMin slice"
     />
   </svg>

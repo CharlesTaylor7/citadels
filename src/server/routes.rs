@@ -47,7 +47,6 @@ pub fn get_router(state: AppState) -> Router {
         .route("/game/action", post(submit_game_action))
         .route("/game/menu/:menu", get(get_game_menu))
         .nest_service("/public", ServeDir::new("public"))
-        .nest_service("/styles", ServeDir::new("styles"))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
 }

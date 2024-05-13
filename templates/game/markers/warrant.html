@@ -21,14 +21,9 @@
     width="{{ w }}"
     class="rounded-lg"
   >
-    {% if signed %}
-      {% set image = "signed-warrant.png" %}
-    {% else %}
-      {% set image = "unsigned-warrant.png" %}
-    {% endif %}
     <image id="img" x="-25" y="-25"
           height="{{scale * 100.0}}%"
-          xlink:href={{ image | asset }}
+          xlink:href="{% if signed %}{{"signed-warrant.png"|asset}}{% else %}{{"unsigned-warrant.png"|asset}}{% endif %}"
           preserveAspectRatio="xMinYMin slice"
     />
   </svg>
