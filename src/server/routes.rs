@@ -527,7 +527,7 @@ async fn get_game_menu(
                     .players
                     .iter()
                     .filter(|p| active_player.id != p.id)
-                    .map(|p| p.name.0.borrow())
+                    .map(|p| p.name.borrow())
                     .collect::<Vec<_>>(),
             }
             .to_html()?;

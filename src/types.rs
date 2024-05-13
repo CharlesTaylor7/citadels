@@ -1,7 +1,9 @@
 use arcstr::ArcStr;
+use macros::tag::Tag;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::fmt::{self, Debug, Display};
+use std::marker::PhantomData;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub enum CardSuit {
@@ -68,28 +70,73 @@ pub type PlayerId = String;
 pub type Result<T> = std::result::Result<T, &'static str>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
-pub struct PlayerName(pub ArcStr);
+pub struct ImmutableString<Tag> {
+    str: ArcStr,
+    _phantom: PhantomData<Tag>,
+}
 
-impl Borrow<str> for PlayerName {
+impl<Tag> Borrow<str> for ImmutableString<Tag> {
     fn borrow(&self) -> &str {
-        self.0.borrow()
+        self.str.borrow()
     }
 }
 
-impl<T: Into<ArcStr>> From<T> for PlayerName {
+impl<Tag, T: Into<ArcStr>> From<T> for ImmutableString<Tag> {
     fn from(str: T) -> Self {
-        PlayerName(str.into())
+        ImmutableString {
+            str: str.into(),
+            _phantom: PhantomData,
+        }
     }
 }
 
-impl Display for PlayerName {
+impl<Tag> Debug for ImmutableString<Tag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}:{}", self.str)
     }
 }
 
-impl PartialEq<PlayerName> for &PlayerName {
-    fn eq(&self, other: &PlayerName) -> bool {
-        self.0.eq(&other.0)
+impl<Tag> Display for ImmutableString<Tag> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.str)
     }
+}
+
+impl<Tag> PartialEq<ImmutableString<Tag>> for &ImmutableString<Tag> {
+    fn eq(&self, other: &ImmutableString<Tag>) -> bool {
+        self.str.eq(&other.str)
+    }
+}
+
+pub type PlayerName = ImmutableString<tags::UserName>;
+pub type UserId = ImmutableString<tags::UserId>;
+pub type SessionId = ImmutableString<tags::SessionId>;
+
+mod tags {
+    pub trait Tag {
+        fn name() -> &'static str;
+    }
+    impl Tag for UserName {
+        fn name() -> &'static str {
+            "username"
+        }
+    }
+
+    impl Tag for UserId {
+        fn name() -> &'static str {
+            "user_id"
+        }
+    }
+
+    impl Tag for SessionId {
+        fn name() -> &'static str {
+            "session_id"
+        }
+    }
+    #[derive(Debug, PartialEq, Clone, Hash)]
+    pub enum UserName {}
+    #[derive(Debug, PartialEq, Clone, Hash)]
+    pub enum UserId {}
+    #[derive(Debug, PartialEq, Clone, Hash)]
+    pub enum SessionId {}
 }
