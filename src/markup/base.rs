@@ -1,17 +1,6 @@
 use maud::{html, Markup, DOCTYPE};
 use std::env;
 
-pub fn asset(path: &str) -> String {
-    if cfg!(feature = "dev") {
-        format!("/public/{path}")
-    } else {
-        format!(
-            "{}/storage/v1/object/public/assets/{path}",
-            env::var("SUPABASE_PROJECT_URL").unwrap()
-        )
-    }
-}
-
 pub fn page(head: Markup, main: Markup) -> Markup {
     html! {
       (DOCTYPE)
@@ -32,7 +21,7 @@ pub fn page(head: Markup, main: Markup) -> Markup {
 }
 pub fn nav(logged_in: bool) -> Markup {
     html! {
-      .flex.flex-row.justify-end.items-center {
+      div class="flex flex-row justify-end items-center" {
         ul class="menu menu-horizontal bg-base-200 rounded-box" {
           li {
              a href="/game" {
@@ -68,8 +57,28 @@ pub fn nav(logged_in: bool) -> Markup {
                   }
               }
           }
-
         }
       }
+    }
+}
+
+pub fn htmx_scripts() -> Markup {
+    html! {
+        script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js" { }
+        script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" { }
+        script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js" { }
+        // script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/client-side-templates.js" { }
+        script src=(asset("vendor/idiomorph.js")) { }
+    }
+}
+
+pub fn asset(path: &str) -> String {
+    if cfg!(feature = "dev") {
+        format!("/public/{path}")
+    } else {
+        format!(
+            "{}/storage/v1/object/public/assets/{path}",
+            env::var("SUPABASE_PROJECT_URL").unwrap()
+        )
     }
 }

@@ -1,4 +1,3 @@
-use super::auth;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -40,7 +39,7 @@ pub fn get_router(state: AppState) -> Router {
         .route("/lobby/config/roles", post(post_role_config))
         .route("/lobby/register", post(register))
         .route("/ws", get(get_ws))
-        .route("/game", get(game))
+        .route("/game", get(get_game))
         .route("/game/actions", get(get_game_actions))
         .route("/game/city/:player_name", get(get_game_city))
         .route("/game/logs", get(get_game_logs))
@@ -64,10 +63,10 @@ async fn get_version() -> impl IntoResponse {
         .into_response()
 }
 
-async fn get_signup(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn get_signup(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
     "TODO".into_response()
 }
-async fn get_login(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
     "TODO".into_response()
 }
 
@@ -82,6 +81,8 @@ async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResp
 }
 
 async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
+    return crate::markup::lobby::page();
+    /*
     if app.game.lock().unwrap().is_some() {
         return (cookies, Redirect::to("/game")).into_response();
     }
@@ -100,6 +101,7 @@ async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl 
         ),
     )
         .into_response()
+        */
 }
 
 async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
@@ -235,10 +237,9 @@ async fn start(app: State<AppState>) -> Result<Response> {
     unreachable!()
 }
 
-async fn game(
-    app: State<AppState>,
-    cookies: PrivateCookieJar,
-) -> Result<Html<String>, ErrorResponse> {
+async fn get_game(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+    return crate::markup::game::page();
+    /*
     let cookie = cookies.get("player_id");
     let id = cookie.as_ref().map(|c| c.value());
     let game = app.game.lock().unwrap();
@@ -248,6 +249,7 @@ async fn game(
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
+    */
 }
 
 async fn get_game_actions(

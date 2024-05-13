@@ -7,7 +7,6 @@ use axum::extract::FromRef;
 use axum_extra::extract::{cookie, PrivateCookieJar};
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
-use tokio::time::Duration;
 
 fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
     Arc::new(std::sync::Mutex::new(item))
