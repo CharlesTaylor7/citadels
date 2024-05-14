@@ -11,7 +11,7 @@ use crate::templates::game::*;
 use crate::templates::lobby::*;
 use crate::types::Marker;
 use crate::{markup, templates::*};
-use askama::Template;
+
 use axum::extract::{Json, Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
@@ -81,7 +81,7 @@ async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResp
     }
 }
 
-async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn get_lobby(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
     return crate::markup::lobby::page();
     /*
     if app.game.lock().unwrap().is_some() {
@@ -159,8 +159,8 @@ pub struct Register {
 }
 
 async fn register(
-    app: State<AppState>,
-    cookies: PrivateCookieJar,
+    _app: State<AppState>,
+    _cookies: PrivateCookieJar,
     form: axum::Json<Register>,
 ) -> Result<Response> {
     let username = form.username.trim();

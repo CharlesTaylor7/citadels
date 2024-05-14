@@ -1,8 +1,6 @@
-use arcstr::ArcStr;
 use serde::{Deserialize, Serialize};
-use std::borrow::Borrow;
-use std::fmt::{self, Debug, Display};
-use std::marker::PhantomData;
+
+use std::fmt::{self, Debug};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub enum CardSuit {

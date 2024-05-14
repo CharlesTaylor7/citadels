@@ -7,7 +7,7 @@ use crate::{
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::{Deserialize, Serialize};
-use std::borrow::Borrow;
+
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -57,7 +57,7 @@ impl Lobby {
         }
     }
 
-    pub async fn register(&mut self, id: &str, name: &str) -> game::Result<()> {
+    pub async fn register(&mut self, _id: &str, _name: &str) -> game::Result<()> {
         // save username to db
         // add player to room
         todo!()

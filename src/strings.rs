@@ -1,6 +1,6 @@
 use arcstr::ArcStr;
 use serde::{Deserialize, Serialize};
-use std::borrow::Borrow;
+
 use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
 

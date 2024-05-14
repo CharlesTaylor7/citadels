@@ -4,8 +4,7 @@ use crate::{
     strings::{AccessToken, RefreshToken, SessionId, UserId},
 };
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
-use std::{borrow::Borrow, collections::HashMap};
-use uuid::Uuid;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Session {

@@ -2,7 +2,7 @@ use citadels::actions::{Action, CityDistrictTarget};
 use citadels::game::Game;
 use citadels::lobby::{self, Lobby};
 use citadels::random::Prng;
-use citadels::types::PlayerName;
+use citadels::strings::UserName;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use rand_core::SeedableRng;
@@ -29,17 +29,17 @@ fn random_action(_game: &Game, _rng: &mut Prng) -> Action {
     todo!()
 }
 
-fn random_player<'a>(game: &'a Game, rng: &mut Prng) -> &'a PlayerName {
+fn random_player<'a>(game: &'a Game, rng: &mut Prng) -> &'a UserName {
     game.players.choose(rng).unwrap().name.borrow()
 }
 
 fn random_city_district(game: &Game, rng: &mut Prng) -> Option<CityDistrictTarget> {
     let count = game.players.iter().map(|p| p.city.len()).sum();
     let n = rng.gen_range(0..count);
-    let (player, district): (&PlayerName, _) = game
+    let (player, district) = game
         .players
         .iter()
-        .flat_map(|p| p.city.iter().map(|d| (p.name.borrow(), d)))
+        .flat_map(|p| p.city.iter().map(|d| (&p.name, d)))
         .nth(n)?;
 
     Some(CityDistrictTarget {
