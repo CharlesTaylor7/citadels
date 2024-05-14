@@ -48,22 +48,22 @@ impl AppState {
         let session_id = cookies
             .get("session_id")
             .ok_or(anyhow::anyhow!("not actually logged in"))?;
-        let session_id = session_id.value();
+        let session_id = SessionId::new(session_id.value());
         let mut lock = self.sessions.write().await;
         let session = lock
             .0
-            .remove(session_id)
+            .remove(&session_id)
             .ok_or(anyhow::anyhow!("lost track of session"))?;
         drop(lock);
 
-        self.supabase.logout(session.access_token).await?;
-        self.connections.lock().unwrap().0.remove(session_id);
+        self.supabase.logout(&session.access_token).await?;
+        self.connections.lock().unwrap().0.remove(&session.user_id);
         Ok(())
     }
 
     pub async fn add_session(&self, session_id: SessionId, signin: SignInResponse) {
         let session = Session {
-            session_id: todo!(),
+            session_id,
             user_id: signin.user.id,
             access_token: signin.access_token,
             refresh_token: signin.refresh_token,

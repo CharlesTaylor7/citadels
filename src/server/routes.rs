@@ -483,7 +483,7 @@ async fn get_game_menu(
 
     let active_player = game.active_player()?;
 
-    if cookie.value() != active_player.id.borrow() as &str {
+    if cookie.value() != active_player.id.as_str() {
         return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
     }
 
@@ -494,7 +494,7 @@ async fn get_game_menu(
                     .players
                     .iter()
                     .filter(|p| active_player.id != p.id)
-                    .map(|p| p.name.borrow())
+                    .map(|p| p.name.as_str())
                     .collect(),
                 hand: active_player
                     .hand
@@ -535,7 +535,7 @@ async fn get_game_menu(
                     .players
                     .iter()
                     .filter(|p| active_player.id != p.id)
-                    .map(|p| p.name.borrow())
+                    .map(|p| p.name.as_str())
                     .collect::<Vec<_>>(),
             }
             .to_html()?;

@@ -117,17 +117,17 @@ impl<'a> MenuView<'a> {
                 Followup::HandleBlackmail { .. } => MenuView::HandleBlackmail {
                     blackmailer: game.players[game.characters.get(Rank::Two).player.unwrap().0]
                         .name
-                        .borrow(),
+                        .as_str(),
                     bribe: game.active_player().unwrap().gold / 2,
                 },
                 Followup::Blackmail { .. } => MenuView::RevealBlackmail {
                     gold: game.active_player().unwrap().gold,
-                    player: game.active_player().unwrap().name.borrow(),
+                    player: game.active_player().unwrap().name.as_str(),
                     actions: vec![ActionTag::RevealBlackmail, ActionTag::Pass],
                 },
                 Followup::WizardPick { player } => MenuView::Wizard {
                     build: BuildMenu::from_game(game),
-                    player: game.players[player.0].name.borrow(),
+                    player: game.players[player.0].name.as_str(),
                     hand: game.players[player.0]
                         .hand
                         .iter()
@@ -161,7 +161,7 @@ impl<'a> MenuView<'a> {
                     ..
                 } => MenuView::RevealWarrant {
                     gold: *gold,
-                    player: game.active_player().unwrap().name.borrow(),
+                    player: game.active_player().unwrap().name.as_str(),
                     district: DistrictTemplate::from(*district),
                     actions: if *signed {
                         vec![ActionTag::RevealWarrant, ActionTag::Pass]

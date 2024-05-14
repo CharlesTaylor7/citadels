@@ -110,7 +110,7 @@ impl SupabaseAnonClient {
         Ok(data)
     }
 
-    pub async fn logout(&self, access_token: AccessToken) -> anyhow::Result<()> {
+    pub async fn logout(&self, access_token: &AccessToken) -> anyhow::Result<()> {
         self.client
             .post(&format!("{}/auth/v1/logout", self.url))
             .header("apikey", self.api_key.as_str())
