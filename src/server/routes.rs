@@ -43,7 +43,6 @@ pub fn get_router(state: AppState) -> Router {
         .route("/game", get(get_game))
         .route("/game/actions", get(get_game_actions))
         .route("/game/city/:player_name", get(get_game_city))
-        .route("/game/logs", get(get_game_logs))
         .route("/game", post(start))
         .route("/game/action", post(submit_game_action))
         .route("/game/menu/:menu", get(get_game_menu))
@@ -260,10 +259,7 @@ async fn get_game_actions(
     app: State<AppState>,
     cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
-    let user_id = cookies
-        .get("player_id")
-        .as_ref()
-        .map(|c| UserId::new(c.value()));
+    let user_id = app.session(&cookies).await.map(|s| s.user_id);
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
 
@@ -275,8 +271,7 @@ async fn get_game_city(
     cookies: PrivateCookieJar,
     path: Path<UserName>,
 ) -> Result<Html<String>, ErrorResponse> {
-    let cookie = cookies.get("player_id");
-    let id = cookie.as_ref().map(|c| UserId::new(c.value()));
+    let session = app.session(&cookies).await;
     let game = app.game.lock().unwrap();
     if let Some(game) = game.as_ref() {
         let p = game
@@ -284,17 +279,10 @@ async fn get_game_city(
             .iter()
             .find(|p| p.name == path.0)
             .ok_or("no player with that name")?;
-        CityRootTemplate::from(game, p.index, id).to_html()
+        CityRootTemplate::from(game, p.index, session.map(|s| s.user_id)).to_html()
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
-}
-
-async fn get_game_logs(
-    _app: State<AppState>,
-    _cookies: PrivateCookieJar,
-) -> Result<Html<String>, ErrorResponse> {
-    todo!()
 }
 
 async fn get_ws(
@@ -302,9 +290,9 @@ async fn get_ws(
     cookies: PrivateCookieJar,
     ws: WebSocketUpgrade,
 ) -> impl IntoResponse {
-    if let Some(cookie) = cookies.get("player_id") {
+    if let Some(session) = state.session(&cookies).await {
         ws.on_upgrade(move |socket| {
-            crate::server::ws::handle_socket(state, UserId::new(cookie.value()), socket)
+            crate::server::ws::handle_socket(state, session.user_id, socket)
         })
         .into_response()
     } else {
@@ -325,9 +313,13 @@ async fn submit_game_action(
     app: State<AppState>,
     cookies: PrivateCookieJar,
     action: axum::Json<ActionSubmission>,
-) -> Result<Response> {
-    let cookie = cookies.get("player_id").ok_or("missing cookie")?;
-    let user_id = UserId::new(cookie.value());
+) -> Result<Response, ErrorResponse> {
+    let session = if let Some(session) = app.session(&cookies).await {
+        session
+    } else {
+        Err(AnyhowError(anyhow::anyhow!("not logged").into()).into_response())?
+    };
+    let user_id = session.user_id;
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
     log::info!("{:#?}", action.0);
@@ -477,13 +469,13 @@ async fn get_game_menu(
     cookies: PrivateCookieJar,
     path: Path<String>,
 ) -> Result<Response> {
-    let cookie = cookies.get("player_id").ok_or("missing cookie")?;
+    let session = app.session(&cookies).await.ok_or("missing cookie")?;
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
 
     let active_player = game.active_player()?;
 
-    if cookie.value() != active_player.id.as_str() {
+    if session.user_id != active_player.id {
         return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
     }
 

@@ -43,7 +43,16 @@ impl FromRef<AppState> for cookie::Key {
         state.cookie_signing_key.clone()
     }
 }
+
 impl AppState {
+    pub async fn session(&self, cookies: &PrivateCookieJar) -> Option<Session> {
+        self.sessions.read().await.session_from_cookies(cookies)
+    }
+
+    pub async fn session_from_id(&self, session_id: &SessionId) -> Option<Session> {
+        self.sessions.read().await.session_from_id(session_id)
+    }
+
     pub async fn logout(&self, cookies: &PrivateCookieJar) -> anyhow::Result<()> {
         let session_id = cookies
             .get("session_id")
