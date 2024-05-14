@@ -41,35 +41,23 @@ pub async fn login(
     mut cookies: PrivateCookieJar,
     creds: &EmailCreds<'_>,
 ) -> anyhow::Result<PrivateCookieJar> {
-    match cookies.get("session_id") {
-        Some(cookie) => {
-            let session_id = SessionId::new(cookie.value());
-            if state
-                .sessions
-                .read()
-                .await
-                .session_from_id(&session_id)
-                .is_some()
-            {
-                anyhow::bail!("Already logged in");
-            } else {
-                let signin = state.supabase.signin_email(creds).await?;
-                state.add_session(session_id, signin).await;
-            };
-        }
-        None => {
-            let signin = state.supabase.signin_email(creds).await?;
-            log::info!("Setting session cookie with 1 week expiry");
-
-            let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
-            let cookie = Cookie::build(("session_id", session_id.to_string()))
-                .max_age(time::Duration::WEEK)
-                .secure(true)
-                .http_only(true);
-            cookies = cookies.add(cookie);
-            state.add_session(session_id, signin).await;
-        }
-    };
+    if state
+        .sessions
+        .read()
+        .await
+        .session_from_cookies(&cookies)
+        .is_some()
+    {
+        anyhow::bail!("Already logged in");
+    }
+    let signin = state.supabase.signin_email(creds).await?;
+    let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
+    let cookie = Cookie::build(("session_id", session_id.to_string()))
+        .max_age(time::Duration::WEEK)
+        .secure(true)
+        .http_only(true);
+    cookies = cookies.add(cookie);
+    state.add_session(session_id, signin).await;
 
     Ok(cookies)
 }
@@ -89,7 +77,8 @@ pub async fn signup(
         .max_age(time::Duration::WEEK)
         .secure(true)
         .http_only(true);
-    state.add_session(session_id, signin).await;
     cookies = cookies.add(cookie);
+    state.add_session(session_id, signin).await;
+
     Ok(cookies)
 }
