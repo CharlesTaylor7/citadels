@@ -2,6 +2,7 @@ use super::auth::{Session, Sessions};
 use super::supabase::SignInResponse;
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
+use crate::strings::SessionId;
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::{cookie, PrivateCookieJar};
@@ -60,10 +61,10 @@ impl AppState {
         Ok(())
     }
 
-    pub async fn add_session(&self, signin: SignInResponse) {
+    pub async fn add_session(&self, session_id: SessionId, signin: SignInResponse) {
         let session = Session {
-            user_id: signin.user.id,
             session_id: todo!(),
+            user_id: signin.user.id,
             access_token: signin.access_token,
             refresh_token: signin.refresh_token,
         };

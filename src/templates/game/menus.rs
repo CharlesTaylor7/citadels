@@ -298,7 +298,7 @@ impl<'a> EmperorMenu<'a> {
                     game.crowned != p.index
                         && game.active_player().is_ok_and(|active| active.id != p.id)
                 })
-                .map(|p| p.name.borrow())
+                .map(|p| p.name.as_str())
                 .collect::<Vec<_>>(),
         }
     }
@@ -317,7 +317,7 @@ impl<'a> WizardMenu<'a> {
                 .players
                 .iter()
                 .filter(|p| game.active_player().is_ok_and(|active| active.id != p.id))
-                .map(|p| p.name.borrow())
+                .map(|p| p.name.as_str())
                 .collect::<Vec<_>>(),
         }
     }

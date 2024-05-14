@@ -74,7 +74,7 @@ async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl In
 async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResponse {
     let session = app.sessions.read().await.session_from_cookies(&cookies);
     if let Some(session) = session {
-        app.supabase.logout(session.access_token).await?;
+        app.supabase.logout(&session.access_token).await?;
         Ok(().into_response())
     } else {
         Ok((StatusCode::BAD_REQUEST, "not logged in").into_response())

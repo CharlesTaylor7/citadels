@@ -50,7 +50,7 @@ impl<'a> CityTemplate<'a> {
             col.sort_by_key(|d| d.name.data().cost);
         }
 
-        let name = game.players[target.0].name.borrow();
+        let name = game.players[target.0].name.as_str();
         let columns = columns
             .iter()
             .map(|col| {
@@ -139,7 +139,7 @@ impl<'a> GameTemplate<'a> {
         let mut scores = game
             .players
             .iter()
-            .map(|p| (p.name.borrow(), game.total_score(p)))
+            .map(|p| (p.name.as_str(), game.total_score(p)))
             .collect::<Vec<_>>();
         scores.sort_by_key(|(_, score)| -(*score as isize));
 
@@ -220,7 +220,7 @@ impl<'a> PlayerTemplate<'a> {
     pub fn from(player: Option<&'a Player>) -> Self {
         if let Some(p) = player {
             Self {
-                name: p.name.borrow(),
+                name: p.name.as_str(),
                 gold: p.gold,
                 hand: p
                     .hand
@@ -274,7 +274,7 @@ impl<'a> PlayerInfoTemplate<'a> {
 
         Self {
             active: game.active_player_index().is_ok_and(|i| i == player.index),
-            name: player.name.borrow(),
+            name: player.name.as_str(),
             gold: player.gold,
             hand: player.hand.len(),
             city: player.city.len(),

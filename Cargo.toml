@@ -36,6 +36,7 @@ anyhow = { version = "1.0.83", default-features = true }
 axum-macros = { version = "0.4.1", optional = true}
 maud = { version = "0.26.0", features = ["axum"], default-features = false}
 arcstr = { version = "1.2.0", features = ["serde"], default-features = false }
+uuid = { version = "1.8.0", features = ["v4"] }
 
 [features]
 dev = ["dep:axum-macros"]

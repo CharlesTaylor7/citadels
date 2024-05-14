@@ -144,11 +144,11 @@ impl<'a> MenuView<'a> {
                         .collect(),
                     players: players
                         .iter()
-                        .map(|index| game.players[index.0].name.borrow())
+                        .map(|index| game.players[index.0].name.as_str())
                         .collect(),
                 },
                 Followup::SpyAcknowledge { player, revealed } => MenuView::Spy {
-                    player: player.borrow(),
+                    player: player.as_str(),
                     hand: revealed
                         .iter()
                         .map(|d| DistrictTemplate::from(*d))
@@ -231,7 +231,7 @@ impl<'a> MenuView<'a> {
                         .players
                         .iter()
                         .filter(|p| p.index != myself.unwrap().index)
-                        .map(|p| p.name.borrow())
+                        .map(|p| p.name.as_str())
                         .collect(),
                     roles: myself
                         .unwrap()

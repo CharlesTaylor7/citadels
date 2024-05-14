@@ -22,11 +22,9 @@ impl<Tag> ImmutableString<Tag> {
             _phantom: PhantomData,
         }
     }
-}
 
-impl<Tag> Borrow<str> for ImmutableString<Tag> {
-    fn borrow(&self) -> &str {
-        self.str.borrow()
+    pub fn as_str(&self) -> &str {
+        self.str.as_str()
     }
 }
 
@@ -35,16 +33,6 @@ impl<Tag> From<ImmutableString<Tag>> for ArcStr {
         value.str
     }
 }
-/*
-impl<Tag, T: Into<ArcStr>> From<T> for ImmutableString<Tag> {
-    fn from(str: T) -> Self {
-        ImmutableString {
-            str: str.into(),
-            _phantom: PhantomData,
-        }
-    }
-}
-*/
 
 impl<Tag: tags::Tag> Debug for ImmutableString<Tag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
