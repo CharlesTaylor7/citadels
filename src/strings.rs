@@ -36,13 +36,21 @@ impl<Tag> From<ImmutableString<Tag>> for ArcStr {
 
 impl<Tag: tags::Tag> Debug for ImmutableString<Tag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", Tag::name(), self.str)
+        if Tag::SECRET {
+            write!(f, "SECRET")
+        } else {
+            write!(f, "{}:{}", Tag::NAME, self.str)
+        }
     }
 }
 
-impl<Tag> Display for ImmutableString<Tag> {
+impl<Tag: tags::Tag> Display for ImmutableString<Tag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.str)
+        if Tag::SECRET {
+            write!(f, "SECRET")
+        } else {
+            write!(f, "{}", self.str)
+        }
     }
 }
 
@@ -54,35 +62,42 @@ impl<Tag> PartialEq<ImmutableString<Tag>> for &ImmutableString<Tag> {
 
 mod tags {
     pub trait Tag {
-        fn name() -> &'static str;
+        const NAME: &'static str;
+        const SECRET: bool;
     }
     impl Tag for UserName {
-        fn name() -> &'static str {
-            "username"
-        }
+        const NAME: &'static str = "username";
+        const SECRET: bool = false;
     }
 
     impl Tag for UserId {
-        fn name() -> &'static str {
-            "user_id"
-        }
+        const NAME: &'static str = "user_id";
+        const SECRET: bool = false;
     }
 
     impl Tag for SessionId {
-        fn name() -> &'static str {
-            "session_id"
-        }
+        const NAME: &'static str = "session_id";
+        const SECRET: bool = true;
     }
+
+    impl Tag for AccessToken {
+        const NAME: &'static str = "access_token";
+        const SECRET: bool = true;
+    }
+
+    impl Tag for RefreshToken {
+        const NAME: &'static str = "refresh_token";
+        const SECRET: bool = true;
+    }
+
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
     pub enum UserName {}
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
     pub enum UserId {}
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
     pub enum SessionId {}
-
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
     pub enum RefreshToken {}
-
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
     pub enum AccessToken {}
 }

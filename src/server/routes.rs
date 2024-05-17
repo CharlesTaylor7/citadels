@@ -4,7 +4,7 @@ use crate::game::Game;
 use crate::lobby::{ConfigOption, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
-use crate::strings::{UserId, UserName};
+use crate::strings::UserName;
 use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
@@ -80,8 +80,9 @@ async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl In
 async fn post_login(
     app: State<AppState>,
     cookies: PrivateCookieJar,
-    body: Json<EmailCreds<'static>>,
+    body: Option<Json<EmailCreds<'static>>>,
 ) -> Result<Response, AnyhowError> {
+    let body = body.unwrap();
     let cookies = login(&app, cookies, &body).await?;
     Ok((cookies, Redirect::to("/lobby")).into_response())
 }

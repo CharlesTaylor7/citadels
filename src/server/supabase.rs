@@ -3,63 +3,7 @@ use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, env};
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct EmailCreds<'a> {
-    pub email: Cow<'a, str>,
-    pub password: Secret<Cow<'a, str>>,
-}
-
-#[derive(Serialize)]
-pub struct RefreshTokenBody {
-    refresh_token: RefreshToken,
-}
-
-#[derive(Deserialize)]
-pub struct SignInResponse {
-    pub access_token: AccessToken,
-    pub refresh_token: RefreshToken,
-    pub expires_in: u64,
-    pub user: UserSignInResponse,
-}
-
-#[derive(Deserialize)]
-pub struct UserSignInResponse {
-    pub id: UserId,
-}
-
-#[derive(Clone)]
-pub struct Secret<T>(pub T);
-
-impl<T: Serialize> Serialize for Secret<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        self.0.serialize(serializer)
-    }
-}
-
-impl<'de, T: Deserialize<'de>> Deserialize<'de> for Secret<T> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        Ok(Self(T::deserialize(deserializer)?))
-    }
-}
-
-impl<T> Secret<T> {
-    pub fn new(item: T) -> Self {
-        Self(item)
-    }
-}
-
-impl<T> std::fmt::Debug for Secret<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Secret")
-    }
-}
+use thiserror::Error;
 
 #[derive(Clone, Debug)]
 pub struct SupabaseAnonClient {
@@ -99,7 +43,11 @@ impl SupabaseAnonClient {
             .json(creds)
             .send()
             .await?;
-        let json = response.json::<SignInResponse>().await?;
+        let json = response.json::<SupabaseResponse<SignInResponse>>().await?;
+
+        log::info!("{:#?}", json);
+        let json: Result<_, _> = json.into();
+        let json = json?;
         Ok(json)
     }
 
@@ -159,6 +107,83 @@ impl JwtDecoder {
     pub async fn decode(&self, jwt: &str) -> anyhow::Result<Claims> {
         let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret.0, &self.validation)?;
         Ok(token.claims)
+    }
+}
+*/
+
+/* DTOS */
+#[derive(Serialize, Deserialize)]
+pub struct EmailCreds<'a> {
+    pub email: Cow<'a, str>,
+    pub password: Cow<'a, str>,
+}
+
+#[derive(Serialize)]
+pub struct RefreshTokenBody {
+    refresh_token: RefreshToken,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SignInResponse {
+    pub access_token: AccessToken,
+    pub refresh_token: RefreshToken,
+    pub expires_in: u64,
+    pub user: UserSignInResponse,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct UserSignInResponse {
+    pub id: UserId,
+}
+
+/* Supabase utility types */
+#[derive(Deserialize, Debug, Error)]
+#[error("{error}, {error_description}")]
+pub struct SupabaseError {
+    error: String,
+    error_description: String,
+}
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum SupabaseResponse<T> {
+    Success(T),
+    Error(SupabaseError),
+}
+
+impl<T> From<SupabaseResponse<T>> for Result<T, SupabaseError> {
+    fn from(value: SupabaseResponse<T>) -> Self {
+        match value {
+            SupabaseResponse::Success(value) => Ok(value),
+            SupabaseResponse::Error(value) => Err(value),
+        }
+    }
+}
+/*
+impl<T> Into<Result<T, SupabaseError>> for SupabaseResponse<T> {
+    fn into(self) -> Result<T, SupabaseError> {
+        match self {
+            SupabaseResponse::Success(value) => Ok(value),
+            SupabaseResponse::Error(value) => Err(value),
+        }
+    }
+}
+*/
+/*
+impl<T> TryInto<T> for SupabaseResponse<T> {
+    type Error = ();
+    fn try_into(self) -> Result<T, <Self as TryInto<T>>::Error> {
+        Ok(todo!())
+    }
+}
+*/
+/*
+impl<T> TryFrom<SupabaseResponse<T>> for T {
+    type Error = SupabaseError;
+    fn try_from(value: SupabaseResponse<T>) -> Result<Self, Self::Error> {
+        match value {
+            SupabaseResponse::Success(value) => Ok(value),
+            SupabaseResponse::Error(value) => Err(value),
+        }
     }
 }
 */
