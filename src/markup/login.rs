@@ -17,7 +17,7 @@ pub fn page() -> Markup {
                     label class="input input-bordered flex items-center gap-2" {
                         input type="password" name="password" autocomplete="current-password" class="grow" placeholder="password" required;
                     }
-                    button class="btn btn-primary"{
+                    button class="btn btn-primary" {
                         "Login"
                     }
                 }

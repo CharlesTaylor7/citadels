@@ -1,3 +1,5 @@
+use super::auth::{login, signup};
+use super::supabase::EmailCreds;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -12,7 +14,6 @@ use crate::templates::lobby::*;
 use crate::types::Marker;
 use crate::{markup, templates::*};
 use askama::Template;
-
 use axum::extract::{Json, Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
@@ -27,14 +28,12 @@ use std::collections::{HashMap, HashSet};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
-use super::auth::{login, signup};
-use super::supabase::EmailCreds;
-
 pub fn get_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(get_index))
         .route("/version", get(get_version))
         .route("/signup", get(get_signup))
+        .route("/signup", post(post_signup))
         .route("/login", get(get_login))
         .route("/login", post(post_login))
         .route("/logout", post(post_logout))
@@ -69,7 +68,17 @@ async fn get_version() -> impl IntoResponse {
 }
 
 async fn get_signup(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-    "TODO".into_response()
+    markup::signup::page()
+}
+
+async fn post_signup(
+    app: State<AppState>,
+    cookies: PrivateCookieJar,
+    body: Option<Json<EmailCreds<'static>>>,
+) -> Result<Response, AnyhowError> {
+    let body = body.unwrap();
+    let cookies = signup(&app, cookies, &body).await?;
+    Ok((cookies, markup::lobby::main()).into_response())
 }
 
 async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {

@@ -44,22 +44,18 @@ pub fn nav(logged_in: bool) -> Markup {
              }
           }
           li {
-              @if logged_in {
-                a href="/logout" {
-                    "Logout"
-                }
-              }
-              @else {
-                a href="/login" {
-                    "Login"
-                }
-              }
+            a href="/logout" {
+                "Logout"
+            }
           }
-          @if !logged_in {
-              li {
-                  a href="/signup" {
-                      "Signup"
-                  }
+          li {
+            a href="/login" {
+                "Login"
+            }
+          }
+          li {
+              a href="/signup" {
+                  "Signup"
               }
           }
         }
