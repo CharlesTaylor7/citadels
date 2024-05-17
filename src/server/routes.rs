@@ -27,7 +27,7 @@ use std::collections::{HashMap, HashSet};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
-use super::auth::login;
+use super::auth::{login, signup};
 use super::supabase::EmailCreds;
 
 pub fn get_router(state: AppState) -> Router {
@@ -83,7 +83,8 @@ async fn post_login(
     body: Option<Json<EmailCreds<'static>>>,
 ) -> Result<Response, AnyhowError> {
     let body = body.unwrap();
-    let cookies = login(&app, cookies, &body).await?;
+    //let cookies = login(&app, cookies, &body).await?;
+    let cookies = signup(&app, cookies, &body).await?;
     Ok((cookies, Redirect::to("/lobby")).into_response())
 }
 

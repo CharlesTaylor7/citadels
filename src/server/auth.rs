@@ -68,7 +68,7 @@ pub async fn signup(
     creds: &EmailCreds<'_>,
 ) -> anyhow::Result<PrivateCookieJar> {
     if cookies.get("session_id").is_some() {
-        anyhow::bail!("Already has a session cookie");
+        // anyhow::bail!("Already has a session cookie");
     }
     let signin = state.supabase.signup_email(creds).await?;
 

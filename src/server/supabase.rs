@@ -30,7 +30,14 @@ impl SupabaseAnonClient {
             .json(creds)
             .send()
             .await?;
-        let json = response.json::<SignInResponse>().await?;
+
+        let body = response.bytes().await?;
+        log::info!("{}", String::from_utf8(body.to_vec())?);
+        let json = serde_json::from_slice::<SupabaseResponse<SignInResponse>>(&body)?;
+
+        log::info!("{:#?}", json);
+        let json: Result<_, _> = json.into();
+        let json = json?;
         Ok(json)
     }
 
@@ -43,9 +50,10 @@ impl SupabaseAnonClient {
             .json(creds)
             .send()
             .await?;
-        let json = response.json::<SupabaseResponse<SignInResponse>>().await?;
 
-        log::info!("{:#?}", json);
+        let body = response.bytes().await?;
+        log::info!("{}", String::from_utf8(body.to_vec())?);
+        let json = serde_json::from_slice::<SupabaseResponse<SignInResponse>>(&body)?;
         let json: Result<_, _> = json.into();
         let json = json?;
         Ok(json)
@@ -138,11 +146,21 @@ pub struct UserSignInResponse {
 
 /* Supabase utility types */
 #[derive(Deserialize, Debug, Error)]
-#[error("{error}, {error_description}")]
-pub struct SupabaseError {
-    error: String,
-    error_description: String,
+#[serde(untagged)]
+pub enum SupabaseError {
+    #[error("{error}\n:{error_description}")]
+    A {
+        error: String,
+        error_description: String,
+    },
+    #[error("Status {code}. Reason: {error_code}\n:{msg}")]
+    B {
+        error_code: String,
+        code: String,
+        msg: String,
+    },
 }
+
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum SupabaseResponse<T> {
@@ -158,32 +176,3 @@ impl<T> From<SupabaseResponse<T>> for Result<T, SupabaseError> {
         }
     }
 }
-/*
-impl<T> Into<Result<T, SupabaseError>> for SupabaseResponse<T> {
-    fn into(self) -> Result<T, SupabaseError> {
-        match self {
-            SupabaseResponse::Success(value) => Ok(value),
-            SupabaseResponse::Error(value) => Err(value),
-        }
-    }
-}
-*/
-/*
-impl<T> TryInto<T> for SupabaseResponse<T> {
-    type Error = ();
-    fn try_into(self) -> Result<T, <Self as TryInto<T>>::Error> {
-        Ok(todo!())
-    }
-}
-*/
-/*
-impl<T> TryFrom<SupabaseResponse<T>> for T {
-    type Error = SupabaseError;
-    fn try_from(value: SupabaseResponse<T>) -> Result<Self, Self::Error> {
-        match value {
-            SupabaseResponse::Success(value) => Ok(value),
-            SupabaseResponse::Error(value) => Err(value),
-        }
-    }
-}
-*/
