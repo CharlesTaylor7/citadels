@@ -83,8 +83,7 @@ async fn post_login(
     body: Option<Json<EmailCreds<'static>>>,
 ) -> Result<Response, AnyhowError> {
     let body = body.unwrap();
-    //let cookies = login(&app, cookies, &body).await?;
-    let cookies = signup(&app, cookies, &body).await?;
+    let cookies = login(&app, cookies, &body).await?;
     Ok((cookies, Redirect::to("/lobby")).into_response())
 }
 

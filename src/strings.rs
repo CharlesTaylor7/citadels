@@ -1,6 +1,5 @@
 use arcstr::ArcStr;
 use serde::{Deserialize, Serialize};
-
 use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
 
@@ -10,7 +9,7 @@ pub type SessionId = ImmutableString<tags::SessionId>;
 pub type RefreshToken = ImmutableString<tags::RefreshToken>;
 pub type AccessToken = ImmutableString<tags::AccessToken>;
 
-#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
+#[derive(PartialEq, Eq, Clone, Hash)]
 pub struct ImmutableString<Tag> {
     str: ArcStr,
     _phantom: PhantomData<Tag>,
@@ -28,6 +27,24 @@ impl<Tag> ImmutableString<Tag> {
     }
 }
 
+impl<Tag> Serialize for ImmutableString<Tag> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.str.serialize(serializer)
+    }
+}
+
+impl<'de, Tag> Deserialize<'de> for ImmutableString<Tag> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Self::new(ArcStr::deserialize(deserializer)?))
+    }
+}
+
 impl<Tag> From<ImmutableString<Tag>> for ArcStr {
     fn from(value: ImmutableString<Tag>) -> Self {
         value.str
@@ -37,7 +54,7 @@ impl<Tag> From<ImmutableString<Tag>> for ArcStr {
 impl<Tag: tags::Tag> Debug for ImmutableString<Tag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if Tag::SECRET {
-            write!(f, "SECRET")
+            write!(f, "SECRET:{}", Tag::NAME)
         } else {
             write!(f, "{}:{}", Tag::NAME, self.str)
         }
@@ -47,7 +64,7 @@ impl<Tag: tags::Tag> Debug for ImmutableString<Tag> {
 impl<Tag: tags::Tag> Display for ImmutableString<Tag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if Tag::SECRET {
-            write!(f, "SECRET")
+            write!(f, "SECRET:{}", Tag::NAME)
         } else {
             write!(f, "{}", self.str)
         }
