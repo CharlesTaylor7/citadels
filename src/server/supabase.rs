@@ -148,15 +148,15 @@ pub struct UserSignInResponse {
 #[derive(Deserialize, Debug, Error)]
 #[serde(untagged)]
 pub enum SupabaseError {
-    #[error("{error}\n:{error_description}")]
+    #[error("Supabase Error: {error}\n{error_description}")]
     A {
         error: String,
         error_description: String,
     },
-    #[error("Status {code}. Reason: {error_code}\n:{msg}")]
+    #[error("Supabase Status Code {code}. Reason: {error_code}\n{msg}")]
     B {
         error_code: String,
-        code: String,
+        code: u16,
         msg: String,
     },
 }
