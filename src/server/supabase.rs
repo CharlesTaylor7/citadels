@@ -2,12 +2,12 @@ use crate::strings::{AccessToken, RefreshToken, UserId};
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
-use std::env;
+use std::{borrow::Cow, env};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct EmailCreds<'a> {
-    pub email: &'a str,
-    pub password: Secret<&'a str>,
+    pub email: Cow<'a, str>,
+    pub password: Secret<Cow<'a, str>>,
 }
 
 #[derive(Serialize)]
@@ -39,6 +39,16 @@ impl<T: Serialize> Serialize for Secret<T> {
         self.0.serialize(serializer)
     }
 }
+
+impl<'de, T: Deserialize<'de>> Deserialize<'de> for Secret<T> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Self(T::deserialize(deserializer)?))
+    }
+}
+
 impl<T> Secret<T> {
     pub fn new(item: T) -> Self {
         Self(item)

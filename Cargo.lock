@@ -155,6 +155,7 @@ checksum = "202651474fe73c62d9e0a56c6133f7a0ff1dc1c8cf7a5b03381af2a26553ac9d"
 dependencies = [
  "async-trait",
  "axum-core",
+ "axum-macros",
  "base64 0.21.5",
  "bytes",
  "futures-util",
@@ -345,7 +346,6 @@ dependencies = [
  "axum",
  "axum-core",
  "axum-extra",
- "axum-macros",
  "dotenv",
  "env_logger",
  "futures",

@@ -11,6 +11,7 @@ use crate::templates::game::*;
 use crate::templates::lobby::*;
 use crate::types::Marker;
 use crate::{markup, templates::*};
+use askama::Template;
 
 use axum::extract::{Json, Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
@@ -26,12 +27,16 @@ use std::collections::{HashMap, HashSet};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
+use super::auth::login;
+use super::supabase::EmailCreds;
+
 pub fn get_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(get_index))
         .route("/version", get(get_version))
         .route("/signup", get(get_signup))
         .route("/login", get(get_login))
+        .route("/login", post(post_login))
         .route("/logout", post(post_logout))
         .route("/lobby", get(get_lobby))
         .route("/lobby/config/districts", get(get_district_config))
@@ -66,8 +71,19 @@ async fn get_version() -> impl IntoResponse {
 async fn get_signup(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
     "TODO".into_response()
 }
+
 async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-    "TODO".into_response()
+    markup::login::page()
+    //"TODO".into_response()
+}
+
+async fn post_login(
+    app: State<AppState>,
+    cookies: PrivateCookieJar,
+    body: Json<EmailCreds<'static>>,
+) -> Result<Response, AnyhowError> {
+    let cookies = login(&app, cookies, &body).await?;
+    Ok((cookies, Redirect::to("/lobby")).into_response())
 }
 
 async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResponse {
@@ -80,13 +96,7 @@ async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResp
     }
 }
 
-async fn get_lobby(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-    return crate::markup::lobby::page();
-    /*
-    if app.game.lock().unwrap().is_some() {
-        return (cookies, Redirect::to("/game")).into_response();
-    }
-
+async fn get_lobby(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
     let lobby = app.lobby.lock().unwrap();
 
     (
@@ -101,7 +111,6 @@ async fn get_lobby(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl In
         ),
     )
         .into_response()
-        */
 }
 
 async fn get_district_config(app: State<AppState>) -> impl IntoResponse {

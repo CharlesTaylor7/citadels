@@ -9,11 +9,11 @@ pub fn page(head: Markup, main: Markup) -> Markup {
           title { "Citadels" }
           meta charset="utf-8";
           link name="viewport" content="width=device-width, initial-scale=1";
-          link rel="shortcut icon" href=(asset("/htmx.png"));
-          link rel="stylesheet" href=(asset("/styles/index.css"));
+          link rel="shortcut icon" href=(asset("htmx.png"));
+          link rel="stylesheet" href=(asset("styles/index.css"));
           (head)
         }
-        body {
+        body hx-ext="ws,morph,json-enc,client-side-templates" {
           (main)
         }
       }
@@ -62,13 +62,19 @@ pub fn nav(logged_in: bool) -> Markup {
     }
 }
 
-pub fn scripts() -> Markup {
+pub fn htmx_scripts() -> Markup {
     html! {
         script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js" { }
         script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" { }
         script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js" { }
         // script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/client-side-templates.js" { }
         script src=(asset("vendor/idiomorph.js")) { }
+    }
+}
+
+pub fn scripts() -> Markup {
+    html! {
+        (htmx_scripts())
         script src="https://unpkg.com/hyperscript.org@0.9.12" { }
         script src="https://unpkg.com/interactjs/dist/interact.min.js" { }
     }

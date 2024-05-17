@@ -17,6 +17,17 @@
     - Theater 
     - Wizard 
 
+## Session management
+- [ ] Session store in Postgres?
+- [ ] Don't refresh sessions every 30 minutes. Instead refresh only when performing an API action on their behalf.
+
+## Security
+- [ ] Apply Strict-Transport-Security header for every response as middleware.
+    - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security#an_example_scenario
+- [ ] CSRF tokens
+    - https://docs.rs/axum_csrf/latest/axum_csrf/#
+
+
 ## UI Defects
 - [ ] Arrows overlap text in role logs.
 - [ ] No logs for draft phase
