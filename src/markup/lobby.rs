@@ -7,8 +7,16 @@ pub fn page() -> Markup {
             (base::scripts())
         },
         html! {
-            (base::nav(false))
-                "lobby"
+            (main())
         },
     )
+}
+
+pub fn main() -> Markup {
+    html! {
+        (base::nav(false))
+        #lobby {
+            "lobby"
+        }
+    }
 }

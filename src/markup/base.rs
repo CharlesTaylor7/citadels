@@ -3,22 +3,27 @@ use std::env;
 
 pub fn page(head: Markup, main: Markup) -> Markup {
     html! {
-      (DOCTYPE)
-      html _="init get the theme of localStorage if it exists set my @data-theme to it" data-theme="dark" {
-        head {
-          title { "Citadels" }
-          meta charset="utf-8";
-          link name="viewport" content="width=device-width, initial-scale=1";
-          link rel="shortcut icon" href=(asset("htmx.png"));
-          link rel="stylesheet" href=(asset("styles/index.css"));
-          (head)
+        (DOCTYPE)
+        html
+            hx-ext="ws,morph,json-enc,client-side-templates"
+            _="init get the theme of localStorage if it exists set my @data-theme to it" data-theme="dark"
+        {
+            head {
+                title { "Citadels" }
+                meta charset="utf-8";
+                link name="viewport" content="width=device-width, initial-scale=1";
+                link rel="shortcut icon" href=(asset("htmx.png"));
+                link rel="stylesheet" href=(asset("styles/index.css"));
+                (head)
+            }
+
+            body hx-swap="morph" hx-target="body" {
+                (main)
+            }
         }
-        body hx-ext="ws,morph,json-enc,client-side-templates" {
-          (main)
-        }
-      }
     }
 }
+
 pub fn nav(logged_in: bool) -> Markup {
     html! {
       div class="flex flex-row justify-end items-center" {

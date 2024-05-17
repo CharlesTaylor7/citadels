@@ -10,7 +10,7 @@ pub fn page() -> Markup {
         html! {
             (nav(false))
             .mt-4 .flex .flex-row .justify-center .items-center {
-                form class="gap-4 form-control w-full max-w-xs"  hx-post="/login" hx-swap="none" {
+                form class="gap-4 form-control w-full max-w-xs" hx-post="/login" {
                     label class="input input-bordered flex items-center gap-2" {
                         input type="username" name="email" autocomplete="email" class="grow" placeholder="email" required;
                     }

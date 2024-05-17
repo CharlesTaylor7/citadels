@@ -84,7 +84,7 @@ async fn post_login(
 ) -> Result<Response, AnyhowError> {
     let body = body.unwrap();
     let cookies = login(&app, cookies, &body).await?;
-    Ok((cookies, Redirect::to("/lobby")).into_response())
+    Ok((cookies, markup::lobby::main()).into_response())
 }
 
 async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResponse {
