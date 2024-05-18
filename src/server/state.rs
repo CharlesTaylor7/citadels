@@ -1,17 +1,25 @@
-use super::auth::{Session, Sessions};
+use super::auth::{JwtDecoder, Session, Sessions};
 use super::supabase::{EmailCreds, SignInResponse};
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
-use crate::strings::SessionId;
+use crate::strings::{AccessToken, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::{cookie, PrivateCookieJar};
+use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
 
 fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
     Arc::new(std::sync::Mutex::new(item))
+}
+
+pub struct SessionInfo {
+    pub user_id: UserId,
+    pub access_token: AccessToken,
+    pub refresh_token: RefreshToken,
+    pub expires_in: u64,
 }
 
 #[derive(Clone)]
@@ -54,61 +62,6 @@ impl AppState {
         self.sessions.read().await.session_from_id(session_id)
     }
 
-    pub async fn login_email(
-        &self,
-        mut cookies: PrivateCookieJar,
-        creds: &EmailCreds<'_>,
-    ) -> anyhow::Result<PrivateCookieJar> {
-        if self
-            .sessions
-            .read()
-            .await
-            .session_from_cookies(&cookies)
-            .is_some()
-        {
-            anyhow::bail!("Already logged in");
-        }
-
-        let signin = self.supabase.login_email(creds).await?;
-        let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
-        let cookie = Cookie::build(("session_id", session_id.to_string()))
-            .max_age(time::Duration::WEEK)
-            .secure(true)
-            .http_only(true);
-        cookies = cookies.add(cookie);
-        self.add_session(session_id, signin).await;
-
-        Ok(cookies)
-    }
-
-    pub async fn signup_email(
-        &self,
-        mut cookies: PrivateCookieJar,
-        creds: &EmailCreds<'_>,
-    ) -> anyhow::Result<PrivateCookieJar> {
-        if self
-            .sessions
-            .read()
-            .await
-            .session_from_cookies(&cookies)
-            .is_some()
-        {
-            anyhow::bail!("Already logged in");
-        }
-
-        let signin = self.supabase.signup_email(creds).await?;
-
-        let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
-        let cookie = Cookie::build(("session_id", session_id.to_string()))
-            .max_age(time::Duration::WEEK)
-            .secure(true)
-            .http_only(true);
-        cookies = cookies.add(cookie);
-        self.add_session(session_id, signin).await;
-
-        Ok(cookies)
-    }
-
     pub async fn logout(&self, cookies: &PrivateCookieJar) -> anyhow::Result<()> {
         let session_id = cookies
             .get("session_id")
@@ -126,10 +79,24 @@ impl AppState {
         Ok(())
     }
 
-    pub async fn add_session(&self, session_id: SessionId, signin: SignInResponse) {
+    pub async fn add_session(
+        &self,
+        mut cookies: PrivateCookieJar,
+        signin: OAuthCallback,
+    ) -> PrivateCookieJar {
+        let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
+        let cookie = Cookie::build(("session_id", session_id.to_string()))
+            .max_age(time::Duration::WEEK)
+            .secure(true)
+            .http_only(true);
+        cookies = cookies.add(cookie);
+
+        log::info!("{:#?}", signin.access_token.as_str());
+        let decoded = JwtDecoder::new().decode(signin.access_token.as_str());
+        log::info!("{:#?}", decoded);
         let session = Session {
             session_id,
-            user_id: signin.user.id,
+            user_id: UserId::new("TODO"),
             access_token: signin.access_token,
             refresh_token: signin.refresh_token,
         };
@@ -140,6 +107,7 @@ impl AppState {
             .insert(session.session_id.clone(), session.clone());
         self.clone()
             .spawn_session_refresh_task(session, signin.expires_in);
+        cookies
     }
 
     pub fn spawn_session_refresh_task(self, session: Session, expires_in: u64) {
@@ -175,4 +143,12 @@ impl AppState {
             self.connections.lock().unwrap().0.remove(&session.user_id)
         });
     }
+}
+
+/* DTOs */
+#[derive(Deserialize)]
+pub struct OAuthCallback {
+    pub access_token: AccessToken,
+    pub refresh_token: RefreshToken,
+    pub expires_in: u64,
 }

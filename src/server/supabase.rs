@@ -87,39 +87,17 @@ impl SupabaseAnonClient {
         Ok(())
     }
 }
-
-/*
-use jsonwebtoken::{Algorithm, DecodingKey};
-#[derive(Clone, Debug, Deserialize)]
-pub struct Claims {
-    pub sub: String,
-    pub email: String,
-    pub exp: usize,
-}
-
-pub struct JwtDecoder {
-    pub secret: Secret<jsonwebtoken::DecodingKey>,
-    pub validation: jsonwebtoken::Validation,
-}
-
-impl JwtDecoder {
-    pub fn new() -> Self {
-        Self {
-            validation: jsonwebtoken::Validation::new(Algorithm::HS256),
-            secret: Secret::new(DecodingKey::from_secret(
-                env::var("SUPABASE_JWT_SECRET").unwrap().as_ref(),
-            )),
-        }
-    }
-
-    pub async fn decode(&self, jwt: &str) -> anyhow::Result<Claims> {
-        let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret.0, &self.validation)?;
-        Ok(token.claims)
-    }
-}
-*/
-
 /* DTOS */
+
+#[derive(Debug, Deserialize)]
+pub struct JwtClaims {
+    pub user_metadata: UserMetadata,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UserMetadata {
+    pub full_name: String,
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct EmailCreds<'a> {

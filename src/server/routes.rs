@@ -1,4 +1,4 @@
-use super::supabase::EmailCreds;
+use super::state::OAuthCallback;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -33,8 +33,6 @@ pub fn get_router(state: AppState) -> Router {
         .route("/version", get(get_version))
         .route("/login", get(get_login))
         .route("/signup", get(get_signup))
-        .route("/auth/email/signup", post(post_email_signup))
-        .route("/auth/email/login", post(post_email_login))
         .route("/auth/oauth/signin", get(get_oauth_signin))
         .route("/auth/oauth/callback", get(get_oauth_callback))
         .route("/auth/logout", post(post_logout))
@@ -104,29 +102,11 @@ async fn get_oauth_signin(
 
 async fn get_oauth_callback(
     app: State<AppState>,
-    cookies: PrivateCookieJar,
-    body: Json<serde_json::Value>,
+    mut cookies: PrivateCookieJar,
+    body: Query<OAuthCallback>,
 ) -> Result<Response, AnyhowError> {
-    log::info!("{:#?}", body);
-    Ok("callback todo".into_response())
-}
-
-async fn post_email_signup(
-    app: State<AppState>,
-    cookies: PrivateCookieJar,
-    body: Json<EmailCreds<'static>>,
-) -> Result<Response, AnyhowError> {
-    let cookies = app.signup_email(cookies, &body).await?;
-    Ok((cookies, markup::lobby::main()).into_response())
-}
-
-async fn post_email_login(
-    app: State<AppState>,
-    cookies: PrivateCookieJar,
-    body: Json<EmailCreds<'static>>,
-) -> Result<Response, AnyhowError> {
-    let cookies = app.login_email(cookies, &body).await?;
-    Ok((cookies, markup::lobby::main()).into_response())
+    cookies = app.add_session(cookies, body.0).await;
+    Ok((cookies, Redirect::to("/lobby")).into_response())
 }
 
 async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResponse {
@@ -590,11 +570,6 @@ async fn get_game_menu(
 }
 
 /* DTOs */
-
-#[derive(Deserialize)]
-struct OAuthCallback {
-    code: String,
-}
 
 #[derive(Deserialize)]
 struct OAuthProvider {
