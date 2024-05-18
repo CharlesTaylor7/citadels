@@ -6,7 +6,7 @@ use crate::game::Game;
 use crate::lobby::{ConfigOption, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
-use crate::strings::UserName;
+use crate::strings::{SessionId, UserName};
 use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
@@ -19,13 +19,13 @@ use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
 use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
-use axum_extra::extract::PrivateCookieJar;
 use http::StatusCode;
 use percent_encoding::utf8_percent_encode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
+use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
 use tower_http::trace::TraceLayer;
 
 pub fn get_router(state: AppState) -> Router {
@@ -70,13 +70,14 @@ async fn get_version() -> impl IntoResponse {
         .into_response()
 }
 
-async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn get_login(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
     markup::login::page()
 }
 
 async fn get_oauth_signin(
     app: State<AppState>,
     body: Query<OAuthProvider>,
+    cookies: Cookies,
 ) -> Result<Response, AnyhowError> {
     let redirect_url = format!(
         "{}/oauth/callback",
@@ -86,12 +87,15 @@ async fn get_oauth_signin(
             "https://citadels.fly.dev"
         }
     );
-    let (code, verifier) = crate::server::auth::generate_pkce_pair();
+    let (code, verifier) = crate::server::state::generate_pkce_pair();
 
+    // TODO: fixme
+    let session_id = cookies.get("session_id").unwrap();
+    let session_id = session_id.value();
     app.oauth_code_challenges
         .write()
         .await
-        .insert(code.clone(), verifier);
+        .insert(SessionId::new(session_id), verifier);
     let url = format!(
         "{}/auth/v1/authorize?provider={}&redirect_to={}&code_challenge={}&code_challenge_method=s256",
         app.supabase.url,
@@ -105,7 +109,7 @@ async fn get_oauth_signin(
 
 async fn get_oauth_callback(
     app: State<AppState>,
-    mut cookies: PrivateCookieJar,
+    cookies: Cookies,
     body: Query<OAuthCallbackCode>,
 ) -> Result<Response, AnyhowError> {
     log::info!(
@@ -123,19 +127,19 @@ async fn get_oauth_callback(
             })
             .await?;
 
-        cookies = app.add_session(cookies, response).await;
+        app.add_session(cookies, response).await;
     } else {
         log::error!("no code verifier")
     }
 
-    Ok((cookies, "TODO").into_response())
+    Ok(("TODO").into_response())
 
     //cookies = app.add_session(cookies, body.0).await;
     //Ok((cookies, Redirect::to("/lobby")).into_response())
 }
 
-async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResponse {
-    let session = app.logged_in.read().await.session_from_cookies(&cookies);
+async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {
+    let session = app.session(&cookies).await;
     if let Some(session) = session {
         app.supabase.logout(&session.access_token).await?;
         Ok(().into_response())
@@ -144,20 +148,17 @@ async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResp
     }
 }
 
-async fn get_lobby(app: State<AppState>, cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn get_lobby(app: State<AppState>) -> impl IntoResponse {
     let lobby = app.lobby.lock().unwrap();
 
-    (
-        cookies,
-        Html(
-            LobbyTemplate {
-                players: &lobby.players,
-                themes: &DAISY_THEMES,
-            }
-            .render()
-            .unwrap(),
-        ),
-    )
+    (Html(
+        LobbyTemplate {
+            players: &lobby.players,
+            themes: &DAISY_THEMES,
+        }
+        .render()
+        .unwrap(),
+    ),)
         .into_response()
 }
 
@@ -216,7 +217,7 @@ pub struct Register {
 
 async fn register(
     _app: State<AppState>,
-    _cookies: PrivateCookieJar,
+    _cookies: Cookies,
     form: axum::Json<Register>,
 ) -> Result<Response> {
     let username = form.username.trim();
@@ -297,7 +298,7 @@ async fn start(app: State<AppState>) -> Result<Response> {
     unreachable!()
 }
 
-async fn get_game(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+async fn get_game(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
     return crate::markup::game::page();
     /*
     let cookie = cookies.get("player_id");
@@ -314,7 +315,7 @@ async fn get_game(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl Int
 
 async fn get_game_actions(
     app: State<AppState>,
-    cookies: PrivateCookieJar,
+    cookies: Cookies,
 ) -> Result<Html<String>, ErrorResponse> {
     let user_id = app.session(&cookies).await.map(|s| s.user_id);
     let mut game = app.game.lock().unwrap();
@@ -325,7 +326,7 @@ async fn get_game_actions(
 
 async fn get_game_city(
     app: State<AppState>,
-    cookies: PrivateCookieJar,
+    cookies: Cookies,
     path: Path<UserName>,
 ) -> Result<Html<String>, ErrorResponse> {
     let session = app.session(&cookies).await;
@@ -344,7 +345,7 @@ async fn get_game_city(
 
 async fn get_ws(
     state: State<AppState>,
-    cookies: PrivateCookieJar,
+    cookies: Cookies,
     ws: WebSocketUpgrade,
 ) -> impl IntoResponse {
     if let Some(session) = state.session(&cookies).await {
@@ -368,7 +369,7 @@ fn form_feedback(err: Cow<'static, str>) -> ErrorResponse {
 
 async fn submit_game_action(
     app: State<AppState>,
-    cookies: PrivateCookieJar,
+    cookies: Cookies,
     action: axum::Json<ActionSubmission>,
 ) -> Result<Response, ErrorResponse> {
     let session = if let Some(session) = app.session(&cookies).await {
@@ -523,7 +524,7 @@ async fn submit_game_action(
 
 async fn get_game_menu(
     app: State<AppState>,
-    cookies: PrivateCookieJar,
+    cookies: Cookies,
     path: Path<String>,
 ) -> Result<Response> {
     let session = app.session(&cookies).await.ok_or("missing cookie")?;

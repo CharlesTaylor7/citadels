@@ -13,9 +13,9 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, Error>>;
 
 #[derive(Default)]
-pub struct Connections(pub HashMap<UserId, WebSocketSink>);
+pub struct WebSockets(pub HashMap<UserId, WebSocketSink>);
 
-impl Connections {
+impl WebSockets {
     pub fn broadcast(&mut self, html: Html<String>) {
         self.0.values_mut().for_each(|ws| {
             let _ = ws.send(Ok(Message::Text(html.0.clone())));
@@ -43,7 +43,7 @@ pub async fn handle_socket(state: State<AppState>, user_id: UserId, socket: WebS
     tokio::spawn(UnboundedReceiverStream::new(chan_recv).forward(ws_sender));
 
     state
-        .connections
+        .ws_connections
         .lock()
         .unwrap()
         .0

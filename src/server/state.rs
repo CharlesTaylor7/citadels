@@ -1,17 +1,17 @@
-use super::state::Signin;
 use super::supabase::DiscordSigninResponse;
+use super::ws::WebSockets;
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
 use crate::strings::UserName;
 use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
-use axum::extract::FromRef;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::env;
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
-use tower_cookies;
+use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
+
+type PrivateCookieJar = Cookies;
 
 fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
     Arc::new(std::sync::Mutex::new(item))
@@ -31,7 +31,7 @@ pub struct AppState {
     pub game: Arc<std::sync::Mutex<Option<Game>>>,
     pub supabase: SupabaseAnonClient,
     pub logged_in: Arc<RwLock<HashMap<SessionId, UserSession>>>,
-    pub ws_connections: Arc<Mutex<ws::Connections>>,
+    pub ws_connections: Arc<Mutex<WebSockets>>,
     pub oauth_code_challenges: Arc<RwLock<HashMap<SessionId, OAuthCodeVerifier>>>,
 }
 
@@ -45,12 +45,11 @@ impl Default for AppState {
             game: new_arc_mutex(None),
             supabase: SupabaseAnonClient::new(),
             logged_in: Arc::new(RwLock::new(HashMap::default())),
-            ws_connections: Arc::new(Mutex::new(ws::Connections::default())),
+            ws_connections: Arc::new(Mutex::new(ws::WebSockets::default())),
             oauth_code_challenges: Arc::new(RwLock::new(HashMap::default())),
         }
     }
 }
-
 
 impl AppState {
     pub async fn session(&self, cookies: &PrivateCookieJar) -> Option<UserSession> {
@@ -82,17 +81,13 @@ impl AppState {
         Ok(())
     }
 
-    pub async fn add_session(
-        &self,
-        mut cookies: PrivateCookieJar,
-        signin: DiscordSigninResponse,
-    ) -> PrivateCookieJar {
+    pub async fn add_session(&self, cookies: PrivateCookieJar, signin: DiscordSigninResponse) {
         let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
         let cookie = Cookie::build(("session_id", session_id.to_string()))
             .max_age(time::Duration::WEEK)
             .secure(true)
             .http_only(true);
-        cookies = cookies.add(cookie);
+        cookies.add(cookie.into());
 
         let session = UserSession {
             access_token: signin.access_token,
@@ -104,7 +99,6 @@ impl AppState {
             .write()
             .await
             .insert(session_id.clone(), session.clone());
-        cookies
     }
 }
 
