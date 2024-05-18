@@ -1,10 +1,13 @@
 use crate::server::state::OAuthCallbackCode;
-use crate::strings::{AccessToken, RefreshToken, UserId};
+use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, UserId};
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::{borrow::Cow, env};
 use thiserror::Error;
+
+use super::state::Signin;
 
 #[derive(Clone, Debug)]
 pub struct SupabaseAnonClient {
@@ -21,66 +24,30 @@ impl SupabaseAnonClient {
             api_key: env::var("SUPABASE_ANON_KEY").unwrap().into(),
         }
     }
-    pub async fn exchange_code_for_session(&self, code: &str) -> anyhow::Result<serde_json::Value> {
+    pub async fn exchange_code_for_session(
+        &self,
+        body: ExchangeOAuthCode,
+    ) -> anyhow::Result<DiscordSigninResponse> {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=pkce", self.url))
             .header("apikey", self.api_key.as_str())
             .header("Content-Type", "application/json")
-            .json(&AuthCodeAndVerifier {
-                auth_code: code,
-                code_verifier: "s256",
-            })
+            .json(&body)
             .send()
             .await?;
 
         let body = response.bytes().await?;
         log::info!("{}", String::from_utf8(body.to_vec())?);
-        let json = serde_json::from_slice::<SupabaseResponse<serde_json::Value>>(&body)?;
+        std::fs::write("sample.json", body.clone())?;
+        let json = serde_json::from_slice::<SupabaseResponse<DiscordSigninResponse>>(&body)?;
 
         let json: Result<_, _> = json.into();
         let json = json?;
         Ok(json)
     }
 
-    pub async fn signup_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SignInResponse> {
-        let response: Response = self
-            .client
-            .post(&format!("{}/auth/v1/signup", self.url))
-            .header("apikey", self.api_key.as_str())
-            .header("Content-Type", "application/json")
-            .json(creds)
-            .send()
-            .await?;
-
-        let body = response.bytes().await?;
-        let json = serde_json::from_slice::<SupabaseResponse<SignInResponse>>(&body)?;
-
-        log::info!("{:#?}", json);
-        let json: Result<_, _> = json.into();
-        let json = json?;
-        Ok(json)
-    }
-
-    pub async fn login_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SignInResponse> {
-        let response = self
-            .client
-            .post(&format!("{}/auth/v1/token?grant_type=password", self.url))
-            .header::<_, &str>("apikey", self.api_key.as_ref())
-            .header("Content-Type", "application/json")
-            .json(creds)
-            .send()
-            .await?;
-
-        let body = response.bytes().await?;
-        log::info!("{}", String::from_utf8(body.to_vec())?);
-        let json = serde_json::from_slice::<SupabaseResponse<SignInResponse>>(&body)?;
-        let json: Result<_, _> = json.into();
-        let json = json?;
-        Ok(json)
-    }
-
-    pub async fn refresh(&self, refresh_token: RefreshToken) -> anyhow::Result<SignInResponse> {
+    pub async fn refresh(&self, refresh_token: RefreshToken) -> anyhow::Result<Signin> {
         let data = self
             .client
             .post(&format!(
@@ -111,9 +78,9 @@ impl SupabaseAnonClient {
 /* DTOS */
 
 #[derive(Debug, Serialize)]
-pub struct AuthCodeAndVerifier<'a> {
-    pub auth_code: &'a str,
-    pub code_verifier: &'a str,
+pub struct ExchangeOAuthCode {
+    pub auth_code: OAuthCode,
+    pub code_verifier: OAuthCodeVerifier,
 }
 
 #[derive(Debug, Deserialize)]
@@ -138,15 +105,20 @@ pub struct RefreshTokenBody {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct SignInResponse {
+pub struct DiscordSigninResponse {
     pub access_token: AccessToken,
     pub refresh_token: RefreshToken,
     pub expires_in: u64,
-    pub user: UserSignInResponse,
+    pub user: SupabaseUser,
+    pub user_metadata: serde_json::Value,
+    //pub user_metadata: DiscordUserMetadata,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct UserSignInResponse {
+pub struct DiscordUserMetadata {}
+
+#[derive(Deserialize, Debug)]
+pub struct SupabaseUser {
     pub id: UserId,
 }
 

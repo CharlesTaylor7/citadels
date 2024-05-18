@@ -1,4 +1,5 @@
 use super::state::{OAuthCallbackCode, Signin};
+use super::supabase::ExchangeOAuthCode;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -85,13 +86,20 @@ async fn get_oauth_signin(
             "https://citadels.fly.dev"
         }
     );
+    let (code, verifier) = crate::server::auth::generate_pkce_pair();
+
+    app.oauth_code_challenges
+        .write()
+        .await
+        .insert(code.clone(), verifier);
     let url = format!(
         "{}/auth/v1/authorize?provider={}&redirect_to={}&code_challenge={}&code_challenge_method=s256",
         app.supabase.url,
         utf8_percent_encode(&body.provider, percent_encoding::NON_ALPHANUMERIC),
         utf8_percent_encode(&redirect_url, percent_encoding::NON_ALPHANUMERIC),
-        utf8_percent_encode(&code_challenge, percent_encoding::NON_ALPHANUMERIC),
+        utf8_percent_encode(code.as_str(), percent_encoding::NON_ALPHANUMERIC),
     );
+
     Ok(Redirect::to(&url).into_response())
 }
 
@@ -100,8 +108,27 @@ async fn get_oauth_callback(
     mut cookies: PrivateCookieJar,
     body: Query<OAuthCallbackCode>,
 ) -> Result<Response, AnyhowError> {
-    app.supabase.exchange_code_for_session(&body.code).await?;
-    Ok("TODO".into_response())
+    log::info!(
+        "code:{:#?}\nmap:{:#?}",
+        body.code,
+        app.oauth_code_challenges.read().await
+    );
+    if let Some((_, code_verifier)) = app.oauth_code_challenges.read().await.iter().nth(0) {
+        let response = app
+            .supabase
+            .exchange_code_for_session(ExchangeOAuthCode {
+                auth_code: body.code.clone(),
+                code_verifier: code_verifier.clone(),
+            })
+            .await?;
+
+        cookies = app.add_session(cookies, response).await;
+    } else {
+        log::error!("no code verifier")
+    }
+
+    Ok((cookies, "TODO").into_response())
+
     //cookies = app.add_session(cookies, body.0).await;
     //Ok((cookies, Redirect::to("/lobby")).into_response())
 }

@@ -1,5 +1,5 @@
 use super::auth::{JwtDecoder, Session, Sessions};
-use super::supabase::{EmailCreds, SignInResponse};
+use super::supabase::DiscordSigninResponse;
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
 use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, SessionId, UserId};
@@ -85,7 +85,7 @@ impl AppState {
     pub async fn add_session(
         &self,
         mut cookies: PrivateCookieJar,
-        signin: Signin,
+        signin: DiscordSigninResponse,
     ) -> PrivateCookieJar {
         let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
         let cookie = Cookie::build(("session_id", session_id.to_string()))
@@ -98,6 +98,7 @@ impl AppState {
         let decoded = JwtDecoder::new().decode(signin.access_token.as_str());
         log::info!("{:#?}", decoded);
         let session = Session {
+            username: None,
             session_id,
             user_id: UserId::new("TODO"),
             access_token: signin.access_token,
@@ -149,9 +150,9 @@ impl AppState {
 }
 
 /* DTOs */
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct OAuthCallbackCode {
-    pub code: String,
+    pub code: OAuthCode,
 }
 #[derive(Deserialize)]
 pub struct Signin {

@@ -111,12 +111,12 @@ mod tags {
 
     impl Tag for OAuthCode {
         const NAME: &'static str = "oauth_code";
-        const SECRET: bool = true;
+        const SECRET: bool = false;
     }
 
     impl Tag for OAuthCodeVerifier {
         const NAME: &'static str = "oauth_code_verifier";
-        const SECRET: bool = true;
+        const SECRET: bool = false;
     }
 
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
