@@ -15,7 +15,7 @@
     Working around an idiomorph bug: https://github.com/bigskysoftware/idiomorph/pull/32
     <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.js"></script>
     -->
-    <script src="/public/vendor/idiomorph.js"></script>
+    <script src={{"vendor/idiomorph.js"|asset}}></script>
     <script>
       document.addEventListener('htmx:beforeOnLoad', function (evt) {
           if (evt.detail.xhr.status === 400) {
