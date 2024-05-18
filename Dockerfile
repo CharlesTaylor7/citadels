@@ -25,4 +25,5 @@ RUN cargo build --release --bin citadels
 FROM alpine AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/citadels /usr/local/bin
+COPY public/ public/
 ENTRYPOINT ["/usr/local/bin/citadels"]
