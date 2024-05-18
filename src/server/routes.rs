@@ -1,3 +1,4 @@
+use super::middleware::SessionCookieLayer;
 use super::state::{OAuthCallbackCode, Signin};
 use super::supabase::ExchangeOAuthCode;
 use crate::actions::{ActionSubmission, ActionTag};
@@ -55,7 +56,11 @@ pub fn get_router(state: AppState) -> Router {
         router = router.nest_service("/public", ServeDir::new("public"));
     }
 
-    router.layer(TraceLayer::new_for_http()).with_state(state)
+    router
+        .layer(TraceLayer::new_for_http())
+        .layer(SessionCookieLayer::new())
+        .layer(CookieManagerLayer::new())
+        .with_state(state)
 }
 
 async fn get_index() -> Result<Response, AnyhowError> {
@@ -109,7 +114,7 @@ async fn get_oauth_signin(
 
 async fn get_oauth_callback(
     app: State<AppState>,
-    cookies: Cookies,
+    session_id: SessionId,
     body: Query<OAuthCallbackCode>,
 ) -> Result<Response, AnyhowError> {
     log::info!(
@@ -117,8 +122,7 @@ async fn get_oauth_callback(
         body.code,
         app.oauth_code_challenges.read().await
     );
-    // TODO: fix
-    if let Some((_, code_verifier)) = app.oauth_code_challenges.read().await.iter().nth(0) {
+    if let Some(code_verifier) = app.oauth_code_challenges.read().await.get(&session_id) {
         let response = app
             .supabase
             .exchange_code_for_session(ExchangeOAuthCode {
@@ -127,7 +131,7 @@ async fn get_oauth_callback(
             })
             .await?;
 
-        app.add_session(cookies, response).await;
+        app.add_session(session_id, response).await;
     } else {
         log::error!("no code verifier")
     }

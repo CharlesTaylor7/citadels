@@ -81,14 +81,7 @@ impl AppState {
         Ok(())
     }
 
-    pub async fn add_session(&self, cookies: PrivateCookieJar, signin: DiscordSigninResponse) {
-        let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
-        let cookie = Cookie::build(("session_id", session_id.to_string()))
-            .max_age(time::Duration::WEEK)
-            .secure(true)
-            .http_only(true);
-        cookies.add(cookie.into());
-
+    pub async fn add_session(&self, session_id: SessionId, signin: DiscordSigninResponse) {
         let session = UserSession {
             access_token: signin.access_token,
             refresh_token: signin.refresh_token,
