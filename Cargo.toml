@@ -37,6 +37,7 @@ maud = { version = "0.26.0", features = ["axum"], default-features = false}
 arcstr = { version = "1.2.0", features = ["serde"], default-features = false }
 uuid = { version = "1.8.0", features = ["v4"] }
 thiserror = "1.0.61"
+percent-encoding = "2.3.1"
 
 [features]
 dev = []

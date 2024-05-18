@@ -72,23 +72,13 @@ enabled = true
 
 [auth]
 enabled = true
-# The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
-# in emails.
-site_url = "http://127.0.0.1:3000"
-# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
-# How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
+site_url = "http://0.0.0.0:8080"
+additional_redirect_urls = ["https://0.0.0.0:8080"]
 jwt_expiry = 3600
-# If disabled, the refresh token will never expire.
 enable_refresh_token_rotation = true
-# Allows refresh tokens to be reused after expiry, up to the specified interval in seconds.
-# Requires enable_refresh_token_rotation = true.
 refresh_token_reuse_interval = 10
-# Allow/disallow new user signups to your project.
 enable_signup = true
-# Allow/disallow anonymous sign-ins to your project.
 enable_anonymous_sign_ins = false
-# Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 
 [auth.email]
@@ -102,33 +92,17 @@ enable_confirmations = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "5s"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
-
 [auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = true
-# If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = true
-# Template for sending OTP to users
-template = "Your code is {{ .Code }} ."
-# Controls the minimum amount of time that must pass before sending another sms otp.
-max_frequency = "5s"
+enable_signup = false
 
-# Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
-
-# This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
-# [auth.hook.custom_access_token]
-# enabled = true
-# uri = "pg-functions://<database>/<schema>/<hook_name>"
+[auth.external.discord]
+enabled = true
+client_id = "1237946046731255818"
+secret = "env(SUPABASE_AUTH_DISCORD_SECRET)"
+redirect_uri = "http://localhost:54321/auth/v1/callback"
 
 [analytics]
 enabled = false
 port = 54327
 vector_port = 54328
-# supported backends: `postgres`, `bigquery`.
 backend = "postgres"

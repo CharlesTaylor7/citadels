@@ -41,7 +41,7 @@ impl SupabaseAnonClient {
         Ok(json)
     }
 
-    pub async fn signin_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SignInResponse> {
+    pub async fn login_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SignInResponse> {
         let response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=password", self.url))
@@ -120,6 +120,7 @@ impl JwtDecoder {
 */
 
 /* DTOS */
+
 #[derive(Serialize, Deserialize)]
 pub struct EmailCreds<'a> {
     pub email: Cow<'a, str>,

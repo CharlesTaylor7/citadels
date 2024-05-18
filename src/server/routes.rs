@@ -1,4 +1,3 @@
-use super::auth::{login, signup};
 use super::supabase::EmailCreds;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
@@ -14,13 +13,14 @@ use crate::templates::lobby::*;
 use crate::types::Marker;
 use crate::{markup, templates::*};
 use askama::Template;
-use axum::extract::{Json, Path, State};
+use axum::extract::{Json, Path, Query, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
 use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
 use axum_extra::extract::PrivateCookieJar;
 use http::StatusCode;
+use percent_encoding::utf8_percent_encode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
@@ -31,11 +31,13 @@ pub fn get_router(state: AppState) -> Router {
     let mut router = Router::new()
         .route("/", get(get_index))
         .route("/version", get(get_version))
-        .route("/signup", get(get_signup))
-        .route("/signup", post(post_signup))
         .route("/login", get(get_login))
-        .route("/login", post(post_login))
-        .route("/logout", post(post_logout))
+        .route("/signup", get(get_signup))
+        .route("/auth/email/signup", post(post_email_signup))
+        .route("/auth/email/login", post(post_email_login))
+        .route("/auth/oauth/signin", get(get_oauth_signin))
+        .route("/auth/oauth/callback", get(get_oauth_callback))
+        .route("/auth/logout", post(post_logout))
         .route("/lobby", get(get_lobby))
         .route("/lobby/config/districts", get(get_district_config))
         .route("/lobby/config/districts", post(post_district_config))
@@ -74,28 +76,56 @@ async fn get_signup(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl I
     markup::signup::page()
 }
 
-async fn post_signup(
+async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
+    markup::login::page()
+}
+
+async fn get_oauth_signin(
+    app: State<AppState>,
+    body: Query<OAuthProvider>,
+) -> Result<Response, AnyhowError> {
+    let redirect_url = format!(
+        "{}/auth/oauth/callback",
+        if cfg!(feature = "dev") {
+            "http://0.0.0.0:8080"
+        } else {
+            "https://citadels.fly.dev"
+        }
+    );
+
+    let url = format!(
+        "{}/auth/v1/authorize?provider={}&redirect_to={}",
+        app.supabase.url,
+        utf8_percent_encode(&body.provider, percent_encoding::NON_ALPHANUMERIC),
+        utf8_percent_encode(&redirect_url, percent_encoding::NON_ALPHANUMERIC),
+    );
+    Ok(Redirect::to(&url).into_response())
+}
+
+async fn get_oauth_callback(
     app: State<AppState>,
     cookies: PrivateCookieJar,
-    body: Option<Json<EmailCreds<'static>>>,
+    body: Json<serde_json::Value>,
 ) -> Result<Response, AnyhowError> {
-    let body = body.unwrap();
-    let cookies = signup(&app, cookies, &body).await?;
+    log::info!("{:#?}", body);
+    Ok("callback todo".into_response())
+}
+
+async fn post_email_signup(
+    app: State<AppState>,
+    cookies: PrivateCookieJar,
+    body: Json<EmailCreds<'static>>,
+) -> Result<Response, AnyhowError> {
+    let cookies = app.signup_email(cookies, &body).await?;
     Ok((cookies, markup::lobby::main()).into_response())
 }
 
-async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-    markup::login::page()
-    //"TODO".into_response()
-}
-
-async fn post_login(
+async fn post_email_login(
     app: State<AppState>,
     cookies: PrivateCookieJar,
-    body: Option<Json<EmailCreds<'static>>>,
+    body: Json<EmailCreds<'static>>,
 ) -> Result<Response, AnyhowError> {
-    let body = body.unwrap();
-    let cookies = login(&app, cookies, &body).await?;
+    let cookies = app.login_email(cookies, &body).await?;
     Ok((cookies, markup::lobby::main()).into_response())
 }
 
@@ -559,6 +589,19 @@ async fn get_game_menu(
     }
 }
 
+/* DTOs */
+
+#[derive(Deserialize)]
+struct OAuthCallback {
+    code: String,
+}
+
+#[derive(Deserialize)]
+struct OAuthProvider {
+    provider: String,
+}
+
+/* Utility Types */
 type AppResponse = Result<Response, AnyhowError>;
 
 // Make our own error that wraps `anyhow::Error`.

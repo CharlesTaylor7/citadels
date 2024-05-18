@@ -353,6 +353,7 @@ dependencies = [
  "log",
  "macros",
  "maud",
+ "percent-encoding",
  "rand",
  "rand_core",
  "rand_xoshiro",

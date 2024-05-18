@@ -1,10 +1,11 @@
 use super::auth::{Session, Sessions};
-use super::supabase::SignInResponse;
+use super::supabase::{EmailCreds, SignInResponse};
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
 use crate::strings::SessionId;
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
+use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::{cookie, PrivateCookieJar};
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
@@ -51,6 +52,61 @@ impl AppState {
 
     pub async fn session_from_id(&self, session_id: &SessionId) -> Option<Session> {
         self.sessions.read().await.session_from_id(session_id)
+    }
+
+    pub async fn login_email(
+        &self,
+        mut cookies: PrivateCookieJar,
+        creds: &EmailCreds<'_>,
+    ) -> anyhow::Result<PrivateCookieJar> {
+        if self
+            .sessions
+            .read()
+            .await
+            .session_from_cookies(&cookies)
+            .is_some()
+        {
+            anyhow::bail!("Already logged in");
+        }
+
+        let signin = self.supabase.login_email(creds).await?;
+        let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
+        let cookie = Cookie::build(("session_id", session_id.to_string()))
+            .max_age(time::Duration::WEEK)
+            .secure(true)
+            .http_only(true);
+        cookies = cookies.add(cookie);
+        self.add_session(session_id, signin).await;
+
+        Ok(cookies)
+    }
+
+    pub async fn signup_email(
+        &self,
+        mut cookies: PrivateCookieJar,
+        creds: &EmailCreds<'_>,
+    ) -> anyhow::Result<PrivateCookieJar> {
+        if self
+            .sessions
+            .read()
+            .await
+            .session_from_cookies(&cookies)
+            .is_some()
+        {
+            anyhow::bail!("Already logged in");
+        }
+
+        let signin = self.supabase.signup_email(creds).await?;
+
+        let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
+        let cookie = Cookie::build(("session_id", session_id.to_string()))
+            .max_age(time::Duration::WEEK)
+            .secure(true)
+            .http_only(true);
+        cookies = cookies.add(cookie);
+        self.add_session(session_id, signin).await;
+
+        Ok(cookies)
     }
 
     pub async fn logout(&self, cookies: &PrivateCookieJar) -> anyhow::Result<()> {
