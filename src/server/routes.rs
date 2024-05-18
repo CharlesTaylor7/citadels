@@ -113,6 +113,7 @@ async fn get_oauth_callback(
         body.code,
         app.oauth_code_challenges.read().await
     );
+    // TODO: fix
     if let Some((_, code_verifier)) = app.oauth_code_challenges.read().await.iter().nth(0) {
         let response = app
             .supabase
@@ -134,7 +135,7 @@ async fn get_oauth_callback(
 }
 
 async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResponse {
-    let session = app.sessions.read().await.session_from_cookies(&cookies);
+    let session = app.logged_in.read().await.session_from_cookies(&cookies);
     if let Some(session) = session {
         app.supabase.logout(&session.access_token).await?;
         Ok(().into_response())
@@ -287,7 +288,7 @@ async fn start(app: State<AppState>) -> Result<Response> {
     }
 
     if let Some(game) = game.as_ref() {
-        app.connections
+        app.ws_connections
             .lock()
             .unwrap()
             .broadcast_each(move |id| GameTemplate::render_with(game, Some(id)));
@@ -385,7 +386,7 @@ async fn submit_game_action(
                 Ok(()) => {
                     // TODO: broadcast other
                     let g = &game;
-                    app.connections
+                    app.ws_connections
                         .lock()
                         .unwrap()
                         .broadcast_each(move |id| GameTemplate::render_with(g, Some(id)));

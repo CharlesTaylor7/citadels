@@ -1,16 +1,17 @@
-use super::auth::{JwtDecoder, Session, Sessions};
+use super::state::Signin;
 use super::supabase::DiscordSigninResponse;
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
+use crate::strings::UserName;
 use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
-use axum_extra::extract::cookie::Cookie;
-use axum_extra::extract::{cookie, PrivateCookieJar};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::env;
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
+use tower_cookies;
 
 fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
     Arc::new(std::sync::Mutex::new(item))
@@ -25,13 +26,13 @@ pub struct SessionInfo {
 
 #[derive(Clone)]
 pub struct AppState {
-    cookie_signing_key: cookie::Key,
+    //cookie_signing_key: cookie::Key,
     pub lobby: Arc<std::sync::Mutex<Lobby>>,
     pub game: Arc<std::sync::Mutex<Option<Game>>>,
     pub supabase: SupabaseAnonClient,
-    pub sessions: Arc<RwLock<Sessions>>,
-    pub connections: Arc<Mutex<ws::Connections>>,
-    pub oauth_code_challenges: Arc<RwLock<HashMap<OAuthCode, OAuthCodeVerifier>>>,
+    pub logged_in: Arc<RwLock<HashMap<SessionId, UserSession>>>,
+    pub ws_connections: Arc<Mutex<ws::Connections>>,
+    pub oauth_code_challenges: Arc<RwLock<HashMap<SessionId, OAuthCodeVerifier>>>,
 }
 
 impl Default for AppState {
@@ -39,30 +40,26 @@ impl Default for AppState {
         let key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
 
         Self {
-            cookie_signing_key: cookie::Key::from(key.as_bytes()),
+            //cookie_signing_key: cookie::Key::from(key.as_bytes()),
             lobby: new_arc_mutex(Lobby::default()),
             game: new_arc_mutex(None),
             supabase: SupabaseAnonClient::new(),
-            connections: Arc::new(Mutex::new(ws::Connections::default())),
-            sessions: Arc::new(RwLock::new(Sessions::default())),
+            logged_in: Arc::new(RwLock::new(HashMap::default())),
+            ws_connections: Arc::new(Mutex::new(ws::Connections::default())),
             oauth_code_challenges: Arc::new(RwLock::new(HashMap::default())),
         }
     }
 }
 
-impl FromRef<AppState> for cookie::Key {
-    fn from_ref(state: &AppState) -> Self {
-        state.cookie_signing_key.clone()
-    }
-}
 
 impl AppState {
-    pub async fn session(&self, cookies: &PrivateCookieJar) -> Option<Session> {
-        self.sessions.read().await.session_from_cookies(cookies)
-    }
-
-    pub async fn session_from_id(&self, session_id: &SessionId) -> Option<Session> {
-        self.sessions.read().await.session_from_id(session_id)
+    pub async fn session(&self, cookies: &PrivateCookieJar) -> Option<UserSession> {
+        let session_id = cookies.get("session_id")?;
+        self.logged_in
+            .read()
+            .await
+            .get(&SessionId::new(session_id.value()))
+            .cloned()
     }
 
     pub async fn logout(&self, cookies: &PrivateCookieJar) -> anyhow::Result<()> {
@@ -70,15 +67,18 @@ impl AppState {
             .get("session_id")
             .ok_or(anyhow::anyhow!("not actually logged in"))?;
         let session_id = SessionId::new(session_id.value());
-        let mut lock = self.sessions.write().await;
+        let mut lock = self.logged_in.write().await;
         let session = lock
-            .0
             .remove(&session_id)
             .ok_or(anyhow::anyhow!("lost track of session"))?;
         drop(lock);
 
         self.supabase.logout(&session.access_token).await?;
-        self.connections.lock().unwrap().0.remove(&session.user_id);
+        self.ws_connections
+            .lock()
+            .unwrap()
+            .0
+            .remove(&session.user_id);
         Ok(())
     }
 
@@ -94,60 +94,67 @@ impl AppState {
             .http_only(true);
         cookies = cookies.add(cookie);
 
-        log::info!("{:#?}", signin.access_token.as_str());
-        let decoded = JwtDecoder::new().decode(signin.access_token.as_str());
-        log::info!("{:#?}", decoded);
-        let session = Session {
-            username: None,
-            session_id,
-            user_id: UserId::new("TODO"),
+        let session = UserSession {
             access_token: signin.access_token,
             refresh_token: signin.refresh_token,
+            username: None,
+            user_id: signin.user.id,
         };
-        self.sessions
+        self.logged_in
             .write()
             .await
-            .0
-            .insert(session.session_id.clone(), session.clone());
-        self.clone()
-            .spawn_session_refresh_task(session, signin.expires_in);
+            .insert(session_id.clone(), session.clone());
         cookies
     }
+}
 
-    pub fn spawn_session_refresh_task(self, session: Session, expires_in: u64) {
-        let duration = tokio::time::Duration::from_secs(expires_in / 2);
-        tokio::task::spawn(async move {
-            let mut interval = tokio::time::interval(duration);
-            interval.tick().await;
-            loop {
-                interval.tick().await;
-                let token =
-                    if let Some(session) = self.sessions.read().await.0.get(&session.session_id) {
-                        session.refresh_token.clone()
-                    } else {
-                        break;
-                    };
-                match self.supabase.refresh(token).await {
-                    Ok(signin) => {
-                        if let Some(session) =
-                            self.sessions.write().await.0.get_mut(&session.session_id)
-                        {
-                            session.update(signin);
-                        } else {
-                            break;
-                        }
-                    }
-                    Err(e) => {
-                        log::error!("{}", e);
-                        self.sessions.write().await.0.remove(&session.session_id);
-                        break;
-                    }
-                }
-            }
-            self.connections.lock().unwrap().0.remove(&session.user_id)
-        });
+#[derive(Clone)]
+pub struct UserSession {
+    pub username: Option<UserName>,
+    pub user_id: UserId,
+    pub access_token: AccessToken,
+    pub refresh_token: RefreshToken,
+}
+
+impl UserSession {
+    pub fn update(&mut self, response: Signin) {
+        self.access_token = response.access_token;
+        self.refresh_token = response.refresh_token;
     }
 }
+
+pub fn generate_pkce_pair() -> (OAuthCode, OAuthCodeVerifier) {
+    let code_verifier = pkce::code_verifier();
+    let code_challenge = pkce::code_challenge(&code_verifier);
+    (
+        OAuthCode::new(code_challenge),
+        OAuthCodeVerifier::new(code_verifier),
+    )
+}
+/*
+pub type Claims = serde_json::Value;
+
+pub struct JwtDecoder {
+    pub secret: jsonwebtoken::DecodingKey,
+    pub validation: jsonwebtoken::Validation,
+}
+
+impl JwtDecoder {
+    pub fn new() -> Self {
+        let mut validation = jsonwebtoken::Validation::new(Algorithm::HS256);
+        validation.set_audience(&["authenticated"]);
+        Self {
+            validation,
+            secret: DecodingKey::from_secret(env::var("SUPABASE_JWT_SECRET").unwrap().as_ref()),
+        }
+    }
+
+    pub fn decode(&self, jwt: &str) -> anyhow::Result<Claims> {
+        let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret, &self.validation)?;
+        Ok(token.claims)
+    }
+}
+*/
 
 /* DTOs */
 #[derive(Deserialize)]
