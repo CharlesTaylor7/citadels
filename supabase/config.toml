@@ -73,7 +73,7 @@ enabled = true
 [auth]
 enabled = true
 site_url = "http://0.0.0.0:8080"
-additional_redirect_urls = ["https://0.0.0.0:8080"]
+additional_redirect_urls = ["http://0.0.0.0:8080/**"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10

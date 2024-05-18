@@ -2,12 +2,13 @@ use super::auth::{JwtDecoder, Session, Sessions};
 use super::supabase::{EmailCreds, SignInResponse};
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
-use crate::strings::{AccessToken, RefreshToken, SessionId, UserId};
+use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::{cookie, PrivateCookieJar};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
 
@@ -27,9 +28,10 @@ pub struct AppState {
     cookie_signing_key: cookie::Key,
     pub lobby: Arc<std::sync::Mutex<Lobby>>,
     pub game: Arc<std::sync::Mutex<Option<Game>>>,
-    pub connections: Arc<Mutex<ws::Connections>>,
     pub supabase: SupabaseAnonClient,
     pub sessions: Arc<RwLock<Sessions>>,
+    pub connections: Arc<Mutex<ws::Connections>>,
+    pub oauth_code_challenges: Arc<RwLock<HashMap<OAuthCode, OAuthCodeVerifier>>>,
 }
 
 impl Default for AppState {
@@ -43,6 +45,7 @@ impl Default for AppState {
             supabase: SupabaseAnonClient::new(),
             connections: Arc::new(Mutex::new(ws::Connections::default())),
             sessions: Arc::new(RwLock::new(Sessions::default())),
+            oauth_code_challenges: Arc::new(RwLock::new(HashMap::default())),
         }
     }
 }
@@ -82,7 +85,7 @@ impl AppState {
     pub async fn add_session(
         &self,
         mut cookies: PrivateCookieJar,
-        signin: OAuthCallback,
+        signin: Signin,
     ) -> PrivateCookieJar {
         let session_id = SessionId::new(uuid::Uuid::new_v4().to_string());
         let cookie = Cookie::build(("session_id", session_id.to_string()))
@@ -146,8 +149,12 @@ impl AppState {
 }
 
 /* DTOs */
+#[derive(Deserialize, Serialize)]
+pub struct OAuthCallbackCode {
+    pub code: String,
+}
 #[derive(Deserialize)]
-pub struct OAuthCallback {
+pub struct Signin {
     pub access_token: AccessToken,
     pub refresh_token: RefreshToken,
     pub expires_in: u64,

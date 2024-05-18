@@ -49,8 +49,8 @@ pub fn nav(logged_in: bool) -> Markup {
             }
           }
           li {
-              a href="/signup" {
-                  "Sign in"
+              a href="/login" {
+                  "Log in"
               }
           }
         }

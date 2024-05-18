@@ -1,4 +1,4 @@
-use super::state::OAuthCallback;
+use super::state::{OAuthCallbackCode, Signin};
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -32,10 +32,9 @@ pub fn get_router(state: AppState) -> Router {
         .route("/", get(get_index))
         .route("/version", get(get_version))
         .route("/login", get(get_login))
-        .route("/signup", get(get_signup))
-        .route("/auth/oauth/signin", get(get_oauth_signin))
-        .route("/auth/oauth/callback", get(get_oauth_callback))
-        .route("/auth/logout", post(post_logout))
+        .route("/oauth/signin", get(get_oauth_signin))
+        .route("/oauth/callback", get(get_oauth_callback))
+        .route("/oauth/logout", post(post_logout))
         .route("/lobby", get(get_lobby))
         .route("/lobby/config/districts", get(get_district_config))
         .route("/lobby/config/districts", post(post_district_config))
@@ -70,10 +69,6 @@ async fn get_version() -> impl IntoResponse {
         .into_response()
 }
 
-async fn get_signup(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
-    markup::signup::page()
-}
-
 async fn get_login(_app: State<AppState>, _cookies: PrivateCookieJar) -> impl IntoResponse {
     markup::login::page()
 }
@@ -83,19 +78,19 @@ async fn get_oauth_signin(
     body: Query<OAuthProvider>,
 ) -> Result<Response, AnyhowError> {
     let redirect_url = format!(
-        "{}/auth/oauth/callback",
+        "{}/oauth/callback",
         if cfg!(feature = "dev") {
             "http://0.0.0.0:8080"
         } else {
             "https://citadels.fly.dev"
         }
     );
-
     let url = format!(
-        "{}/auth/v1/authorize?provider={}&redirect_to={}",
+        "{}/auth/v1/authorize?provider={}&redirect_to={}&code_challenge={}&code_challenge_method=s256",
         app.supabase.url,
         utf8_percent_encode(&body.provider, percent_encoding::NON_ALPHANUMERIC),
         utf8_percent_encode(&redirect_url, percent_encoding::NON_ALPHANUMERIC),
+        utf8_percent_encode(&code_challenge, percent_encoding::NON_ALPHANUMERIC),
     );
     Ok(Redirect::to(&url).into_response())
 }
@@ -103,10 +98,12 @@ async fn get_oauth_signin(
 async fn get_oauth_callback(
     app: State<AppState>,
     mut cookies: PrivateCookieJar,
-    body: Query<OAuthCallback>,
+    body: Query<OAuthCallbackCode>,
 ) -> Result<Response, AnyhowError> {
-    cookies = app.add_session(cookies, body.0).await;
-    Ok((cookies, Redirect::to("/lobby")).into_response())
+    app.supabase.exchange_code_for_session(&body.code).await?;
+    Ok("TODO".into_response())
+    //cookies = app.add_session(cookies, body.0).await;
+    //Ok((cookies, Redirect::to("/lobby")).into_response())
 }
 
 async fn post_logout(app: State<AppState>, cookies: PrivateCookieJar) -> AppResponse {

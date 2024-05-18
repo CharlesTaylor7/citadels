@@ -1,3 +1,4 @@
+use crate::server::state::OAuthCallbackCode;
 use crate::strings::{AccessToken, RefreshToken, UserId};
 use arcstr::ArcStr;
 use reqwest::Response;
@@ -20,6 +21,27 @@ impl SupabaseAnonClient {
             api_key: env::var("SUPABASE_ANON_KEY").unwrap().into(),
         }
     }
+    pub async fn exchange_code_for_session(&self, code: &str) -> anyhow::Result<serde_json::Value> {
+        let response: Response = self
+            .client
+            .post(&format!("{}/auth/v1/token?grant_type=pkce", self.url))
+            .header("apikey", self.api_key.as_str())
+            .header("Content-Type", "application/json")
+            .json(&AuthCodeAndVerifier {
+                auth_code: code,
+                code_verifier: "s256",
+            })
+            .send()
+            .await?;
+
+        let body = response.bytes().await?;
+        log::info!("{}", String::from_utf8(body.to_vec())?);
+        let json = serde_json::from_slice::<SupabaseResponse<serde_json::Value>>(&body)?;
+
+        let json: Result<_, _> = json.into();
+        let json = json?;
+        Ok(json)
+    }
 
     pub async fn signup_email(&self, creds: &EmailCreds<'_>) -> anyhow::Result<SignInResponse> {
         let response: Response = self
@@ -32,7 +54,6 @@ impl SupabaseAnonClient {
             .await?;
 
         let body = response.bytes().await?;
-        log::info!("{}", String::from_utf8(body.to_vec())?);
         let json = serde_json::from_slice::<SupabaseResponse<SignInResponse>>(&body)?;
 
         log::info!("{:#?}", json);
@@ -88,6 +109,12 @@ impl SupabaseAnonClient {
     }
 }
 /* DTOS */
+
+#[derive(Debug, Serialize)]
+pub struct AuthCodeAndVerifier<'a> {
+    pub auth_code: &'a str,
+    pub code_verifier: &'a str,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct JwtClaims {

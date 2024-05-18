@@ -1,5 +1,5 @@
 use super::supabase::SignInResponse;
-use crate::strings::{AccessToken, RefreshToken, SessionId, UserId};
+use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, SessionId, UserId};
 use axum_extra::extract::PrivateCookieJar;
 use jsonwebtoken::{Algorithm, DecodingKey};
 use std::collections::HashMap;
@@ -56,4 +56,13 @@ impl JwtDecoder {
         let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret, &self.validation)?;
         Ok(token.claims)
     }
+}
+
+fn generate_pkce_pair() -> (OAuthCode, OAuthCodeVerifier) {
+    let code_verifier = pkce::code_verifier();
+    let code_challenge = pkce::code_challenge(&code_verifier);
+    (
+        OAuthCode::new(code_challenge),
+        OAuthCodeVerifier::new(code_verifier),
+    )
 }
