@@ -5,11 +5,11 @@ use crate::server::ws;
 use crate::strings::UserName;
 use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
-use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
+use tower_cookies::{Cookies};
 
 type PrivateCookieJar = Cookies;
 
@@ -37,7 +37,7 @@ pub struct AppState {
 
 impl Default for AppState {
     fn default() -> Self {
-        let key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
+        let _key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
 
         Self {
             //cookie_signing_key: cookie::Key::from(key.as_bytes()),

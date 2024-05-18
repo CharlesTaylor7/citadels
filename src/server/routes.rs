@@ -1,5 +1,5 @@
 use super::middleware::SessionCookieLayer;
-use super::state::{OAuthCallbackCode, Signin};
+use super::state::{OAuthCallbackCode};
 use super::supabase::ExchangeOAuthCode;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
@@ -26,7 +26,7 @@ use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
-use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
+use tower_cookies::{CookieManagerLayer, Cookies};
 use tower_http::trace::TraceLayer;
 
 pub fn get_router(state: AppState) -> Router {

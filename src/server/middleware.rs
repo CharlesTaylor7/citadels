@@ -1,7 +1,7 @@
 use crate::strings::SessionId;
 use async_trait::async_trait;
 use axum_core::extract::FromRequestParts;
-use http::{request::Parts, StatusCode};
+use http::{request::Parts};
 use http::{Request, Response};
 use std::task::{Context, Poll};
 use tower_cookies::{Cookie, Cookies};

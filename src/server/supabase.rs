@@ -1,9 +1,7 @@
-use crate::server::state::OAuthCallbackCode;
 use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, UserId};
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::{borrow::Cow, env};
 use thiserror::Error;
 

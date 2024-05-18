@@ -24,7 +24,7 @@ pub fn page(head: Markup, main: Markup) -> Markup {
     }
 }
 
-pub fn nav(logged_in: bool) -> Markup {
+pub fn nav(_logged_in: bool) -> Markup {
     html! {
       div class="flex flex-row justify-end items-center" {
         ul class="menu menu-horizontal bg-base-200 rounded-box" {
