@@ -1,4 +1,4 @@
 /target/
 /.env
-/vendor/
-/volume/*.db
+/public/styles/
+/node_modules/

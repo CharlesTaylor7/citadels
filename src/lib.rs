@@ -10,6 +10,5 @@ pub mod museum;
 pub mod random;
 pub mod roles;
 pub mod server;
-pub mod sqlite;
 pub mod templates;
 pub mod types;
