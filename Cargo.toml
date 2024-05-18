@@ -18,6 +18,8 @@ tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread"] }
 tokio-stream = { version = "0.1.14", default-features = false }
 tower = "0.4.13"
 tower-http = { version = "0.5.0", features = ["fs", "trace"] }
+tower-layer = "0.3.2"
+tower-cookies = "0.10.0"
 log = "0.4.20"
 env_logger = { version = "0.10.1", features = ["color"] }
 rand_xoshiro = "0.6.0"
@@ -38,8 +40,6 @@ uuid = { version = "1.8.0", features = ["v4"] }
 thiserror = "1.0.61"
 percent-encoding = "2.3.1"
 pkce = { path = "./vendor/pkce" }
-tower-layer = "0.3.2"
-tower-cookies = "0.10.0"
 
 [features]
 dev = []
