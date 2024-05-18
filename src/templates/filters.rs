@@ -1,9 +1,14 @@
 use crate::actions::ActionTag;
 use crate::types::CardSuit;
+use std::borrow::Cow;
 use std::fmt::Debug;
 
 pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
     Ok(format!("{:#?}", item))
+}
+
+pub fn asset(path: &str) -> askama::Result<Cow<'_, str>> {
+    Ok(crate::markup::base::asset(path).into())
 }
 
 pub fn class(item: &ActionTag) -> askama::Result<&'static str> {
