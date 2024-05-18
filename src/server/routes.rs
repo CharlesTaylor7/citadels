@@ -25,11 +25,10 @@ use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
-use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
 pub fn get_router(state: AppState) -> Router {
-    Router::new()
+    let mut router = Router::new()
         .route("/", get(get_index))
         .route("/version", get(get_version))
         .route("/signup", get(get_signup))
@@ -49,10 +48,14 @@ pub fn get_router(state: AppState) -> Router {
         .route("/game/city/:player_name", get(get_game_city))
         .route("/game", post(start))
         .route("/game/action", post(submit_game_action))
-        .route("/game/menu/:menu", get(get_game_menu))
-        .nest_service("/public", ServeDir::new("public"))
-        .layer(TraceLayer::new_for_http())
-        .with_state(state)
+        .route("/game/menu/:menu", get(get_game_menu));
+
+    if cfg!(feature = "dev") {
+        use tower_http::services::ServeDir;
+        router = router.nest_service("/public", ServeDir::new("public"));
+    }
+
+    router.layer(TraceLayer::new_for_http()).with_state(state)
 }
 
 async fn get_index() -> Result<Response, AnyhowError> {
