@@ -28,7 +28,6 @@ use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use tower_cookies::{CookieManagerLayer, Cookies};
-use tower_http::trace::TraceLayer;
 
 pub fn get_router(state: AppState) -> Router {
     let mut router = Router::new()
@@ -52,13 +51,13 @@ pub fn get_router(state: AppState) -> Router {
         .route("/game/action", post(submit_game_action))
         .route("/game/menu/:menu", get(get_game_menu));
 
-    if cfg!(feature = "dev") {
+    #[cfg(feature = "dev")]
+    {
         use tower_http::services::ServeDir;
         router = router.nest_service("/public", ServeDir::new("public"));
     }
 
     router
-        .layer(TraceLayer::new_for_http())
         .layer(SessionCookieLayer::new())
         .layer(CookieManagerLayer::new())
         .with_state(state)

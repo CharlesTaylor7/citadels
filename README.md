@@ -72,10 +72,6 @@ This is excessive, and I will try to stick to 3:
     - info
 
 ## Env & Secret management
-Script to generate a new signing key:
-```bash
-node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-```
 In prod use `fly secret`.
 In dev, use the .env file.
 
@@ -87,3 +83,8 @@ For production go in:
 - Use `fly secret`, for the secret env vars.
 
 Don't use `.config/cargo.toml` or the env! macro. We need runtime env lookup, not compile time.
+
+## Dependency Management
+Use cargo-machete & cargo-unused-features to prune what is downloaded and compiled.
+
+Use careful judgement about when to include a dep, and when to fork and vendor. By vendoring we can still respect the licenses but remove unused optional dependencies. `vendor/` folder is for forked vendored libraries.

@@ -6,12 +6,6 @@ async fn main() {
     #[cfg(feature = "dotenv")]
     dotenv::dotenv().expect(".env not found");
 
-    /*
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
-        .init();
-        */
-
     citadels::logger::init();
 
     let host = "0.0.0.0:8080";
