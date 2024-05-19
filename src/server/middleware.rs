@@ -1,6 +1,6 @@
 use http::{Request, Response};
 use std::task::{Context, Poll};
-use tower_cookies::{Cookie, Cookies};
+use tower_cookies::{Cookies};
 use tower_layer::Layer;
 use tower_service::Service;
 

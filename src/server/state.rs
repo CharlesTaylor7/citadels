@@ -3,15 +3,13 @@ use super::ws::WebSockets;
 use crate::server::supabase::SupabaseAnonClient;
 use crate::server::ws;
 use crate::strings::UserName;
-use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, SessionId, UserId};
+use crate::strings::{AccessToken, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
 use tower_cookies::Cookies;
-
-type PrivateCookieJar = Cookies;
 
 fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
     Arc::new(std::sync::Mutex::new(item))
@@ -46,7 +44,7 @@ impl Default for AppState {
 }
 
 impl AppState {
-    pub async fn session(&self, cookies: &PrivateCookieJar) -> Option<UserSession> {
+    pub async fn session(&self, cookies: &Cookies) -> Option<UserSession> {
         let session_id = cookies.get("session_id")?;
         self.logged_in
             .read()
@@ -55,7 +53,7 @@ impl AppState {
             .cloned()
     }
 
-    pub async fn logout(&self, cookies: &PrivateCookieJar) -> anyhow::Result<()> {
+    pub async fn logout(&self, cookies: &Cookies) -> anyhow::Result<()> {
         let session_id = cookies
             .get("session_id")
             .ok_or(anyhow::anyhow!("not actually logged in"))?;

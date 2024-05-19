@@ -27,7 +27,7 @@ use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
-use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
+use tower_cookies::{CookieManagerLayer, Cookies};
 use tower_http::trace::TraceLayer;
 
 pub fn get_router(state: AppState) -> Router {

@@ -1,4 +1,4 @@
-use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, UserId};
+use crate::strings::{AccessToken, RefreshToken, UserId};
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};

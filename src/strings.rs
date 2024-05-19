@@ -8,8 +8,6 @@ pub type UserId = ImmutableString<tags::UserId>;
 pub type SessionId = ImmutableString<tags::SessionId>;
 pub type AccessToken = ImmutableString<tags::AccessToken>;
 pub type RefreshToken = ImmutableString<tags::RefreshToken>;
-pub type OAuthCode = ImmutableString<tags::OAuthCode>;
-pub type OAuthCodeVerifier = ImmutableString<tags::OAuthCodeVerifier>;
 
 #[derive(PartialEq, Eq, Clone, Hash)]
 pub struct ImmutableString<Tag> {
@@ -109,16 +107,6 @@ mod tags {
         const SECRET: bool = true;
     }
 
-    impl Tag for OAuthCode {
-        const NAME: &'static str = "oauth_code";
-        const SECRET: bool = false;
-    }
-
-    impl Tag for OAuthCodeVerifier {
-        const NAME: &'static str = "oauth_code_verifier";
-        const SECRET: bool = false;
-    }
-
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
     pub enum UserName {}
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
@@ -129,8 +117,4 @@ mod tags {
     pub enum AccessToken {}
     #[derive(Debug, Eq, PartialEq, Clone, Hash)]
     pub enum RefreshToken {}
-    #[derive(Debug, Eq, PartialEq, Clone, Hash)]
-    pub enum OAuthCode {}
-    #[derive(Debug, Eq, PartialEq, Clone, Hash)]
-    pub enum OAuthCodeVerifier {}
 }
