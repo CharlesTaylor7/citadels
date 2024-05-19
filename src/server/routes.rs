@@ -21,7 +21,7 @@ use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
 use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
-use http::StatusCode;
+use http::{header, StatusCode};
 use percent_encoding::utf8_percent_encode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
@@ -109,7 +109,7 @@ async fn get_oauth_signin(
         utf8_percent_encode(code.as_str(), percent_encoding::NON_ALPHANUMERIC),
     );
 
-    Ok(Redirect::to(&url).into_response())
+    Ok([(header::REFRESH, format!("0;url={}", url))].into_response())
 }
 
 async fn get_oauth_callback(

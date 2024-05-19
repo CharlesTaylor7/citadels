@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use time::Duration;
+use tower_cookies::cookie::SameSite;
 use tower_cookies::Cookie;
 
 pub fn cookie<'a>(
@@ -7,12 +8,14 @@ pub fn cookie<'a>(
     value: impl Into<Cow<'a, str>>,
     duration: Duration,
 ) -> Cookie<'a> {
-    let cookie = Cookie::build((name, value))
+    let mut cookie = Cookie::build((name, value))
         .max_age(duration)
         .http_only(true);
 
     #[cfg(not(feature = "dev"))]
-    let cookie = cookie.secure(true);
+    {
+        cookie = cookie.secure(true).same_site(SameSite::Strict);
+    }
 
     cookie.into()
 }
