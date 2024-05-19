@@ -5,11 +5,11 @@ use crate::server::ws;
 use crate::strings::UserName;
 use crate::strings::{AccessToken, OAuthCode, OAuthCodeVerifier, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
-use serde::{Deserialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
-use tower_cookies::{Cookies};
+use tower_cookies::Cookies;
 
 type PrivateCookieJar = Cookies;
 
@@ -26,27 +26,21 @@ pub struct SessionInfo {
 
 #[derive(Clone)]
 pub struct AppState {
-    //cookie_signing_key: cookie::Key,
     pub lobby: Arc<std::sync::Mutex<Lobby>>,
     pub game: Arc<std::sync::Mutex<Option<Game>>>,
     pub supabase: SupabaseAnonClient,
     pub logged_in: Arc<RwLock<HashMap<SessionId, UserSession>>>,
     pub ws_connections: Arc<Mutex<WebSockets>>,
-    pub oauth_code_challenges: Arc<RwLock<HashMap<SessionId, OAuthCodeVerifier>>>,
 }
 
 impl Default for AppState {
     fn default() -> Self {
-        let _key = std::env::var("COOKIE_SIGNING_KEY").expect("env var COOKIE_SIGNING_KEY not set");
-
         Self {
-            //cookie_signing_key: cookie::Key::from(key.as_bytes()),
             lobby: new_arc_mutex(Lobby::default()),
             game: new_arc_mutex(None),
             supabase: SupabaseAnonClient::new(),
             logged_in: Arc::new(RwLock::new(HashMap::default())),
             ws_connections: Arc::new(Mutex::new(ws::WebSockets::default())),
-            oauth_code_challenges: Arc::new(RwLock::new(HashMap::default())),
         }
     }
 }
@@ -110,13 +104,10 @@ impl UserSession {
     }
 }
 
-pub fn generate_pkce_pair() -> (OAuthCode, OAuthCodeVerifier) {
+pub fn generate_pkce_pair() -> (String, String) {
     let code_verifier = pkce::code_verifier();
     let code_challenge = pkce::code_challenge(&code_verifier);
-    (
-        OAuthCode::new(code_challenge),
-        OAuthCodeVerifier::new(code_verifier),
-    )
+    ((code_challenge), (code_verifier))
 }
 /*
 pub type Claims = serde_json::Value;
@@ -146,7 +137,7 @@ impl JwtDecoder {
 /* DTOs */
 #[derive(Deserialize)]
 pub struct OAuthCallbackCode {
-    pub code: OAuthCode,
+    pub code: String,
 }
 #[derive(Deserialize)]
 pub struct Signin {

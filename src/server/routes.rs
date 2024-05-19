@@ -1,5 +1,6 @@
+use super::auth;
 use super::middleware::SessionCookieLayer;
-use super::state::{OAuthCallbackCode};
+use super::state::OAuthCallbackCode;
 use super::supabase::ExchangeOAuthCode;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
@@ -26,7 +27,7 @@ use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
-use tower_cookies::{CookieManagerLayer, Cookies};
+use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
 use tower_http::trace::TraceLayer;
 
 pub fn get_router(state: AppState) -> Router {
@@ -92,15 +93,14 @@ async fn get_oauth_signin(
             "https://citadels.fly.dev"
         }
     );
-    let (code, verifier) = crate::server::state::generate_pkce_pair();
 
-    // TODO: fixme
-    let session_id = cookies.get("session_id").unwrap();
-    let session_id = session_id.value();
-    app.oauth_code_challenges
-        .write()
-        .await
-        .insert(SessionId::new(session_id), verifier);
+    let (code, verifier) = crate::server::state::generate_pkce_pair();
+    cookies.add(auth::cookie(
+        "code_verifier",
+        verifier,
+        time::Duration::minutes(10),
+    ));
+
     let url = format!(
         "{}/auth/v1/authorize?provider={}&redirect_to={}&code_challenge={}&code_challenge_method=s256",
         app.supabase.url,
@@ -114,32 +114,26 @@ async fn get_oauth_signin(
 
 async fn get_oauth_callback(
     app: State<AppState>,
+    cookies: Cookies,
     session_id: SessionId,
     body: Query<OAuthCallbackCode>,
 ) -> Result<Response, AnyhowError> {
-    log::info!(
-        "code:{:#?}\nmap:{:#?}",
-        body.code,
-        app.oauth_code_challenges.read().await
-    );
-    if let Some(code_verifier) = app.oauth_code_challenges.read().await.get(&session_id) {
+    if let Some(mut cookie) = cookies.get("code_verifier") {
         let response = app
             .supabase
             .exchange_code_for_session(ExchangeOAuthCode {
-                auth_code: body.code.clone(),
-                code_verifier: code_verifier.clone(),
+                auth_code: &body.code,
+                code_verifier: cookie.value(),
             })
             .await?;
-
         app.add_session(session_id, response).await;
+        cookie.make_removal();
     } else {
-        log::error!("no code verifier")
-    }
+        log::error!("no code verifier");
+        return Ok((Redirect::to("/login")).into_response());
+    };
 
-    Ok(("TODO").into_response())
-
-    //cookies = app.add_session(cookies, body.0).await;
-    //Ok((cookies, Redirect::to("/lobby")).into_response())
+    Ok((Redirect::to("/lobby")).into_response())
 }
 
 async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {
@@ -617,14 +611,15 @@ impl IntoResponse for AnyhowError {
     fn into_response(self) -> Response {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!(
-                "Internal Server Error\n{}",
-                if cfg!(feature = "dev") {
-                    self.0
-                } else {
-                    anyhow::anyhow!("")
-                }
-            ),
+            if cfg!(feature = "dev") {
+                Cow::Owned(format!(
+                    "Internal Server Error\n{}\n{}",
+                    self.0,
+                    self.0.backtrace()
+                ))
+            } else {
+                Cow::Borrowed("Internal Server Error")
+            },
         )
             .into_response()
     }

@@ -24,7 +24,7 @@ impl SupabaseAnonClient {
     }
     pub async fn exchange_code_for_session(
         &self,
-        body: ExchangeOAuthCode,
+        body: ExchangeOAuthCode<'_>,
     ) -> anyhow::Result<DiscordSigninResponse> {
         let response: Response = self
             .client
@@ -36,11 +36,8 @@ impl SupabaseAnonClient {
             .await?;
 
         let body = response.bytes().await?;
-        log::info!("{}", String::from_utf8(body.to_vec())?);
-        std::fs::write("sample.json", body.clone())?;
         let json = serde_json::from_slice::<SupabaseResponse<DiscordSigninResponse>>(&body)?;
-
-        let json: Result<_, _> = json.into();
+        let json: Result<DiscordSigninResponse, _> = json.into();
         let json = json?;
         Ok(json)
     }
@@ -76,19 +73,9 @@ impl SupabaseAnonClient {
 /* DTOS */
 
 #[derive(Debug, Serialize)]
-pub struct ExchangeOAuthCode {
-    pub auth_code: OAuthCode,
-    pub code_verifier: OAuthCodeVerifier,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct JwtClaims {
-    pub user_metadata: UserMetadata,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct UserMetadata {
-    pub full_name: String,
+pub struct ExchangeOAuthCode<'a> {
+    pub auth_code: &'a str,
+    pub code_verifier: &'a str,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -108,16 +95,24 @@ pub struct DiscordSigninResponse {
     pub refresh_token: RefreshToken,
     pub expires_in: u64,
     pub user: SupabaseUser,
-    pub user_metadata: serde_json::Value,
-    //pub user_metadata: DiscordUserMetadata,
 }
-
-#[derive(Deserialize, Debug)]
-pub struct DiscordUserMetadata {}
 
 #[derive(Deserialize, Debug)]
 pub struct SupabaseUser {
     pub id: UserId,
+    pub user_metadata: UserMetadata,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct UserMetadata {
+    pub full_name: String,
+    pub custom_claims: CustomClaims,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum CustomClaims {
+    DiscordClaims { global_name: String },
 }
 
 /* Supabase utility types */

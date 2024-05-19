@@ -96,7 +96,7 @@ mod tags {
 
     impl Tag for SessionId {
         const NAME: &'static str = "session_id";
-        const SECRET: bool = true;
+        const SECRET: bool = false;
     }
 
     impl Tag for AccessToken {
