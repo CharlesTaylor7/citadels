@@ -1,8 +1,10 @@
+use super::auth::JwtDecoder;
 use super::ws::WebSockets;
 use crate::server::supabase::SupabaseAnonClient;
 use crate::strings::UserName;
 use crate::strings::{AccessToken, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
+use anyhow::anyhow;
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use tower_cookies::Cookies;
@@ -11,23 +13,25 @@ fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
     Arc::new(std::sync::Mutex::new(item))
 }
 
-struct SessionInfo {
-    pub user_id: UserId,
-    pub access_token: AccessToken,
-    pub refresh_token: RefreshToken,
-    pub expires_in: u64,
-}
-
 #[derive(Default, Clone)]
 pub struct AppState {
-    pub lobby: Arc<std::sync::Mutex<Lobby>>,
-    pub game: Arc<std::sync::Mutex<Option<Game>>>,
+    // TODO: remove these
+    pub lobby: Arc<Mutex<Lobby>>,
+    pub game: Arc<Mutex<Option<Game>>>,
+    // inherently stateless
+    pub jwt_decoder: JwtDecoder,
     pub supabase: SupabaseAnonClient,
+    // stateful, but transient
     pub ws_connections: Arc<Mutex<WebSockets>>,
 }
 
 impl AppState {
     pub async fn user_id(&self, cookies: Cookies) -> anyhow::Result<UserId> {
+        let cookie = cookies
+            .get("access_token")
+            .ok_or(anyhow!("no jwt cookie"))?;
+        let decoded = self.jwt_decoder.decode(cookie.value());
+
         anyhow::bail!("TODO: app.user_id()")
     }
     pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {

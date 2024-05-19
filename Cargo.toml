@@ -42,6 +42,8 @@ percent-encoding = "2.3.1"
 pkce = { path = "./vendor/pkce" }
 tower-service = "0.3.2"
 async-trait = "0.1.80"
+jsonwebtoken = { version = "9.3.0", default-features = false }
+getrandom = { version = "0.2.11", default-features = false }
 
 [features]
 dev = []
