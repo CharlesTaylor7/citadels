@@ -1,8 +1,8 @@
-use crate::strings::{AccessToken, RefreshToken, UserId};
+use crate::strings::{RefreshToken, UserId};
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, env};
+use std::env;
 use thiserror::Error;
 
 use super::state::Signin;
@@ -12,6 +12,11 @@ pub struct SupabaseAnonClient {
     pub client: reqwest::Client,
     pub url: ArcStr,
     pub api_key: ArcStr,
+}
+impl Default for SupabaseAnonClient {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SupabaseAnonClient {
@@ -25,7 +30,7 @@ impl SupabaseAnonClient {
     pub async fn exchange_code_for_session(
         &self,
         body: ExchangeOAuthCode<'_>,
-    ) -> anyhow::Result<DiscordSigninResponse> {
+    ) -> anyhow::Result<OAuthSigninResponse> {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=pkce", self.url))
@@ -36,13 +41,13 @@ impl SupabaseAnonClient {
             .await?;
 
         let body = response.bytes().await?;
-        let json = serde_json::from_slice::<SupabaseResponse<DiscordSigninResponse>>(&body)?;
-        let json: Result<DiscordSigninResponse, _> = json.into();
+        let json = serde_json::from_slice::<SupabaseResponse<OAuthSigninResponse>>(&body)?;
+        let json: Result<OAuthSigninResponse, _> = json.into();
         let json = json?;
         Ok(json)
     }
 
-    pub async fn refresh(&self, refresh_token: RefreshToken) -> anyhow::Result<Signin> {
+    pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<Signin> {
         let data = self
             .client
             .post(&format!(
@@ -59,7 +64,7 @@ impl SupabaseAnonClient {
         Ok(data)
     }
 
-    pub async fn logout(&self, access_token: &AccessToken) -> anyhow::Result<()> {
+    pub async fn logout(&self, access_token: &str) -> anyhow::Result<()> {
         self.client
             .post(&format!("{}/auth/v1/logout", self.url))
             .header("apikey", self.api_key.as_str())
@@ -70,31 +75,25 @@ impl SupabaseAnonClient {
         Ok(())
     }
 }
-/* DTOS */
 
+/* DTOS */
 #[derive(Debug, Serialize)]
 pub struct ExchangeOAuthCode<'a> {
     pub auth_code: &'a str,
     pub code_verifier: &'a str,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct EmailCreds<'a> {
-    pub email: Cow<'a, str>,
-    pub password: Cow<'a, str>,
-}
-
 #[derive(Serialize)]
-pub struct RefreshTokenBody {
-    refresh_token: RefreshToken,
+pub struct RefreshTokenBody<'a> {
+    refresh_token: &'a str,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct DiscordSigninResponse {
-    pub access_token: AccessToken,
-    pub refresh_token: RefreshToken,
-    pub expires_in: u64,
+pub struct OAuthSigninResponse {
+    pub access_token: String,
+    pub refresh_token: String,
     pub user: SupabaseUser,
+    pub expires_in: u32,
 }
 
 #[derive(Deserialize, Debug)]

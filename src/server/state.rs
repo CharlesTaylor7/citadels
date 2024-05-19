@@ -1,89 +1,46 @@
-use super::supabase::DiscordSigninResponse;
 use super::ws::WebSockets;
 use crate::server::supabase::SupabaseAnonClient;
-use crate::server::ws;
 use crate::strings::UserName;
 use crate::strings::{AccessToken, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
 use serde::Deserialize;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tokio::sync::RwLock;
 use tower_cookies::Cookies;
 
 fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
     Arc::new(std::sync::Mutex::new(item))
 }
 
-pub struct SessionInfo {
+struct SessionInfo {
     pub user_id: UserId,
     pub access_token: AccessToken,
     pub refresh_token: RefreshToken,
     pub expires_in: u64,
 }
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct AppState {
     pub lobby: Arc<std::sync::Mutex<Lobby>>,
     pub game: Arc<std::sync::Mutex<Option<Game>>>,
     pub supabase: SupabaseAnonClient,
-    pub logged_in: Arc<RwLock<HashMap<SessionId, UserSession>>>,
     pub ws_connections: Arc<Mutex<WebSockets>>,
 }
 
-impl Default for AppState {
-    fn default() -> Self {
-        Self {
-            lobby: new_arc_mutex(Lobby::default()),
-            game: new_arc_mutex(None),
-            supabase: SupabaseAnonClient::new(),
-            logged_in: Arc::new(RwLock::new(HashMap::default())),
-            ws_connections: Arc::new(Mutex::new(ws::WebSockets::default())),
-        }
-    }
-}
-
 impl AppState {
-    pub async fn session(&self, cookies: &Cookies) -> Option<UserSession> {
-        let session_id = cookies.get("session_id")?;
-        self.logged_in
-            .read()
-            .await
-            .get(&SessionId::new(session_id.value()))
-            .cloned()
+    pub async fn user_id(&self, cookies: Cookies) -> anyhow::Result<UserId> {
+        anyhow::bail!("TODO: app.user_id()")
     }
+    pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {
+        if let Some(mut access_token) = cookies.get("access_token") {
+            self.supabase.logout(access_token.value()).await?;
+            access_token.make_removal();
+        }
 
-    pub async fn logout(&self, cookies: &Cookies) -> anyhow::Result<()> {
-        let session_id = cookies
-            .get("session_id")
-            .ok_or(anyhow::anyhow!("not actually logged in"))?;
-        let session_id = SessionId::new(session_id.value());
-        let mut lock = self.logged_in.write().await;
-        let session = lock
-            .remove(&session_id)
-            .ok_or(anyhow::anyhow!("lost track of session"))?;
-        drop(lock);
+        if let Some(mut refresh_token) = cookies.get("refresh_token") {
+            refresh_token.make_removal();
+        }
 
-        self.supabase.logout(&session.access_token).await?;
-        self.ws_connections
-            .lock()
-            .unwrap()
-            .0
-            .remove(&session.user_id);
         Ok(())
-    }
-
-    pub async fn add_session(&self, session_id: SessionId, signin: DiscordSigninResponse) {
-        let session = UserSession {
-            access_token: signin.access_token,
-            refresh_token: signin.refresh_token,
-            username: None,
-            user_id: signin.user.id,
-        };
-        self.logged_in
-            .write()
-            .await
-            .insert(session_id.clone(), session.clone());
     }
 }
 

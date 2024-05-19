@@ -115,35 +115,38 @@ async fn get_oauth_signin(
 async fn get_oauth_callback(
     app: State<AppState>,
     cookies: Cookies,
-    session_id: SessionId,
     body: Query<OAuthCallbackCode>,
 ) -> Result<Response, AnyhowError> {
-    if let Some(mut cookie) = cookies.get("code_verifier") {
+    if let Some(mut verifier_cookie) = cookies.get("code_verifier") {
         let response = app
             .supabase
             .exchange_code_for_session(ExchangeOAuthCode {
                 auth_code: &body.code,
-                code_verifier: cookie.value(),
+                code_verifier: verifier_cookie.value(),
             })
             .await?;
-        app.add_session(session_id, response).await;
-        cookie.make_removal();
+        verifier_cookie.make_removal();
+        cookies.add(auth::cookie(
+            "access_token",
+            response.access_token,
+            time::Duration::seconds(response.expires_in.into()),
+        ));
+        cookies.add(auth::cookie(
+            "refresh_token",
+            response.refresh_token,
+            time::Duration::WEEK,
+        ));
+        Ok((Redirect::to("/lobby")).into_response())
     } else {
         log::error!("no code verifier");
-        return Ok((Redirect::to("/login")).into_response());
-    };
-
-    Ok((Redirect::to("/lobby")).into_response())
+        Ok((Redirect::to("/login")).into_response())
+    }
 }
 
 async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {
-    let session = app.session(&cookies).await;
-    if let Some(session) = session {
-        app.supabase.logout(&session.access_token).await?;
-        Ok(().into_response())
-    } else {
-        Ok((StatusCode::BAD_REQUEST, "not logged in").into_response())
-    }
+    app.logout(cookies).await?;
+
+    Ok(().into_response())
 }
 
 async fn get_lobby(app: State<AppState>) -> impl IntoResponse {
@@ -311,22 +314,24 @@ async fn get_game(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse
     */
 }
 
-async fn get_game_actions(
-    app: State<AppState>,
-    cookies: Cookies,
-) -> Result<Html<String>, ErrorResponse> {
+async fn get_game_actions(app: State<AppState>, cookies: Cookies) -> AppResponse {
+    Ok(().into_response())
+    /*
     let user_id = app.session(&cookies).await.map(|s| s.user_id);
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
 
     MenuTemplate::from(game, user_id).to_html()
+    */
 }
 
 async fn get_game_city(
     app: State<AppState>,
     cookies: Cookies,
     path: Path<UserName>,
-) -> Result<Html<String>, ErrorResponse> {
+) -> AppResponse {
+    Ok(().into_response())
+    /*
     let session = app.session(&cookies).await;
     let game = app.game.lock().unwrap();
     if let Some(game) = game.as_ref() {
@@ -339,6 +344,7 @@ async fn get_game_city(
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
+    */
 }
 
 async fn get_ws(
@@ -346,6 +352,8 @@ async fn get_ws(
     cookies: Cookies,
     ws: WebSocketUpgrade,
 ) -> impl IntoResponse {
+    "TODO"
+    /*
     if let Some(session) = state.session(&cookies).await {
         ws.on_upgrade(move |socket| {
             crate::server::ws::handle_socket(state, session.user_id, socket)
@@ -354,6 +362,7 @@ async fn get_ws(
     } else {
         StatusCode::BAD_REQUEST.into_response()
     }
+    */
 }
 
 fn form_feedback(err: Cow<'static, str>) -> ErrorResponse {
@@ -370,12 +379,11 @@ async fn submit_game_action(
     cookies: Cookies,
     action: axum::Json<ActionSubmission>,
 ) -> Result<Response, ErrorResponse> {
-    let session = if let Some(session) = app.session(&cookies).await {
-        session
+    let user_id = if let Ok(user_id) = app.user_id(cookies).await {
+        user_id
     } else {
         Err(AnyhowError(anyhow::anyhow!("not logged").into()).into_response())?
     };
-    let user_id = session.user_id;
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started")?;
     log::info!("{:#?}", action.0);
@@ -525,13 +533,13 @@ async fn get_game_menu(
     cookies: Cookies,
     path: Path<String>,
 ) -> Result<Response> {
-    let session = app.session(&cookies).await.ok_or("missing cookie")?;
+    let user_id = app.user_id(cookies).await.map_err(AnyhowError)?;
     let mut game = app.game.lock().unwrap();
-    let game = game.as_mut().ok_or("game hasn't started")?;
+    let game = game.as_mut().ok_or("game hasn't started".into_response())?;
 
     let active_player = game.active_player()?;
 
-    if session.user_id != active_player.id {
+    if user_id != active_player.id {
         return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
     }
 
