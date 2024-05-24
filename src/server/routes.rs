@@ -1,4 +1,5 @@
 use super::auth;
+use super::errors::{AnyhowError, AnyhowResponse, AppError};
 use super::middleware::SessionCookieLayer;
 use super::supabase::ExchangeOAuthCode;
 use crate::actions::{ActionSubmission, ActionTag};
@@ -70,13 +71,13 @@ async fn get_index() -> Result<Response, AnyhowError> {
 }
 
 async fn get_version() -> impl IntoResponse {
-    return (
-        [("Content-Type", "text/html")],
-        std::env::var("GIT_SHA")
-            .map_or(Cow::Borrowed("github.com/CharlesTaylor7/citadels"), |sha| {
-                format!("github.com/CharlesTaylor7/citadels/commit/{sha}").into()
-            }),
-    );
+    let commit = std::env::var("GIT_SHA").map_or("main".into(), Cow::Owned);
+
+    maud::html!(
+        a href={"https://github.com/CharlesTaylor7/citadels/tree/" (commit)} {
+            "Github"
+        }
+    )
 }
 
 async fn get_login(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
@@ -87,7 +88,7 @@ async fn get_oauth_signin(
     app: State<AppState>,
     body: Query<OAuthProvider>,
     cookies: Cookies,
-) -> Result<Response, AnyhowError> {
+) -> impl IntoResponse {
     let redirect_url = format!(
         "{}/oauth/callback",
         if cfg!(feature = "dev") {
@@ -111,8 +112,10 @@ async fn get_oauth_signin(
         utf8_percent_encode(&redirect_url, percent_encoding::NON_ALPHANUMERIC),
         utf8_percent_encode(code.as_str(), percent_encoding::NON_ALPHANUMERIC),
     );
-
-    Ok([(header::REFRESH, format!("0;url={}", url))].into_response())
+    // Workaround:
+    // Chrome does not honor Set-Cookie headers when they are attached to 302 Redirects.
+    // So instead we return a 200 Ok with a Refresh header.
+    [(header::REFRESH, format!("0;url={}", url))]
 }
 
 async fn get_oauth_callback(
@@ -146,7 +149,7 @@ async fn get_oauth_callback(
     }
 }
 
-async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {
+async fn post_logout(app: State<AppState>, cookies: Cookies) -> AnyhowResponse {
     app.logout(cookies).await?;
 
     Ok(().into_response())
@@ -317,7 +320,7 @@ async fn get_game(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse
     */
 }
 
-async fn get_game_actions(app: State<AppState>, cookies: Cookies) -> AppResponse {
+async fn get_game_actions(app: State<AppState>, cookies: Cookies) -> AnyhowResponse {
     Ok(().into_response())
     /*
     let user_id = app.session(&cookies).await.map(|s| s.user_id);
@@ -332,7 +335,7 @@ async fn get_game_city(
     app: State<AppState>,
     cookies: Cookies,
     path: Path<UserName>,
-) -> AppResponse {
+) -> AnyhowResponse {
     Ok(().into_response())
     /*
     let session = app.session(&cookies).await;
@@ -614,40 +617,4 @@ struct OAuthProvider {
 #[derive(Deserialize)]
 struct OAuthCallbackCode {
     pub code: String,
-}
-
-/* Utility Types */
-type AppResponse = Result<Response, AnyhowError>;
-
-// Make our own error that wraps `anyhow::Error`.
-struct AnyhowError(anyhow::Error);
-
-// Tell axum how to convert `AppError` into a response.
-impl IntoResponse for AnyhowError {
-    fn into_response(self) -> Response {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            if cfg!(feature = "dev") {
-                Cow::Owned(format!(
-                    "Internal Server Error\n{}\n{}",
-                    self.0,
-                    self.0.backtrace()
-                ))
-            } else {
-                Cow::Borrowed("Internal Server Error")
-            },
-        )
-            .into_response()
-    }
-}
-
-// This enables using `?` on functions that return `Result<_, anyhow::Error>` to turn them into
-// `Result<_, AppError>`. That way you don't need to do that manually.
-impl<E> From<E> for AnyhowError
-where
-    E: Into<anyhow::Error>,
-{
-    fn from(err: E) -> Self {
-        Self(err.into())
-    }
 }

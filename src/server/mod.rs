@@ -1,7 +1,9 @@
 pub mod auth;
+pub mod errors;
 pub mod extract;
 pub mod middleware;
 pub mod postgres;
+pub mod response;
 pub mod routes;
 pub mod state;
 pub mod supabase;
