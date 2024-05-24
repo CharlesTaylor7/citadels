@@ -5,10 +5,13 @@ procs:
   Supabase:
     shell: supabase start
 
-  Tailwind:
-    shell: tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
-    autostart: true
+  Supabase DB Reset:
+    shell: supabase db reset
+    autostart: false
 
   Docs:
     shell: cargo doc --offline --lib --open
     autostart: false
+
+  Tailwind:
+    shell: tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
