@@ -3,7 +3,7 @@ procs:
     shell: GIT_SHA=main RUST_BACKTRACE=1 cargo watch --features="dev,dotenv" -c -x run
 
   Supabase:
-    shell: supabase stop && supabase start
+    shell: supabase start
 
   Tailwind:
     shell: tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
