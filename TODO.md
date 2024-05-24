@@ -1,7 +1,6 @@
 ## Work
 - [ ] signin via Supabase
-    - [x] email
-    - [ ] discord
+    - [x] discord
 - [ ] Game host with elevated permissions
 - [ ] Multi room support
 - [ ] Optimize binary size (After removing all panics)

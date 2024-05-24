@@ -53,6 +53,8 @@ function mimeType(fileName) {
       return "image/jpeg";
     case ".jpg":
       return "image/jpeg";
+    case ".svg":
+      return "image/svg+xml";
     case ".pdf":
       return "application/pdf";
     case ".js":
