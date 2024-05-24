@@ -3,7 +3,7 @@ This is a web app for playing the card game [Citadels](https://boardgamegeek.com
 
 ## Releases & monitoring
 Github handles publishing a docker image on every push to `main`.  
-Deployments are done manually with the `deploy.sh` script.
+Deployments are done manually with the `deploy/run.sh` script.
 This is because the services are not yet stateless, and I don't want to disrupt ongoing games with a deploy.
 
 Monitor the app on these dashboards: 

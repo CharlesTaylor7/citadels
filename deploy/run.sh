@@ -1,6 +1,8 @@
 set -eo pipefail
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2> /dev/null)
+echo "Deploying branch: $BRANCH"
+
 
 # load .env for supabase env vars
 export $(cat .env | xargs)
