@@ -6,12 +6,9 @@ use crate::strings::{AccessToken, RefreshToken, SessionId, UserId};
 use crate::{game::Game, lobby::Lobby};
 use anyhow::anyhow;
 use serde::Deserialize;
+use sqlx::postgres::PgConnectOptions;
 use std::sync::{Arc, Mutex};
 use tower_cookies::Cookies;
-
-fn new_arc_mutex<T>(item: T) -> Arc<std::sync::Mutex<T>> {
-    Arc::new(std::sync::Mutex::new(item))
-}
 
 #[derive(Default, Clone)]
 pub struct AppState {
@@ -48,59 +45,8 @@ impl AppState {
     }
 }
 
-#[derive(Clone)]
-pub struct UserSession {
-    pub username: Option<UserName>,
-    pub user_id: UserId,
-    pub access_token: AccessToken,
-    pub refresh_token: RefreshToken,
-}
-
-impl UserSession {
-    pub fn update(&mut self, response: Signin) {
-        self.access_token = response.access_token;
-        self.refresh_token = response.refresh_token;
-    }
-}
-
 pub fn generate_pkce_pair() -> (String, String) {
     let code_verifier = pkce::code_verifier();
     let code_challenge = pkce::code_challenge(&code_verifier);
     ((code_challenge), (code_verifier))
-}
-/*
-pub type Claims = serde_json::Value;
-
-pub struct JwtDecoder {
-    pub secret: jsonwebtoken::DecodingKey,
-    pub validation: jsonwebtoken::Validation,
-}
-
-impl JwtDecoder {
-    pub fn new() -> Self {
-        let mut validation = jsonwebtoken::Validation::new(Algorithm::HS256);
-        validation.set_audience(&["authenticated"]);
-        Self {
-            validation,
-            secret: DecodingKey::from_secret(env::var("SUPABASE_JWT_SECRET").unwrap().as_ref()),
-        }
-    }
-
-    pub fn decode(&self, jwt: &str) -> anyhow::Result<Claims> {
-        let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret, &self.validation)?;
-        Ok(token.claims)
-    }
-}
-*/
-
-/* DTOs */
-#[derive(Deserialize)]
-pub struct OAuthCallbackCode {
-    pub code: String,
-}
-#[derive(Deserialize)]
-pub struct Signin {
-    pub access_token: AccessToken,
-    pub refresh_token: RefreshToken,
-    pub expires_in: u64,
 }

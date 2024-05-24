@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use thiserror::Error;
 
-use super::state::Signin;
+//use super::state::Signin;
 
 #[derive(Clone, Debug)]
 pub struct SupabaseAnonClient {
@@ -47,7 +47,7 @@ impl SupabaseAnonClient {
         Ok(json)
     }
 
-    pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<Signin> {
+    pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<OAuthSigninResponse> {
         let data = self
             .client
             .post(&format!(

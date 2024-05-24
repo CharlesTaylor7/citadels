@@ -1,6 +1,5 @@
 use super::auth;
 use super::middleware::SessionCookieLayer;
-use super::state::OAuthCallbackCode;
 use super::supabase::ExchangeOAuthCode;
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
@@ -54,7 +53,10 @@ pub fn get_router(state: AppState) -> Router {
     #[cfg(feature = "dev")]
     {
         use tower_http::services::ServeDir;
-        router = router.nest_service("/public", ServeDir::new("public"));
+        use tower_livereload::LiveReloadLayer;
+        router = router
+            .nest_service("/public", ServeDir::new("public"))
+            .layer(LiveReloadLayer::new());
     }
 
     router
@@ -68,11 +70,13 @@ async fn get_index() -> Result<Response, AnyhowError> {
 }
 
 async fn get_version() -> impl IntoResponse {
-    std::env::var("GIT_SHA")
-        .map_or(Cow::Borrowed("github.com/CharlesTaylor7/citadels"), |sha| {
-            format!("github.com/CharlesTaylor7/citadels/commit/{sha}").into()
-        })
-        .into_response()
+    return (
+        [("Content-Type", "text/html")],
+        std::env::var("GIT_SHA")
+            .map_or(Cow::Borrowed("github.com/CharlesTaylor7/citadels"), |sha| {
+                format!("github.com/CharlesTaylor7/citadels/commit/{sha}").into()
+            }),
+    );
 }
 
 async fn get_login(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
@@ -605,6 +609,11 @@ async fn get_game_menu(
 #[derive(Deserialize)]
 struct OAuthProvider {
     provider: String,
+}
+
+#[derive(Deserialize)]
+struct OAuthCallbackCode {
+    pub code: String,
 }
 
 /* Utility Types */

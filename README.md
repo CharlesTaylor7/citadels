@@ -10,7 +10,7 @@ Monitor the app on these dashboards:
 - https://fly.io/apps/citadels/
 - https://supabase.com/dashboard/project/ryvsflpspddwwacxrnst
 
-Fly.io hosts and runs the Rust axum server as a docker image.
+Fly.io hosts and runs the Rust server as a docker image.
 Supabase is used for:
 - auth
 - cdn for static assets
