@@ -4,6 +4,7 @@ use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::env;
 use thiserror::Error;
+use tower_cookies::Cookies;
 
 #[derive(Clone, Debug)]
 pub struct SupabaseClient {
@@ -27,10 +28,33 @@ impl SupabaseClient {
     pub fn service(&self) -> SupabaseServiceClient {
         SupabaseServiceClient::new(self)
     }
+
+    pub fn user(&self, cookies: &'a Cookies) -> anyhow::Result<SupabaseUserClient<'a>> {
+        let cookie = cookies
+            .get("access_token")
+            .ok_or(anyhow::anyhow!("not logged in"))?;
+        Ok(SupabaseUserClient::new(self, cookie.value()))
+    }
 }
 
 /// Make requests with elevated permissions
-#[derive(Clone, Debug)]
+pub struct SupabaseUserClient<'a> {
+    client: reqwest::Client,
+    url: ArcStr,
+    access_token: &'a str,
+}
+
+impl<'a> SupabaseUserClient<'a> {
+    fn new(supabase: &SupabaseClient, access_token: &'a str) -> Self {
+        Self {
+            client: supabase.client.clone(),
+            url: supabase.url.clone(),
+            access_token,
+        }
+    }
+}
+
+/// Make requests with elevated permissions
 pub struct SupabaseServiceClient {
     client: reqwest::Client,
     url: ArcStr,
@@ -47,7 +71,6 @@ impl SupabaseServiceClient {
     }
 }
 
-#[derive(Clone, Debug)]
 pub struct SupabaseAnonClient {
     client: reqwest::Client,
     url: ArcStr,

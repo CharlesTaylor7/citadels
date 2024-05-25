@@ -12,6 +12,7 @@ pub fn cookie<'a>(
     duration: Duration,
 ) -> Cookie<'a> {
     let mut cookie = Cookie::build((name, value))
+        .path("/")
         .max_age(duration)
         .http_only(true);
 

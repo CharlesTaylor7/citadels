@@ -29,7 +29,8 @@ use rand_core::SeedableRng;
 use serde::Deserialize;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
-use tower_cookies::{CookieManagerLayer, Cookies};
+use time::Duration;
+use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
 
 pub fn get_router(state: AppState) -> Router {
     let mut router = Router::new()
@@ -134,6 +135,7 @@ async fn get_oauth_callback(
     body: Query<OAuthCallbackCode>,
 ) -> AppResponse {
     if let Some(mut verifier_cookie) = cookies.get("code_verifier") {
+        let name = verifier_cookie.name().to_owned();
         let response = app
             .supabase
             .anon()
@@ -142,7 +144,9 @@ async fn get_oauth_callback(
                 code_verifier: verifier_cookie.value(),
             })
             .await?;
-        verifier_cookie.make_removal();
+        //let clone: Cookie<'static> = verifier_cookie.to_owned();
+        //verifier_cookie.make_removal();
+        cookies.add(auth::cookie(name, "", Duration::ZERO));
         cookies.add(auth::cookie(
             "access_token",
             response.access_token,
@@ -153,12 +157,15 @@ async fn get_oauth_callback(
             response.refresh_token,
             time::Duration::WEEK,
         ));
-        let profile = storage::profile(response.user.id).await;
-        if profile.is_none() {
-            response::ok(Redirect::to("/profile"))
+
+        let url = if storage::profile(response.user.id).await.is_none() {
+            "/profile"
         } else {
-            response::ok(Redirect::to("/lobby"))
-        }
+            "/lobby"
+        };
+
+        //response::ok(())
+        response::ok([(header::REFRESH, format!("0;url={}", url))])
     } else {
         log::error!("no code verifier");
         response::ok(Redirect::to("/login"))
