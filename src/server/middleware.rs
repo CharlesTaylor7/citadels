@@ -1,29 +1,30 @@
+use crate::server::auth;
+use futures::Future;
 use http::{Request, Response};
+use rename_future::rename_future;
 use std::task::{Context, Poll};
 use tower_cookies::Cookies;
 use tower_layer::Layer;
 use tower_service::Service;
 
-use crate::server::auth;
-
 #[derive(Clone)]
-pub struct SessionCookie<S> {
+pub struct LoggedInService<S> {
     inner: S,
 }
 
-impl<S> SessionCookie<S> {
+impl<S> LoggedInService<S> {
     pub fn new(inner: S) -> Self {
         Self { inner }
     }
 }
 
-impl<ReqBody, ResBody, S> Service<Request<ReqBody>> for SessionCookie<S>
+impl<ReqBody, ResBody, S> Service<Request<ReqBody>> for LoggedInService<S>
 where
     S: Service<Request<ReqBody>, Response = Response<ResBody>>,
 {
     type Response = S::Response;
     type Error = S::Error;
-    type Future = S::Future;
+    type Future = LoginServiceFuture;
 
     #[inline]
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -32,32 +33,34 @@ where
 
     fn call(&mut self, req: Request<ReqBody>) -> Self::Future {
         if let Some(cookies) = req.extensions().get::<Cookies>() {
-            if cookies.get("session_id").is_none() {
-                let session_id = uuid::Uuid::new_v4().simple().to_string();
-                log::info!("Setting new session cookie:\n{}", session_id);
-                cookies.add(auth::cookie("session_id", session_id, time::Duration::WEEK));
-            }
+            log::info!("TODO: LoggedIn middleware")
         }
 
-        self.inner.call(req)
+        //self.inner.call(req)
+        require_logged_in()
     }
 }
 
+#[rename_future(LoginServiceFuture)]
+async fn require_logged_in() -> Result<ResponseBody {
+    return 3;
+}
+
 #[derive(Clone)]
-pub struct SessionCookieLayer {
+pub struct LoggedInLayer {
     _private: (),
 }
 
-impl SessionCookieLayer {
+impl LoggedInLayer {
     pub fn new() -> Self {
         Self { _private: () }
     }
 }
 
-impl<S> Layer<S> for SessionCookieLayer {
-    type Service = SessionCookie<S>;
+impl<S> Layer<S> for LoggedInLayer {
+    type Service = LoggedInService<S>;
 
     fn layer(&self, inner: S) -> Self::Service {
-        SessionCookie { inner }
+        LoggedInService { inner }
     }
 }

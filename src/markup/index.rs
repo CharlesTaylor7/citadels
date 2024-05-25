@@ -6,6 +6,7 @@ pub fn page() -> Markup {
         html!(),
         html! {
             (base::nav(false))
+
         },
     )
 }

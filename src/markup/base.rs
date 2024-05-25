@@ -38,6 +38,12 @@ pub fn nav(_logged_in: bool) -> Markup {
               "Lobby"
              }
           }
+
+          li {
+             a href="/profile" {
+              "Profile"
+             }
+          }
           li {
              a href=(asset("rulebook.pdf")) target="_blank" {
               "Rules"
@@ -87,4 +93,8 @@ pub fn asset(path: &str) -> String {
             env::var("SUPABASE_PROJECT_URL").unwrap()
         )
     }
+}
+
+pub fn postgrest(path: &str) -> String {
+    format!("{}/{path}", env::var("SUPABASE_PROJECT_URL").unwrap())
 }

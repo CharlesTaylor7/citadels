@@ -1,4 +1,5 @@
 use super::auth::JwtDecoder;
+use super::models::SupabaseUser;
 use super::supabase::SupabaseClient;
 use super::ws::WebSockets;
 use crate::server::supabase::SupabaseAnonClient;
@@ -24,14 +25,21 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub async fn user_id(&self, cookies: Cookies) -> anyhow::Result<UserId> {
+    /// Decode the signed in user's JWT and verify their claims
+    pub fn user_claims(&self, cookies: &Cookies) -> anyhow::Result<SupabaseUser> {
         let cookie = cookies
             .get("access_token")
-            .ok_or(anyhow!("no jwt cookie"))?;
+            .ok_or(anyhow!("not logged in"))?;
         let decoded = self.jwt_decoder.decode(cookie.value());
+        log::info!("Claims {:#?}", decoded);
 
         anyhow::bail!("TODO: app.user_id()")
     }
+
+    pub fn user_id(&self, cookies: &Cookies) -> anyhow::Result<UserId> {
+        Ok(self.user_claims(cookies)?.id)
+    }
+
     pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {
         if let Some(mut access_token) = cookies.get("access_token") {
             self.supabase.anon().logout(access_token.value()).await?;

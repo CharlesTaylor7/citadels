@@ -329,6 +329,7 @@ dependencies = [
  "rand",
  "rand_core",
  "rand_xoshiro",
+ "rename_future",
  "reqwest",
  "serde",
  "serde_json",
@@ -496,6 +497,12 @@ checksum = "3dca9240753cf90908d7e4aac30f630662b02aebaa1b58a3cadabdb23385b58b"
 dependencies = [
  "serde",
 ]
+
+[[package]]
+name = "elain"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3522094fae7d65c8313a135fe45fa7e22ec2110c9d387063b66d235281f7f771"
 
 [[package]]
 name = "env_logger"
@@ -1299,6 +1306,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "proc_macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1392,6 +1408,14 @@ name = "regex-syntax"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
+
+[[package]]
+name = "rename_future"
+version = "0.1.0"
+dependencies = [
+ "elain",
+ "proc_macro",
+]
 
 [[package]]
 name = "reqwest"

@@ -1,5 +1,5 @@
 use super::errors::{AnyhowError, AnyhowResponse, AppError};
-use super::middleware::SessionCookieLayer;
+use super::middleware::LoggedInLayer;
 use super::response::AppResponse;
 use super::storage::profile;
 use super::supabase::ExchangeOAuthCode;
@@ -34,14 +34,8 @@ use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
 
 pub fn get_router(state: AppState) -> Router {
     let mut router = Router::new()
-        .route("/", get(get_index))
-        .route("/version", get(get_version))
-        .route("/login", get(get_login))
         .route("/profile", get(get_profile))
-        .route("/oauth/signin", get(get_oauth_signin))
-        .route("/oauth/callback", get(get_oauth_callback))
         .route("/oauth/logout", post(post_logout))
-        .route("/lobby", get(get_lobby))
         .route("/lobby/config/districts", get(get_district_config))
         .route("/lobby/config/districts", post(post_district_config))
         .route("/lobby/config/roles", get(get_role_config))
@@ -53,7 +47,14 @@ pub fn get_router(state: AppState) -> Router {
         .route("/game/city/:player_name", get(get_game_city))
         .route("/game", post(start))
         .route("/game/action", post(submit_game_action))
-        .route("/game/menu/:menu", get(get_game_menu));
+        .route("/game/menu/:menu", get(get_game_menu))
+        .layer(LoggedInLayer::new())
+        .route("/", get(get_index))
+        .route("/version", get(get_version))
+        .route("/login", get(get_login))
+        .route("/oauth/signin", get(get_oauth_signin))
+        .route("/oauth/callback", get(get_oauth_callback))
+        .route("/lobby", get(get_lobby));
 
     #[cfg(feature = "dev")]
     {
@@ -64,10 +65,7 @@ pub fn get_router(state: AppState) -> Router {
             .layer(LiveReloadLayer::new());
     }
 
-    router
-        .layer(SessionCookieLayer::new())
-        .layer(CookieManagerLayer::new())
-        .with_state(state)
+    router.layer(CookieManagerLayer::new()).with_state(state)
 }
 
 async fn get_index() -> Result<Response, AnyhowError> {
@@ -84,11 +82,18 @@ async fn get_version() -> impl IntoResponse {
     )
 }
 
-async fn get_profile() -> impl IntoResponse {
-    return markup::profile::page(None);
-    let user_id = todo!();
-    let profile = storage::profile(user_id).await;
-    markup::profile::page(profile)
+async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
+    let profile = state.supabase.user(&cookies)?.profile().await?;
+    let profile = if let Some(profile) = profile {
+        profile
+    } else {
+        let claims = state.user_claims(&cookies)?;
+        claims.user_metadata.default_profile()
+    };
+    //let user_id = todo!();
+    //return markup::profile::page(None);
+    //let profile = storage::profile(user_id).await;
+    response::ok(markup::profile::page(profile))
 }
 
 async fn get_login(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
@@ -407,7 +412,7 @@ async fn submit_game_action(
     cookies: Cookies,
     action: axum::Json<ActionSubmission>,
 ) -> Result<Response, ErrorResponse> {
-    let user_id = if let Ok(user_id) = app.user_id(cookies).await {
+    let user_id = if let Ok(user_id) = app.user_id(&cookies) {
         user_id
     } else {
         Err(AnyhowError(anyhow::anyhow!("not logged").into()).into_response())?
@@ -561,7 +566,7 @@ async fn get_game_menu(
     cookies: Cookies,
     path: Path<String>,
 ) -> Result<Response> {
-    let user_id = app.user_id(cookies).await.map_err(AnyhowError)?;
+    let user_id = app.user_id(&cookies).map_err(AnyhowError)?;
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started".into_response())?;
 

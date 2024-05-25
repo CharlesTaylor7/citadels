@@ -6,6 +6,8 @@ use std::env;
 use thiserror::Error;
 use tower_cookies::Cookies;
 
+use super::models::{Profile, SupabaseUser};
+
 #[derive(Clone, Debug)]
 pub struct SupabaseClient {
     pub client: reqwest::Client,
@@ -29,28 +31,45 @@ impl SupabaseClient {
         SupabaseServiceClient::new(self)
     }
 
-    pub fn user(&self, cookies: &'a Cookies) -> anyhow::Result<SupabaseUserClient<'a>> {
+    pub fn user(&self, cookies: &Cookies) -> anyhow::Result<SupabaseUserClient> {
         let cookie = cookies
             .get("access_token")
             .ok_or(anyhow::anyhow!("not logged in"))?;
-        Ok(SupabaseUserClient::new(self, cookie.value()))
+        Ok(SupabaseUserClient::new(self, cookie.value().into()))
     }
 }
 
 /// Make requests with elevated permissions
-pub struct SupabaseUserClient<'a> {
+pub struct SupabaseUserClient {
     client: reqwest::Client,
     url: ArcStr,
-    access_token: &'a str,
+    access_token: ArcStr,
 }
 
-impl<'a> SupabaseUserClient<'a> {
-    fn new(supabase: &SupabaseClient, access_token: &'a str) -> Self {
+impl<'a> SupabaseUserClient {
+    fn new(supabase: &SupabaseClient, access_token: ArcStr) -> Self {
         Self {
             client: supabase.client.clone(),
             url: supabase.url.clone(),
             access_token,
         }
+    }
+
+    pub async fn profile(&self) -> anyhow::Result<Option<Profile>> {
+        let response: Response = self
+            .client
+            .get(&format!("{}/rest/v1/profiles", self.url))
+            //.header("apikey", self.api_key.as_str())
+            .header("Content-Type", "application/json")
+            //.json(&body)
+            .send()
+            .await?;
+
+        let body = response.bytes().await?;
+        // RLS ensures this list is 0 or 1 items long.
+        let json =
+            serde_json::from_slice::<SupabaseResponse<Vec<Profile>>>(&body)?.into_result()?;
+        Ok(json.into_iter().nth(0))
     }
 }
 
@@ -100,9 +119,8 @@ impl SupabaseAnonClient {
             .await?;
 
         let body = response.bytes().await?;
-        let json = serde_json::from_slice::<SupabaseResponse<OAuthSigninResponse>>(&body)?;
-        let json: Result<OAuthSigninResponse, _> = json.into();
-        let json = json?;
+        let json = serde_json::from_slice::<SupabaseResponse<OAuthSigninResponse>>(&body)?
+            .into_result()?;
         Ok(json)
     }
 
@@ -155,24 +173,6 @@ pub struct OAuthSigninResponse {
     pub expires_in: u32,
 }
 
-#[derive(Deserialize, Debug)]
-pub struct SupabaseUser {
-    pub id: UserId,
-    pub user_metadata: UserMetadata,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct UserMetadata {
-    pub full_name: String,
-    pub custom_claims: CustomClaims,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
-pub enum CustomClaims {
-    DiscordClaims { global_name: String },
-}
-
 /* Supabase utility types */
 #[derive(Deserialize, Debug, Error)]
 #[serde(untagged)]
@@ -196,10 +196,9 @@ pub enum SupabaseResponse<T> {
     Success(T),
     Error(SupabaseError),
 }
-
-impl<T> From<SupabaseResponse<T>> for Result<T, SupabaseError> {
-    fn from(value: SupabaseResponse<T>) -> Self {
-        match value {
+impl<T> SupabaseResponse<T> {
+    fn into_result(self) -> Result<T, SupabaseError> {
+        match self {
             SupabaseResponse::Success(value) => Ok(value),
             SupabaseResponse::Error(value) => Err(value),
         }
