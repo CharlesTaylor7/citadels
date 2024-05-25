@@ -1,7 +1,8 @@
-use crate::server::auth;
+use std::pin::Pin;
+use axum::response::{IntoResponse, Redirect};
 use futures::Future;
+use axum_core::body::Body;
 use http::{Request, Response};
-use rename_future::rename_future;
 use std::task::{Context, Poll};
 use tower_cookies::Cookies;
 use tower_layer::Layer;
@@ -18,13 +19,17 @@ impl<S> LoggedInService<S> {
     }
 }
 
-impl<ReqBody, ResBody, S> Service<Request<ReqBody>> for LoggedInService<S>
+impl<ReqBody, S> Service<Request<ReqBody>> for LoggedInService<S>
 where
-    S: Service<Request<ReqBody>, Response = Response<ResBody>>,
+    S: Service<Request<ReqBody>, Response = Response<Body>>,
 {
-    type Response = S::Response;
+    type Response = Response<Body>;
+    //S::Response;
     type Error = S::Error;
-    type Future = LoginServiceFuture;
+    // waiting for TAIT so that we can just do:
+    // type Future = impl Future
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>; 
+
 
     #[inline]
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -32,19 +37,17 @@ where
     }
 
     fn call(&mut self, req: Request<ReqBody>) -> Self::Future {
-        if let Some(cookies) = req.extensions().get::<Cookies>() {
-            log::info!("TODO: LoggedIn middleware")
-        }
-
-        //self.inner.call(req)
-        require_logged_in()
+        let redirect = req.extensions().get::<Cookies>().and_then(|cookies| cookies.get("access_token")).is_none();
+        Box::pin(async {
+            if redirect {
+                Ok(Redirect::to("/login").into_response())
+            } else {
+                self.inner.call(req).await
+            }
+        })
     }
 }
 
-#[rename_future(LoginServiceFuture)]
-async fn require_logged_in() -> Result<ResponseBody {
-    return 3;
-}
 
 #[derive(Clone)]
 pub struct LoggedInLayer {
