@@ -1,6 +1,7 @@
 use axum::response::{IntoResponse, Response};
 use http::StatusCode;
 use std::borrow::Cow;
+use thiserror::Error;
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
@@ -29,16 +30,16 @@ impl IntoResponse for AppError {
     }
 }
 
-//#[derive(Error)]
 #[derive(Debug)]
 pub enum AppError {
-    Internal {
-        //#[from]
-        error: anyhow::Error,
-    },
-    FormFeedback {
-        message: String,
-    },
+    Internal { error: anyhow::Error },
+    FormFeedback { message: String },
+}
+
+impl From<anyhow::Error> for AppError {
+    fn from(error: anyhow::Error) -> Self {
+        AppError::Internal { error }
+    }
 }
 
 // TODO: Axe this

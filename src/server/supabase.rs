@@ -5,28 +5,64 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use thiserror::Error;
 
-//use super::state::Signin;
-
 #[derive(Clone, Debug)]
-pub struct SupabaseAnonClient {
+pub struct SupabaseClient {
     pub client: reqwest::Client,
     pub url: ArcStr,
-    pub api_key: ArcStr,
-}
-impl Default for SupabaseAnonClient {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
-impl SupabaseAnonClient {
-    pub fn new() -> Self {
+impl Default for SupabaseClient {
+    fn default() -> Self {
         Self {
             client: reqwest::Client::new(),
             url: env::var("SUPABASE_PROJECT_URL").unwrap().into(),
+        }
+    }
+}
+impl SupabaseClient {
+    pub fn anon(&self) -> SupabaseAnonClient {
+        SupabaseAnonClient::new(self)
+    }
+
+    pub fn service(&self) -> SupabaseServiceClient {
+        SupabaseServiceClient::new(self)
+    }
+}
+
+/// Make requests with elevated permissions
+#[derive(Clone, Debug)]
+pub struct SupabaseServiceClient {
+    client: reqwest::Client,
+    url: ArcStr,
+    api_key: ArcStr,
+}
+
+impl SupabaseServiceClient {
+    fn new(supabase: &SupabaseClient) -> Self {
+        Self {
+            client: supabase.client.clone(),
+            url: supabase.url.clone(),
+            api_key: env::var("SUPABASE_SERVICE_ROLE_KEY").unwrap().into(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SupabaseAnonClient {
+    client: reqwest::Client,
+    url: ArcStr,
+    api_key: ArcStr,
+}
+
+impl SupabaseAnonClient {
+    pub fn new(supabase: &SupabaseClient) -> Self {
+        SupabaseAnonClient {
+            client: supabase.client.clone(),
+            url: supabase.url.clone(),
             api_key: env::var("SUPABASE_ANON_KEY").unwrap().into(),
         }
     }
+
     pub async fn exchange_code_for_session(
         &self,
         body: ExchangeOAuthCode<'_>,
@@ -67,7 +103,7 @@ impl SupabaseAnonClient {
     pub async fn logout(&self, access_token: &str) -> anyhow::Result<()> {
         self.client
             .post(&format!("{}/auth/v1/logout", self.url))
-            .header("apikey", self.api_key.as_str())
+            //.header("apikey", self.api_key.as_str())
             .header("Content-Type", "application/json")
             .bearer_auth(access_token)
             .send()

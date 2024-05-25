@@ -1,4 +1,5 @@
 use super::auth::JwtDecoder;
+use super::supabase::SupabaseClient;
 use super::ws::WebSockets;
 use crate::server::supabase::SupabaseAnonClient;
 use crate::strings::UserName;
@@ -17,7 +18,7 @@ pub struct AppState {
     pub game: Arc<Mutex<Option<Game>>>,
     // inherently stateless
     pub jwt_decoder: JwtDecoder,
-    pub supabase: SupabaseAnonClient,
+    pub supabase: SupabaseClient,
     // stateful, but transient
     pub ws_connections: Arc<Mutex<WebSockets>>,
 }
@@ -33,7 +34,7 @@ impl AppState {
     }
     pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {
         if let Some(mut access_token) = cookies.get("access_token") {
-            self.supabase.logout(access_token.value()).await?;
+            self.supabase.anon().logout(access_token.value()).await?;
             access_token.make_removal();
         }
 

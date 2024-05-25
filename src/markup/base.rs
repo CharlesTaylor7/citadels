@@ -44,8 +44,10 @@ pub fn nav(_logged_in: bool) -> Markup {
              }
           }
           li {
-            a href="/logout" {
-                "Log out"
+            form method="post" action="/oauth/logout" {
+                button type="submit" {
+                    "Log out"
+                }
             }
           }
           li {

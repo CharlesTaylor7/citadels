@@ -1,7 +1,9 @@
-use super::auth;
 use super::errors::{AnyhowError, AnyhowResponse, AppError};
 use super::middleware::SessionCookieLayer;
+use super::response::AppResponse;
+use super::storage::profile;
 use super::supabase::ExchangeOAuthCode;
+use super::{auth, response, storage};
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -34,6 +36,7 @@ pub fn get_router(state: AppState) -> Router {
         .route("/", get(get_index))
         .route("/version", get(get_version))
         .route("/login", get(get_login))
+        .route("/profile", get(get_profile))
         .route("/oauth/signin", get(get_oauth_signin))
         .route("/oauth/callback", get(get_oauth_callback))
         .route("/oauth/logout", post(post_logout))
@@ -80,6 +83,13 @@ async fn get_version() -> impl IntoResponse {
     )
 }
 
+async fn get_profile() -> impl IntoResponse {
+    return markup::profile::page(None);
+    let user_id = todo!();
+    let profile = storage::profile(user_id).await;
+    markup::profile::page(profile)
+}
+
 async fn get_login(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
     markup::login::page()
 }
@@ -122,10 +132,11 @@ async fn get_oauth_callback(
     app: State<AppState>,
     cookies: Cookies,
     body: Query<OAuthCallbackCode>,
-) -> Result<Response, AnyhowError> {
+) -> AppResponse {
     if let Some(mut verifier_cookie) = cookies.get("code_verifier") {
         let response = app
             .supabase
+            .anon()
             .exchange_code_for_session(ExchangeOAuthCode {
                 auth_code: &body.code,
                 code_verifier: verifier_cookie.value(),
@@ -142,17 +153,21 @@ async fn get_oauth_callback(
             response.refresh_token,
             time::Duration::WEEK,
         ));
-        Ok((Redirect::to("/lobby")).into_response())
+        let profile = storage::profile(response.user.id).await;
+        if profile.is_none() {
+            response::ok(Redirect::to("/profile"))
+        } else {
+            response::ok(Redirect::to("/lobby"))
+        }
     } else {
         log::error!("no code verifier");
-        Ok((Redirect::to("/login")).into_response())
+        response::ok(Redirect::to("/login"))
     }
 }
 
-async fn post_logout(app: State<AppState>, cookies: Cookies) -> AnyhowResponse {
+async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {
     app.logout(cookies).await?;
-
-    Ok(().into_response())
+    response::ok(Redirect::to("/lobby"))
 }
 
 async fn get_lobby(app: State<AppState>) -> impl IntoResponse {
