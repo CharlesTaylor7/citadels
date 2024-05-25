@@ -1,8 +1,11 @@
-use std::pin::Pin;
+use crate::server::models::SupabaseUser;
+use crate::server::state::AppState;
+use axum::extract::State;
 use axum::response::{IntoResponse, Redirect};
-use futures::Future;
 use axum_core::body::Body;
+use futures::Future;
 use http::{Request, Response};
+use std::pin::Pin;
 use std::task::{Context, Poll};
 use tower_cookies::Cookies;
 use tower_layer::Layer;
@@ -19,35 +22,45 @@ impl<S> LoggedInService<S> {
     }
 }
 
-impl<ReqBody, S> Service<Request<ReqBody>> for LoggedInService<S>
+impl<S> Service<Request<Body>> for LoggedInService<S>
 where
-    S: Service<Request<ReqBody>, Response = Response<Body>>,
+    S: Service<Request<Body>, Response = Response<Body>>,
+    S::Future: Send,
 {
     type Response = Response<Body>;
     //S::Response;
     type Error = S::Error;
     // waiting for TAIT so that we can just do:
     // type Future = impl Future
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>; 
-
+    // type Future = S::Future;
+    type Future =
+        Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>>;
 
     #[inline]
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.inner.poll_ready(cx)
     }
 
-    fn call(&mut self, req: Request<ReqBody>) -> Self::Future {
-        let redirect = req.extensions().get::<Cookies>().and_then(|cookies| cookies.get("access_token")).is_none();
-        Box::pin(async {
-            if redirect {
-                Ok(Redirect::to("/login").into_response())
-            } else {
-                self.inner.call(req).await
-            }
-        })
+    fn call(&mut self, req: Request<Body>) -> Self::Future {
+        todo!("Reverse engineer what tower-cookies does");
     }
 }
 
+fn require_login<ReqBody>(req: &Request<ReqBody>) -> anyhow::Result<SupabaseUser> {
+    let state = req
+        .extensions()
+        .get::<State<AppState>>()
+        .ok_or(anyhow::anyhow!("no app state"))?;
+    let cookies = req
+        .extensions()
+        .get::<Cookies>()
+        .ok_or(anyhow::anyhow!("no cookies"))?;
+    let cookie = cookies
+        .get("access_token")
+        .ok_or(anyhow::anyhow!("no access_token"));
+
+    anyhow::bail!("Hey")
+}
 
 #[derive(Clone)]
 pub struct LoggedInLayer {

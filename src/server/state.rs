@@ -33,7 +33,7 @@ impl AppState {
         let decoded = self.jwt_decoder.decode(cookie.value());
         log::info!("Claims {:#?}", decoded);
 
-        anyhow::bail!("TODO: app.user_id()")
+        anyhow::bail!("TODO: user_claims()")
     }
 
     pub fn user_id(&self, cookies: &Cookies) -> anyhow::Result<UserId> {

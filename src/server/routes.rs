@@ -48,7 +48,7 @@ pub fn get_router(state: AppState) -> Router {
         .route("/game", post(start))
         .route("/game/action", post(submit_game_action))
         .route("/game/menu/:menu", get(get_game_menu))
-        .layer(LoggedInLayer::new())
+        //TODO: reverse engineer tower-cookies  .layer(LoggedInLayer::new())
         .route("/", get(get_index))
         .route("/version", get(get_version))
         .route("/login", get(get_login))

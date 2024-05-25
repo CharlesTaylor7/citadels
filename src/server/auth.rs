@@ -6,6 +6,8 @@ use time::Duration;
 use tower_cookies::cookie::SameSite;
 use tower_cookies::Cookie;
 
+use super::models::UserMetadata;
+
 pub fn cookie<'a>(
     name: impl Into<Cow<'a, str>>,
     value: impl Into<Cow<'a, str>>,
@@ -42,19 +44,13 @@ impl Default for JwtDecoder {
 }
 
 impl JwtDecoder {
-    pub fn decode(&self, jwt: &str) -> anyhow::Result<Claims> {
+    pub fn decode(&self, jwt: &str) -> anyhow::Result<UserMetadata> {
         let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret, &self.validation)?;
-        Ok(token.claims)
+        Ok(token.claims.user_metadata)
     }
 }
-type Claims = serde_json::Value;
 
 #[derive(Deserialize)]
-pub struct Claims_ {
-    aud: String, // Optional. Audience
-    exp: usize, // Required (validate_exp defaults to true in validation). Expiration time (as UTC timestamp)
-    //iat: usize, // Optional. Issued at (as UTC timestamp)
-    iss: String, // Optional. Issuer
-    //nbf: usize, // Optional. Not Before (as UTC timestamp)
-    sub: String,
+struct Claims {
+    user_metadata: UserMetadata,
 }

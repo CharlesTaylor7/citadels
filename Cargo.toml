@@ -23,7 +23,6 @@ tower-layer = "0.3.2"
 tower-service = "0.3.2"
 macros = { path = "./macros" }
 pkce = { path = "./vendor/pkce" }
-rename_future = { path = "./vendor/rename-future" }
 
 [dependencies.tower-livereload]
 version = "0.9.2"
