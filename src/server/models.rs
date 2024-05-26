@@ -1,4 +1,4 @@
-use crate::strings::{UserId, UserName};
+use crate::strings::UserId;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]

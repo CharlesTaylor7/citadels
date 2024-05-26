@@ -45,8 +45,6 @@ impl Default for JwtDecoder {
 
 impl JwtDecoder {
     pub fn decode(&self, jwt: &str) -> anyhow::Result<Claims> {
-        let token =
-            jsonwebtoken::decode::<serde_json::Value>(&jwt, &self.secret, &self.validation)?;
         let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret, &self.validation)?;
         Ok(token.claims)
     }

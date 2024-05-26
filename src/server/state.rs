@@ -1,10 +1,10 @@
 use super::auth::{self, Claims, JwtDecoder};
-use super::models::{SupabaseUser, UserMetadata};
+
 use super::supabase::SupabaseClient;
 use super::ws::WebSockets;
 use crate::strings::UserId;
 use crate::{game::Game, lobby::Lobby};
-use anyhow::{anyhow, bail};
+use anyhow::anyhow;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{PgPool, Postgres, Transaction};
 use std::env;
