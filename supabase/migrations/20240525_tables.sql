@@ -13,6 +13,22 @@ ALTER TABLE ONLY "public"."profiles"
 
 ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
 
+-- games --
+CREATE TABLE "public"."games" (
+    "id" bigint NOT NULL,
+    "state" "jsonb" NOT NULL,
+    "ended_at" timestamp with time zone,
+    "started_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "version" bigint NOT NULL
+);
+
+ALTER TABLE ONLY "public"."games"
+    ADD CONSTRAINT "games_pkey" PRIMARY KEY ("id");
+
+ALTER TABLE "public"."games" ENABLE ROW LEVEL SECURITY;
+
+
+
 -- rooms --
 CREATE TABLE "public"."rooms" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -40,24 +56,17 @@ ALTER TABLE ONLY "public"."rooms"
 
 ALTER TABLE "public"."rooms" ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Anyone can view" ON "public"."rooms" FOR SELECT USING (true);
-CREATE POLICY "Owner can create room" ON "public"."rooms" FOR INSERT WITH CHECK (("host_id" = "auth"."uid"()));
-CREATE POLICY "Owner can close room" ON "public"."rooms" FOR DELETE USING (("host_id" = "my"."uid"()));
-CREATE POLICY "Owner can update room ( to kick players)" ON "public"."rooms" AS RESTRICTIVE FOR UPDATE USING (("host_id" = "auth"."uid"()));
+CREATE POLICY "Anyone can view room" 
+ON "public"."rooms" 
+FOR SELECT USING (true);
 
--- games --
-CREATE TABLE "public"."games" (
-    "id" bigint NOT NULL,
-    "state" "jsonb" NOT NULL,
-    "ended_at" timestamp with time zone,
-    "started_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "version" bigint NOT NULL
+CREATE POLICY "Owner can create room" 
+ON "public"."rooms" 
+FOR INSERT WITH CHECK (
+  ("host_id" = "auth"."uid"())
 );
-
-ALTER TABLE ONLY "public"."games"
-    ADD CONSTRAINT "games_pkey" PRIMARY KEY ("id");
-ALTER TABLE "public"."games" ENABLE ROW LEVEL SECURITY;
-
+CREATE POLICY "Owner can close room" ON "public"."rooms" FOR DELETE USING (("host_id" = "auth"."uid"()));
+CREATE POLICY "Owner can update room ( to kick players)" ON "public"."rooms" AS RESTRICTIVE FOR UPDATE USING (("host_id" = "auth"."uid"()));
 
 
 
