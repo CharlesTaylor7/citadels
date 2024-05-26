@@ -1,4 +1,5 @@
 use super::errors::{AnyhowError, AnyhowResponse};
+use super::models::CustomClaims;
 use super::response::AppResponse;
 use super::supabase::ExchangeOAuthCode;
 use super::{auth, response, storage};
@@ -24,6 +25,7 @@ use http::{header, StatusCode};
 use percent_encoding::utf8_percent_encode;
 use rand_core::SeedableRng;
 use serde::{Deserialize, Serialize};
+use sqlx::Acquire;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
@@ -82,12 +84,17 @@ async fn get_version() -> impl IntoResponse {
 }
 
 async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
-    let profile = state.supabase.user(&cookies)?.get_profile().await?;
-    let username = if let Some(profile) = profile {
+    let mut tx = state.begin_transaction(&cookies).await?;
+    let query = sqlx::query!("select username from profiles")
+        .fetch_optional(&mut *tx)
+        .await?;
+    let username = if let Some(profile) = query {
         profile.username
     } else {
         let claims = state.user_claims(&cookies)?;
-        claims.user_metadata.default_username()
+        match claims.user_metadata.custom_claims {
+            CustomClaims::DiscordClaims { global_name } => global_name,
+        }
     };
     //let user_id = todo!();
     //return markup::profile::page(None);
@@ -100,17 +107,22 @@ async fn post_profile(
     cookies: Cookies,
     body: Json<Profile>,
 ) -> AppResponse {
-    let profile = state.supabase.user(&cookies)?.get_profile().await?;
-    let username = if let Some(profile) = profile {
-        profile.username
-    } else {
-        let claims = state.user_claims(&cookies)?;
-        claims.user_metadata.default_username()
-    };
-    //let user_id = todo!();
-    //return markup::profile::page(None);
-    //let profile = storage::profile(user_id).await;
-    response::ok(markup::profile::page(username))
+    let mut transaction = state.begin_transaction(&cookies).await?;
+    let profiles = sqlx::query!(
+        r#"
+        INSERT INTO profiles(username)
+        VALUES ($1) 
+        ON CONFLICT (user_id) DO UPDATE
+            SET username = $1
+        "#,
+        body.username
+    )
+    .execute(&mut *transaction)
+    .await;
+    log::info!("{:#?}", profiles);
+    transaction.commit().await?;
+
+    response::ok(())
 }
 
 async fn get_login(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {

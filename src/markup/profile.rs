@@ -1,8 +1,7 @@
 use super::base;
-use crate::strings::UserName;
 use maud::{html, Markup};
 
-pub fn page(username: UserName) -> Markup {
+pub fn page(username: String) -> Markup {
     base::page(
         html! {
             (base::scripts())

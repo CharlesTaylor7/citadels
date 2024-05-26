@@ -29,13 +29,5 @@ pub struct UserMetadata {
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum CustomClaims {
-    DiscordClaims { global_name: ArcStr },
-}
-
-impl UserMetadata {
-    pub fn default_username(self) -> UserName {
-        match self.custom_claims {
-            CustomClaims::DiscordClaims { global_name } => UserName::new(global_name),
-        }
-    }
+    DiscordClaims { global_name: String },
 }

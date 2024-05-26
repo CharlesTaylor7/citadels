@@ -2,15 +2,13 @@ use super::auth::{self, Claims, JwtDecoder};
 use super::models::{SupabaseUser, UserMetadata};
 use super::supabase::SupabaseClient;
 use super::ws::WebSockets;
-
 use crate::strings::UserId;
 use crate::{game::Game, lobby::Lobby};
 use anyhow::{anyhow, bail};
 use sqlx::postgres::PgPoolOptions;
-use sqlx::PgPool;
-
+use sqlx::{PgPool, Postgres, Transaction};
+use std::env;
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 use tower_cookies::Cookies;
 
 #[derive(Clone)]
@@ -23,20 +21,38 @@ pub struct AppState {
     pub supabase: SupabaseClient,
     // stateful, but transient
     pub ws_connections: Arc<Mutex<WebSockets>>,
+    // tODO: make private
     pub db_pool: PgPool,
 }
 
 impl AppState {
-    pub fn new() -> AppState {
-        Self {
+    pub async fn new() -> anyhow::Result<AppState> {
+        Ok(Self {
             lobby: Default::default(),
             game: Default::default(),
             jwt_decoder: JwtDecoder::default(),
             supabase: SupabaseClient::default(),
             ws_connections: Default::default(),
-            db_pool: PgPoolOptions::new().max_connections(30).connect(url),
-        }
+            db_pool: PgPoolOptions::new()
+                .max_connections(30)
+                .connect(&env::var("SUPABASE_DB_URL").unwrap())
+                .await?,
+        })
     }
+
+    pub async fn begin_transaction(
+        &self,
+        cookies: &Cookies,
+    ) -> anyhow::Result<Transaction<'static, Postgres>> {
+        let mut transaction = self.db_pool.begin().await?;
+        let user_id = self.user_id(&cookies).await?;
+        // For row level security
+        sqlx::query(&format!("set local citadels.user_id = '{user_id}'",))
+            .execute(&mut *transaction)
+            .await?;
+        Ok(transaction)
+    }
+
     /// Decode the signed in user's JWT and verify their claims
     pub fn user_claims(&self, cookies: &Cookies) -> anyhow::Result<Claims> {
         let cookie = cookies

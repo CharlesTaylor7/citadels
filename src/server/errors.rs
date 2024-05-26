@@ -18,6 +18,11 @@ impl IntoResponse for AppError {
                 },
             )
                 .into_response(),
+            AppError::Database { error } => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Internal Server Error\n{}", error),
+            )
+                .into_response(),
 
             AppError::FormFeedback { message } => (
                 StatusCode::BAD_REQUEST,
@@ -32,6 +37,7 @@ impl IntoResponse for AppError {
 #[derive(Debug)]
 pub enum AppError {
     Internal { error: anyhow::Error },
+    Database { error: sqlx::Error },
     FormFeedback { message: String },
 }
 
@@ -41,6 +47,11 @@ impl From<anyhow::Error> for AppError {
     }
 }
 
+impl From<sqlx::Error> for AppError {
+    fn from(error: sqlx::Error) -> Self {
+        AppError::Database { error }
+    }
+}
 // TODO: Axe this
 pub type AnyhowResponse = Result<Response, AnyhowError>;
 
