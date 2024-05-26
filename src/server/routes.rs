@@ -84,7 +84,7 @@ async fn get_version() -> impl IntoResponse {
 }
 
 async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
-    let mut tx = state.begin_transaction(&cookies).await?;
+    let mut tx = state.user_transaction(&cookies).await?;
     let query = sqlx::query!("select username from profiles")
         .fetch_optional(&mut *tx)
         .await?;
@@ -107,7 +107,7 @@ async fn post_profile(
     cookies: Cookies,
     body: Json<Profile>,
 ) -> AppResponse {
-    let mut transaction = state.begin_transaction(&cookies).await?;
+    let mut transaction = state.user_transaction(&cookies).await?;
     let profiles = sqlx::query!(
         r#"
         INSERT INTO profiles(username)

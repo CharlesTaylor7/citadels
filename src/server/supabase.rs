@@ -30,48 +30,6 @@ impl SupabaseClient {
     pub fn service(&self) -> SupabaseServiceClient {
         SupabaseServiceClient::new(self)
     }
-
-    pub fn user(&self, cookies: &Cookies) -> anyhow::Result<SupabaseUserClient> {
-        let cookie = cookies
-            .get("access_token")
-            .ok_or(anyhow::anyhow!("not logged in"))?;
-        Ok(SupabaseUserClient::new(self, cookie.value().into()))
-    }
-}
-
-/// Make requests with elevated permissions
-pub struct SupabaseUserClient {
-    client: reqwest::Client,
-    url: ArcStr,
-    access_token: ArcStr,
-}
-
-impl<'a> SupabaseUserClient {
-    fn new(supabase: &SupabaseClient, access_token: ArcStr) -> Self {
-        Self {
-            client: supabase.client.clone(),
-            url: supabase.url.clone(),
-            access_token,
-        }
-    }
-
-    pub async fn get_profile(&self) -> anyhow::Result<Option<Profile>> {
-        let response: Response = self
-            .client
-            .get(&format!("{}/rest/v1/profiles", self.url))
-            .bearer_auth(&self.access_token)
-            //.header("apikey", self.api_key.as_str())
-            .header("Content-Type", "application/json")
-            //.json(&body)
-            .send()
-            .await?;
-
-        let body = response.bytes().await?;
-        // RLS ensures this list is 0 or 1 items long.
-        let json =
-            serde_json::from_slice::<SupabaseResponse<Vec<Profile>>>(&body)?.into_result()?;
-        Ok(json.into_iter().nth(0))
-    }
 }
 
 /// Make requests with elevated permissions

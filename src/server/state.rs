@@ -21,8 +21,7 @@ pub struct AppState {
     pub supabase: SupabaseClient,
     // stateful, but transient
     pub ws_connections: Arc<Mutex<WebSockets>>,
-    // tODO: make private
-    pub db_pool: PgPool,
+    db_pool: PgPool,
 }
 
 impl AppState {
@@ -40,7 +39,7 @@ impl AppState {
         })
     }
 
-    pub async fn begin_transaction(
+    pub async fn user_transaction(
         &self,
         cookies: &Cookies,
     ) -> anyhow::Result<Transaction<'static, Postgres>> {
