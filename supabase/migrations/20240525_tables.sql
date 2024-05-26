@@ -6,18 +6,18 @@ END;
 $$;
 
 -- profiles --
-CREATE TABLE "public"."profiles" (
+CREATE TABLE profiles (
     "user_id" "uuid" DEFAULT current_user_id() NOT NULL,
     "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-    "username" character varying UNIQUE NOT NULL
-    PRIMARY KEY ("id"),
+    "username" character varying UNIQUE NOT NULL,
+    PRIMARY KEY ("user_id"),
     CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE
 );
 
-ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- games --
-CREATE TABLE "public"."games" (
+CREATE TABLE games (
     "id" "uuid" DEFAULT gen_random_uuid() NOT NULL,
     "state" "jsonb" NOT NULL,
     "ended_at" timestamp with time zone,
@@ -26,19 +26,22 @@ CREATE TABLE "public"."games" (
     PRIMARY KEY ("id")
 );
 
-ALTER TABLE "public"."games" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE games ENABLE ROW LEVEL SECURITY;
 
 -- rooms --
-CREATE TABLE "public"."rooms" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "game_id" "uuid",
+CREATE TABLE rooms (
+    "id" "uuid" PRIMARY KEY DEFAULT "gen_random_uuid"(),
+    "game_id" "uuid" REFERENCES games("id"),
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "game_config" "jsonb" NOT NULL,
-    "host_id" "uuid" DEFAULT current_user_id() UNIQUE NOT NULL,
-    "player_ids" "text"[] DEFAULT '{current_user_id()::text}'::"text"[] NOT NULL,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "rooms_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "public"."games"("id"),
-    CONSTRAINT "rooms_host_id_fkey" FOREIGN KEY ("host_id") REFERENCES "public"."profiles"("user_id")
+    -- Unique means a user can only host 1 room at a time.
+    -- Foreign key means the user has to have setup their profile.
+    "host_id" "uuid" DEFAULT current_user_id() UNIQUE NOT NULL REFERENCES profiles("user_id"),
+    "player_ids" "uuid"[] DEFAULT '{current_user_id()}'::"text"[] NOT NULL,
+    -- no more than 9 players
+    CHECK (cardinality(player_ids) < 10),
+    -- host is one of the players
+    CHECK (host_id = any(player_ids))
 );
 
 ALTER TABLE "public"."rooms" ENABLE ROW LEVEL SECURITY;
