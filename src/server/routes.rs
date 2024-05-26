@@ -2,7 +2,7 @@ use super::errors::{AnyhowError, AnyhowResponse};
 use super::models::CustomClaims;
 use super::response::AppResponse;
 use super::supabase::ExchangeOAuthCode;
-use super::{auth, response, storage};
+use super::{auth, response};
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -25,7 +25,6 @@ use http::{header, StatusCode};
 use percent_encoding::utf8_percent_encode;
 use rand_core::SeedableRng;
 use serde::{Deserialize, Serialize};
-use sqlx::Acquire;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
@@ -192,13 +191,15 @@ async fn get_oauth_callback(
             time::Duration::WEEK,
         ));
 
-        let url = if storage::profile(response.user.id).await.is_none() {
-            "/profile"
-        } else {
-            "/lobby"
-        };
+        let mut tx = app.user_transaction(&cookies).await?;
+        let has_profile = sqlx::query!("select 1 as temp from profiles")
+            .fetch_optional(&mut *tx)
+            .await?
+            .is_some();
+        tx.commit().await?;
 
-        //response::ok(())
+        let url = if has_profile { "/profile" } else { "/lobby" };
+
         response::ok([(header::REFRESH, format!("0;url={}", url))])
     } else {
         log::error!("no code verifier");

@@ -6,6 +6,5 @@ pub mod models;
 pub mod response;
 pub mod routes;
 pub mod state;
-pub mod storage;
 pub mod supabase;
 pub mod ws;

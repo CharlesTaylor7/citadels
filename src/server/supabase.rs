@@ -1,12 +1,9 @@
-use anyhow::bail;
+use super::models::SupabaseUser;
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::env;
 use thiserror::Error;
-use tower_cookies::Cookies;
-
-use super::models::{Profile, SupabaseUser};
 
 #[derive(Clone, Debug)]
 pub struct SupabaseClient {
