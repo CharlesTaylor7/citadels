@@ -1,13 +1,11 @@
 use super::base;
 use maud::{html, Markup};
+use tower_cookies::Cookies;
 
-pub fn page(username: String) -> Markup {
+pub fn page(cookies: &Cookies, username: String) -> Markup {
     base::page(
+        cookies,
         html! {
-            (base::scripts())
-        },
-        html! {
-            (base::nav(true))
             form class="gap-4 form-control w-full max-w-xs" hx-post="/profile" hx-swap="none" {
                 label class="input input-bordered flex items-center gap-2" {
                     input

@@ -1,14 +1,12 @@
 use super::base;
-use crate::markup::base::{asset, nav, scripts};
+use crate::markup::base::asset;
 use maud::{html, Markup};
+use tower_cookies::Cookies;
 
-pub fn page() -> Markup {
+pub fn page(cookies: &Cookies) -> Markup {
     base::page(
+        cookies,
         html! {
-            (scripts())
-        },
-        html! {
-            (nav(false))
             .mt-4 .flex .flex-row .justify-center .items-center {
                 a
                     href="/oauth/signin?provider=discord"

@@ -6,4 +6,3 @@ pub mod index;
 pub mod lobby;
 pub mod login;
 pub mod profile;
-pub mod signup;

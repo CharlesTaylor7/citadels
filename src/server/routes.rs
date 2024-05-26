@@ -68,8 +68,8 @@ pub fn get_router(state: AppState) -> Router {
     router.layer(CookieManagerLayer::new()).with_state(state)
 }
 
-async fn get_index() -> Result<Response, AnyhowError> {
-    Ok((markup::index::page()).into_response())
+async fn get_index(cookies: Cookies) -> Result<Response, AnyhowError> {
+    Ok((markup::index::page(&cookies)).into_response())
 }
 
 async fn get_version() -> impl IntoResponse {
@@ -98,7 +98,7 @@ async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
     //let user_id = todo!();
     //return markup::profile::page(None);
     //let profile = storage::profile(user_id).await;
-    response::ok(markup::profile::page(username))
+    response::ok(markup::profile::page(&cookies, username))
 }
 
 async fn post_profile(
@@ -124,8 +124,8 @@ async fn post_profile(
     response::ok(())
 }
 
-async fn get_login(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
-    markup::login::page()
+async fn get_login(_app: State<AppState>, cookies: Cookies) -> impl IntoResponse {
+    markup::login::page(&cookies)
 }
 
 async fn get_oauth_signin(

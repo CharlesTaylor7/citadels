@@ -1,11 +1,10 @@
 use super::base;
 use maud::{html, Markup};
+use tower_cookies::Cookies;
 
-pub fn page() -> Markup {
+pub fn page(cookies: &Cookies) -> Markup {
     base::page(
-        html! {
-            (base::scripts())
-        },
+        cookies,
         html! {
             (main())
         },
@@ -14,7 +13,6 @@ pub fn page() -> Markup {
 
 pub fn main() -> Markup {
     html! {
-        (base::nav(false))
         #lobby {
             "lobby"
         }

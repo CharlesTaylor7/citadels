@@ -1,14 +1,9 @@
 use super::base;
 use maud::{html, Markup};
+use tower_cookies::Cookies;
 
-pub fn page() -> Markup {
-    base::page(
-        html!(),
-        html! {
-            (base::nav(false))
-
-        },
-    )
+pub fn page(cookies: &Cookies) -> Markup {
+    base::page(cookies, html! {})
 }
 /*
 <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js"></script>

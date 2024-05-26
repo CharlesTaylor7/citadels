@@ -33,10 +33,24 @@ impl AppState {
         })
     }
 
+    // bypass row level security
     pub async fn service_transaction(&self) -> anyhow::Result<Transaction<'static, Postgres>> {
         let mut transaction = self.db_pool.begin().await?;
 
-        sqlx::query!("SET ROLE service_role")
+        sqlx::query("SET ROLE service_role")
+            .execute(&mut *transaction)
+            .await?;
+        Ok(transaction)
+    }
+
+    /// Signed out user. Just allowed to spectate
+    /// Row level security policies will apply.
+    pub async fn anon_transaction(
+        &self,
+        cookies: &Cookies,
+    ) -> anyhow::Result<Transaction<'static, Postgres>> {
+        let mut transaction = self.db_pool.begin().await?;
+        sqlx::query("SET ROLE anon")
             .execute(&mut *transaction)
             .await?;
         Ok(transaction)
@@ -49,12 +63,10 @@ impl AppState {
     ) -> anyhow::Result<Transaction<'static, Postgres>> {
         let mut transaction = self.db_pool.begin().await?;
         let user_id = self.user_id(&cookies).await?;
-        // For row level security
         sqlx::query(&format!("SET LOCAL citadels.user_id = '{user_id}'"))
             .execute(&mut *transaction)
             .await?;
-
-        sqlx::query!("SET ROLE authenticated")
+        sqlx::query("SET ROLE authenticated")
             .execute(&mut *transaction)
             .await?;
         Ok(transaction)
@@ -95,7 +107,8 @@ impl AppState {
     pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {
         if let Some(mut access_token) = cookies.get("access_token") {
             self.supabase.anon().logout(access_token.value()).await?;
-            access_token.make_removal();
+            //cookies.remove(access_token);
+            //.make_removal();
         }
 
         if let Some(mut refresh_token) = cookies.get("refresh_token") {

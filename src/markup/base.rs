@@ -1,12 +1,13 @@
 use maud::{html, Markup, DOCTYPE};
 use std::env;
+use tower_cookies::Cookies;
 
-pub fn page(head: Markup, main: Markup) -> Markup {
+pub fn page(cookies: &Cookies, main: Markup) -> Markup {
+    let logged_in = cookies.get("refresh_token").is_some();
     html! {
         (DOCTYPE)
         html
-            hx-ext="ws,morph,json-enc,client-side-templates"
-            _="init get the theme of localStorage if it exists set my @data-theme to it" data-theme="dark"
+            hx-ext="ws,morph,json-enc"
         {
             head {
                 title { "Citadels" }
@@ -14,17 +15,29 @@ pub fn page(head: Markup, main: Markup) -> Markup {
                 link name="viewport" content="width=device-width, initial-scale=1";
                 link rel="shortcut icon" href=(asset("htmx.png"));
                 link rel="stylesheet" href=(asset("styles/index.css"));
-                (head)
+                // htmx
+                script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js" { }
+                script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" { }
+                script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js" { }
+                script src=(asset("vendor/idiomorph.js")) { }
+                // hyperscript
+                script src="https://unpkg.com/hyperscript.org@0.9.12" { }
+                // for drag n' drop
+                // script src="https://unpkg.com/interactjs/dist/interact.min.js" { }
             }
 
-            body hx-swap="morph" hx-target="body" {
+            body
+                _="init get the theme of localStorage if it exists set my @data-theme to it"
+                data-theme="dark"
+                hx-swap="morph" hx-target="body" {
+                (nav(logged_in))
                 (main)
             }
         }
     }
 }
 
-pub fn nav(_logged_in: bool) -> Markup {
+fn nav(logged_in: bool) -> Markup {
     html! {
       div class="flex flex-row justify-end items-center" {
         ul class="menu menu-horizontal bg-base-200 rounded-box" {
@@ -50,37 +63,21 @@ pub fn nav(_logged_in: bool) -> Markup {
              }
           }
           li {
-            form method="post" action="/oauth/logout" {
-                button type="submit" {
-                    "Log out"
+              @if logged_in {
+                form method="post" action="/oauth/logout" {
+                    button type="submit" {
+                        "Log out"
+                    }
                 }
-            }
-          }
-          li {
-              a href="/login" {
-                  "Log in"
+              }
+              @else {
+                    a href="/login" {
+                      "Log in"
+                  }
               }
           }
         }
       }
-    }
-}
-
-pub fn htmx_scripts() -> Markup {
-    html! {
-        script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.js" { }
-        script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js" { }
-        script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js" { }
-        // script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/client-side-templates.js" { }
-        script src=(asset("vendor/idiomorph.js")) { }
-    }
-}
-
-pub fn scripts() -> Markup {
-    html! {
-        (htmx_scripts())
-        script src="https://unpkg.com/hyperscript.org@0.9.12" { }
-        script src="https://unpkg.com/interactjs/dist/interact.min.js" { }
     }
 }
 
