@@ -1,5 +1,4 @@
 use super::auth::{self, Claims, JwtDecoder};
-
 use super::supabase::SupabaseClient;
 use super::ws::WebSockets;
 use crate::strings::UserId;
