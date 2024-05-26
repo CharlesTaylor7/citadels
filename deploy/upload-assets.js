@@ -6,7 +6,7 @@ import process from "node:process";
 // Create a single supabase client for interacting with your database
 const url = "https://ryvsflpspddwwacxrnst.supabase.co";
 
-const supabase = createClient(url, process.env.PROD_SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 await supabase.storage
   .createBucket("assets", {

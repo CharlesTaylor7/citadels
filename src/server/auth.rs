@@ -1,3 +1,4 @@
+use super::models::UserMetadata;
 use jsonwebtoken::{Algorithm, DecodingKey};
 use serde::Deserialize;
 use std::borrow::Cow;
@@ -5,8 +6,6 @@ use std::env;
 use time::Duration;
 use tower_cookies::cookie::SameSite;
 use tower_cookies::Cookie;
-
-use super::models::UserMetadata;
 
 pub fn cookie<'a>(
     name: impl Into<Cow<'a, str>>,
@@ -16,11 +15,12 @@ pub fn cookie<'a>(
     let mut cookie = Cookie::build((name, value))
         .path("/")
         .max_age(duration)
+        .same_site(SameSite::Lax)
         .http_only(true);
 
     #[cfg(not(feature = "dev"))]
     {
-        cookie = cookie.secure(true).same_site(SameSite::Strict);
+        cookie = cookie.secure(true);
     }
 
     cookie.into()
@@ -44,13 +44,15 @@ impl Default for JwtDecoder {
 }
 
 impl JwtDecoder {
-    pub fn decode(&self, jwt: &str) -> anyhow::Result<UserMetadata> {
+    pub fn decode(&self, jwt: &str) -> anyhow::Result<Claims> {
+        let token =
+            jsonwebtoken::decode::<serde_json::Value>(&jwt, &self.secret, &self.validation)?;
         let token = jsonwebtoken::decode::<Claims>(&jwt, &self.secret, &self.validation)?;
-        Ok(token.claims.user_metadata)
+        Ok(token.claims)
     }
 }
 
-#[derive(Deserialize)]
-struct Claims {
-    user_metadata: UserMetadata,
+#[derive(Deserialize, Debug)]
+pub struct Claims {
+    pub user_metadata: UserMetadata,
 }

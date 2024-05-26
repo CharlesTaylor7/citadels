@@ -1,4 +1,4 @@
-use crate::strings::{RefreshToken, UserId};
+use anyhow::bail;
 use arcstr::ArcStr;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
@@ -55,10 +55,11 @@ impl<'a> SupabaseUserClient {
         }
     }
 
-    pub async fn profile(&self) -> anyhow::Result<Option<Profile>> {
+    pub async fn get_profile(&self) -> anyhow::Result<Option<Profile>> {
         let response: Response = self
             .client
             .get(&format!("{}/rest/v1/profiles", self.url))
+            .bearer_auth(&self.access_token)
             //.header("apikey", self.api_key.as_str())
             .header("Content-Type", "application/json")
             //.json(&body)

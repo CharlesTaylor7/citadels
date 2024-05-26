@@ -1,17 +1,27 @@
 use super::base;
-use crate::server::models::Profile;
+use crate::strings::UserName;
 use maud::{html, Markup};
 
-pub fn page(profile: Profile) -> Markup {
+pub fn page(username: UserName) -> Markup {
     base::page(
         html! {
             (base::scripts())
         },
         html! {
             (base::nav(true))
-            form class="gap-4 form-control w-full max-w-xs" hx-post="/signup" {
+            form class="gap-4 form-control w-full max-w-xs" hx-post="/profile" hx-swap="none" {
                 label class="input input-bordered flex items-center gap-2" {
-                    input type="username" name="username" autocomplete="username" class="grow" placeholder="username" required;
+                    input
+                        class="grow"
+                        type="username"
+                        required
+                        autocomplete="username"
+                        name="username"
+                        value=(username)
+                        placeholder="username";
+                }
+                button class="btn btn-primary" {
+                    "Save Profile"
                 }
             }
         },

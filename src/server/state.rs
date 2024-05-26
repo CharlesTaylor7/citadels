@@ -1,18 +1,19 @@
-use super::auth::JwtDecoder;
-use super::models::SupabaseUser;
+use super::auth::{self, Claims, JwtDecoder};
+use super::models::{SupabaseUser, UserMetadata};
 use super::supabase::SupabaseClient;
 use super::ws::WebSockets;
-use crate::server::supabase::SupabaseAnonClient;
-use crate::strings::UserName;
-use crate::strings::{AccessToken, RefreshToken, SessionId, UserId};
+
+use crate::strings::UserId;
 use crate::{game::Game, lobby::Lobby};
-use anyhow::anyhow;
-use serde::Deserialize;
-use sqlx::postgres::PgConnectOptions;
+use anyhow::{anyhow, bail};
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
+
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tower_cookies::Cookies;
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct AppState {
     // TODO: remove these
     pub lobby: Arc<Mutex<Lobby>>,
@@ -22,22 +23,50 @@ pub struct AppState {
     pub supabase: SupabaseClient,
     // stateful, but transient
     pub ws_connections: Arc<Mutex<WebSockets>>,
+    pub db_pool: PgPool,
 }
 
 impl AppState {
+    pub fn new() -> AppState {
+        Self {
+            lobby: Default::default(),
+            game: Default::default(),
+            jwt_decoder: JwtDecoder::default(),
+            supabase: SupabaseClient::default(),
+            ws_connections: Default::default(),
+            db_pool: PgPoolOptions::new().max_connections(30).connect(url),
+        }
+    }
     /// Decode the signed in user's JWT and verify their claims
-    pub fn user_claims(&self, cookies: &Cookies) -> anyhow::Result<SupabaseUser> {
+    pub fn user_claims(&self, cookies: &Cookies) -> anyhow::Result<Claims> {
         let cookie = cookies
             .get("access_token")
             .ok_or(anyhow!("not logged in"))?;
-        let decoded = self.jwt_decoder.decode(cookie.value());
-        log::info!("Claims {:#?}", decoded);
-
-        anyhow::bail!("TODO: user_claims()")
+        self.jwt_decoder.decode(cookie.value())
     }
 
-    pub fn user_id(&self, cookies: &Cookies) -> anyhow::Result<UserId> {
-        Ok(self.user_claims(cookies)?.id)
+    pub async fn user_id(&self, cookies: &Cookies) -> anyhow::Result<UserId> {
+        let response = self
+            .supabase
+            .anon()
+            .refresh(
+                cookies
+                    .get("refresh_token")
+                    .ok_or(anyhow!("no refresh token"))?
+                    .value(),
+            )
+            .await?;
+        cookies.add(auth::cookie(
+            "access_token",
+            response.access_token,
+            time::Duration::HOUR,
+        ));
+        cookies.add(auth::cookie(
+            "refresh_token",
+            response.refresh_token,
+            time::Duration::WEEK,
+        ));
+        Ok(response.user.id)
     }
 
     pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {

@@ -1,7 +1,7 @@
 use crate::server::models::SupabaseUser;
 use crate::server::state::AppState;
 use axum::extract::State;
-use axum::response::{IntoResponse, Redirect};
+
 use axum_core::body::Body;
 use futures::Future;
 use http::{Request, Response};
@@ -41,13 +41,13 @@ where
         self.inner.poll_ready(cx)
     }
 
-    fn call(&mut self, req: Request<Body>) -> Self::Future {
+    fn call(&mut self, _req: Request<Body>) -> Self::Future {
         todo!("Reverse engineer what tower-cookies does");
     }
 }
 
 fn require_login<ReqBody>(req: &Request<ReqBody>) -> anyhow::Result<SupabaseUser> {
-    let state = req
+    let _state = req
         .extensions()
         .get::<State<AppState>>()
         .ok_or(anyhow::anyhow!("no app state"))?;
@@ -55,7 +55,7 @@ fn require_login<ReqBody>(req: &Request<ReqBody>) -> anyhow::Result<SupabaseUser
         .extensions()
         .get::<Cookies>()
         .ok_or(anyhow::anyhow!("no cookies"))?;
-    let cookie = cookies
+    let _cookie = cookies
         .get("access_token")
         .ok_or(anyhow::anyhow!("no access_token"));
 

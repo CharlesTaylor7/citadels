@@ -1,4 +1,5 @@
-use crate::strings::UserId;
+use crate::strings::{UserId, UserName};
+use arcstr::ArcStr;
 use serde::Deserialize;
 
 // TODO: avatar url
@@ -6,7 +7,8 @@ use serde::Deserialize;
 // learn how to delete stale user uploads
 #[derive(Deserialize, Debug)]
 pub struct Profile {
-    username: String,
+    pub user_id: UserId,
+    pub username: UserName,
 }
 
 #[derive(Deserialize, Debug)]
@@ -27,15 +29,13 @@ pub struct UserMetadata {
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum CustomClaims {
-    DiscordClaims { global_name: String },
+    DiscordClaims { global_name: ArcStr },
 }
 
 impl UserMetadata {
-    pub fn default_profile(self) -> Profile {
+    pub fn default_username(self) -> UserName {
         match self.custom_claims {
-            CustomClaims::DiscordClaims { global_name } => Profile {
-                username: global_name,
-            },
+            CustomClaims::DiscordClaims { global_name } => UserName::new(global_name),
         }
     }
 }

@@ -3,10 +3,6 @@ set -eo pipefail
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2> /dev/null)
 echo "Deploying branch: $BRANCH"
 
-
-# load .env for supabase env vars
-export $(cat .env | xargs)
-
 # generate minified stylesheet
 tailwindcss --input tailwind.source.css --output public/styles/index.css --minify
 
@@ -14,7 +10,7 @@ tailwindcss --input tailwind.source.css --output public/styles/index.css --minif
 supabase db push
 
 # upload assets to supabase cdn
-node deploy/upload-assets.js
+node --env-file=deploy/.env deploy/upload-assets.js
 
 # deploy to citadels.fly.dev
 fly secrets set GIT_SHA=$(git show -s --format=%H)

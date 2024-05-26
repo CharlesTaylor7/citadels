@@ -1,7 +1,5 @@
-use super::errors::{AnyhowError, AnyhowResponse, AppError};
-use super::middleware::LoggedInLayer;
+use super::errors::{AnyhowError, AnyhowResponse};
 use super::response::AppResponse;
-use super::storage::profile;
 use super::supabase::ExchangeOAuthCode;
 use super::{auth, response, storage};
 use crate::actions::{ActionSubmission, ActionTag};
@@ -10,8 +8,7 @@ use crate::game::Game;
 use crate::lobby::{ConfigOption, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
-use crate::strings::{SessionId, UserName};
-use crate::templates::game::menu::*;
+use crate::strings::UserName;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
 use crate::templates::lobby::*;
@@ -26,15 +23,17 @@ use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
 use http::{header, StatusCode};
 use percent_encoding::utf8_percent_encode;
 use rand_core::SeedableRng;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
-use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
+use tower_cookies::{CookieManagerLayer, Cookies};
 
 pub fn get_router(state: AppState) -> Router {
+    #[allow(unused_mut)]
     let mut router = Router::new()
         .route("/profile", get(get_profile))
+        .route("/profile", post(post_profile))
         .route("/oauth/logout", post(post_logout))
         .route("/lobby/config/districts", get(get_district_config))
         .route("/lobby/config/districts", post(post_district_config))
@@ -83,17 +82,35 @@ async fn get_version() -> impl IntoResponse {
 }
 
 async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
-    let profile = state.supabase.user(&cookies)?.profile().await?;
-    let profile = if let Some(profile) = profile {
-        profile
+    let profile = state.supabase.user(&cookies)?.get_profile().await?;
+    let username = if let Some(profile) = profile {
+        profile.username
     } else {
         let claims = state.user_claims(&cookies)?;
-        claims.user_metadata.default_profile()
+        claims.user_metadata.default_username()
     };
     //let user_id = todo!();
     //return markup::profile::page(None);
     //let profile = storage::profile(user_id).await;
-    response::ok(markup::profile::page(profile))
+    response::ok(markup::profile::page(username))
+}
+
+async fn post_profile(
+    state: State<AppState>,
+    cookies: Cookies,
+    body: Json<Profile>,
+) -> AppResponse {
+    let profile = state.supabase.user(&cookies)?.get_profile().await?;
+    let username = if let Some(profile) = profile {
+        profile.username
+    } else {
+        let claims = state.user_claims(&cookies)?;
+        claims.user_metadata.default_username()
+    };
+    //let user_id = todo!();
+    //return markup::profile::page(None);
+    //let profile = storage::profile(user_id).await;
+    response::ok(markup::profile::page(username))
 }
 
 async fn get_login(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
@@ -139,7 +156,7 @@ async fn get_oauth_callback(
     cookies: Cookies,
     body: Query<OAuthCallbackCode>,
 ) -> AppResponse {
-    if let Some(mut verifier_cookie) = cookies.get("code_verifier") {
+    if let Some(verifier_cookie) = cookies.get("code_verifier") {
         let name = verifier_cookie.name().to_owned();
         let response = app
             .supabase
@@ -347,7 +364,7 @@ async fn get_game(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse
     */
 }
 
-async fn get_game_actions(app: State<AppState>, cookies: Cookies) -> AnyhowResponse {
+async fn get_game_actions(_app: State<AppState>, _cookies: Cookies) -> AnyhowResponse {
     Ok(().into_response())
     /*
     let user_id = app.session(&cookies).await.map(|s| s.user_id);
@@ -359,9 +376,9 @@ async fn get_game_actions(app: State<AppState>, cookies: Cookies) -> AnyhowRespo
 }
 
 async fn get_game_city(
-    app: State<AppState>,
-    cookies: Cookies,
-    path: Path<UserName>,
+    _app: State<AppState>,
+    _cookies: Cookies,
+    _path: Path<UserName>,
 ) -> AnyhowResponse {
     Ok(().into_response())
     /*
@@ -381,9 +398,9 @@ async fn get_game_city(
 }
 
 async fn get_ws(
-    state: State<AppState>,
-    cookies: Cookies,
-    ws: WebSocketUpgrade,
+    _state: State<AppState>,
+    _cookies: Cookies,
+    _ws: WebSocketUpgrade,
 ) -> impl IntoResponse {
     "TODO"
     /*
@@ -412,7 +429,7 @@ async fn submit_game_action(
     cookies: Cookies,
     action: axum::Json<ActionSubmission>,
 ) -> Result<Response, ErrorResponse> {
-    let user_id = if let Ok(user_id) = app.user_id(&cookies) {
+    let user_id = if let Ok(user_id) = app.user_id(&cookies).await {
         user_id
     } else {
         Err(AnyhowError(anyhow::anyhow!("not logged").into()).into_response())?
@@ -566,7 +583,7 @@ async fn get_game_menu(
     cookies: Cookies,
     path: Path<String>,
 ) -> Result<Response> {
-    let user_id = app.user_id(&cookies).map_err(AnyhowError)?;
+    let user_id = app.user_id(&cookies).await.map_err(AnyhowError)?;
     let mut game = app.game.lock().unwrap();
     let game = game.as_mut().ok_or("game hasn't started".into_response())?;
 
@@ -644,4 +661,9 @@ struct OAuthProvider {
 #[derive(Deserialize)]
 struct OAuthCallbackCode {
     pub code: String,
+}
+
+#[derive(Deserialize, Serialize)]
+struct Profile {
+    username: String,
 }

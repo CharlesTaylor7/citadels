@@ -1,7 +1,6 @@
 use axum::response::{IntoResponse, Response};
 use http::StatusCode;
 use std::borrow::Cow;
-use thiserror::Error;
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
