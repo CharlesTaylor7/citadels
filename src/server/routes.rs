@@ -6,7 +6,7 @@ use super::{auth, response};
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
-use crate::lobby::{ConfigOption, Lobby};
+use crate::lobby::{ConfigOption, GameConfig, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
 use crate::strings::UserName;
@@ -213,11 +213,12 @@ async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {
 }
 
 async fn get_lobby(app: State<AppState>) -> impl IntoResponse {
-    let lobby = app.lobby.lock().unwrap();
+    //let lobby = app.lobby.lock().unwrap();
 
     (Html(
         LobbyTemplate {
-            players: &lobby.players,
+            players: &[],
+            //lobby.players,
             themes: &DAISY_THEMES,
         }
         .render()
@@ -227,8 +228,9 @@ async fn get_lobby(app: State<AppState>) -> impl IntoResponse {
 }
 
 async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
-    let lobby = app.lobby.lock().unwrap();
-    DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
+    //let lobby = app.lobby.lock().unwrap();
+    //
+    DistrictConfigTemplate::from_config(&GameConfig::default().districts)
         .to_html()
         .into_response()
 }
@@ -237,24 +239,32 @@ async fn post_district_config(
     app: State<AppState>,
     form: Json<HashMap<DistrictName, ConfigOption>>,
 ) -> impl IntoResponse {
+    return "TODO";
+    /*
     let mut lobby = app.lobby.lock().unwrap();
     lobby.config.districts = form.0;
     DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
         .to_html()
         .into_response()
+        */
 }
 
 async fn get_role_config(app: State<AppState>) -> impl IntoResponse {
+    return "TODO";
+    /*
     let lobby = app.lobby.lock().unwrap();
     RoleConfigTemplate::from_config(lobby.config.roles.borrow(), &HashSet::new())
         .to_html()
         .into_response()
+        */
 }
 
 async fn post_role_config(
     app: State<AppState>,
     form: Json<HashMap<RoleName, String>>,
-) -> Result<Response, ErrorResponse> {
+) -> AppResponse {
+    return response::ok("TODO");
+    /*
     let mut lobby = app.lobby.lock().unwrap();
     log::info!("{:?}", form);
 
@@ -272,18 +282,12 @@ async fn post_role_config(
         )
             .into_response())
     }
+    */
 }
 
-#[derive(Deserialize)]
-pub struct Register {
-    username: String,
-}
-
-async fn register(
-    _app: State<AppState>,
-    _cookies: Cookies,
-    form: axum::Json<Register>,
-) -> Result<Response> {
+async fn register(_app: State<AppState>, _cookies: Cookies) -> Result<Response> {
+    Ok("TODO".into_response())
+    /*
     let username = form.username.trim();
     if username.len() == 0 {
         return Err(form_feedback("username cannot be empty".into()));
@@ -300,7 +304,7 @@ async fn register(
         ));
     }
     // set profile's username in the db.
-    Ok("TODO".into_response())
+    */
     /*
     let cookie = cookies.get("player_id").unwrap();
     let player_id = cookie.value();
@@ -322,7 +326,9 @@ async fn register(
     */
 }
 
-async fn start(app: State<AppState>) -> Result<Response> {
+async fn start(app: State<AppState>) -> AppResponse {
+    response::ok("TODO")
+    /*
     let mut lobby = app.lobby.lock().unwrap();
     if lobby.players.len() < 2 {
         return Err(form_feedback(
@@ -360,6 +366,7 @@ async fn start(app: State<AppState>) -> Result<Response> {
         return Ok((StatusCode::OK).into_response());
     }
     unreachable!()
+    */
 }
 
 async fn get_game(_app: State<AppState>, _cookies: Cookies) -> impl IntoResponse {
@@ -447,8 +454,7 @@ async fn submit_game_action(
     } else {
         Err(AnyhowError(anyhow::anyhow!("not logged").into()).into_response())?
     };
-    let mut game = app.game.lock().unwrap();
-    let game = game.as_mut().ok_or("game hasn't started")?;
+    let mut game = Game::demo(3)?;
     log::info!("{:#?}", action.0);
     match action.0 {
         ActionSubmission::Complete(action) => {
@@ -475,7 +481,7 @@ async fn submit_game_action(
                         .filter(|c| c.role.rank() > Rank::One)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(game, Some(user_id)),
+                    context: GameContext::from_game(&game, Some(user_id)),
                     header: "Assassin".into(),
                     action: ActionTag::Assassinate,
                 }
@@ -495,7 +501,7 @@ async fn submit_game_action(
                         })
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(game, Some(user_id)),
+                    context: GameContext::from_game(&game, Some(user_id)),
                     header: "Thief".into(),
                     action: ActionTag::Steal,
                 }
@@ -507,12 +513,12 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
             ActionTag::Build => {
-                let rendered = BuildMenu::from_game(game).to_html()?;
+                let rendered = BuildMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::WarlordDestroy => {
-                let rendered = WarlordMenu::from_game(game).to_html()?;
+                let rendered = WarlordMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
@@ -522,12 +528,12 @@ async fn submit_game_action(
             }
 
             ActionTag::SendWarrants => {
-                let rendered = SendWarrantsMenu::from_game(game).to_html()?;
+                let rendered = SendWarrantsMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::Blackmail => {
-                let rendered = BlackmailMenu::from_game(game).to_html()?;
+                let rendered = BlackmailMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
@@ -542,32 +548,32 @@ async fn submit_game_action(
             }
 
             ActionTag::ResourcesFromReligion => {
-                let rendered = AbbotCollectResourcesMenu::from(game).to_html()?;
+                let rendered = AbbotCollectResourcesMenu::from(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::TakeFromRich => {
-                let rendered = AbbotTakeFromRichMenu::from(game).to_html()?;
+                let rendered = AbbotTakeFromRichMenu::from(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::Spy => {
-                let rendered = SpyMenu::from(game).to_html()?;
+                let rendered = SpyMenu::from(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::Armory => {
-                let rendered = ArmoryMenu::from_game(game).to_html()?;
+                let rendered = ArmoryMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::MarshalSeize => {
-                let rendered = MarshalMenu::from_game(game).to_html()?;
+                let rendered = MarshalMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::DiplomatTrade => {
-                let rendered = DiplomatMenu::from_game(game).to_html()?;
+                let rendered = DiplomatMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
@@ -577,12 +583,12 @@ async fn submit_game_action(
             }
 
             ActionTag::EmperorGiveCrown => {
-                let rendered = EmperorMenu::from_game(game).to_html()?;
+                let rendered = EmperorMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::WizardPeek => {
-                let rendered = WizardMenu::from_game(game).to_html()?;
+                let rendered = WizardMenu::from_game(&game).to_html()?;
                 Ok(rendered.into_response())
             }
 
@@ -597,9 +603,7 @@ async fn get_game_menu(
     path: Path<String>,
 ) -> Result<Response> {
     let user_id = app.user_id(&cookies).await.map_err(AnyhowError)?;
-    let mut game = app.game.lock().unwrap();
-    let game = game.as_mut().ok_or("game hasn't started".into_response())?;
-
+    let game = Game::demo(3)?;
     let active_player = game.active_player()?;
 
     if user_id != active_player.id {
@@ -627,7 +631,7 @@ async fn get_game_menu(
 
         "necropolis" => {
             let rendered = NecropolisMenu {
-                city: CityTemplate::from(game, active_player.index, None),
+                city: CityTemplate::from(&game, active_player.index, None),
             }
             .to_html()?;
             Ok(rendered.into_response())

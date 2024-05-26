@@ -390,32 +390,6 @@ impl Followup {
 }
 
 #[derive(Debug)]
-pub struct Game {
-    rng: Prng,
-    // global
-    pub round: usize,
-    pub deck: Deck<DistrictName>,
-    pub players: Vec<Player>,
-    pub characters: Characters,
-    pub crowned: PlayerIndex,
-    pub first_to_complete: Option<PlayerIndex>,
-
-    // current turn info
-    pub active_turn: Turn,
-    pub followup: Option<Followup>,
-    pub turn_actions: Vec<Action>,
-    pub remaining_builds: usize,
-
-    // logs
-    pub logs: Vec<Cow<'static, str>>,
-
-    // card specific metadata
-    pub museum: Museum,
-    pub alchemist: usize,
-    pub tax_collector: usize,
-}
-
-#[derive(Debug)]
 pub struct Characters(pub Vec<GameRole>);
 
 impl Characters {
@@ -484,111 +458,34 @@ impl Characters {
     }
 }
 
+#[derive(Debug)]
+pub struct Game {
+    rng: Prng,
+    // global
+    pub round: usize,
+    pub deck: Deck<DistrictName>,
+    pub players: Vec<Player>,
+    pub characters: Characters,
+    pub crowned: PlayerIndex,
+    pub first_to_complete: Option<PlayerIndex>,
+
+    // current turn info
+    pub active_turn: Turn,
+    pub followup: Option<Followup>,
+    pub turn_actions: Vec<Action>,
+    pub remaining_builds: usize,
+
+    // logs
+    pub logs: Vec<Cow<'static, str>>,
+
+    // card specific metadata
+    pub museum: Museum,
+    pub alchemist: usize,
+    pub tax_collector: usize,
+}
 impl Game {
-    pub fn complete_city_size(&self) -> usize {
-        if self.players.len() <= 3 {
-            8
-        } else {
-            7
-        }
-    }
-
-    pub fn total_score(&self, player: &Player) -> usize {
-        let mut score = self.public_score(player);
-
-        for card in &player.hand {
-            if *card == DistrictName::SecretVault {
-                score += 3;
-            }
-        }
-        score
-    }
-
-    pub fn public_score(&self, player: &Player) -> usize {
-        if player.city_has(DistrictName::HauntedQuarter) {
-            [
-                CardSuit::Religious,
-                CardSuit::Military,
-                CardSuit::Trade,
-                CardSuit::Noble,
-                CardSuit::Unique,
-            ]
-            .iter()
-            .map(|s| self.public_score_impl(player, Some(*s)))
-            .max()
-            .expect("Suit array is not empty")
-        } else {
-            self.public_score_impl(player, None)
-        }
-    }
-    fn public_score_impl(&self, player: &Player, haunted: Option<CardSuit>) -> usize {
-        let mut score = 0;
-        let mut counts: [usize; 5] = [0, 0, 0, 0, 0];
-
-        if let Some(suit) = haunted {
-            counts[suit as usize] += 1;
-        }
-
-        // total costs
-        for card in &player.city {
-            if card.name != DistrictName::SecretVault {
-                score += card.effective_cost();
-            }
-            if card.name != DistrictName::HauntedQuarter {
-                counts[card.name.data().suit as usize] += 1;
-            }
-        }
-
-        // uniques
-        for card in &player.city {
-            score += match card.name {
-                DistrictName::DragonGate => 2,
-                DistrictName::MapRoom => player.hand.len(),
-                DistrictName::ImperialTreasury => player.gold,
-                DistrictName::Statue if player.index == self.crowned => 5,
-                DistrictName::Capitol if counts.iter().any(|c| *c >= 3) => 3,
-                DistrictName::IvoryTower if 1 == counts[CardSuit::Unique as usize] => 5,
-                DistrictName::WishingWell => counts[CardSuit::Unique as usize],
-                DistrictName::Museum => self.museum.cards().len(),
-                DistrictName::Basilica => player
-                    .city
-                    .iter()
-                    .filter(|c| c.effective_cost() % 2 == 1)
-                    .count(),
-
-                _ => 0,
-            }
-        }
-
-        // one district of each type: 3 points
-        if counts.iter().all(|s| *s > 0) {
-            score += 3;
-        }
-
-        // first_to_complete: 4
-        if self
-            .first_to_complete
-            .as_ref()
-            .is_some_and(|c| *c == player.index)
-        {
-            score += 4;
-        }
-        // other completed: 2
-        else if player.city_size() >= self.complete_city_size() {
-            score += 2;
-        }
-
-        score
-    }
-
-    pub fn active_role(&self) -> Result<&GameRole> {
-        let call = self.active_turn.call()?;
-        Ok(self.characters.get(call.rank))
-    }
-
-    pub fn active_role_mut(&mut self) -> Result<&mut GameRole> {
-        let call = self.active_turn.call()?;
-        Ok(self.characters.get_mut(call.rank))
+    pub fn demo(player_count: usize) -> Result<Game> {
+        Game::start(Lobby::demo(player_count), Prng::from_entropy())
     }
 
     pub fn start(lobby: Lobby, mut rng: Prng) -> Result<Game> {
@@ -701,6 +598,111 @@ impl Game {
         }
     }
 
+    pub fn complete_city_size(&self) -> usize {
+        if self.players.len() <= 3 {
+            8
+        } else {
+            7
+        }
+    }
+
+    pub fn total_score(&self, player: &Player) -> usize {
+        let mut score = self.public_score(player);
+
+        for card in &player.hand {
+            if *card == DistrictName::SecretVault {
+                score += 3;
+            }
+        }
+        score
+    }
+
+    pub fn public_score(&self, player: &Player) -> usize {
+        if player.city_has(DistrictName::HauntedQuarter) {
+            [
+                CardSuit::Religious,
+                CardSuit::Military,
+                CardSuit::Trade,
+                CardSuit::Noble,
+                CardSuit::Unique,
+            ]
+            .iter()
+            .map(|s| self.public_score_impl(player, Some(*s)))
+            .max()
+            .expect("Suit array is not empty")
+        } else {
+            self.public_score_impl(player, None)
+        }
+    }
+    fn public_score_impl(&self, player: &Player, haunted: Option<CardSuit>) -> usize {
+        let mut score = 0;
+        let mut counts: [usize; 5] = [0, 0, 0, 0, 0];
+
+        if let Some(suit) = haunted {
+            counts[suit as usize] += 1;
+        }
+
+        // total costs
+        for card in &player.city {
+            if card.name != DistrictName::SecretVault {
+                score += card.effective_cost();
+            }
+            if card.name != DistrictName::HauntedQuarter {
+                counts[card.name.data().suit as usize] += 1;
+            }
+        }
+
+        // uniques
+        for card in &player.city {
+            score += match card.name {
+                DistrictName::DragonGate => 2,
+                DistrictName::MapRoom => player.hand.len(),
+                DistrictName::ImperialTreasury => player.gold,
+                DistrictName::Statue if player.index == self.crowned => 5,
+                DistrictName::Capitol if counts.iter().any(|c| *c >= 3) => 3,
+                DistrictName::IvoryTower if 1 == counts[CardSuit::Unique as usize] => 5,
+                DistrictName::WishingWell => counts[CardSuit::Unique as usize],
+                DistrictName::Museum => self.museum.cards().len(),
+                DistrictName::Basilica => player
+                    .city
+                    .iter()
+                    .filter(|c| c.effective_cost() % 2 == 1)
+                    .count(),
+
+                _ => 0,
+            }
+        }
+
+        // one district of each type: 3 points
+        if counts.iter().all(|s| *s > 0) {
+            score += 3;
+        }
+
+        // first_to_complete: 4
+        if self
+            .first_to_complete
+            .as_ref()
+            .is_some_and(|c| *c == player.index)
+        {
+            score += 4;
+        }
+        // other completed: 2
+        else if player.city_size() >= self.complete_city_size() {
+            score += 2;
+        }
+
+        score
+    }
+
+    pub fn active_role(&self) -> Result<&GameRole> {
+        let call = self.active_turn.call()?;
+        Ok(self.characters.get(call.rank))
+    }
+
+    pub fn active_role_mut(&mut self) -> Result<&mut GameRole> {
+        let call = self.active_turn.call()?;
+        Ok(self.characters.get_mut(call.rank))
+    }
     pub fn begin_draft(&mut self) {
         self.round += 1;
         let draft = Draft::begin(

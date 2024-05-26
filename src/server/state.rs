@@ -12,9 +12,6 @@ use tower_cookies::Cookies;
 
 #[derive(Clone)]
 pub struct AppState {
-    // TODO: remove these
-    pub lobby: Arc<Mutex<Lobby>>,
-    pub game: Arc<Mutex<Option<Game>>>,
     // inherently stateless
     pub jwt_decoder: JwtDecoder,
     pub supabase: SupabaseClient,
@@ -26,8 +23,6 @@ pub struct AppState {
 impl AppState {
     pub async fn new() -> anyhow::Result<AppState> {
         Ok(Self {
-            lobby: Default::default(),
-            game: Default::default(),
             jwt_decoder: JwtDecoder::default(),
             supabase: SupabaseClient::default(),
             ws_connections: Default::default(),
@@ -38,6 +33,16 @@ impl AppState {
         })
     }
 
+    pub async fn service_transaction(&self) -> anyhow::Result<Transaction<'static, Postgres>> {
+        let mut transaction = self.db_pool.begin().await?;
+
+        sqlx::query!("SET ROLE service_role")
+            .execute(&mut *transaction)
+            .await?;
+        Ok(transaction)
+    }
+
+    /// Row level security policies will apply.
     pub async fn user_transaction(
         &self,
         cookies: &Cookies,
@@ -45,7 +50,11 @@ impl AppState {
         let mut transaction = self.db_pool.begin().await?;
         let user_id = self.user_id(&cookies).await?;
         // For row level security
-        sqlx::query(&format!("set local citadels.user_id = '{user_id}'",))
+        sqlx::query(&format!("SET LOCAL citadels.user_id = '{user_id}'"))
+            .execute(&mut *transaction)
+            .await?;
+
+        sqlx::query!("SET ROLE authenticated")
             .execute(&mut *transaction)
             .await?;
         Ok(transaction)

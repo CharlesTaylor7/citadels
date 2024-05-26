@@ -1,8 +1,18 @@
+-- Function that allows us to use RLS policies for either direct database connections 
+-- or Supabase data api calls. (postgrest or graphql).
 CREATE FUNCTION current_user_id() RETURNS "uuid" 
 LANGUAGE PLPGSQL as $$
+DECLARE 
+  user_id "uuid";
 BEGIN
-  -- TODO: SET "citadels.user_id" = signed in user
-  RETURN current_setting('citadels.user_id');
+  SELECT current_setting('citadels.user_id', true) INTO user_id;
+  RETURN (
+    CASE WHEN user_id IS NOT NULL THEN
+      user_id
+    ELSE
+      auth.uid()
+    END
+  );
 END;
 $$;
 
@@ -58,15 +68,15 @@ FOR INSERT WITH CHECK (
 );
 CREATE POLICY "Owner can close room" 
 ON "public"."rooms" 
+AS RESTRICTIVE
 FOR DELETE USING (
   ("host_id" = current_user_id())
 );
-CREATE POLICY "Owner can update room ( to kick players)" 
+CREATE POLICY "Owner can update room (to kick players)" 
 ON "public"."rooms" 
 FOR UPDATE USING (
   ("host_id" = current_user_id())
 );
-
 
 
 /*
