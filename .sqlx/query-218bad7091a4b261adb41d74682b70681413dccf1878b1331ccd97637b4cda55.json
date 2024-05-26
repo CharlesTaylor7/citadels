@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SET ROLE service_role",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "218bad7091a4b261adb41d74682b70681413dccf1878b1331ccd97637b4cda55"
+}
