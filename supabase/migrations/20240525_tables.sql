@@ -1,6 +1,7 @@
 CREATE FUNCTION current_user_id() RETURNS "uuid" 
 LANGUAGE PLPGSQL as $$
 BEGIN
+  -- TODO: SET "citadels.user_id" = signed in user
   RETURN current_setting('citadels.user_id');
 END;
 $$;
@@ -37,7 +38,7 @@ CREATE TABLE rooms (
     -- Unique means a user can only host 1 room at a time.
     -- Foreign key means the user has to have setup their profile.
     "host_id" "uuid" DEFAULT current_user_id() UNIQUE NOT NULL REFERENCES profiles("user_id"),
-    "player_ids" "uuid"[] DEFAULT '{current_user_id()}'::"text"[] NOT NULL,
+    "player_ids" "uuid"[] DEFAULT ARRAY[current_user_id()] NOT NULL,
     -- no more than 9 players
     CHECK (cardinality(player_ids) < 10),
     -- host is one of the players
