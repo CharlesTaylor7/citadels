@@ -16,6 +16,7 @@ COPY --from=planner /app/recipe.json recipe.json
 
 COPY macros/ macros/
 COPY macros-impl/ macros-impl/
+COPY vendor/ vendor/
 
 RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
