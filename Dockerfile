@@ -18,7 +18,10 @@ COPY macros/ macros/
 COPY macros-impl/ macros-impl/
 COPY vendor/ vendor/
 
+# Build deps
+ENV RUST_BACKTRACE=1
 RUN cargo chef cook --release --recipe-path recipe.json
+
 # Build application
 COPY . .
 # Temporary: remove dev flag later

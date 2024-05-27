@@ -6,38 +6,38 @@ use std::borrow::Cow;
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         match self {
-            AppError::Internal { error } => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                if cfg!(feature = "backtrace") {
-                    Cow::Owned(format!(
-                        "Internal Server Error\n{}\n{}",
-                        error,
-                        error.backtrace()
-                    ))
-                } else {
-                    Cow::Borrowed("Internal Server Error")
-                },
-            )
-                .into_response(),
+            AppError::Internal { error } => {
+                log::error!("\n{}\n{}", error, error.backtrace());
+                (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
+            }
 
-            AppError::Database { error } => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Sqlx Error\n{}", error),
-            )
-                .into_response(),
+            AppError::Database { error } => {
+                log::error!("\n{}", error);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Sqlx Error\n{}", error),
+                )
+                    .into_response()
+            }
 
-            AppError::Serialization { error } => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Serde Error\n{}", error),
-            )
-                .into_response(),
+            AppError::Serialization { error } => {
+                log::error!("\n{}", error);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Serde Error\n{}", error),
+                )
+                    .into_response()
+            }
 
-            AppError::FormFeedback { message } => (
-                StatusCode::BAD_REQUEST,
-                [("HX-Retarget", "#error"), ("HX-Reswap", "innerHTML")],
-                message,
-            )
-                .into_response(),
+            AppError::FormFeedback { message } => {
+                log::info!("Form feedback: {message:#?}");
+                (
+                    StatusCode::BAD_REQUEST,
+                    [("HX-Retarget", "#error"), ("HX-Reswap", "innerHTML")],
+                    message,
+                )
+                    .into_response()
+            }
         }
     }
 }
@@ -85,19 +85,8 @@ pub struct AnyhowError(pub anyhow::Error);
 // Tell axum how to convert `AppError` into a response.
 impl IntoResponse for AnyhowError {
     fn into_response(self) -> Response {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            if cfg!(feature = "backtrace") {
-                Cow::Owned(format!(
-                    "Internal Server Error\n{}\n{}",
-                    self.0,
-                    self.0.backtrace()
-                ))
-            } else {
-                Cow::Borrowed("Internal Server Error")
-            },
-        )
-            .into_response()
+        log::error!("\n{}\n{}", self.0, self.0.backtrace());
+        (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
     }
 }
 
