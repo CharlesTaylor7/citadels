@@ -3,7 +3,6 @@ use std::env;
 use tower_cookies::Cookies;
 
 pub fn page(cookies: &Cookies, main: Markup) -> Markup {
-    let logged_in = cookies.get("refresh_token").is_some();
     html! {
         (DOCTYPE)
         html
@@ -32,14 +31,17 @@ pub fn page(cookies: &Cookies, main: Markup) -> Markup {
                 data-theme="dark"
                 _="init get the theme of localStorage if it exists set my @data-theme to it"
                 hx-swap="morph" hx-target="body" {
-                (nav(logged_in))
+                (nav(cookies))
                 (main)
             }
         }
     }
 }
 
-fn nav(logged_in: bool) -> Markup {
+fn nav(cookies: &Cookies) -> Markup {
+    let logged_in = cookies.get("refresh_token").is_some();
+    //    let impersonation =
+
     //let dev = cfg!(feature = "dev");
     html! {
       div class="flex flex-row justify-end items-center" {
