@@ -1,7 +1,6 @@
 use super::errors::{AnyhowError, AnyhowResponse};
 use super::models::CustomClaims;
 use super::response::AppResponse;
-use super::supabase::ExchangeOAuthCode;
 use super::{auth, response};
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
@@ -71,9 +70,8 @@ pub fn get_router(state: AppState) -> Router {
         use tower_http::services::ServeDir;
         use tower_livereload::LiveReloadLayer;
 
-        router = router
-            .nest_service("/public", ServeDir::new("public"))
-            .layer(LiveReloadLayer::new());
+        router = router.nest_service("/public", ServeDir::new("public"));
+        //     .layer(LiveReloadLayer::new());
     }
 
     router.layer(CookieManagerLayer::new()).with_state(state)
@@ -87,7 +85,6 @@ pub mod dev {
             auth,
             response::{self, AppResponse},
             state::AppState,
-            supabase::EmailCreds,
         },
     };
     use axum::{extract::State, Json};
@@ -128,10 +125,12 @@ pub mod dev {
         cookies: Cookies,
         body: Json<FakeProfile>,
     ) -> AppResponse {
+        return Err(anyhow::anyhow!("TODO").into());
+        /*
         let mut transaction = state.service_transaction().await?;
         let user = sqlx::query!(
             r#"
-            select id::text AS "id!" from auth.users 
+            select id::text AS "id!" from auth.users
             where email = $1
             "#,
             body.email
@@ -176,6 +175,7 @@ pub mod dev {
         transaction.commit().await?;
 
         get_page(state, cookies).await
+        */
     }
 
     #[derive(Deserialize)]
@@ -299,17 +299,13 @@ async fn get_oauth_signin(
     [(header::REFRESH, format!("0;url={}", url))]
 }
 
-#[derive(Deserialize)]
-pub struct OAuthCallback {
-    code: Option<String>,
-}
 async fn get_oauth_callback(
     app: State<AppState>,
     cookies: Cookies,
-    query: Query<OAuthCallback>,
+    query: Query<serde_json::Value>,
 ) -> AppResponse {
     let client = reqwest::Client::new();
-    let client_id = "1237946046731255818";
+    let client_id = env::var("DISCORD_CLIENT_ID").unwrap();
     let client_secret = env::var("DISCORD_CLIENT_SECRET").unwrap();
 
     let redirect_url = format!(
@@ -320,16 +316,24 @@ async fn get_oauth_callback(
             "https://citadels.fly.dev"
         }
     );
-    let response = client
-        .post("https://discord.com/oauth2/token")
-        .basic_auth(client_id, Some(client_secret))
-        .json(&serde_json::json!({
-            "grant_type": "authorization_code",
-            "code": query.code.as_ref().unwrap(),
-            "redirect_uri": redirect_url,
-        }))
-        .send()
-        .await?;
+    if let Some(code) = query.get("code").and_then(|code| code.as_str()) {
+        let response = client
+            .post("https://discord.com/oauth2/token")
+            //.header("Content-Type", "application/x-www-form-urlencoded")
+            .form(&[
+                ("grant_type", "authorization_code"),
+                ("code", code),
+                ("redirect_uri", &redirect_url),
+                ("client_id", &client_id),
+                ("client_secret", &client_secret),
+            ])
+            .send()
+            .await?;
+
+        let body = response.bytes().await?;
+        log::info!("{:#?}", body);
+        //let json = serde_json::from_slice::<serde_json::Value>(&body)?;
+    }
 
     response::ok(())
     /*

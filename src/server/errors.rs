@@ -2,6 +2,7 @@ use anyhow::anyhow;
 use axum::response::{IntoResponse, Response};
 use http::StatusCode;
 use std::borrow::Cow;
+use std::error::Error;
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
@@ -15,7 +16,7 @@ impl IntoResponse for AppError {
                 log::error!("\n{}", error);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("Sqlx Error\n{}", error),
+                    format!("Sqlx Error\n{}\n{:#?}", error, error.source()),
                 )
                     .into_response()
             }
@@ -24,7 +25,12 @@ impl IntoResponse for AppError {
                 log::error!("\n{}", error);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("Serde Error\n{}", error),
+                    format!(
+                        "Serde Error\n{}\n{:#?}",
+                        error,
+                        error.is_data(),
+                        //error.source()
+                    ),
                 )
                     .into_response()
             }
@@ -33,7 +39,12 @@ impl IntoResponse for AppError {
                 log::error!("\n{}", error);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("Reqwest Error\n{}", error),
+                    format!(
+                        "Reqwest Error\n{}\n{:#?}\nStatus Code{:#?}",
+                        error,
+                        error.source(),
+                        error.status(),
+                    ),
                 )
                     .into_response()
             }

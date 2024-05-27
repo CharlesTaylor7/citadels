@@ -1,9 +1,9 @@
 use super::auth::{self, Claims, JwtDecoder};
-use super::supabase::SupabaseClient;
+//use super::supabase::SupabaseClient;
 use super::ws::WebSockets;
 use crate::strings::UserId;
 use crate::{game::Game, lobby::Lobby};
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{PgPool, Postgres, Transaction};
 use std::env;
@@ -14,7 +14,8 @@ use tower_cookies::Cookies;
 pub struct AppState {
     // inherently stateless
     pub jwt_decoder: JwtDecoder,
-    pub supabase: SupabaseClient,
+    //pub supabase: SupabaseClient,
+    pub client: reqwest::Client,
     // stateful, but transient
     pub ws_connections: Arc<Mutex<WebSockets>>,
     db_pool: PgPool,
@@ -24,7 +25,8 @@ impl AppState {
     pub async fn new() -> anyhow::Result<AppState> {
         Ok(Self {
             jwt_decoder: JwtDecoder::default(),
-            supabase: SupabaseClient::default(),
+            //        supabase: SupabaseClient::default(),
+            client: reqwest::Client::new(),
             ws_connections: Default::default(),
             db_pool: PgPoolOptions::new()
                 .max_connections(30)
@@ -78,12 +80,13 @@ impl AppState {
     }
 
     pub async fn user_id(&self, cookies: &Cookies) -> anyhow::Result<UserId> {
+        bail!("TODO");
+        /*
         if cfg!(feature = "impersonate") {
             if let Some(cookie) = cookies.get("impersonate") {
                 return Ok(UserId::new(cookie.value()));
             }
         }
-
         let response = self
             .supabase
             .anon()
@@ -105,9 +108,12 @@ impl AppState {
             time::Duration::WEEK,
         ));
         Ok(response.user.id)
+        */
     }
 
     pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {
+        bail!("TODO")
+        /*
         if let Some(access_token) = cookies.get("access_token") {
             let _ = self.supabase.anon().logout(access_token.value()).await;
             auth::remove_cookie(&cookies, "access_token");
@@ -115,6 +121,7 @@ impl AppState {
 
         auth::remove_cookie(&cookies, "refresh_token");
         Ok(())
+        */
     }
 }
 
