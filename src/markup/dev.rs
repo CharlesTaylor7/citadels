@@ -21,13 +21,14 @@ pub fn page(cookies: &Cookies, users: &[Profile]) -> Markup {
 
 pub fn profile_form(profile: &Profile) -> Markup {
     html! {
-        form hx-post="/dev/create-profile" {
+        form hx-post="/dev/create-profile" hx-swap="none" {
             label {
                 "Email"
                 input.input.input-primary
                 type="text" required
                 name="email" value=(profile.email);
             }
+
             label {
                 "Username"
                 input.input.input-primary

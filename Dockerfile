@@ -21,6 +21,7 @@ COPY vendor/ vendor/
 RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
+COPY .sqlx/ .sqlx/
 # Temporary: remove dev flag later
 RUN cargo build --release --bin citadels --features=dev
 

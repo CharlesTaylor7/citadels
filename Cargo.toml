@@ -138,6 +138,9 @@ opt-level = 0
 [profile.dev.package."*"]
 opt-level = 3
 
+[profile.dev.build-override]
+opt-level = 3
+
 [[bin]]
 path = "src/main.rs"
 name = "citadels"
