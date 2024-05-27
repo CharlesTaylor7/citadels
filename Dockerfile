@@ -21,7 +21,8 @@ COPY vendor/ vendor/
 RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
-RUN cargo build --release --bin citadels
+# Temporary: remove dev flag later
+RUN cargo build --release --bin citadels --features=dev
 
 FROM alpine AS runtime
 WORKDIR /app
