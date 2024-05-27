@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT users.email AS \"email!\", COALESCE(profiles.username, '') AS \"username!\" \n            FROM auth.users AS users\n            LEFT JOIN profiles ON profiles.user_id = users.id\n            WHERE users.email IS NOT NULL\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "email!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "username!",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      true,
+      null
+    ]
+  },
+  "hash": "e4776ea650c987d2c3caca4f6a067b442f40bb058616a496f5d239fb73eb2497"
+}
