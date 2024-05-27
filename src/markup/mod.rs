@@ -1,7 +1,7 @@
 // New Maud based html markup belong under this module
 // Older Askama templates are under /templates
 pub mod base;
-#[cfg(feature = "dev")]
+#[cfg(feature = "impersonate")]
 pub mod dev;
 pub mod game;
 pub mod index;

@@ -1,6 +1,6 @@
 procs:
   Server:
-    shell: GIT_SHA=main RUST_BACKTRACE=1 cargo watch --features="dev,dotenv" -c -x run
+    shell: RUST_BACKTRACE=1 cargo watch --features="impersonate,dev,dotenv" -c -x run
 
   Supabase:
     shell: supabase start
