@@ -25,6 +25,7 @@ use percent_encoding::utf8_percent_encode;
 use serde::{Deserialize, Serialize};
 use std::borrow::{Borrow, Cow};
 use std::collections::HashMap;
+use std::env;
 use tower_cookies::{CookieManagerLayer, Cookies};
 
 pub fn get_router(state: AppState) -> Router {
@@ -261,7 +262,7 @@ async fn get_oauth_signin(
     let redirect_url = format!(
         "{}/oauth/callback",
         if cfg!(feature = "dev") {
-            "http://0.0.0.0:8080"
+            "http://localhost:8080"
         } else {
             "https://citadels.fly.dev"
         }
@@ -276,23 +277,62 @@ async fn get_oauth_signin(
     ));
 
     let url = format!(
+        "https://discord.com/oauth2/authorize?client_id=1237946046731255818&response_type=code&redirect_uri={}&scope=openid",
+        //https://discord.com/oauth2/authorize?client_id=1237946046731255818&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Foauth%2Fcallback&scope=openid
+        //https://discord.com/oauth2/authorize?client_id=1237946046731255818&response_type=code&redirect_uri=http%3A%2F%2F0%2E0%2E0%2E0%3A8080%2Foauth%2Fcallback&scope=openid
+        utf8_percent_encode(&redirect_url, percent_encoding::NON_ALPHANUMERIC),
+    );
+
+    /*
+    let url = format!(
+
         "{}/auth/v1/authorize?provider={}&redirect_to={}&code_challenge={}&code_challenge_method=s256",
         app.supabase.url,
         utf8_percent_encode(&body.provider, percent_encoding::NON_ALPHANUMERIC),
         utf8_percent_encode(&redirect_url, percent_encoding::NON_ALPHANUMERIC),
         utf8_percent_encode(code.as_str(), percent_encoding::NON_ALPHANUMERIC),
     );
+    */
     // Workaround:
     // Chrome does not honor Set-Cookie headers when they are attached to 302 Redirects.
     // So instead we return a 200 Ok with a Refresh header.
     [(header::REFRESH, format!("0;url={}", url))]
 }
 
+#[derive(Deserialize)]
+pub struct OAuthCallback {
+    code: Option<String>,
+}
 async fn get_oauth_callback(
     app: State<AppState>,
     cookies: Cookies,
-    body: Query<OAuthCallbackCode>,
+    query: Query<OAuthCallback>,
 ) -> AppResponse {
+    let client = reqwest::Client::new();
+    let client_id = "1237946046731255818";
+    let client_secret = env::var("DISCORD_CLIENT_SECRET").unwrap();
+
+    let redirect_url = format!(
+        "{}/oauth/callback",
+        if cfg!(feature = "dev") {
+            "http://localhost:8080"
+        } else {
+            "https://citadels.fly.dev"
+        }
+    );
+    let response = client
+        .post("https://discord.com/oauth2/token")
+        .basic_auth(client_id, Some(client_secret))
+        .json(&serde_json::json!({
+            "grant_type": "authorization_code",
+            "code": query.code.as_ref().unwrap(),
+            "redirect_uri": redirect_url,
+        }))
+        .send()
+        .await?;
+
+    response::ok(())
+    /*
     if let Some(verifier_cookie) = cookies.get("code_verifier") {
         let response = app
             .supabase
@@ -328,6 +368,7 @@ async fn get_oauth_callback(
         log::error!("no code verifier");
         response::ok(Redirect::to("/login"))
     }
+    */
 }
 
 async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {

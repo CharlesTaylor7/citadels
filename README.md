@@ -12,9 +12,14 @@ Monitor the app on these dashboards:
 
 Fly.io hosts and runs the Rust server as a docker image.
 Supabase is used for:
-- auth
 - cdn for static assets
-- database for game data
+- postgres database for game data
+- Note: The supabase auth service is not in use, which means most of the data apis will not work. e.g. 
+    - no access to realtime ws
+    - "auth" schema in postgres is unused
+    - no postgrest api
+    - no graphql api
+
 
 To release:
 - push changes to the repo's `main` branch. this will trigger a docker build.
@@ -29,7 +34,6 @@ Tech Stack:
     - htmx w/ extensions
         - json-enc (serde with form data doesn't work very well)
         - ws (Web sockets for realtime gameplay)
-        - client-side-templates (
         - morph (idiomorph allows me to not to have to worry about careful targeted diffs and isntead send the current page state)
     - hyperscript
         - I like how well it interops with htmx, I don't love how some of my JS code is not scoped. 
@@ -44,19 +48,6 @@ Tech Stack:
             - https://maud.lambda.xyz/text-escaping.html
             - Easier to escape client side templates
             - Hopefully better feedback loop.
-             w
-
-Supabase is handling:
-- Auth layer
-    - email, password
-    - Discord SSO
-- Postgres database
-    - games
-    - rooms
-    - realtime websocket access for both of these.
-    - sqlite for two use cases:
-        - game backups via action logs
-        - saving preferred game configuration
 
 ## Logging
 The Rust logger offers five levels:

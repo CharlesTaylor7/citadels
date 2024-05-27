@@ -29,6 +29,15 @@ impl IntoResponse for AppError {
                     .into_response()
             }
 
+            AppError::Reqwest { error } => {
+                log::error!("\n{}", error);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Reqwest Error\n{}", error),
+                )
+                    .into_response()
+            }
+
             AppError::FormFeedback { message } => {
                 log::info!("Form feedback: {message:#?}");
                 (
@@ -47,6 +56,7 @@ pub enum AppError {
     Internal { error: anyhow::Error },
     Database { error: sqlx::Error },
     Serialization { error: serde_json::Error },
+    Reqwest { error: reqwest::Error },
     FormFeedback { message: String },
 }
 
@@ -73,6 +83,12 @@ impl From<sqlx::Error> for AppError {
 impl From<serde_json::Error> for AppError {
     fn from(error: serde_json::Error) -> Self {
         AppError::Serialization { error }
+    }
+}
+
+impl From<reqwest::Error> for AppError {
+    fn from(error: reqwest::Error) -> Self {
+        AppError::Reqwest { error }
     }
 }
 
