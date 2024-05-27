@@ -9,9 +9,9 @@ pub struct SupabaseUser {
 
 #[derive(Deserialize, Debug)]
 pub struct UserMetadata {
-    pub avatar_url: String,
-    pub full_name: String,
-    pub custom_claims: CustomClaims,
+    pub avatar_url: Option<String>,
+    pub full_name: Option<String>,
+    pub custom_claims: Option<CustomClaims>,
 }
 
 // TODO: custom deserializer if ever try to support more oauth providers.

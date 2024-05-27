@@ -7,7 +7,7 @@ use thiserror::Error;
 
 #[derive(Clone, Debug)]
 pub struct SupabaseClient {
-    pub client: reqwest::Client,
+    client: reqwest::Client,
     pub url: ArcStr,
 }
 
@@ -22,27 +22,6 @@ impl Default for SupabaseClient {
 impl SupabaseClient {
     pub fn anon(&self) -> SupabaseAnonClient {
         SupabaseAnonClient::new(self)
-    }
-
-    pub fn service(&self) -> SupabaseServiceClient {
-        SupabaseServiceClient::new(self)
-    }
-}
-
-/// Make requests with elevated permissions
-pub struct SupabaseServiceClient {
-    client: reqwest::Client,
-    url: ArcStr,
-    api_key: ArcStr,
-}
-
-impl SupabaseServiceClient {
-    fn new(supabase: &SupabaseClient) -> Self {
-        Self {
-            client: supabase.client.clone(),
-            url: supabase.url.clone(),
-            api_key: env::var("SUPABASE_SERVICE_ROLE_KEY").unwrap().into(),
-        }
     }
 }
 
@@ -64,7 +43,7 @@ impl SupabaseAnonClient {
     pub async fn exchange_code_for_session(
         &self,
         body: ExchangeOAuthCode<'_>,
-    ) -> anyhow::Result<OAuthSigninResponse> {
+    ) -> anyhow::Result<SigninResponse> {
         let response: Response = self
             .client
             .post(&format!("{}/auth/v1/token?grant_type=pkce", self.url))
@@ -75,12 +54,12 @@ impl SupabaseAnonClient {
             .await?;
 
         let body = response.bytes().await?;
-        let json = serde_json::from_slice::<SupabaseResponse<OAuthSigninResponse>>(&body)?
-            .into_result()?;
+        let json =
+            serde_json::from_slice::<SupabaseResponse<SigninResponse>>(&body)?.into_result()?;
         Ok(json)
     }
 
-    pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<OAuthSigninResponse> {
+    pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<SigninResponse> {
         let response = self
             .client
             .post(&format!(
@@ -94,20 +73,36 @@ impl SupabaseAnonClient {
             .await?;
 
         let body = response.bytes().await?;
-        let json = serde_json::from_slice::<SupabaseResponse<OAuthSigninResponse>>(&body)?
-            .into_result()?;
+        let json =
+            serde_json::from_slice::<SupabaseResponse<SigninResponse>>(&body)?.into_result()?;
         Ok(json)
     }
 
     pub async fn logout(&self, access_token: &str) -> anyhow::Result<()> {
         self.client
             .post(&format!("{}/auth/v1/logout", self.url))
-            //.header("apikey", self.api_key.as_str())
             .header("Content-Type", "application/json")
             .bearer_auth(access_token)
             .send()
             .await?;
         Ok(())
+    }
+
+    pub async fn signup_email(&self, creds: EmailCreds<'_>) -> anyhow::Result<SigninResponse> {
+        let response: Response = self
+            .client
+            .post(&format!("{}/auth/v1/signup", self.url))
+            .header("apikey", self.api_key.as_str())
+            .header("Content-Type", "application/json")
+            .json(&creds)
+            .send()
+            .await?;
+
+        let body = response.bytes().await?;
+        std::fs::write("sample/email.json", body.clone())?;
+        let json = serde_json::from_slice::<SupabaseResponse<SigninResponse>>(&body)?;
+        log::info!("{:#?}", json);
+        Ok(json.into_result()?)
     }
 }
 
@@ -124,11 +119,17 @@ pub struct RefreshTokenBody<'a> {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct OAuthSigninResponse {
+pub struct SigninResponse {
     pub access_token: String,
     pub refresh_token: String,
     pub user: SupabaseUser,
     pub expires_in: u32,
+}
+
+#[derive(Serialize)]
+pub struct EmailCreds<'a> {
+    pub email: &'a str,
+    pub password: &'a str,
 }
 
 /* Supabase utility types */

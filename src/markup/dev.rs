@@ -7,10 +7,15 @@ pub fn page(cookies: &Cookies) -> Markup {
         cookies,
         html! {
                 form hx-post="/dev/create-profile" {
-                    input type="text" required name="username";
-                    input type="text" required name="email";
-                    input type="text" required name="password";
-                    button type="submit" {
+                    label.block {
+                        "Username"
+                        input.input.input-primary type="text" required name="username";
+                    }
+                    label.block {
+                        "Email"
+                        input.input.input-primary type="text" required name="email";
+                    }
+                    button.btn.btn-primary type="submit" {
                         "Submit"
                     }
                 }

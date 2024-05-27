@@ -64,6 +64,7 @@ pub fn get_router(state: AppState) -> Router {
         router = router
             .route("/dev", get(dev::get_page))
             .route("/dev/create-profile", post(dev::post_create_profile))
+            .route("/dev/impersonate", post(dev::post_impersonate))
             .nest_service("/public", ServeDir::new("public"))
             .layer(LiveReloadLayer::new());
     }
@@ -71,45 +72,70 @@ pub fn get_router(state: AppState) -> Router {
     router.layer(CookieManagerLayer::new()).with_state(state)
 }
 
-mod dev {
+pub mod dev {
     use crate::{
         markup,
-        server::{response::AppResponse, state::AppState},
+        server::{
+            auth,
+            response::{self, AppResponse},
+            state::AppState,
+            supabase::{EmailCreds, SupabaseAnonClient},
+        },
     };
     use axum::{extract::State, response::IntoResponse, Json};
     use serde::Deserialize;
     use tower_cookies::Cookies;
 
-    async fn get_page(cookies: Cookies) -> impl IntoResponse {
+    pub async fn get_page(cookies: Cookies) -> impl IntoResponse {
         markup::dev::page(&cookies)
     }
 
     #[derive(Deserialize)]
-    struct FakeProfile {
+    pub struct FakeProfile {
         username: String,
         email: String,
-        password: String,
     }
 
-    async fn post_create_profile(
+    pub async fn post_create_profile(
         state: State<AppState>,
         cookies: Cookies,
         body: Json<FakeProfile>,
     ) -> AppResponse {
+        let client = state.supabase.anon();
+        let password = uuid::Uuid::new_v4().to_string();
+        let signup = client
+            .signup_email(EmailCreds {
+                email: &body.email,
+                password: &password,
+            })
+            .await?;
         let mut transaction = state.service_transaction().await?;
-        let response = sqlx::query!(
+        let response = sqlx::query(
             r#"
-            insert into profiles(username)
-            values ($1)
-            on conflict (user_id) do update
-                set username = $1
+            insert into profiles(user_id, username)
+            values ($1::uuid, $2)
             "#,
-            body.username
         )
+        .bind(signup.user.id.as_str())
+        .bind(&body.username)
         .execute(&mut *transaction)
         .await;
         log::info!("{:#?}", response);
         transaction.commit().await?;
+
+        response::ok(())
+    }
+
+    #[derive(Deserialize)]
+    pub struct Impersonate {
+        user_id: String,
+    }
+    pub async fn post_impersonate(cookies: Cookies, body: Json<Impersonate>) -> AppResponse {
+        cookies.add(auth::cookie(
+            "impersonate",
+            body.user_id.clone(),
+            time::Duration::days(1000),
+        ));
 
         response::ok(())
     }
@@ -143,7 +169,8 @@ async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
     } else {
         let claims = state.user_claims(&cookies)?;
         match claims.user_metadata.custom_claims {
-            CustomClaims::DiscordClaims { global_name } => global_name,
+            Some(CustomClaims::DiscordClaims { global_name }) => global_name,
+            None => "".to_owned(),
         }
     };
     //let user_id = todo!();
@@ -173,10 +200,6 @@ async fn post_profile(
     transaction.commit().await?;
 
     response::ok(())
-}
-
-async fn get_login(_app: State<AppState>, cookies: Cookies) -> impl IntoResponse {
-    markup::login::page(&cookies)
 }
 
 async fn get_oauth_signin(

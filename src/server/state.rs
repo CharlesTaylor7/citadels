@@ -45,10 +45,7 @@ impl AppState {
 
     /// Signed out user. Just allowed to spectate
     /// Row level security policies will apply.
-    pub async fn anon_transaction(
-        &self,
-        cookies: &Cookies,
-    ) -> anyhow::Result<Transaction<'static, Postgres>> {
+    pub async fn anon_transaction(&self) -> anyhow::Result<Transaction<'static, Postgres>> {
         let mut transaction = self.db_pool.begin().await?;
         sqlx::query("SET ROLE anon")
             .execute(&mut *transaction)
@@ -81,6 +78,12 @@ impl AppState {
     }
 
     pub async fn user_id(&self, cookies: &Cookies) -> anyhow::Result<UserId> {
+        if cfg!(feature = "dev") {
+            if let Some(cookie) = cookies.get("impersonate") {
+                return Ok(UserId::new(cookie.value()));
+            }
+        }
+
         let response = self
             .supabase
             .anon()
@@ -94,7 +97,7 @@ impl AppState {
         cookies.add(auth::cookie(
             "access_token",
             response.access_token,
-            time::Duration::HOUR,
+            time::Duration::seconds(response.expires_in.into()),
         ));
         cookies.add(auth::cookie(
             "refresh_token",
