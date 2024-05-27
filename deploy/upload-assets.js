@@ -4,19 +4,19 @@ import path from "node:path";
 import process from "node:process";
 
 // Create a single supabase client for interacting with your database
-const url = "https://ryvsflpspddwwacxrnst.supabase.co";
 
-const supabase = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(process.env.SUPABASE_PROJECT_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 await supabase.storage
   .createBucket("assets", {
     public: true,
-  });
+  }).then(r => log("create-bucket", r));
 
 // refresh styles
 await supabase.storage
   .from("assets")
   .remove(["styles/index.css"])
+  .then(r => log("remove-styles", r));
 
 uploadDir("public");
 
@@ -31,7 +31,8 @@ function uploadDir(dir) {
         .from("assets")
         .upload(filePath.substring(7), contents, {
           contentType: mimeType(filePath),
-        });
+        })
+        .then(r => log("upload-asset", r));
     }
   }
 }
@@ -61,5 +62,15 @@ function mimeType(fileName) {
       return "application/javascript";
     default:
       throw new Error(`Unexpected file ext: ${ext}`);
+  }
+}
+
+function log(tag, { data, error }) {
+  if (data) {
+    console.log(tag, data);
+  }
+
+  if (error) {
+    console.error(tag, error);
   }
 }
