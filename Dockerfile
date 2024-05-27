@@ -19,13 +19,12 @@ COPY macros-impl/ macros-impl/
 COPY vendor/ vendor/
 
 # Build deps
-ENV RUST_BACKTRACE=1
-RUN cargo chef cook --release --recipe-path recipe.json
+RUN RUST_BACKRACE=1 cargo chef cook --release --recipe-path recipe.json
 
 # Build application
 COPY . .
-# Temporary: remove dev flag later
-RUN cargo build --release --bin citadels --features=impersonate
+# Temporary: remove impersonate flag later
+RUN RUST_BACKTRACE=1 cargo build --release --bin citadels --features=impersonate
 
 FROM alpine AS runtime
 WORKDIR /app
