@@ -130,6 +130,7 @@ default-features = false
 
 [features]
 dev = ["dep:tower-http", "dep:tower-livereload"]
+impersonate = []
 dotenv = ["dep:dotenv"]
 
 [profile.dev]

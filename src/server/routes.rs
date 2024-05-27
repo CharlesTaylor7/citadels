@@ -57,14 +57,20 @@ pub fn get_router(state: AppState) -> Router {
     // .route("/game/action", post(submit_game_action))
     // .route("/game/menu/:menu", get(get_game_menu))
 
-    #[cfg(feature = "dev")]
+    #[cfg(feature = "impersonate")]
     {
-        use tower_http::services::ServeDir;
-        use tower_livereload::LiveReloadLayer;
         router = router
             .route("/dev", get(dev::get_page))
             .route("/dev/create-profile", post(dev::post_create_profile))
             .route("/dev/impersonate", post(dev::post_impersonate))
+    }
+
+    #[cfg(feature = "dev")]
+    {
+        use tower_http::services::ServeDir;
+        use tower_livereload::LiveReloadLayer;
+
+        router = router
             .nest_service("/public", ServeDir::new("public"))
             .layer(LiveReloadLayer::new());
     }
@@ -72,7 +78,7 @@ pub fn get_router(state: AppState) -> Router {
     router.layer(CookieManagerLayer::new()).with_state(state)
 }
 
-#[cfg(feature = "dev")]
+#[cfg(feature = "impersonate")]
 pub mod dev {
     use crate::{
         markup,
@@ -260,6 +266,7 @@ async fn get_oauth_signin(
             "https://citadels.fly.dev"
         }
     );
+    log::info!("Preparing redirect url: {:#?}", redirect_url);
 
     let (code, verifier) = crate::server::state::generate_pkce_pair();
     cookies.add(auth::cookie(

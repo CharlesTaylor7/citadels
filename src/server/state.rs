@@ -78,7 +78,7 @@ impl AppState {
     }
 
     pub async fn user_id(&self, cookies: &Cookies) -> anyhow::Result<UserId> {
-        if cfg!(feature = "dev") {
+        if cfg!(feature = "impersonate") {
             if let Some(cookie) = cookies.get("impersonate") {
                 return Ok(UserId::new(cookie.value()));
             }
