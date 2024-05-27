@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use axum::response::{IntoResponse, Response};
 use http::StatusCode;
 use std::borrow::Cow;
@@ -18,9 +19,16 @@ impl IntoResponse for AppError {
                 },
             )
                 .into_response(),
+
             AppError::Database { error } => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Internal Server Error\n{}", error),
+                format!("Sqlx Error\n{}", error),
+            )
+                .into_response(),
+
+            AppError::Serialization { error } => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Serde Error\n{}", error),
             )
                 .into_response(),
 
@@ -38,7 +46,16 @@ impl IntoResponse for AppError {
 pub enum AppError {
     Internal { error: anyhow::Error },
     Database { error: sqlx::Error },
+    Serialization { error: serde_json::Error },
     FormFeedback { message: String },
+}
+
+impl From<Cow<'static, str>> for AppError {
+    fn from(error: Cow<'static, str>) -> Self {
+        AppError::Internal {
+            error: anyhow!("{}", error),
+        }
+    }
 }
 
 impl From<anyhow::Error> for AppError {
@@ -52,6 +69,13 @@ impl From<sqlx::Error> for AppError {
         AppError::Database { error }
     }
 }
+
+impl From<serde_json::Error> for AppError {
+    fn from(error: serde_json::Error) -> Self {
+        AppError::Serialization { error }
+    }
+}
+
 // TODO: Axe this
 pub type AnyhowResponse = Result<Response, AnyhowError>;
 

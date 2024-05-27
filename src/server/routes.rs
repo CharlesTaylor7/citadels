@@ -6,28 +6,25 @@ use super::{auth, response};
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
-use crate::lobby::{ConfigOption, GameConfig, Lobby};
+use crate::lobby::{ConfigOption, GameConfig};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
-use crate::strings::{UserId, UserName};
+use crate::strings::UserName;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
 use crate::templates::lobby::*;
 use crate::types::Marker;
 use crate::{markup, templates::*};
-use askama::Template;
 use axum::extract::{Json, Path, Query, State};
-use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
+use axum::response::{ErrorResponse, Redirect, Response, Result};
 use axum::routing::{get, post};
 use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
 use http::{header, StatusCode};
 use percent_encoding::utf8_percent_encode;
-use rand_core::SeedableRng;
 use serde::{Deserialize, Serialize};
 use std::borrow::{Borrow, Cow};
-use std::collections::{HashMap, HashSet};
-use time::Duration;
+use std::collections::HashMap;
 use tower_cookies::{CookieManagerLayer, Cookies};
 
 pub fn get_router(state: AppState) -> Router {
@@ -42,8 +39,10 @@ pub fn get_router(state: AppState) -> Router {
         .route("/profile", get(get_profile))
         .route("/profile", post(post_profile))
         .route("/lobby", get(get_lobby))
-        .route("/lobby/join-room", post(join_room))
         .route("/lobby/create-room", post(create_room))
+        .route("/lobby/join-room", post(join_room))
+        .route("/lobby/leave-room", post(leave_room))
+        .route("/lobby/kick-room", post(kick_room))
         .route("/lobby/start-game", post(start_game))
         .route("/game", get(get_game));
     //.route("/lobby/config/districts", get(get_district_config))
@@ -63,12 +62,61 @@ pub fn get_router(state: AppState) -> Router {
         use tower_http::services::ServeDir;
         use tower_livereload::LiveReloadLayer;
         router = router
-            .route("/dev", get(get_dev))
+            .route("/dev", get(dev::get_page))
+            .route("/dev/create-profile", post(dev::post_create_profile))
             .nest_service("/public", ServeDir::new("public"))
             .layer(LiveReloadLayer::new());
     }
 
     router.layer(CookieManagerLayer::new()).with_state(state)
+}
+
+mod dev {
+    use crate::{
+        markup,
+        server::{response::AppResponse, state::AppState},
+    };
+    use axum::{extract::State, response::IntoResponse, Json};
+    use serde::Deserialize;
+    use tower_cookies::Cookies;
+
+    async fn get_page(cookies: Cookies) -> impl IntoResponse {
+        markup::dev::page(&cookies)
+    }
+
+    #[derive(Deserialize)]
+    struct FakeProfile {
+        username: String,
+        email: String,
+        password: String,
+    }
+
+    async fn post_create_profile(
+        state: State<AppState>,
+        cookies: Cookies,
+        body: Json<FakeProfile>,
+    ) -> AppResponse {
+        let mut transaction = state.service_transaction().await?;
+        let response = sqlx::query!(
+            r#"
+            insert into profiles(username)
+            values ($1)
+            on conflict (user_id) do update
+                set username = $1
+            "#,
+            body.username
+        )
+        .execute(&mut *transaction)
+        .await;
+        log::info!("{:#?}", response);
+        transaction.commit().await?;
+
+        response::ok(())
+    }
+}
+
+async fn get_login(_app: State<AppState>, cookies: Cookies) -> impl IntoResponse {
+    markup::login::page(&cookies)
 }
 
 async fn get_index(cookies: Cookies) -> Result<Response, AnyhowError> {
@@ -83,10 +131,6 @@ async fn get_version() -> impl IntoResponse {
             "Github"
         }
     )
-}
-
-async fn get_dev(cookies: Cookies) -> impl IntoResponse {
-    markup::dev::page(&cookies)
 }
 
 async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
@@ -237,18 +281,33 @@ async fn get_lobby(app: State<AppState>, cookies: Cookies) -> AppResponse {
     )
     .fetch_all(&mut *tx)
     .await?;
+
+    tx.commit().await?;
     log::info!("rooms: {:#?}", rooms);
-    response::ok(markup::lobby::page(&cookies, rooms))
+    response::ok(markup::lobby::page(&cookies, &rooms))
 }
 
 async fn create_room(app: State<AppState>, cookies: Cookies) -> AppResponse {
     let mut tx = app.user_transaction(&cookies).await?;
+    let room = sqlx::query!(
+        r#"
+        INSERT INTO rooms (game_config) VALUES ($1) 
+        RETURNING id 
+        "#,
+        serde_json::value::to_value(GameConfig::default())?,
+    )
+    .fetch_one(&mut *tx)
+    .await?;
     sqlx::query!(
         r#"
-        INSERT INTO rooms (id) VALUES (DEFAULT)
-        "#
+        INSERT INTO room_members (room_id) VALUES ($1)
+        "#,
+        room.id,
     )
-    .execute(&mut *tx);
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
     response::ok(())
 }
 
@@ -265,7 +324,9 @@ async fn join_room(app: State<AppState>, cookies: Cookies, body: Json<JoinRoom>)
         "#,
     )
     .bind(&body.room_id)
-    .execute(&mut *tx);
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
     response::ok(())
 }
 
@@ -276,7 +337,9 @@ async fn leave_room(app: State<AppState>, cookies: Cookies) -> AppResponse {
         DELETE FROM room_members WHERE room_members.user_id = current_user_id()
         "#,
     )
-    .execute(&mut *tx);
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
     response::ok(())
 }
 
@@ -292,12 +355,15 @@ async fn kick_room(app: State<AppState>, cookies: Cookies, body: Json<KickRoom>)
         "#,
     )
     .bind(&body.user_id)
-    .execute(&mut *tx);
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
     response::ok(())
 }
 
 async fn start_game(app: State<AppState>, cookies: Cookies) -> AppResponse {
     let mut tx = app.user_transaction(&cookies).await?;
+    tx.commit().await?;
     response::ok(())
 }
 

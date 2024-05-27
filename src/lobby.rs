@@ -64,7 +64,7 @@ impl Lobby {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Deserialize, Serialize)]
 #[repr(u8)]
 pub enum ConfigOption {
     #[default]
@@ -73,7 +73,7 @@ pub enum ConfigOption {
     Never,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct GameConfig {
     pub roles: HashSet<RoleName>,
     pub districts: HashMap<DistrictName, ConfigOption>,
