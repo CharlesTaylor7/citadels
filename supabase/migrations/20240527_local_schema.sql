@@ -1,3 +1,8 @@
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" REVOKE TRUNCATE ON TABLES FROM "anon";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" REVOKE TRUNCATE ON TABLES FROM "authenticated";
+
+GRANT SELECT ON TABLE "auth"."users" TO "service_role";
+
 -- Function that allows us to use RLS policies for either direct database connections 
 -- or Supabase data api calls. (postgrest or graphql).
 CREATE FUNCTION current_user_id() RETURNS "uuid" 
