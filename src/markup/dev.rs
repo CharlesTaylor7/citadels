@@ -23,25 +23,22 @@ pub fn profile_form(profile: &Profile) -> Markup {
     html! {
         form hx-post="/dev/create-profile" {
             label {
-                "Username"
-                input.input.input-primary
-                    type="text" required
-                    name="username" value=(profile.username);
-            }
-
-            label {
                 "Email"
                 input.input.input-primary
                 type="text" required
                 name="email" value=(profile.email);
             }
+            label {
+                "Username"
+                input.input.input-primary
+                    hx-trigger="input delay:500ms"
+                    hx-post="/dev/create-profile"
+                    type="text" required
+                    name="username" value=(profile.username);
+            }
 
             button.btn.btn-primary type="submit" name="impersonate" {
                 "Impersonate"
-            }
-
-            button.btn.btn-secondary type="submit" {
-                "Save"
             }
         }
     }

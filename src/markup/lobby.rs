@@ -1,6 +1,5 @@
-use crate::server::routes::RoomSummary;
-
 use super::base;
+use crate::server::routes::RoomSummary;
 use maud::{html, Markup};
 use tower_cookies::Cookies;
 
@@ -13,13 +12,6 @@ pub fn page(cookies: &Cookies, rooms: &[RoomSummary]) -> Markup {
             }
             @for room in rooms {
                 div.flex.flex-col.items-start {
-                    button.btn.btn-primary hx-post="/lobby/join-room" name="room_id" value=(room.id) {
-                        "Join Room"
-                    }
-                    div {
-                        "Room:"
-                        (room.id)
-                    }
                     div {
                         "Host: "
                         (room.host)
@@ -28,16 +20,12 @@ pub fn page(cookies: &Cookies, rooms: &[RoomSummary]) -> Markup {
                         "Players: "
                         (room.num_players)
                     }
+
+                    button.btn.btn-primary hx-post="/lobby/join-room" name="room_id" value=(room.id) {
+                        "Join Room"
+                    }
                 }
             }
         },
     )
-}
-
-pub fn main() -> Markup {
-    html! {
-        #lobby {
-            "lobby"
-        }
-    }
 }

@@ -168,7 +168,7 @@ pub mod dev {
         log::info!("{:#?}", response);
         transaction.commit().await?;
 
-        response::ok(())
+        get_page(state, cookies).await
     }
 
     #[derive(Deserialize)]
