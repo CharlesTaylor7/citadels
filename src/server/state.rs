@@ -105,16 +105,12 @@ impl AppState {
     }
 
     pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {
-        if let Some(mut access_token) = cookies.get("access_token") {
-            self.supabase.anon().logout(access_token.value()).await?;
-            //cookies.remove(access_token);
-            //.make_removal();
+        if let Some(access_token) = cookies.get("access_token") {
+            let _ = self.supabase.anon().logout(access_token.value()).await;
+            auth::remove_cookie(&cookies, "access_token");
         }
 
-        if let Some(mut refresh_token) = cookies.get("refresh_token") {
-            refresh_token.make_removal();
-        }
-
+        auth::remove_cookie(&cookies, "refresh_token");
         Ok(())
     }
 }

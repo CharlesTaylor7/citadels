@@ -5,7 +5,13 @@ use std::borrow::Cow;
 use std::env;
 use time::Duration;
 use tower_cookies::cookie::SameSite;
-use tower_cookies::Cookie;
+use tower_cookies::{Cookie, Cookies};
+
+pub fn remove_cookie(cookies: &Cookies, name: impl Into<Cow<'static, str>>) {
+    let mut c = cookie(name, "", time::Duration::ZERO);
+    c.make_removal();
+    cookies.remove(c)
+}
 
 pub fn cookie<'a>(
     name: impl Into<Cow<'a, str>>,

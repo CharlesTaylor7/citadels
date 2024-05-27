@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        insert into profiles(username)\n        values ($1)\n        on conflict (user_id) do update\n            set username = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "52c143a390c5e9ba52f03590593f4008e942df0fa1fdfd55199fcd4dcfb6d12e"
+}

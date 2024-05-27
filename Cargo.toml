@@ -100,7 +100,7 @@ features = ["derive"]
 
 [dependencies.sqlx]
  version = "0.7.4"
- features = ["runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "time"]
+ features = ["runtime-tokio", "tls-rustls", "postgres", "macros", "uuid", "time", "json"]
  default-features = false 
 
 [dependencies.tokio]

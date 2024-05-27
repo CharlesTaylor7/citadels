@@ -9,7 +9,7 @@ use crate::game::Game;
 use crate::lobby::{ConfigOption, GameConfig, Lobby};
 use crate::roles::{Rank, RoleName};
 use crate::server::state::AppState;
-use crate::strings::UserName;
+use crate::strings::{UserId, UserName};
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
 use crate::templates::lobby::*;
@@ -33,34 +33,37 @@ use tower_cookies::{CookieManagerLayer, Cookies};
 pub fn get_router(state: AppState) -> Router {
     #[allow(unused_mut)]
     let mut router = Router::new()
-        .route("/profile", get(get_profile))
-        .route("/profile", post(post_profile))
-        .route("/oauth/logout", post(post_logout))
-        .route("/lobby/config/districts", get(get_district_config))
-        .route("/lobby/config/districts", post(post_district_config))
-        .route("/lobby/config/roles", get(get_role_config))
-        .route("/lobby/config/roles", post(post_role_config))
-        .route("/lobby/register", post(register))
-        .route("/ws", get(get_ws))
-        .route("/game", get(get_game))
-        .route("/game/actions", get(get_game_actions))
-        .route("/game/city/:player_name", get(get_game_city))
-        .route("/game", post(start))
-        .route("/game/action", post(submit_game_action))
-        .route("/game/menu/:menu", get(get_game_menu))
-        //TODO: reverse engineer tower-cookies  .layer(LoggedInLayer::new())
         .route("/", get(get_index))
         .route("/version", get(get_version))
         .route("/login", get(get_login))
         .route("/oauth/signin", get(get_oauth_signin))
         .route("/oauth/callback", get(get_oauth_callback))
-        .route("/lobby", get(get_lobby));
+        .route("/oauth/logout", post(post_logout))
+        .route("/profile", get(get_profile))
+        .route("/profile", post(post_profile))
+        .route("/lobby", get(get_lobby))
+        .route("/lobby/join-room", post(join_room))
+        .route("/lobby/create-room", post(create_room))
+        .route("/lobby/start-game", post(start_game))
+        .route("/game", get(get_game));
+    //.route("/lobby/config/districts", get(get_district_config))
+    //.route("/lobby/config/districts", post(post_district_config))
+    //.route("/lobby/config/roles", get(get_role_config))
+    //.route("/lobby/config/roles", post(post_role_config))
+    //.route("/lobby/register", post(register))
+    // .route("/ws", get(get_ws))
+    // .route("/game/actions", get(get_game_actions))
+    // .route("/game/city/:player_name", get(get_game_city))
+    // .route("/game", post(start))
+    // .route("/game/action", post(submit_game_action))
+    // .route("/game/menu/:menu", get(get_game_menu))
 
     #[cfg(feature = "dev")]
     {
         use tower_http::services::ServeDir;
         use tower_livereload::LiveReloadLayer;
         router = router
+            .route("/dev", get(get_dev))
             .nest_service("/public", ServeDir::new("public"))
             .layer(LiveReloadLayer::new());
     }
@@ -80,6 +83,10 @@ async fn get_version() -> impl IntoResponse {
             "Github"
         }
     )
+}
+
+async fn get_dev(cookies: Cookies) -> impl IntoResponse {
+    markup::dev::page(&cookies)
 }
 
 async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
@@ -107,18 +114,18 @@ async fn post_profile(
     body: Json<Profile>,
 ) -> AppResponse {
     let mut transaction = state.user_transaction(&cookies).await?;
-    let profiles = sqlx::query!(
+    let response = sqlx::query!(
         r#"
-        INSERT INTO profiles(username)
-        VALUES ($1) 
-        ON CONFLICT (user_id) DO UPDATE
-            SET username = $1
+        insert into profiles(username)
+        values ($1)
+        on conflict (user_id) do update
+            set username = $1
         "#,
         body.username
     )
     .execute(&mut *transaction)
     .await;
-    log::info!("{:#?}", profiles);
+    log::info!("{:#?}", response);
     transaction.commit().await?;
 
     response::ok(())
@@ -168,7 +175,6 @@ async fn get_oauth_callback(
     body: Query<OAuthCallbackCode>,
 ) -> AppResponse {
     if let Some(verifier_cookie) = cookies.get("code_verifier") {
-        let name = verifier_cookie.name().to_owned();
         let response = app
             .supabase
             .anon()
@@ -177,9 +183,7 @@ async fn get_oauth_callback(
                 code_verifier: verifier_cookie.value(),
             })
             .await?;
-        //let clone: Cookie<'static> = verifier_cookie.to_owned();
-        //verifier_cookie.make_removal();
-        cookies.add(auth::cookie(name, "", Duration::ZERO));
+        auth::remove_cookie(&cookies, "code_verifier");
         cookies.add(auth::cookie(
             "access_token",
             response.access_token,
@@ -198,7 +202,7 @@ async fn get_oauth_callback(
             .is_some();
         tx.commit().await?;
 
-        let url = if has_profile { "/profile" } else { "/lobby" };
+        let url = if has_profile { "/lobby" } else { "/profile" };
 
         response::ok([(header::REFRESH, format!("0;url={}", url))])
     } else {
@@ -209,22 +213,92 @@ async fn get_oauth_callback(
 
 async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {
     app.logout(cookies).await?;
-    response::ok(Redirect::to("/lobby"))
+
+    response::ok([(header::REFRESH, format!("0;url={}", "/"))])
 }
 
-async fn get_lobby(app: State<AppState>) -> impl IntoResponse {
-    //let lobby = app.lobby.lock().unwrap();
+#[derive(Debug)]
+pub struct RoomSummary {
+    pub id: uuid::Uuid,
+    pub host: String,
+    pub num_players: i64,
+}
+async fn get_lobby(app: State<AppState>, cookies: Cookies) -> AppResponse {
+    let mut tx = app.user_transaction(&cookies).await?;
 
-    (Html(
-        LobbyTemplate {
-            players: &[],
-            //lobby.players,
-            themes: &DAISY_THEMES,
-        }
-        .render()
-        .unwrap(),
-    ),)
-        .into_response()
+    let rooms = sqlx::query_as!(
+        RoomSummary,
+        r#"
+        SELECT rooms.id, hosts.username AS host, COUNT(member.user_id) AS "num_players!" FROM rooms 
+        JOIN profiles AS hosts ON hosts.user_id = rooms.host_id
+        LEFT JOIN room_members AS member ON rooms.id = member.room_id
+        GROUP BY (rooms.id, hosts.username)
+        "#
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    log::info!("rooms: {:#?}", rooms);
+    response::ok(markup::lobby::page(&cookies, rooms))
+}
+
+async fn create_room(app: State<AppState>, cookies: Cookies) -> AppResponse {
+    let mut tx = app.user_transaction(&cookies).await?;
+    sqlx::query!(
+        r#"
+        INSERT INTO rooms (id) VALUES (DEFAULT)
+        "#
+    )
+    .execute(&mut *tx);
+    response::ok(())
+}
+
+#[derive(Deserialize)]
+pub struct JoinRoom {
+    room_id: String,
+}
+
+async fn join_room(app: State<AppState>, cookies: Cookies, body: Json<JoinRoom>) -> AppResponse {
+    let mut tx = app.user_transaction(&cookies).await?;
+    sqlx::query(
+        r#"
+        INSERT INTO room_members (room_id) VALUES ($1::uuid)
+        "#,
+    )
+    .bind(&body.room_id)
+    .execute(&mut *tx);
+    response::ok(())
+}
+
+async fn leave_room(app: State<AppState>, cookies: Cookies) -> AppResponse {
+    let mut tx = app.user_transaction(&cookies).await?;
+    sqlx::query!(
+        r#"
+        DELETE FROM room_members WHERE room_members.user_id = current_user_id()
+        "#,
+    )
+    .execute(&mut *tx);
+    response::ok(())
+}
+
+#[derive(Deserialize)]
+pub struct KickRoom {
+    user_id: String,
+}
+async fn kick_room(app: State<AppState>, cookies: Cookies, body: Json<KickRoom>) -> AppResponse {
+    let mut tx = app.user_transaction(&cookies).await?;
+    sqlx::query(
+        r#"
+        DELETE FROM room_members WHERE room_members.user_id = $1::uuid
+        "#,
+    )
+    .bind(&body.user_id)
+    .execute(&mut *tx);
+    response::ok(())
+}
+
+async fn start_game(app: State<AppState>, cookies: Cookies) -> AppResponse {
+    let mut tx = app.user_transaction(&cookies).await?;
+    response::ok(())
 }
 
 async fn get_district_config(app: State<AppState>) -> impl IntoResponse {

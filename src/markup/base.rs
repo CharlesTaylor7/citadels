@@ -7,6 +7,7 @@ pub fn page(cookies: &Cookies, main: Markup) -> Markup {
     html! {
         (DOCTYPE)
         html
+            class="h-full"
             hx-ext="ws,morph,json-enc"
         {
             head {
@@ -27,8 +28,9 @@ pub fn page(cookies: &Cookies, main: Markup) -> Markup {
             }
 
             body
-                _="init get the theme of localStorage if it exists set my @data-theme to it"
+                class="h-full"
                 data-theme="dark"
+                _="init get the theme of localStorage if it exists set my @data-theme to it"
                 hx-swap="morph" hx-target="body" {
                 (nav(logged_in))
                 (main)
@@ -38,9 +40,17 @@ pub fn page(cookies: &Cookies, main: Markup) -> Markup {
 }
 
 fn nav(logged_in: bool) -> Markup {
+    //let dev = cfg!(feature = "dev");
     html! {
       div class="flex flex-row justify-end items-center" {
         ul class="menu menu-horizontal bg-base-200 rounded-box" {
+          @if cfg!(feature = "dev") {
+              li {
+                 a href="/dev" {
+                  "Dev"
+                 }
+              }
+          }
           li {
              a href="/game" {
               "Game"

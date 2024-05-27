@@ -2,7 +2,7 @@ use super::base;
 use maud::{html, Markup};
 use tower_cookies::Cookies;
 
-pub fn page(cookies: &Cookies, rooms: &[RoomSummary]) -> Markup {
+pub fn page(cookies: &Cookies) -> Markup {
     base::page(
         cookies,
         html! {
@@ -13,8 +13,6 @@ pub fn page(cookies: &Cookies, rooms: &[RoomSummary]) -> Markup {
 
 pub fn main() -> Markup {
     html! {
-        #lobby {
-            "lobby"
-        }
+        "dev only page"
     }
 }

@@ -1,6 +1,7 @@
 // New Maud based html markup belong under this module
 // Older Askama templates are under /templates
 pub mod base;
+pub mod dev;
 pub mod game;
 pub mod index;
 pub mod lobby;

@@ -81,7 +81,7 @@ impl SupabaseAnonClient {
     }
 
     pub async fn refresh(&self, refresh_token: &str) -> anyhow::Result<OAuthSigninResponse> {
-        let data = self
+        let response = self
             .client
             .post(&format!(
                 "{}/auth/v1/token?grant_type=refresh_token",
@@ -91,10 +91,12 @@ impl SupabaseAnonClient {
             .header("Content-Type", "application/json")
             .json(&RefreshTokenBody { refresh_token })
             .send()
-            .await?
-            .json()
             .await?;
-        Ok(data)
+
+        let body = response.bytes().await?;
+        let json = serde_json::from_slice::<SupabaseResponse<OAuthSigninResponse>>(&body)?
+            .into_result()?;
+        Ok(json)
     }
 
     pub async fn logout(&self, access_token: &str) -> anyhow::Result<()> {
