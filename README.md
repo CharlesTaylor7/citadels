@@ -7,7 +7,7 @@ Deployments are done manually with the `deploy/run.sh` script.
 This is because the services are not yet stateless, and I don't want to disrupt ongoing games with a deploy.
 
 Monitor the app on these dashboards: 
-- https://fly.io/apps/citadels/
+- https://fly.io/apps/citadels/monitoring
 - https://supabase.com/dashboard/project/ryvsflpspddwwacxrnst
 
 Fly.io hosts and runs the Rust server as a docker image.

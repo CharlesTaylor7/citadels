@@ -129,9 +129,10 @@ features = ["v4"]
 default-features = false
 
 [features]
-dev = ["dep:tower-http", "dep:tower-livereload"]
-impersonate = []
+impersonate = ["backtrace"]
+dev = ["dep:tower-http", "dep:tower-livereload", "backtrace"]
 dotenv = ["dep:dotenv"]
+backtrace = []
 
 [profile.dev]
 opt-level = 0

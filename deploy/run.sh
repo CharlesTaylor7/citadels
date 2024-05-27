@@ -7,7 +7,8 @@ echo "Deploying branch: $BRANCH"
 tailwindcss --input tailwind.source.css --output public/styles/index.css --minify
 
 # run supabase migrations
-supabase db reset --linked
+# temporary: Don't do this after your first stable release
+yes | supabase db reset --linked
 # supabase db push
 
 # upload assets to supabase cdn

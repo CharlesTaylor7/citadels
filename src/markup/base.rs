@@ -44,7 +44,7 @@ fn nav(logged_in: bool) -> Markup {
     html! {
       div class="flex flex-row justify-end items-center" {
         ul class="menu menu-horizontal bg-base-200 rounded-box" {
-          @if cfg!(feature = "dev") {
+          @if cfg!(feature = "impersonate") {
               li {
                  a href="/dev" {
                   "Dev"

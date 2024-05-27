@@ -8,7 +8,7 @@ impl IntoResponse for AppError {
         match self {
             AppError::Internal { error } => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                if cfg!(feature = "dev") {
+                if cfg!(feature = "backtrace") {
                     Cow::Owned(format!(
                         "Internal Server Error\n{}\n{}",
                         error,
@@ -87,7 +87,7 @@ impl IntoResponse for AnyhowError {
     fn into_response(self) -> Response {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            if cfg!(feature = "dev") {
+            if cfg!(feature = "backtrace") {
                 Cow::Owned(format!(
                     "Internal Server Error\n{}\n{}",
                     self.0,
