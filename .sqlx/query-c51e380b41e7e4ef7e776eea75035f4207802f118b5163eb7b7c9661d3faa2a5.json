@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT rooms.id, hosts.username AS host, COUNT(member.user_id) AS \"num_players!\" FROM rooms \n        JOIN profiles AS hosts ON hosts.user_id = rooms.host_id\n        LEFT JOIN room_members AS member ON rooms.id = member.room_id\n        GROUP BY (rooms.id, hosts.username)\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "host",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "num_players!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "c51e380b41e7e4ef7e776eea75035f4207802f118b5163eb7b7c9661d3faa2a5"
+}

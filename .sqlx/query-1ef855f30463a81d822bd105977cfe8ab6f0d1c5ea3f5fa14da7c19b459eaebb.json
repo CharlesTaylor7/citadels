@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        DELETE FROM room_members WHERE room_members.user_id = current_user_id()\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "1ef855f30463a81d822bd105977cfe8ab6f0d1c5ea3f5fa14da7c19b459eaebb"
+}
