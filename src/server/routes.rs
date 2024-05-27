@@ -113,10 +113,12 @@ pub mod dev {
     pub struct FakeProfile {
         username: String,
         email: String,
+        impersonate: Option<String>,
     }
 
     pub async fn post_create_profile(
         state: State<AppState>,
+        cookies: Cookies,
         body: Json<FakeProfile>,
     ) -> AppResponse {
         let mut transaction = state.service_transaction().await?;
@@ -130,7 +132,7 @@ pub mod dev {
         .fetch_optional(&mut *transaction)
         .await?;
 
-        let id = if let Some(user) = user {
+        let user_id = if let Some(user) = user {
             user.id
         } else {
             let client = state.supabase.anon();
@@ -143,6 +145,13 @@ pub mod dev {
                 .await?;
             signup.user.id.to_string()
         };
+        if body.impersonate.is_some() {
+            cookies.add(auth::cookie(
+                "impersonate",
+                user_id.clone(),
+                time::Duration::days(1000),
+            ));
+        }
 
         let response = sqlx::query(
             r#"
@@ -152,7 +161,7 @@ pub mod dev {
                 set username = $2
             "#,
         )
-        .bind(id)
+        .bind(user_id)
         .bind(&body.username)
         .execute(&mut *transaction)
         .await;

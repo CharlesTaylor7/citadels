@@ -36,8 +36,12 @@ pub fn profile_form(profile: &Profile) -> Markup {
                 name="email" value=(profile.email);
             }
 
-            button.btn.btn-primary type="submit" {
-                "Submit"
+            button.btn.btn-primary type="submit" name="impersonate" {
+                "Impersonate"
+            }
+
+            button.btn.btn-secondary type="submit" {
+                "Save"
             }
         }
     }
