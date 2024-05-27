@@ -72,6 +72,7 @@ pub fn get_router(state: AppState) -> Router {
     router.layer(CookieManagerLayer::new()).with_state(state)
 }
 
+#[cfg(feature = "dev")]
 pub mod dev {
     use crate::{
         markup,
@@ -79,15 +80,33 @@ pub mod dev {
             auth,
             response::{self, AppResponse},
             state::AppState,
-            supabase::{EmailCreds, SupabaseAnonClient},
+            supabase::EmailCreds,
         },
     };
-    use axum::{extract::State, response::IntoResponse, Json};
+    use axum::{extract::State, Json};
     use serde::Deserialize;
     use tower_cookies::Cookies;
 
-    pub async fn get_page(cookies: Cookies) -> impl IntoResponse {
-        markup::dev::page(&cookies)
+    pub struct Profile {
+        pub email: String,
+        pub username: String,
+    }
+    pub async fn get_page(state: State<AppState>, cookies: Cookies) -> AppResponse {
+        let mut transaction = state.service_transaction().await?;
+        let profiles = sqlx::query_as!(
+            Profile,
+            r#"
+            SELECT users.email AS "email!", COALESCE(profiles.username, '') AS "username!" 
+            FROM auth.users AS users
+            LEFT JOIN profiles ON profiles.user_id = users.id
+            WHERE users.email IS NOT NULL
+            "#,
+        )
+        .fetch_all(&mut *transaction)
+        .await?;
+        transaction.commit().await?;
+
+        response::ok(markup::dev::page(&cookies, &profiles))
     }
 
     #[derive(Deserialize)]
@@ -98,25 +117,42 @@ pub mod dev {
 
     pub async fn post_create_profile(
         state: State<AppState>,
-        cookies: Cookies,
         body: Json<FakeProfile>,
     ) -> AppResponse {
-        let client = state.supabase.anon();
-        let password = uuid::Uuid::new_v4().to_string();
-        let signup = client
-            .signup_email(EmailCreds {
-                email: &body.email,
-                password: &password,
-            })
-            .await?;
         let mut transaction = state.service_transaction().await?;
+        let user = sqlx::query!(
+            r#"
+            select id::text AS "id!" from auth.users 
+            where email = $1
+            "#,
+            body.email
+        )
+        .fetch_optional(&mut *transaction)
+        .await?;
+
+        let id = if let Some(user) = user {
+            user.id
+        } else {
+            let client = state.supabase.anon();
+            let password = uuid::Uuid::new_v4().to_string();
+            let signup = client
+                .signup_email(EmailCreds {
+                    email: &body.email,
+                    password: &password,
+                })
+                .await?;
+            signup.user.id.to_string()
+        };
+
         let response = sqlx::query(
             r#"
             insert into profiles(user_id, username)
             values ($1::uuid, $2)
+            on conflict (user_id) do update
+                set username = $2
             "#,
         )
-        .bind(signup.user.id.as_str())
+        .bind(id)
         .bind(&body.username)
         .execute(&mut *transaction)
         .await;

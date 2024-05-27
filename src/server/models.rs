@@ -9,6 +9,7 @@ pub struct SupabaseUser {
 
 #[derive(Deserialize, Debug)]
 pub struct UserMetadata {
+    pub email: String,
     pub avatar_url: Option<String>,
     pub full_name: Option<String>,
     pub custom_claims: Option<CustomClaims>,
