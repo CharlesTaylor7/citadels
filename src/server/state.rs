@@ -124,9 +124,3 @@ impl AppState {
         */
     }
 }
-
-pub fn generate_pkce_pair() -> (String, String) {
-    let code_verifier = pkce::code_verifier();
-    let code_challenge = pkce::code_challenge(&code_verifier);
-    ((code_challenge), (code_verifier))
-}

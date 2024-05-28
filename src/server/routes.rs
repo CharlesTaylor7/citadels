@@ -254,49 +254,25 @@ async fn post_profile(
     response::ok(())
 }
 
-async fn get_oauth_signin(
-    app: State<AppState>,
-    body: Query<OAuthProvider>,
-    cookies: Cookies,
-) -> impl IntoResponse {
-    let redirect_url = format!(
-        "{}/oauth/callback",
-        if cfg!(feature = "dev") {
-            "http://localhost:8080"
-        } else {
-            "https://citadels.fly.dev"
-        }
-    );
-    log::info!("Preparing redirect url: {:#?}", redirect_url);
+async fn get_oauth_signin() -> impl IntoResponse {
+    Redirect::to(&format!(
+        "https://discord.com/api/v10/oauth2/authorize?client_id={}&response_type=code&redirect_uri={}&state={}&scope=identify%20email",
+        env::var("DISCORD_CLIENT_ID").unwrap(),
+        utf8_percent_encode(&callback_url(), percent_encoding::NON_ALPHANUMERIC),
+        "123", // TODO: state
+    ))
+}
 
-    let (code, verifier) = crate::server::state::generate_pkce_pair();
-    cookies.add(auth::cookie(
-        "code_verifier",
-        verifier,
-        time::Duration::minutes(10),
-    ));
+#[derive(Deserialize, Debug)]
+pub struct DiscordSignInResponse {
+    pub access_token: String, // Unlike Supabase, this is not a JWT
+    pub refresh_token: String,
+    pub id_token: String, // This is a JWT
+    pub expires_in: u32,  // a week long
+}
 
-    let url = format!(
-        "https://discord.com/oauth2/authorize?client_id=1237946046731255818&response_type=code&redirect_uri={}&scope=openid",
-        //https://discord.com/oauth2/authorize?client_id=1237946046731255818&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Foauth%2Fcallback&scope=openid
-        //https://discord.com/oauth2/authorize?client_id=1237946046731255818&response_type=code&redirect_uri=http%3A%2F%2F0%2E0%2E0%2E0%3A8080%2Foauth%2Fcallback&scope=openid
-        utf8_percent_encode(&redirect_url, percent_encoding::NON_ALPHANUMERIC),
-    );
-
-    /*
-    let url = format!(
-
-        "{}/auth/v1/authorize?provider={}&redirect_to={}&code_challenge={}&code_challenge_method=s256",
-        app.supabase.url,
-        utf8_percent_encode(&body.provider, percent_encoding::NON_ALPHANUMERIC),
-        utf8_percent_encode(&redirect_url, percent_encoding::NON_ALPHANUMERIC),
-        utf8_percent_encode(code.as_str(), percent_encoding::NON_ALPHANUMERIC),
-    );
-    */
-    // Workaround:
-    // Chrome does not honor Set-Cookie headers when they are attached to 302 Redirects.
-    // So instead we return a 200 Ok with a Refresh header.
-    [(header::REFRESH, format!("0;url={}", url))]
+fn callback_url() -> String {
+    format!("{}/oauth/callback", env::var("SITE_URL").unwrap(),)
 }
 
 async fn get_oauth_callback(
@@ -305,36 +281,46 @@ async fn get_oauth_callback(
     query: Query<serde_json::Value>,
 ) -> AppResponse {
     let client = reqwest::Client::new();
-    let client_id = env::var("DISCORD_CLIENT_ID").unwrap();
-    let client_secret = env::var("DISCORD_CLIENT_SECRET").unwrap();
-
-    let redirect_url = format!(
-        "{}/oauth/callback",
-        if cfg!(feature = "dev") {
-            "http://localhost:8080"
-        } else {
-            "https://citadels.fly.dev"
-        }
-    );
     if let Some(code) = query.get("code").and_then(|code| code.as_str()) {
         let response = client
-            .post("https://discord.com/oauth2/token")
-            //.header("Content-Type", "application/x-www-form-urlencoded")
+            .post("https://discord.com/api/v10/oauth2/token")
+            .header("User-Agent", format!("DiscordBot{}")
             .form(&[
                 ("grant_type", "authorization_code"),
                 ("code", code),
-                ("redirect_uri", &redirect_url),
-                ("client_id", &client_id),
-                ("client_secret", &client_secret),
+                ("redirect_uri", &callback_url()),
+                ("client_id", &env::var("DISCORD_CLIENT_ID").unwrap()),
+                ("client_secret", &env::var("DISCORD_CLIENT_SECRET").unwrap()),
             ])
             .send()
             .await?;
 
         let body = response.bytes().await?;
-        log::info!("{:#?}", body);
-        //let json = serde_json::from_slice::<serde_json::Value>(&body)?;
+        std::fs::write("sample/signin.json", body.clone());
+        let json = serde_json::from_slice::<serde_json::Value>(&body)?;
+
+        if let Some(access_token) = json.get("access_token") {
+            let response = client
+                .get("https://discord.com/api/v10/users/@me")
+                .bearer_auth(access_token)
+                .send()
+                .await?;
+            let body = response.bytes().await?;
+            std::fs::write("sample/discord-me.json", body);
+
+            let response = client
+                .post("https://discord.com/api/v10/users/@me")
+                .bearer_auth(access_token)
+                .send()
+                .await?;
+            let body = response.bytes().await?;
+            std::fs::write("sample/discord-me.json", body);
+        }
     }
 
+    // Workaround:
+    // Chrome does not honor Set-Cookie headers when they are attached to 302 Redirects.
+    // So instead we return a 200 Ok with a Refresh header.
     response::ok(())
     /*
     if let Some(verifier_cookie) = cookies.get("code_verifier") {
