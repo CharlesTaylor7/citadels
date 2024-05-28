@@ -23,7 +23,6 @@ tower-layer = "0.3.2"
 tower-service = "0.3.2"
 biscotti = { version = "0.3.4", default-features = false }
 macros = { path = "./macros" }
-pkce = { path = "./vendor/pkce" }
 
 [dependencies.tower-livereload]
 version = "0.9.2"
