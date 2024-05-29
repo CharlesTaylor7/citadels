@@ -256,7 +256,7 @@ async fn post_profile(
 
 async fn get_oauth_signin() -> impl IntoResponse {
     Redirect::to(&format!(
-        "https://discord.com/api/v10/oauth2/authorize?client_id={}&response_type=code&redirect_uri={}&state={}&scope=identify%20email",
+        "https://discord.com/api/v10/oauth2/authorize?prompt=login&client_id={}&response_type=code&redirect_uri={}&state={}&scope=identify%20email",
         env::var("DISCORD_CLIENT_ID").unwrap(),
         utf8_percent_encode(&callback_url(), percent_encoding::NON_ALPHANUMERIC),
         "123", // TODO: state
@@ -284,7 +284,7 @@ async fn get_oauth_callback(
     if let Some(code) = query.get("code").and_then(|code| code.as_str()) {
         let response = client
             .post("https://discord.com/api/v10/oauth2/token")
-            .header("User-Agent", format!("DiscordBot{}")
+            // .header("User-Agent", format!("DiscordBot{}")
             .form(&[
                 ("grant_type", "authorization_code"),
                 ("code", code),
@@ -301,20 +301,16 @@ async fn get_oauth_callback(
 
         if let Some(access_token) = json.get("access_token") {
             let response = client
-                .get("https://discord.com/api/v10/users/@me")
+                .get("https://discord.com/api/v10/oauth2/@me")
+                .header(
+                    "User-Agent",
+                    format!("DiscordBot (https://citadels.fly.dev, 0.7.1)"),
+                )
                 .bearer_auth(access_token)
                 .send()
                 .await?;
             let body = response.bytes().await?;
-            std::fs::write("sample/discord-me.json", body);
-
-            let response = client
-                .post("https://discord.com/api/v10/users/@me")
-                .bearer_auth(access_token)
-                .send()
-                .await?;
-            let body = response.bytes().await?;
-            std::fs::write("sample/discord-me.json", body);
+            std::fs::write("sample/me.json", body);
         }
     }
 
