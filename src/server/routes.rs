@@ -354,7 +354,7 @@ async fn get_oauth_callback(
 }
 
 async fn post_logout(app: State<AppState>, cookies: Cookies) -> AppResponse {
-    app.logout(cookies).await?;
+    app.logout(&cookies).await?;
 
     response::ok([(header::REFRESH, format!("0;url={}", "/"))])
 }
