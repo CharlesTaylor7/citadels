@@ -1,36 +1,36 @@
-use super::auth::{self, Claims, JwtDecoder};
-//use super::supabase::SupabaseClient;
+use super::auth;
 use super::ws::WebSockets;
 use crate::strings::UserId;
 use crate::{game::Game, lobby::Lobby};
 use anyhow::{anyhow, bail};
+use arcstr::ArcStr;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{PgPool, Postgres, Transaction};
+use std::borrow::Cow;
 use std::env;
 use std::sync::{Arc, Mutex};
-use tower_cookies::Cookies;
+use tower_cookies::cookie::SameSite;
+use tower_cookies::{Cookie, Cookies};
 
 #[derive(Clone)]
 pub struct AppState {
-    // inherently stateless
-    pub jwt_decoder: JwtDecoder,
-    //pub supabase: SupabaseClient,
     pub client: reqwest::Client,
-    // stateful, but transient
     pub ws_connections: Arc<Mutex<WebSockets>>,
+    cookie_signing_key: tower_cookies::Key,
     db_pool: PgPool,
 }
 
 impl AppState {
     pub async fn new() -> anyhow::Result<AppState> {
         Ok(Self {
-            jwt_decoder: JwtDecoder::default(),
-            //        supabase: SupabaseClient::default(),
+            cookie_signing_key: tower_cookies::Key::from(
+                env::var("COOKIE_SIGNING_KEY").unwrap().as_bytes(),
+            ),
             client: reqwest::Client::new(),
             ws_connections: Default::default(),
             db_pool: PgPoolOptions::new()
                 .max_connections(30)
-                .connect(&env::var("SUPABASE_DB_URL").unwrap())
+                .connect(&env::var("DATABASE_URL").unwrap())
                 .await?,
         })
     }
@@ -71,56 +71,31 @@ impl AppState {
         Ok(transaction)
     }
 
-    /// Decode the signed in user's JWT and verify their claims
-    pub fn user_claims(&self, cookies: &Cookies) -> anyhow::Result<Claims> {
-        let cookie = cookies
-            .get("access_token")
-            .ok_or(anyhow!("not logged in"))?;
-        self.jwt_decoder.decode(cookie.value())
+    pub async fn add_cookie(
+        &self,
+        cookies: &Cookies,
+        name: impl Into<Cow<'static, str>>,
+        value: impl Into<Cow<'static, str>>,
+        duration: time::Duration,
+    ) {
+        cookies
+            .signed(&self.cookie_signing_key)
+            .add(auth::cookie(name, value, duration))
     }
 
     pub async fn user_id(&self, cookies: &Cookies) -> anyhow::Result<UserId> {
-        bail!("TODO");
-        /*
-        if cfg!(feature = "impersonate") {
-            if let Some(cookie) = cookies.get("impersonate") {
-                return Ok(UserId::new(cookie.value()));
-            }
-        }
-        let response = self
-            .supabase
-            .anon()
-            .refresh(
-                cookies
-                    .get("refresh_token")
-                    .ok_or(anyhow!("no refresh token"))?
-                    .value(),
-            )
-            .await?;
-        cookies.add(auth::cookie(
-            "access_token",
-            response.access_token,
-            time::Duration::seconds(response.expires_in.into()),
-        ));
-        cookies.add(auth::cookie(
-            "refresh_token",
-            response.refresh_token,
-            time::Duration::WEEK,
-        ));
-        Ok(response.user.id)
-        */
+        Ok(UserId::new(
+            cookies
+                .signed(&self.cookie_signing_key)
+                .get("user_id")
+                .ok_or(anyhow::anyhow!("not logged in"))?
+                .value(),
+        ))
     }
 
-    pub async fn logout(&self, cookies: Cookies) -> anyhow::Result<()> {
-        bail!("TODO")
-        /*
-        if let Some(access_token) = cookies.get("access_token") {
-            let _ = self.supabase.anon().logout(access_token.value()).await;
-            auth::remove_cookie(&cookies, "access_token");
-        }
-
-        auth::remove_cookie(&cookies, "refresh_token");
+    pub async fn logout(&self, cookies: &Cookies) -> anyhow::Result<()> {
+        // TODO: remove access tokens
+        auth::remove_cookie(cookies, "user_id");
         Ok(())
-        */
     }
 }

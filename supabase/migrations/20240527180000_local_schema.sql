@@ -1,24 +1,11 @@
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" REVOKE TRUNCATE ON TABLES FROM "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" REVOKE TRUNCATE ON TABLES FROM "authenticated";
 
-GRANT SELECT ON TABLE "auth"."users" TO "service_role";
-
--- Function that allows us to use RLS policies for either direct database connections 
--- or Supabase data api calls. (postgrest or graphql).
 CREATE FUNCTION current_user_id() RETURNS "uuid" 
 LANGUAGE PLPGSQL 
 AS $$
-DECLARE 
-  user_id "uuid";
 BEGIN
-  SELECT current_setting('citadels.user_id', true) INTO user_id;
-  RETURN (
-    CASE WHEN user_id IS NOT NULL THEN
-      user_id
-    ELSE
-      auth.uid()
-    END
-  );
+  RETURN current_setting('citadels.user_id');
 END;
 $$;
 
@@ -33,6 +20,51 @@ BEGIN
 END;
 $$;
 
+-- users --
+CREATE TABLE users (
+    "id" "uuid" DEFAULT current_user_id() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+    "email" text UNIQUE NOT NULL,
+    "metadata" "jsonb",
+    PRIMARY KEY ("id")
+);
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "User data is private"
+ON users
+FOR SELECT USING ( 
+  current_user_id() = users.id 
+);
+
+CREATE POLICY "Users may update"
+ON users
+FOR UPDATE USING ( 
+  current_user_id() = users.id 
+);
+
+CREATE POLICY "Users may not delete themselves"
+ON users
+AS RESTRICTIVE
+FOR DELETE USING ( 
+  false
+);
+
+-- oauth_sessions
+CREATE TYPE oauth_provider AS ENUM ('discord');
+CREATE TABLE oauth_sessions (
+  "user_id" "uuid" NOT NULL REFERENCES users(id),
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "expires_in" integer NOT NULL,
+  "access_token" text NOT NULL,
+  "refresh_token" text NOT NULL,
+  "provider" "oauth_provider" NOT NULL,
+  PRIMARY KEY ("provider", "user_id")
+);
+
+-- For the default deny policy
+ALTER TABLE oauth_sessions ENABLE ROW LEVEL SECURITY;
+
 
 
 -- profiles --
@@ -41,7 +73,7 @@ CREATE TABLE profiles (
     "created_at" timestamp with time zone DEFAULT now() NOT NULL,
     "username" character varying UNIQUE NOT NULL,
     PRIMARY KEY ("user_id"),
-    CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES users(id)
 );
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -67,6 +99,12 @@ FOR UPDATE USING (
 );
 
 
+CREATE POLICY "Anyone can delete their own profile" 
+ON profiles
+FOR DELETE USING ( 
+  user_id = current_user_id() 
+);
+
 -- games --
 CREATE TABLE games (
     "id" "uuid" DEFAULT gen_random_uuid() NOT NULL,
@@ -86,14 +124,10 @@ CREATE TABLE rooms (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "private" bool DEFAULT false,
     "game_config" "jsonb" NOT NULL,
-    -- Unique means a user can only host 1 room at a time.
-    -- Foreign key means the user has to have setup their profile.
+    -- Notes:
+    -- Unique, because you should be only allowed to host 1 game at a time.
+    -- FK to the profiles table, to ensure the user has chosen a public username. 
     "host_id" "uuid" DEFAULT current_user_id() UNIQUE NOT NULL REFERENCES profiles("user_id")
-    -- "player_ids" "uuid"[] DEFAULT ARRAY[current_user_id()] NOT NULL,
-    -- no more than 9 players
-    -- CHECK (cardinality(player_ids) < 10),
-    -- host is one of the players
-    -- CHECK (host_id = any(player_ids))
 );
 
 ALTER TABLE "rooms" ENABLE ROW LEVEL SECURITY;
@@ -128,11 +162,10 @@ FOR UPDATE USING (
   rooms.host_id = current_user_id()
 );
 
-
 -- room_members --
 CREATE TABLE room_members (
     "user_id" "uuid" DEFAULT current_user_id() REFERENCES profiles("user_id"),
-    "room_id" "uuid" REFERENCES rooms("id"),
+    "room_id" "uuid" NOT NULL REFERENCES rooms("id") ON DELETE CASCADE,
     PRIMARY KEY ("user_id")
 );
 

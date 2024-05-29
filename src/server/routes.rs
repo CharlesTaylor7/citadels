@@ -1,7 +1,7 @@
 use super::errors::{AnyhowError, AnyhowResponse};
 use super::models::CustomClaims;
+use super::response;
 use super::response::AppResponse;
-use super::{auth, response};
 use crate::actions::{ActionSubmission, ActionTag};
 use crate::districts::DistrictName;
 use crate::game::Game;
@@ -212,22 +212,25 @@ async fn get_version() -> impl IntoResponse {
 }
 
 async fn get_profile(state: State<AppState>, cookies: Cookies) -> AppResponse {
-    let mut tx = state.user_transaction(&cookies).await?;
-    let query = sqlx::query!("select username from profiles")
-        .fetch_optional(&mut *tx)
-        .await?;
-    let username = if let Some(profile) = query {
-        profile.username
-    } else {
-        let claims = state.user_claims(&cookies)?;
-        match claims.user_metadata.custom_claims {
-            Some(CustomClaims::DiscordClaims { global_name }) => global_name,
-            None => "".to_owned(),
-        }
-    };
-    //let user_id = todo!();
-    //return markup::profile::page(None);
-    //let profile = storage::profile(user_id).await;
+    /*
+     let mut tx = state.user_transaction(&cookies).await?;
+     let query = sqlx::query!("select username from profiles")
+         .fetch_optional(&mut *tx)
+         .await?;
+     let username = if let Some(profile) = query {
+         profile.username
+     } else {
+         let claims = state.user_claims(&cookies)?;
+         match claims.user_metadata.custom_claims {
+             Some(CustomClaims::DiscordClaims { global_name }) => global_name,
+             None => "".to_owned(),
+         }
+     };
+     //let user_id = todo!();
+     //return markup::profile::page(None);
+     //let profile = storage::profile(user_id).await;
+    */
+    let username = "".to_owned();
     response::ok(markup::profile::page(&cookies, username))
 }
 
@@ -264,11 +267,10 @@ async fn get_oauth_signin() -> impl IntoResponse {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct DiscordSignInResponse {
+pub struct DiscordSignIn {
     pub access_token: String, // Unlike Supabase, this is not a JWT
     pub refresh_token: String,
-    pub id_token: String, // This is a JWT
-    pub expires_in: u32,  // a week long
+    pub expires_in: u32, // a week long
 }
 
 fn callback_url() -> String {
@@ -284,11 +286,11 @@ async fn get_oauth_callback(
     if let Some(code) = query.get("code").and_then(|code| code.as_str()) {
         let response = client
             .post("https://discord.com/api/v10/oauth2/token")
-            // .header("User-Agent", format!("DiscordBot{}")
             .form(&[
                 ("grant_type", "authorization_code"),
                 ("code", code),
                 ("redirect_uri", &callback_url()),
+                ("scope", "identify email"),
                 ("client_id", &env::var("DISCORD_CLIENT_ID").unwrap()),
                 ("client_secret", &env::var("DISCORD_CLIENT_SECRET").unwrap()),
             ])
@@ -296,22 +298,16 @@ async fn get_oauth_callback(
             .await?;
 
         let body = response.bytes().await?;
-        std::fs::write("sample/signin.json", body.clone());
-        let json = serde_json::from_slice::<serde_json::Value>(&body)?;
+        let json = serde_json::from_slice::<DiscordSignIn>(&body)?;
 
-        if let Some(access_token) = json.get("access_token") {
-            let response = client
-                .get("https://discord.com/api/v10/oauth2/@me")
-                .header(
-                    "User-Agent",
-                    format!("DiscordBot (https://citadels.fly.dev, 0.7.1)"),
-                )
-                .bearer_auth(access_token)
-                .send()
-                .await?;
-            let body = response.bytes().await?;
-            std::fs::write("sample/me.json", body);
-        }
+        let response = client
+            .get("https://discord.com/api/v10/users/@me")
+            .header("User-Agent", "DiscordBot (https://citadels.fly.dev, 0.7.1)")
+            .header("Authorization", &format!("Bearer {}", json.access_token))
+            .send()
+            .await?;
+        let body = response.bytes().await?;
+        log::info!("@me: {:#?}", body);
     }
 
     // Workaround:
