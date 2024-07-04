@@ -1,3 +1,6 @@
+# cargo binstall cargo-watch
+# brew install supabase/tap/supabase
+# npm i
 procs:
   Server:
     shell: RUST_BACKTRACE=1 cargo watch --features="impersonate,dev,dotenv" -c -x run
@@ -14,4 +17,4 @@ procs:
     autostart: false
 
   Tailwind:
-    shell: tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
+    shell: mise exec -- npx tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
