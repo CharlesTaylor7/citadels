@@ -140,3 +140,8 @@ This just wouldn't work if I wanted to add a custom card editor. Or support some
 
 The big one for me is metadata. The tax collector's money stash is on the game struct. The alchemist refund is on the game struct. The museum tucked cards are defined on the game struct. 
 At least I made the city districts hold the beautified status instead of the game struct.
+
+### Askama
+Askama is rough, and yes my templates are typechecked, but the error messages are kind of awful to figure out what's missing from a template
+
+I'd like to use something like maud instead.

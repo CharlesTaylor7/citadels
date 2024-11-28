@@ -89,7 +89,6 @@ pub fn asset(path: &str) -> String {
         // TODO: use uploadthing in production
         // format!(
         //     "{}/storage/v1/object/public/assets/{path}",
-        //     env::var("SUPABASE_PROJECT_URL").unwrap()
         // )
     }
 }

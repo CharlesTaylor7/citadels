@@ -1,1 +1,3 @@
-fly.toml
+/target/
+/.env
+/node_modules/
