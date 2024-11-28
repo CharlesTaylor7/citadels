@@ -1,4 +1,3 @@
-fix magician discard & draw
 Fix: Bewitch action wipes out the whole screen and forces a page reload.
 Dev: request logging
 UI: Arrows overlap text in role logs.

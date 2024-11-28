@@ -652,10 +652,9 @@ impl Game {
             game.begin_draft();
             Ok(game)
         } else {
-            let test_role = RoleName::Witch;
             // deal roles out randomly
-            game.characters.get_mut(test_role.rank()).role = test_role;
-            game.characters.get_mut(Rank::Three).role = RoleName::Wizard;
+            game.characters.get_mut(Rank::One).role = RoleName::Assassin;
+            game.characters.get_mut(Rank::Three).role = RoleName::Magician;
             let mut roles: Vec<_> = game.characters.iter().collect();
             roles.shuffle(&mut game.rng);
 
@@ -692,7 +691,7 @@ impl Game {
             }
 
             game.active_turn = Turn::Call(Call {
-                rank: test_role.rank(),
+                rank: Rank::Three,
                 end_of_round: false,
             });
             game.start_turn().unwrap();
@@ -1676,17 +1675,17 @@ impl Game {
                 }
                 active.hand = new_hand;
 
-                for card in discard.iter() {
+                for card in district.iter() {
                     self.deck.discard_to_bottom(*card);
                 }
 
-                self.gain_cards(discard.len());
+                let gained = self.gain_cards(district.len());
 
                 ActionOutput::new(format!(
                     "The Magician ({}) discarded {} cards and drew {} more.",
                     self.active_player()?.name,
-                    discard.len(),
-                    discard.len(),
+                    district.len(),
+                    gained
                 ))
             }
 
