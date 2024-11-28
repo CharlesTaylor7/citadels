@@ -85,9 +85,11 @@ pub fn asset(path: &str) -> String {
     if cfg!(feature = "dev") {
         format!("/public/{path}")
     } else {
-        format!(
-            "{}/storage/v1/object/public/assets/{path}",
-            env::var("SUPABASE_PROJECT_URL").unwrap()
-        )
+        format!("/public/{path}")
+        // TODO: use uploadthing in production
+        // format!(
+        //     "{}/storage/v1/object/public/assets/{path}",
+        //     env::var("SUPABASE_PROJECT_URL").unwrap()
+        // )
     }
 }
