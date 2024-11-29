@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Player {
     pub id: PlayerId,
     pub name: PlayerName,
@@ -25,7 +25,7 @@ impl Player {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Lobby {
     pub players: Vec<Player>,
     pub config: GameConfig,
@@ -89,7 +89,7 @@ pub enum ConfigOption {
     Never,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GameConfig {
     pub roles: HashSet<RoleName>,
     pub districts: HashMap<DistrictName, ConfigOption>,
