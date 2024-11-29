@@ -1,10 +1,6 @@
 # syntax=docker/dockerfile:1.3.1
 # https://github.com/LukeMathWalker/cargo-chef?tab=readme-ov-file#without-the-pre-built-image
-FROM rust:alpine AS chef
-RUN apk add --no-cache musl-dev
-RUN cargo --version
-RUN cargo install cargo-chef
-
+FROM lukemathwalker/cargo-chef:latest-rust-1.80.1 AS chef
 WORKDIR /app
 
 FROM chef AS planner
@@ -14,16 +10,15 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder 
 COPY --from=planner /app/recipe.json recipe.json
 
-COPY macros/ macros/
-COPY macros-impl/ macros-impl/
-
+# build dependencies
 RUN cargo chef cook --release --recipe-path recipe.json
-# Build application
-COPY . .
-RUN cargo build --release --bin citadels
 
-FROM alpine AS runtime
+# build application
+COPY . .
+RUN cargo build --release --bin citadels_server
+
+FROM debian:bookworm-slim AS runtime
 WORKDIR /app
-COPY --from=builder /app/target/release/citadels /usr/local/bin
+COPY --from=builder /app/target/release/citadels_server /usr/local/bin
 COPY public/ public/
-ENTRYPOINT ["/usr/local/bin/citadels"]
+ENTRYPOINT ["/usr/local/bin/citadels_server"]

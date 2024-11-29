@@ -1,7 +1,7 @@
 use crate::server::ws;
-use crate::{game::Game, lobby::Lobby};
 use axum::extract::FromRef;
 use axum_extra::extract::cookie;
+use citadels::{game::Game, lobby::Lobby};
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]

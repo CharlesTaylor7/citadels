@@ -1,12 +1,12 @@
 use crate::templates::filters;
 use crate::templates::{DistrictTemplate, RoleTemplate};
-use crate::{
+use askama::Template;
+use citadels::{
     data::characters::ROLES,
     districts::{DistrictName, UNIQUE},
     lobby::{ConfigOption, Player},
     roles::{Rank, RoleName},
 };
-use askama::Template;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Template)]

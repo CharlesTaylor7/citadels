@@ -1,11 +1,11 @@
-use crate::actions::ActionTag;
-use crate::districts::DistrictName;
-use crate::game::{self, Followup, Game, Player};
-use crate::roles::RoleName;
 use crate::templates::{filters, DistrictTemplate, RoleTemplate};
-use crate::types::CardSuit;
-use crate::types::Marker;
 use askama::Template;
+use citadels::actions::ActionTag;
+use citadels::districts::DistrictName;
+use citadels::game::{self, Followup, Game, Player};
+use citadels::roles::RoleName;
+use citadels::types::CardSuit;
+use citadels::types::Marker;
 
 use std::borrow::{Borrow, Cow};
 

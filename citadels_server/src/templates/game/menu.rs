@@ -1,11 +1,11 @@
 use super::{get_myself, GameContext};
-use crate::actions::ActionTag;
-use crate::game::{Call, Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
-use crate::roles::{Rank, RoleName};
 use crate::templates::filters;
 use crate::templates::game::menus::{BuildMenu, EmperorMenu};
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use askama::Template;
+use citadels::actions::ActionTag;
+use citadels::game::{Call, Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
+use citadels::roles::{Rank, RoleName};
 use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]

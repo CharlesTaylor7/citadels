@@ -344,7 +344,31 @@ dependencies = [
 
 [[package]]
 name = "citadels"
-version = "0.7.1"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "arcstr",
+ "dotenv",
+ "env_logger",
+ "log",
+ "macros",
+ "maud",
+ "rand",
+ "rand_core",
+ "rand_xoshiro",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "time",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "citadels_server"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "arcstr",
@@ -352,6 +376,7 @@ dependencies = [
  "axum",
  "axum-core",
  "axum-extra",
+ "citadels",
  "dotenv",
  "env_logger",
  "futures",
