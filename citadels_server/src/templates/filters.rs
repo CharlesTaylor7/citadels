@@ -1,5 +1,5 @@
-use crate::actions::ActionTag;
-use crate::types::CardSuit;
+use citadels::actions::ActionTag;
+use citadels::types::CardSuit;
 use std::borrow::Cow;
 use std::fmt::Debug;
 

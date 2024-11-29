@@ -1,16 +1,16 @@
 pub mod menu;
 pub mod menus;
 
-use crate::actions::ActionTag;
-use crate::game::{Game, GameRole, Player, PlayerIndex, Turn};
-use crate::roles::RoleName;
 use crate::templates::game::menu::{MenuTemplate, MenuView};
 use crate::templates::MyTemplate;
 use crate::templates::{filters, DAISY_THEMES};
 use crate::templates::{DistrictTemplate, RoleTemplate};
-use crate::types::Marker;
 use askama::Template;
 use axum::response::Html;
+use citadels::actions::ActionTag;
+use citadels::game::{Game, GameRole, Player, PlayerIndex, Turn};
+use citadels::roles::RoleName;
+use citadels::types::Marker;
 use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]

@@ -4,12 +4,12 @@ pub mod lobby;
 
 use std::borrow::Cow;
 
-use crate::districts::DistrictName;
-use crate::game::{CityDistrict, Game};
-use crate::roles::{Rank, RoleName};
-use crate::types::CardSuit;
 use askama::Template;
 use axum::response::Html;
+use citadels::districts::DistrictName;
+use citadels::game::{CityDistrict, Game};
+use citadels::roles::{Rank, RoleName};
+use citadels::types::CardSuit;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum GamePhase {

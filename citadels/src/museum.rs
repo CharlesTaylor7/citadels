@@ -35,14 +35,12 @@ impl Museum {
         if self.cards.len() > self.artifacts.len() {
             let mut artifacts = Museum::ARTIFACTS;
             artifacts.shuffle(&mut rand::thread_rng());
-            for artifact in artifacts {
-                self.artifacts.push(artifact);
-            }
+            self.artifacts.extend(artifacts);
         }
     }
 
     const ARTIFACTS: [&'static str; 19] = [
-        "⚱️", "🏺", "🖼️", "🗿", "🏛️", "⛲", "🕰️", "🦴", "🦾", "⚰️", "🚀", "🦖", "🦣", "🦤", "🦕", "💎",
-        "🪩", "🔱", "🧋",
+        "⚱️", "🏺", "🖼️", "🗿", "🏛️", "⛲", "🕰️", "🦴", "🦾", "⚰️", "🚀", "🦖", "🦣", "🦤", "🦕",
+        "💎", "🪩", "🔱", "🧋",
     ];
 }

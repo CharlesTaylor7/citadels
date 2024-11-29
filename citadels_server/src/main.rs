@@ -1,4 +1,4 @@
-use citadels::server::routes::get_router;
+use citadels_server::server::routes::get_router;
 
 #[tokio::main]
 async fn main() {
