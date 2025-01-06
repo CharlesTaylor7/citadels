@@ -6,6 +6,11 @@
 - [ ] No logs for end of previous turn. Very easy to miss Actions of last player
 - [ ] public/index.css is being cached across multiple browsers. I need to look into how axum serves directories, and invalidate the cache on this file. Because its ridiculous william had to disable his cache and reload.
 
+- [ ] Cardinal issues:
+  - should take gold
+  - should only be usuable when you have less gold than required
+
+
 
 ## Short list
 
