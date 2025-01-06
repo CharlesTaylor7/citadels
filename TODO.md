@@ -6,17 +6,8 @@
 - [ ] No logs for end of previous turn. Very easy to miss Actions of last player
 - [ ] public/index.css is being cached across multiple browsers. I need to look into how axum serves directories, and invalidate the cache on this file. Because its ridiculous william had to disable his cache and reload.
 
-- [ ] district suits are not showing up anymore, so cards are greyed out.
-  -
-
-
-## Short list
-
-- [ ] Game host
-
 
 ## Longer list
-- [ ] Multi room support
 - Notifications
     - Seer: card is taken. 
     - Seer: card is given.
@@ -60,17 +51,9 @@
 
 
 ## Playtest 1 
-- [x] Notification bell for start of turn.
 - [ ] role and district description should have dedicated info icon for bringing up their tooltips.
 
 ## Playtest 2
-- [x] Role config menu is clipped on smaller screens
-- [x] flex-wrap my-roles. Basically, they should stack vertically if I narrow my window
-- [x] museum auto tooltip hides the artifacts
-- [x] Ending game can crashes the game
-- [x] Limit width and apply text-wrap to right sidebar usernames. Long usernames shouldn't distort the whole page.
-- [x] "Players' turn" could have more context. show role + name. Put word draft if they are drafting.
-- [x] Roles left sidebar, italics say "hover for details". We should restore the tooltip or remove that phrase.
 - [ ] Allow names with some punctuation. Will need to url encode names in city request
 - [ ] Logan couldn't see his city districts without scrolling.
 - [ ] Logan couldn't easily see enemy districts without scrolling. Warlord menu
