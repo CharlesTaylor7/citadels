@@ -28,5 +28,3 @@ pub trait Tag: Sized {
 
     fn tag(&self) -> Self::Tag;
 }
-
-
