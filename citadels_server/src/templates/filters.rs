@@ -43,16 +43,6 @@ pub fn suit_bg_color(suit: &CardSuit) -> askama::Result<&'static str> {
     })
 }
 
-pub fn suit_decoration_color(suit: &CardSuit) -> askama::Result<&'static str> {
-    Ok(match suit {
-        CardSuit::Military => "decoration-suit-military",
-        CardSuit::Religious => "decoration-suit-religious",
-        CardSuit::Noble => "decoration-suit-noble",
-        CardSuit::Trade => "decoration-suit-trade",
-        CardSuit::Unique => "decoration-suit-unique",
-    })
-}
-
 pub fn suit_border_color(suit: &CardSuit) -> askama::Result<&'static str> {
     Ok(match suit {
         CardSuit::Military => "border-suit-military",
