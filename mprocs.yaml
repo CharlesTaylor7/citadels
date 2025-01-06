@@ -3,7 +3,7 @@ procs:
     shell: GIT_SHA=main RUST_BACKTRACE=1 cargo watch --features="dev,dotenv" -c -x run
 
   Tailwind:
-    shell: tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
+    shell: npx tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
     autostart: true
 
   Docs:
