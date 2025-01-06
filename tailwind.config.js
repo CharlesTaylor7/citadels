@@ -1,9 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   plugins: [require("daisyui")],
-  content: { 
-    files: ["templates/**/*", "src/templates.rs", "src/templates/filters.rs"],
-  },
+  content:  [
+    "citadels_server/templates/**/*", 
+    "citadels_server/src/templates.rs", 
+    "citadels_server/src/templates/filters.rs"
+  ],
   daisyui: {
     themes: true,
   },
