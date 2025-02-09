@@ -858,7 +858,7 @@ impl Game {
                 if self.active_role().unwrap().role != RoleName::Emperor {
                     log::error!("What are you doing man?");
                     vec![]
-                } else if self.active_perform_count(ActionTag::EmperorHeirGiveCrown) == 0 {
+                } else if self.active_perform_count(ActionTag::EmperorGiveCrown) == 0 {
                     vec![ActionTag::EmperorHeirGiveCrown]
                 } else {
                     vec![]
