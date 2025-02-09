@@ -1248,17 +1248,17 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::EmperorGiveCrown { player, resource } => {
             if game.active_player().unwrap().name == *player {
-                Err("Cannot give the crown to yourgame")?;
+                Err("Cannot give the crown to yourself.")?;
             }
 
             let target = game
                 .players
                 .iter_mut()
                 .find(|p| p.name == *player)
-                .ok_or("Player does not exist")?;
+                .ok_or("Player does not exist.")?;
 
             if target.index == game.crowned {
-                Err("Cannot give the crown to the already crowned player")?;
+                Err("Cannot give the crown to the already crowned player.")?;
             }
 
             game.crowned = target.index;
@@ -1289,7 +1289,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::EmperorHeirGiveCrown { player } => {
             if game.active_player().unwrap().name == *player {
-                Err("Cannot give the crown to yourgame")?;
+                Err("Cannot give the crown to yourself.")?;
             }
 
             let target = game
@@ -1299,7 +1299,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .ok_or("Player does not exist")?;
 
             if target.index == game.crowned {
-                Err("Cannot give the crown to the already crowned player")?;
+                Err("Cannot give the crown to the already crowned player.")?;
             }
 
             game.crowned = target.index;
