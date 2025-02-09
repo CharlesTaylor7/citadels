@@ -263,7 +263,7 @@ impl<'a> PlayerInfoTemplate<'a> {
         let count = player.roles.len();
         let mut roles = Vec::with_capacity(count);
         for role in player.roles.iter() {
-            if game.characters.get(role.rank()).revealed {
+            if game.characters.get(*role).is_some_and(|c| c.revealed) {
                 roles.push((
                     game.active_role().is_ok_and(|c| c.role == *role),
                     format!("{role:?}").into(),

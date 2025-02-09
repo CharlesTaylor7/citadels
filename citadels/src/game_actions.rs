@@ -34,7 +34,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 let name = magistrate.name.clone();
 
                 // clear all remaining warrants
-                for c in game.characters.iter_mut() {
+                for c in game.characters.0.iter_mut() {
                     if let Some((i, _)) = c.markers.iter().enumerate().find(|(_, m)| m.is_warrant())
                     {
                         c.markers.remove(i);
@@ -53,11 +53,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         },
 
         Action::PayBribe => {
+            let blackmailer = game.characters.get(RoleName::Blackmailer).unwrap().player.unwrap();
             let player = game.active_player_mut().unwrap();
             let half = player.gold / 2;
             player.gold -= half;
-
-            let blackmailer = game.characters.get(Rank::Two).player.unwrap();
             game.players[blackmailer.0].gold += half;
 
             ActionOutput::new(format!(
@@ -68,10 +67,9 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::IgnoreBlackmail => {
             //
+            let blackmailer= game.characters.get(RoleName::Blackmailer).unwrap().player.unwrap();
             ActionOutput::new("They ignored the blackmail. Waiting on the Blackmailer's response.")
-                .followup(Followup::Blackmail {
-                    blackmailer: game.characters.get(Rank::Two).player.unwrap(),
-                })
+                .followup(Followup::Blackmail { blackmailer })
         }
 
         Action::RevealBlackmail => match game.followup {
@@ -88,7 +86,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     game.players[blackmailer.0].gold += gold;
 
                     // clear all remaining blackmail
-                    for c in game.characters.iter_mut() {
+                    for c in game.characters.0.iter_mut() {
                         if let Some((i, _)) =
                             c.markers.iter().enumerate().find(|(_, m)| m.is_blackmail())
                         {
@@ -143,7 +141,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             let draft = game.active_turn.draft_mut()?;
 
             Game::remove_first(&mut draft.remaining, *role);
-            let c = game.characters.get_mut(role.rank());
+            let c = game.characters.get_mut(*role).unwrap();
             c.player = Some(draft.player);
             let player = game.players[draft.player.0].borrow_mut();
             player.roles.push(*role);
@@ -508,7 +506,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     district.display_name
                 ))
                 .followup(Followup::Warrant {
-                    magistrate: game.characters.get(Rank::One).player.unwrap(),
+                    magistrate: game.characters.get(RoleName::Magistrate).unwrap().player.unwrap(),
                     gold: cost,
                     district: district.name,
                     signed: game
@@ -529,11 +527,11 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         }
 
         Action::TakeCrown => {
-            // Hard coded to rank four. This overrides the Witch.
+            // King & patrician always get the crown, even when bewitched.
             game.crowned = game
                 .characters
-                .get(Rank::Four)
-                .player
+                .get(RoleName::King).or(game.characters.get(RoleName::Patrician))
+                .and_then(|game_role| game_role.player)
                 .ok_or("No Royalty to take crown!")?;
 
             ActionOutput::new(format!(
@@ -543,10 +541,13 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         }
 
         Action::Assassinate { role } => {
-            if role.rank() == Rank::One {
-                return Err("cannot kill game".into());
+            if *role == RoleName::Assassin {
+                return Err("Cannot kill self.".into());
             }
-            let target = game.characters.get_mut(role.rank());
+            let target = match game.characters.get_mut(*role) {
+                Some(target) => target,
+                None => return Err(format!("Role {} is not in this game",role.display_name()).into())
+            };
             target.markers.push(Marker::Killed);
 
             ActionOutput::new(format!(
@@ -557,18 +558,25 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         }
 
         Action::Steal { role } => {
-            if role.rank() < Rank::Three {
-                return Err("target rank is too low".into());
+            if *role == RoleName::Thief {
+                return Err("Cannot steal from self.".into());
             }
 
-            let target = game.characters.get_mut(role.rank());
+            let target = match game.characters.get_mut(*role) {
+                Some(target) => target,
+                None => return Err(format!("Role {} is not in this game",role.display_name()).into())
+            };
+
+            if target.revealed {
+                return Err(format!("Cannot steal from {} who has already taken their turn.",role.display_name()).into())
+            }
 
             if target
                 .markers
                 .iter()
                 .any(|marker| *marker == Marker::Killed)
             {
-                return Err("cannot rob from the dead".into());
+                return Err("Cannot rob from the dead.".into());
             }
 
             if target
@@ -576,7 +584,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .iter()
                 .any(|marker| *marker == Marker::Bewitched)
             {
-                return Err("cannot rob from the bewitched".into());
+                return Err("Cannot rob from the bewitched.".into());
             }
 
             target.markers.push(Marker::Robbed);
@@ -589,15 +597,13 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         }
 
         Action::Magic(MagicianAction::TargetPlayer { player }) => {
-            let mut hand = std::mem::take(&mut game.active_player_mut()?.hand);
-            let target = if let Some(p) = game.players.iter_mut().find(|p| p.name == *player) {
-                p
-            } else {
-                // put the hand back;
-                game.active_player_mut()?.hand = hand;
-                return Err("invalid target".into());
-            };
 
+            let mut hand = std::mem::take(&mut game.active_player_mut()?.hand);
+            let target =  match game.players.iter_mut().find(|p| p.name == *player) {
+                Some(target) => target,
+None => 
+                return Err("Invalid target.".into())
+            };
             let hand_count = hand.len();
             let target_count = target.hand.len();
 
@@ -888,8 +894,9 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             let active = game.active_player_index()?;
             let left = PlayerIndex((active.0 + game.players.len() - 1) % game.players.len());
             let right = PlayerIndex((active.0 + 1) % game.players.len());
-            let c = game.characters.get(Rank::Four);
-            let log = if c.revealed && c.player.is_some_and(|p| p == left || p == right) {
+            let seated_next_to_royalty =
+            game.characters.0.iter().find(|game_role| game_role.revealed && game_role.role.rank() == Rank::Four && game_role.player.is_some_and(|p| p == left || p == right));
+            let log = if let Some(c) = seated_next_to_royalty {
                 game.players[active.0].gold += 3;
                 format!(
                     "The Queen is seated next to the {}, and gains 3 gold.",
@@ -897,8 +904,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 )
             } else {
                 format!(
-                    "The Queen is not seated next to the {}.",
-                    c.role.display_name()
+                    "The Queen is not seated next to royalty.",
                 )
             };
             ActionOutput::new(log)
@@ -986,23 +992,25 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             roles.push(signed);
             for role in unsigned {
                 if roles.iter().any(|r| *r == role) {
-                    return Err("Cannot assign more than 1 warrant to a role".into());
+                    return Err("Cannot assign more than 1 warrant to a role.".into());
                 }
                 roles.push(role);
             }
-            if roles.iter().any(|role| role.rank() == Rank::One) {
-                return Err("Cannot assign warrant to game".into());
+            if roles.iter().any(|r| **r == RoleName::Magistrate) {
+                return Err("Cannot assign warrant to self.".into());
             }
             roles.sort_by_key(|r| r.rank());
 
             game.characters
-                .get_mut(signed.rank())
+                .get_mut(*signed)
+                .unwrap()
                 .markers
                 .push(Marker::Warrant { signed: true });
 
             for role in unsigned {
                 game.characters
-                    .get_mut(role.rank())
+                    .get_mut(*role)
+                    .unwrap()
                     .markers
                     .push(Marker::Warrant { signed: false });
             }
@@ -1018,22 +1026,31 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             if flowered == unmarked {
                 return Err("Cannot blackmail someone twice. ".into());
             }
-            if flowered.rank() < Rank::Three || unmarked.rank() < Rank::Three {
-                return Err("Can only blackmail rank 3 or higher".into());
+
+            let flower_target = 
+            match game .characters .get(*flowered) {
+                Some(target) => target,
+                None => return Err("Can not blackmail someone not in the game".into())
+            };
+            if !flower_target.revealed {
+
+                return Err("Cannot blackmail anyone who hasn't gone yet".into());
             }
 
-            if game
-                .characters
-                .get(flowered.rank())
+if flower_target
                 .markers
                 .iter()
                 .any(|m| *m == Marker::Killed || *m == Marker::Bewitched)
             {
                 return Err("Cannot blackmail the killed or bewitched".into());
             }
-            if game
-                .characters
-                .get(unmarked.rank())
+
+            let unmarked_target = 
+            match game .characters .get(*unmarked) {
+                Some(target) => target,
+                None => return Err("Can not blackmail someone not in the game".into())
+            };
+                if unmarked_target
                 .markers
                 .iter()
                 .any(|m| *m == Marker::Killed || *m == Marker::Bewitched)
@@ -1042,12 +1059,14 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             }
 
             game.characters
-                .get_mut(flowered.rank())
+                .get_mut(*flowered)
+                .unwrap()
                 .markers
                 .push(Marker::Blackmail { flowered: true });
 
             game.characters
-                .get_mut(unmarked.rank())
+                .get_mut(*unmarked)
+                .unwrap()
                 .markers
                 .push(Marker::Blackmail { flowered: false });
             let mut roles = vec![flowered, unmarked];
@@ -1153,9 +1172,9 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             if game.active_player().unwrap().name == *player {
                 return Err("Cannot swap with game".into());
             }
+
             Game::remove_first(&mut game.active_player_mut()?.roles, *role)
                 .ok_or("You cannot give away a role you don't have")?;
-
             let target = game
                 .players
                 .iter_mut()
@@ -1167,7 +1186,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             target.roles.push(*role);
             target.roles.sort_by_key(|r| r.rank());
             for role in target.roles.iter() {
-                game.characters.get_mut(role.rank()).player = Some(target.index);
+                game.characters.get_mut(*role).unwrap().player = Some(target.index);
             }
 
             let active = game.active_player_mut().unwrap();
@@ -1175,7 +1194,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             active.roles.sort_by_key(|r| r.rank());
             let index = active.index;
             for role in active.roles.clone() {
-                game.characters.get_mut(role.rank()).player = Some(index);
+                game.characters.get_mut(role).unwrap().player = Some(index);
             }
 
             ActionOutput::new(format!(
@@ -1579,7 +1598,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         district.display_name
                     ))
                     .followup(Followup::Warrant {
-                        magistrate: game.characters.get(Rank::One).player.unwrap(),
+                        magistrate: game.characters.get(RoleName::Magistrate).unwrap().player.unwrap(),
                         gold: cost,
                         district: district.name,
                         signed: game
@@ -1599,13 +1618,14 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             _ => Err("impossible")?,
         },
         Action::Bewitch { role } => {
-            if role.rank() == Rank::One {
-                Err("Cannot target game")?;
+            if *role == RoleName::Witch{
+                return Err("Cannot target self")?;
             }
-            game.characters
-                .get_mut(role.rank())
-                .markers
-                .push(Marker::Bewitched);
+            if let Some(c) = game.characters .get_mut(*role) {
+                c.markers.push(Marker::Bewitched);
+            } else {
+                return Err(format!("Role {} not found", role.display_name()).into());
+            }
 
             ActionOutput::new(format!("The Witch bewitches {}.", role.display_name())).end_turn()
         }

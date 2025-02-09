@@ -183,7 +183,7 @@ impl Turn {
 
 #[derive(Debug)]
 pub struct Call {
-    pub rank: Rank,
+    pub index: u8,
     pub end_of_round: bool,
 }
 
@@ -422,28 +422,6 @@ pub struct Game {
 pub struct Characters(pub Vec<GameRole>);
 
 impl Characters {
-    pub fn next(&self, rank: Rank) -> Option<Rank> {
-        self.0.last().and_then(|c| {
-            rank.next()
-                .and_then(|r| if r <= c.role.rank() { Some(r) } else { None })
-        })
-    }
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn iter_c(&self) -> impl Iterator<Item = &GameRole> + '_ {
-        self.0.iter()
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = RoleName> + '_ {
-        self.0.iter().map(|c| c.role)
-    }
-
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut GameRole> + '_ {
-        self.0.iter_mut()
-    }
-
     pub fn new(roles: &Vec<RoleName>) -> Self {
         Self(
             roles
@@ -458,32 +436,59 @@ impl Characters {
                 .collect(),
         )
     }
-    pub fn get(&self, rank: Rank) -> &GameRole {
-        &self.0[rank.to_index()]
+
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 
-    pub fn get_mut(&mut self, rank: Rank) -> &mut GameRole {
-        &mut self.0[rank.to_index()]
+    pub fn next(&self, index: u8) -> Option<u8> {
+        if index as usize >= self.0.len() {
+            return None;
+        }
+        return Some(index + 1);
+    }
+
+    pub fn index(&self, index: u8) -> &GameRole {
+        &self.0[index as usize]
+    }
+
+    pub fn index_mut(&mut self, index: u8) -> &mut GameRole {
+        &mut self.0[index as usize]
+    }
+
+    pub fn get(&self, role_name: RoleName) -> Option<&GameRole> {
+        self.0.iter().find(|game_role| game_role.role == role_name)
+    }
+
+    pub fn get_mut(&mut self, role_name: RoleName) -> Option<&mut GameRole> {
+        self.0
+            .iter_mut()
+            .find(|game_role| game_role.role == role_name)
     }
 
     pub fn has_bishop_protection(&self, player: PlayerIndex) -> bool {
-        let bishop = self.get(Rank::Five);
-        if bishop.role != RoleName::Bishop {
-            return false;
-        }
+        let bishop = match self.get(RoleName::Bishop) {
+            Some(bishop) => bishop,
+            None => return false,
+        };
+
+        // if bishop was killed it is not revealed
         if !bishop.revealed {
             return false;
         }
 
+        // witch takes bishop permission
         if bishop.markers.iter().any(|m| *m == Marker::Bewitched) {
-            return self.get(Rank::One).player.is_some_and(|w| w == player);
+            return self
+                .get(RoleName::Witch)
+                .is_some_and(|witch| witch.player.is_some_and(|w| w == player));
         }
 
         bishop.player.is_some_and(|p| p == player)
     }
 
     pub fn has_tax_collector(&self) -> bool {
-        self.0.get(Rank::Nine.to_index()).map(|c| c.role) == Some(RoleName::TaxCollector)
+        self.get(RoleName::TaxCollector).is_some()
     }
 }
 
@@ -586,12 +591,12 @@ impl Game {
 
     pub fn active_role(&self) -> Result<&GameRole> {
         let call = self.active_turn.call()?;
-        Ok(self.characters.get(call.rank))
+        Ok(self.characters.index(call.index))
     }
 
     pub fn active_role_mut(&mut self) -> Result<&mut GameRole> {
         let call = self.active_turn.call()?;
-        Ok(self.characters.get_mut(call.rank))
+        Ok(self.characters.index_mut(call.index))
     }
 
     pub fn start(lobby: Lobby, mut rng: Prng) -> Result<Game> {
@@ -652,55 +657,8 @@ impl Game {
             first_to_complete: None,
         };
 
-        if !cfg!(feature = "dev") {
-            game.begin_draft();
-            Ok(game)
-        } else {
-            // deal roles out randomly
-            game.characters.get_mut(Rank::One).role = RoleName::Assassin;
-            game.characters.get_mut(Rank::Three).role = RoleName::Magician;
-            let mut roles: Vec<_> = game.characters.iter().collect();
-            roles.shuffle(&mut game.rng);
-
-            let role_count = if game.players.len() <= 3 { 2 } else { 1 };
-
-            let roles = roles.iter().enumerate();
-            // .take(role_count * game.players.len());
-            for (i, role) in roles {
-                let index = i % game.players.len();
-                game.players[index].roles.push(*role);
-                game.characters.get_mut(role.rank()).player = Some(PlayerIndex(index));
-            }
-
-            for p in game.players.iter_mut() {
-                p.roles.sort_by_key(|c| c.rank());
-                p.hand = vec![
-                    DistrictName::ThievesDen,
-                    DistrictName::Framework,
-                    DistrictName::Necropolis,
-                    DistrictName::Temple,
-                ];
-                p.gold = 3;
-
-                for card in game.deck.draw_many(3) {
-                    p.city.push(CityDistrict {
-                        name: card,
-                        beautified: false,
-                    });
-                }
-                p.city.push(CityDistrict {
-                    name: DistrictName::Framework,
-                    beautified: false,
-                });
-            }
-
-            game.active_turn = Turn::Call(Call {
-                rank: Rank::Three,
-                end_of_round: false,
-            });
-            game.start_turn().unwrap();
-            Ok(game)
-        }
+        game.begin_draft();
+        Ok(game)
     }
 
     pub fn begin_draft(&mut self) {
@@ -708,12 +666,17 @@ impl Game {
         let draft = Draft::begin(
             self.players.len(),
             self.crowned,
-            self.characters.iter().collect(),
+            self.characters
+                .0
+                .iter()
+                .map(|game_role| game_role.role)
+                .collect(),
             &mut self.rng,
         );
         for c in draft.faceup_discard.iter() {
             self.characters
-                .get_mut(c.rank())
+                .get_mut(*c)
+                .unwrap()
                 .markers
                 .push(Marker::Discarded);
         }
@@ -747,17 +710,17 @@ impl Game {
             Turn::GameOver => Err("game over".into()),
             Turn::Draft(draft) => Ok(draft.player),
             Turn::Call(call) => {
-                let c = self.characters.get(call.rank);
+                let c = self.characters.index(call.index);
                 if self.has_gathered_resources()
                     && c.markers.iter().any(|m| *m == Marker::Bewitched)
                 {
                     self.characters
-                        .get(Rank::One)
-                        .player
-                        .ok_or("no witch!".into())
+                        .get(RoleName::Witch)
+                        .and_then(|game_role| game_role.player)
+                        .ok_or("No witch!".into())
                 } else {
                     c.player
-                        .ok_or(format!("no player with rank {}", call.rank).into())
+                        .ok_or(format!("No role at index {} in the roster!", call.index).into())
                 }
             }
         }
@@ -880,7 +843,7 @@ impl Game {
                 }
 
                 let mut actions = Vec::new();
-                let c = self.characters.get(call.rank);
+                let c = self.characters.index(call.index);
                 for (n, action) in c.role.data().actions {
                     if self.active_perform_count(*action) < *n {
                         actions.push(*action);
@@ -983,7 +946,7 @@ impl Game {
             c.logs.push(
                 format!(
                     "They are bewitched! After gathering resources, their turn will be yielded to the Witch ({}).",
-                    self.players[self.characters.get(RoleName::Witch.rank()).player.unwrap().0].name
+                    self.players[self.characters.get(RoleName::Witch).unwrap().player.unwrap().0].name
                 )
                 .into(),
             );
@@ -993,7 +956,12 @@ impl Game {
             let player = self.players[c.player.unwrap().0].borrow_mut();
             let gold = player.gold;
             player.gold = 0;
-            let thief = self.characters.get(RoleName::Thief.rank()).player.unwrap();
+            let thief = self
+                .characters
+                .get(RoleName::Thief)
+                .unwrap()
+                .player
+                .unwrap();
 
             let thief = &mut self.players[thief.0];
             thief.gold += gold;
@@ -1138,7 +1106,7 @@ impl Game {
             }) => {
                 // call
                 self.active_turn = Turn::Call(Call {
-                    rank: Rank::One,
+                    index: 0,
                     end_of_round: false,
                 })
             }
@@ -1178,7 +1146,7 @@ impl Game {
                         draft.theater_step = true;
                     } else {
                         self.active_turn = Turn::Call(Call {
-                            rank: Rank::One,
+                            index: 0,
                             end_of_round: false,
                         });
                     }
@@ -1238,15 +1206,21 @@ impl Game {
     fn call_next(&mut self) {
         match self.active_turn.borrow() {
             Turn::Call(call) => {
-                let o = self.characters.next(call.rank);
+                let o = self.characters.next(call.index);
                 if let Some(rank) = o {
                     self.active_turn = Turn::Call(Call {
-                        rank,
+                        index: rank,
                         end_of_round: false,
                     });
-                } else if self.characters.get(Rank::Four).role == RoleName::Emperor {
+                } else if let Some((i, _)) = self
+                    .characters
+                    .0
+                    .iter()
+                    .enumerate()
+                    .find(|(i, game_role)| game_role.role == RoleName::Emperor)
+                {
                     self.active_turn = Turn::Call(Call {
-                        rank: Rank::Four,
+                        index: i as u8,
                         end_of_round: true,
                     });
                 } else {
@@ -1259,43 +1233,43 @@ impl Game {
 
     pub fn end_round(&mut self) {
         // triggered actions
-        let rank = Rank::Four;
-        let character = &self.characters.get(rank);
-        if character.markers.iter().any(|m| *m == Marker::Killed) {
-            if let Some(index) = character.player {
-                if character.role == RoleName::King || character.role == RoleName::Patrician {
-                    self.crowned = index;
-                    self.logs.push(
-                        format!(
-                            "{}'s heir {} crowned.",
-                            character.role.display_name(),
-                            self.players[index.0].name
-                        )
-                        .into(),
-                    );
-                }
+        // Redo: queen action
+        // If the queen has not already done their queen action, they get gold at end of round for
+        // being adjacent to royalty
+        //
+        //let queen = self.characters.get(RoleName::Queen);
+        //let n = self.players.len();
+        //let p2 = index;
+        //if self. queen.is_some_and(|q| {
+        //    q.player
+        //        .is_some_and(|p1| ((p1.0 + 1) % n == p2.0 || (p2.0 + 1) % n == p1.0))
+        //}) {
+        //    self.players[queen.unwrap().player.unwrap().0].gold += 3;
+        //    self.logs.push(
+        //        format!(
+        //            "The Queen ({}) was seated next to royalty ({}); they gain 3 gold.",
+        //            self.players[queen.unwrap().player.unwrap().0].name,
+        //            royalty.unwrap().role.display_name()
+        //        )
+        //        .into(),
+        //    );
+        //}
 
-                if self.characters.len() >= 9 {
-                    let n = self.players.len();
-                    let ninth = self.characters.get(Rank::Nine);
-                    let p2 = index;
-                    if ninth.role == RoleName::Queen
-                        && ninth
-                            .player
-                            .is_some_and(|p1| ((p1.0 + 1) % n == p2.0 || (p2.0 + 1) % n == p1.0))
-                    {
-                        self.players[ninth.player.unwrap().0].gold += 3;
-                        self.logs.push(
-                            format!(
-                                "The Queen ({}) is seated next to the dead {}; they gain 3 gold.",
-                                self.players[ninth.player.unwrap().0].name,
-                                character.role.display_name()
-                            )
-                            .into(),
-                        );
-                    }
-                }
-            }
+        let heir = self.characters.0.iter().find(|c| {
+            c.markers.iter().any(|m| *m == Marker::Killed)
+                && (c.role == RoleName::King || c.role == RoleName::Patrician)
+        });
+
+        if heir.is_some() {
+            self.crowned = heir.unwrap().player.unwrap();
+            self.logs.push(
+                format!(
+                    "{}'s heir {} crowned.",
+                    heir.unwrap().role.display_name(),
+                    self.players[self.crowned.0].name
+                )
+                .into(),
+            );
         }
 
         // GAME OVER
@@ -1310,7 +1284,7 @@ impl Game {
     }
 
     fn cleanup_round(&mut self) {
-        for character in self.characters.iter_mut() {
+        for character in self.characters.0.iter_mut() {
             character.cleanup_round();
         }
         for player in self.players.iter_mut() {

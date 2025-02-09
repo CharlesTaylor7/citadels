@@ -107,14 +107,21 @@ impl<'a> MenuView<'a> {
                 Followup::Bewitch => MenuView::Bewitch {
                     roles: game
                         .characters
-                        .iter_c()
+                        .0
+                        .iter()
                         .filter(|c| c.role.rank() > Rank::One)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
                 },
 
                 Followup::HandleBlackmail { .. } => MenuView::HandleBlackmail {
-                    blackmailer: game.players[game.characters.get(Rank::Two).player.unwrap().0]
+                    blackmailer: game.players[game
+                        .characters
+                        .get(RoleName::Blackmailer)
+                        .unwrap()
+                        .player
+                        .unwrap()
+                        .0]
                         .name
                         .borrow(),
                     bribe: game.active_player().unwrap().gold / 2,
@@ -202,8 +209,7 @@ impl<'a> MenuView<'a> {
             }
 
             if let Ok(Call {
-                rank: Rank::Four,
-                end_of_round: true,
+                end_of_round: true, ..
             }) = game.active_turn.call()
             {
                 return MenuView::Emperor {

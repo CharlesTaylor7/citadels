@@ -145,9 +145,9 @@ impl SendWarrantsMenu {
         Self {
             roles: game
                 .characters
+                .0
                 .iter()
-                .skip(1)
-                .map(|r| RoleTemplate::from(r, 160.0))
+                .map(|r| RoleTemplate::from(r.role, 160.0))
                 .collect::<Vec<_>>(),
         }
     }
@@ -163,8 +163,8 @@ impl BlackmailMenu {
         Self {
             roles: game
                 .characters
-                .iter_c()
-                .skip(2)
+                .0
+                .iter()
                 .filter(|c| {
                     c.markers
                         .iter()

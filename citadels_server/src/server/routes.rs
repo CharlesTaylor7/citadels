@@ -330,8 +330,9 @@ async fn submit_game_action(
                 let rendered = SelectRoleMenu {
                     roles: game
                         .characters
-                        .iter_c()
-                        .filter(|c| c.role.rank() > Rank::One)
+                        .0
+                        .iter()
+                        .filter(|c| !c.revealed)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
                     context: GameContext::from_game(game, Some(cookie.value())),
@@ -345,9 +346,10 @@ async fn submit_game_action(
                 let rendered = SelectRoleMenu {
                     roles: game
                         .characters
-                        .iter_c()
+                        .0
+                        .iter()
                         .filter(|c| {
-                            c.role.rank() > Rank::Two
+                            !c.revealed
                                 && c.markers
                                     .iter()
                                     .all(|m| *m != Marker::Killed && *m != Marker::Bewitched)
