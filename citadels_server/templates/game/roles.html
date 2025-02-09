@@ -65,14 +65,12 @@
             {% endmatch %}
           {% endfor %}
           {% if role.name == RoleName::TaxCollector %}
-          {% for _ in 0..context.game.tax_collector %}
             <span 
               data-tip="Taxes"
               class="tooltip tooltip-bottom tooltip-secondary text-xl"
             > 
-              💰 
+               💰 {{ context.game.tax_collector }}
             </span>
-          {% endfor %}
           {% endif %}
         </div>
         <code class="collapse-content text-sm">
