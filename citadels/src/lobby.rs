@@ -91,6 +91,7 @@ pub enum ConfigOption {
 
 #[derive(Clone, Debug)]
 pub struct GameConfig {
+    pub role_anarchy: bool,
     pub roles: HashSet<RoleName>,
     pub districts: HashMap<DistrictName, ConfigOption>,
 }
@@ -104,7 +105,11 @@ impl Default for GameConfig {
 
         let districts = HashMap::new();
 
-        Self { roles, districts }
+        Self {
+            role_anarchy: false,
+            roles,
+            districts,
+        }
     }
 }
 
@@ -143,11 +148,12 @@ impl GameConfig {
             roles.insert(r);
         }
         Self {
+            role_anarchy: false,
             roles,
             districts: HashMap::default(),
         }
     }
-    pub fn role(&self, role: &RoleName) -> bool {
+    pub fn role_enabled(&self, role: &RoleName) -> bool {
         self.roles.contains(role)
     }
 
@@ -171,28 +177,40 @@ impl GameConfig {
         // 9th rank is required for 3
         // 9th rank is optional for 4-7
         // 9th rank is required for 8
-        let n = if num_players == 2 { 8 } else { 9 };
-        log::info!("Selecting {} roles for {} player game", n, num_players);
-        let mut grouped_by_rank = vec![Vec::with_capacity(3); n];
+        let role_count = if num_players == 2 { 8 } else { 9 };
+        log::info!(
+            "Selecting {} roles for {} player game",
+            role_count,
+            num_players
+        );
 
-        for r in crate::data::characters::ROLES {
-            if num_players >= r.name.min_player_count() {
-                if self.role(&r.name) {
+        if self.role_anarchy {
+            let roles: Vec<RoleName> = crate::data::characters::ROLES
+                .iter()
+                .map(|r| r.name)
+                .filter(|r| num_players >= r.min_player_count() && self.role_enabled(r))
+                .collect();
+            return Ok(roles.choose_multiple(rng, role_count).cloned().collect());
+        } else {
+            let mut grouped_by_rank = vec![Vec::with_capacity(3); role_count];
+
+            for r in crate::data::characters::ROLES {
+                if num_players >= r.name.min_player_count() && self.role_enabled(&r.name) {
                     grouped_by_rank[r.rank.to_index()].push(r.name);
                 }
             }
-        }
 
-        grouped_by_rank
-            .into_iter()
-            .enumerate()
-            .map(|(i, roles)| {
-                roles
-                    .choose(rng)
-                    .copied()
-                    .ok_or(format!("No enabled roles for rank {}", i + 1).into())
-            })
-            .collect()
+            return grouped_by_rank
+                .into_iter()
+                .enumerate()
+                .map(|(i, roles)| {
+                    roles
+                        .choose(rng)
+                        .copied()
+                        .ok_or(format!("No enabled roles for rank {}", i + 1).into())
+                })
+                .collect();
+        }
     }
 
     pub fn select_unique_districts<T: RngCore>(
