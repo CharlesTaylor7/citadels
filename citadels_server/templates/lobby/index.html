@@ -48,7 +48,13 @@
         </button>
         {% set theme_dropdown_class = "dropdown-bottom" %}
         {% include "theme-dropdown.html" %}
+
       </div>
+
+        <div>
+          <input type="checkbox" name="role_anarchy">
+          Role Anarchy?
+        </div>
       <div id="error" class="text-wrap w-60"></div>
     </form>
     {% include "players.html" %}
