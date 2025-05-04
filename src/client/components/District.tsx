@@ -13,50 +13,45 @@ interface DistrictAsset {
 }
 
 interface DistrictProps {
-  district: {
-    value: DistrictName;
-    name: string;
-    description?: string;
-    suit: CardSuit;
-    cost?: number;
-    beautified?: boolean;
-    pos: {
-      x: number;
-      y: number;
-      z: number;
-    };
-    asset: DistrictAsset;
-    artifacts: string[];
+  value: DistrictName;
+  name: string;
+  description?: string;
+  suit: CardSuit;
+  cost?: number;
+  beautified?: boolean;
+  pos?: {
+    x: number;
+    y: number;
+    z: number;
   };
-  inputType?: "radio" | "checkbox";
-  draggable?: boolean;
-  enabled?: boolean;
+  asset: DistrictAsset;
+  artifacts: string[];
+  enabled: boolean;
+  draggable: boolean;
 }
+// Helper function to determine suit background color
+const getSuitBgColor = (suit: CardSuit): string => {
+  switch (suit) {
+    case "Noble":
+      return "bg-yellow-300";
+    case "Trade":
+      return "bg-green-300";
+    case "Military":
+      return "bg-red-300";
+    case "Religious":
+      return "bg-blue-300";
+    case "Unique":
+      return "bg-purple-300";
+    default:
+      return "bg-gray-300";
+  }
+};
 
-const District: React.FC<DistrictProps> = ({
+export function District({
   district,
-  inputType = "radio",
-  draggable = true,
   enabled = true,
-}) => {
-  // Helper function to determine suit background color
-  const getSuitBgColor = (suit: CardSuit): string => {
-    switch (suit) {
-      case "Noble":
-        return "bg-yellow-300";
-      case "Trade":
-        return "bg-green-300";
-      case "Military":
-        return "bg-red-300";
-      case "Religious":
-        return "bg-blue-300";
-      case "Unique":
-        return "bg-purple-300";
-      default:
-        return "bg-gray-300";
-    }
-  };
-
+  draggable = false,
+}: DistrictProps) {
   return (
     <label
       data-dropzone=""
@@ -131,13 +126,6 @@ const District: React.FC<DistrictProps> = ({
           </div>
         )}
       </div>
-      <input
-        type={inputType}
-        className="absolute top-0 peer opacity-0"
-        name="district"
-        value={district.value}
-        disabled={!enabled}
-      />
       <svg
         className="rounded-b-xl"
         xmlns="http://www.w3.org/2000/svg"
@@ -172,6 +160,4 @@ const District: React.FC<DistrictProps> = ({
       </div>
     </label>
   );
-};
-
-export default District;
+}

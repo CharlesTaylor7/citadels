@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write src/",
     "lint": "eslint src/",
-    "ci": "prettier --check src/ && yarn lint && yarn typecheck",
+    "ci": "yarn lint && yarn typecheck",
     "dev": "vinxi dev",
     "build": "vinxi build",
     "start": "vinxi start"

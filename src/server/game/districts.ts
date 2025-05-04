@@ -5,37 +5,32 @@
 import { CardSuit, CARD_SUIT } from "./types";
 import { ActionTag } from "./actions";
 import { CardSet } from "./roles";
+import { z } from "zod";
 
-/**
- * All district names in the game
- */
-export const DISTRICT_NAMES = [
-  // Normal districts - Religious
+// Define the Zod enum
+export const DistrictEnum = z.enum([
+  // religious
   "Temple",
   "Church",
   "Monastery",
   "Cathedral",
-
-  // Normal districts - Military
   "Watchtower",
+  // military
   "Prison",
   "Baracks",
   "Fortress",
-
-  // Normal districts - Noble
+  // noble
   "Manor",
   "Castle",
   "Palace",
-
-  // Normal districts - Trade
+  // trade
   "Tavern",
   "Market",
   "TradingPost",
   "Docks",
   "Harbor",
   "TownHall",
-
-  // Unique districts
+  // unique
   "Smithy",
   "Laboratory",
   "SchoolOfMagic",
@@ -66,12 +61,13 @@ export const DISTRICT_NAMES = [
   "SecretVault",
   "Capitol",
   "Monument",
-] as const;
+]);
 
-/**
- * Type representing a district name in the game
- */
-export type DistrictName = (typeof DISTRICT_NAMES)[number];
+// Export the array of district names
+export const DISTRICT_NAMES = DistrictEnum.options;
+
+// Type representing a district name in the game
+export type DistrictName = z.infer<typeof DistrictEnum>;
 
 /**
  * Immutable data for a district
@@ -91,7 +87,7 @@ export const DistrictNameUtils = {
     set: CardSet,
     suit: CardSuit,
     cost: number,
-    displayName: string,
+    displayName: string
   ): DistrictData {
     return {
       name,
@@ -108,7 +104,7 @@ export const DistrictNameUtils = {
     set: CardSet,
     displayName: string,
     cost: number,
-    description: string,
+    description: string
   ): DistrictData {
     return {
       name,
@@ -218,14 +214,14 @@ export const NORMAL_DISTRICTS: DistrictData[] = [
     "Base",
     CARD_SUIT.RELIGIOUS,
     3,
-    "Monastery",
+    "Monastery"
   ),
   DistrictNameUtils.normal(
     "Cathedral",
     "Base",
     CARD_SUIT.RELIGIOUS,
     5,
-    "Cathedral",
+    "Cathedral"
   ),
 
   DistrictNameUtils.normal(
@@ -233,7 +229,7 @@ export const NORMAL_DISTRICTS: DistrictData[] = [
     "Base",
     CARD_SUIT.MILITARY,
     1,
-    "Watchtower",
+    "Watchtower"
   ),
   DistrictNameUtils.normal("Prison", "Base", CARD_SUIT.MILITARY, 2, "Prison"),
   DistrictNameUtils.normal("Baracks", "Base", CARD_SUIT.MILITARY, 3, "Baracks"),
@@ -242,7 +238,7 @@ export const NORMAL_DISTRICTS: DistrictData[] = [
     "Base",
     CARD_SUIT.MILITARY,
     5,
-    "Fortress",
+    "Fortress"
   ),
 
   DistrictNameUtils.normal("Manor", "Base", CARD_SUIT.NOBLE, 3, "Manor"),
@@ -256,7 +252,7 @@ export const NORMAL_DISTRICTS: DistrictData[] = [
     "Base",
     CARD_SUIT.TRADE,
     2,
-    "Trading Post",
+    "Trading Post"
   ),
   DistrictNameUtils.normal("Docks", "Base", CARD_SUIT.TRADE, 3, "Docks"),
   DistrictNameUtils.normal("Harbor", "Base", CARD_SUIT.TRADE, 4, "Harbor"),
