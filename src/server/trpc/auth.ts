@@ -21,7 +21,7 @@ const signinProcedure = anonymousProcedure.input(
 );
 
 export const authRouter = router({
-  me: loggedInProcedure.query(({ ctx }) => {
+  me: anonymousProcedure.query(({ ctx }) => {
     return { userId: ctx.userId };
   }),
   logout: loggedInProcedure.mutation(

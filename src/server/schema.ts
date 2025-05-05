@@ -16,7 +16,7 @@ export const sessions = table("sessions", {
   id: text("id").primaryKey(),
   userId: integer("user_id")
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: "cascade" }),
   expiresAt: integer("expires_at", {
     mode: "timestamp",
   }).notNull(),
@@ -28,10 +28,10 @@ export const room_members = table(
     // this ensures each player is in only 1 room at a time
     playerId: integer("player_id")
       .primaryKey()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     roomId: text("room_id")
       .notNull()
-      .references(() => rooms.id),
+      .references(() => rooms.id, { onDelete: "cascade" }),
     owner: integer("owner", { mode: "boolean" }).notNull().default(false),
   },
   (table) => [
@@ -49,7 +49,9 @@ export const rooms = table("rooms", {
   options: text("options").notNull(),
 
   // multiple games can happen in the same room, just not at the same time
-  gameId: integer("game_id").references(() => games.id),
+  gameId: integer("game_id").references(() => games.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const games = table("games", {

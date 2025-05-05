@@ -21,10 +21,10 @@ function LobbyComponent() {
   });
 
   const userQuery = useQuery(trpc.auth.me.queryOptions());
-  const lobbyQuery = useQuery(trpc.lobby.rooms.queryOptions());
+  const roomsQuery = useQuery(trpc.lobby.rooms.queryOptions());
 
   const userId = userQuery.data?.userId;
-  const rooms = lobbyQuery.data || [];
+  const rooms = roomsQuery.data || [];
   const userRoom = rooms.find((r) => r.members.some((m) => m.id === userId));
 
   const startGameMutation = useMutation({
@@ -55,7 +55,9 @@ function LobbyComponent() {
       <div className="mb-6">
         <button
           onClick={() => createRoomMutation.mutate()}
-          disabled={createRoomMutation.isPending || userRoom != null}
+          disabled={
+            createRoomMutation.isPending || userRoom != null || userId == null
+          }
           className="btn btn-primary"
         >
           Create Room
@@ -65,7 +67,7 @@ function LobbyComponent() {
 
       <h2 className="text-xl font-semibold mb-4">Available Rooms</h2>
 
-      {rooms.length === 0 ? (
+      {roomsQuery.isPending && rooms.length === 0 ? (
         <div className="alert alert-info">
           <div>
             <svg
@@ -93,40 +95,12 @@ function LobbyComponent() {
                 className={`card ${room.members.some((m) => m.id === userId) ? "bg-base-200" : "bg-base-100"} shadow-md relative`}
               >
                 <div className="card-body">
-                  {room.members.some((m) => m.id === userId) && (
-                    <div className="absolute top-2 right-2 flex gap-2">
-                      {room.gameId ? (
-                        <Link to="/game" className="btn btn-primary btn-sm">
-                          Continue Game
-                        </Link>
-                      ) : room.members.find((m) => m.id === userId)?.owner ? (
-                        <>
-                          <button
-                            onClick={() => startGameMutation.mutate()}
-                            disabled={
-                              startGameMutation.isPending ||
-                              room.members.length < 2
-                            }
-                            className="btn btn-success btn-sm"
-                          >
-                            Start Game
-                          </button>
-                        </>
-                      ) : null}
-                    </div>
-                  )}
+                  <div className="absolute top-2 right-2 flex gap-2"></div>
 
                   <div className="mb-2">
-                    {room.gameId && (
-                      <div className="mb-2">
-                        <div className="badge badge-lg badge-primary">
-                          Game in progress
-                        </div>
-                      </div>
-                    )}
                     <div>
                       <div className="font-medium mb-1">
-                        Players ({room.members.length}):
+                        {room.members.length} players
                       </div>
                       <div className="max-h-32 overflow-y-auto bg-base-100 rounded-box p-2 border border-base-300">
                         {room.members.map((member, index) => (
@@ -160,11 +134,11 @@ function LobbyComponent() {
                     </div>
                   </div>
 
-                  <div className="card-actions justify-end">
+                  <div className="flex gap-2">
                     {room.gameId ? (
-                      <div className="w-full text-center text-sm text-gray-500">
-                        Game already in progress
-                      </div>
+                      <Link to="/game" className="btn btn-primary btn-sm">
+                        Continue Playing
+                      </Link>
                     ) : userRoom?.id === room.id ? (
                       <button
                         onClick={() =>
@@ -183,25 +157,34 @@ function LobbyComponent() {
                         disabled={joinRoomMutation.isPending}
                         className="btn btn-primary "
                       >
-                        Join Room
+                        Join
                       </button>
                     )}
+
+                    {!room.owner && (
+                      <button
+                        onClick={() =>
+                          claimOwnershipMutation.mutate({ roomId: room.id })
+                        }
+                        disabled={claimOwnershipMutation.isPending}
+                        className="btn btn-info btn-sm"
+                      >
+                        Claim Ownership
+                      </button>
+                    )}
+
+                    {room.owner?.id === userId ? (
+                      <button
+                        onClick={() => startGameMutation.mutate()}
+                        disabled={
+                          startGameMutation.isPending || room.members.length < 2
+                        }
+                        className="btn btn-success btn-sm"
+                      >
+                        Start Game
+                      </button>
+                    ) : null}
                   </div>
-                  {room.members.find((m) => m.id === userId)?.owner && (
-                    <div className="flex gap-2 mt-2">
-                      {room.owner == null ? (
-                        <button
-                          onClick={() =>
-                            claimOwnershipMutation.mutate({ roomId: room.id })
-                          }
-                          disabled={claimOwnershipMutation.isPending}
-                          className="btn btn-info btn-sm"
-                        >
-                          Claim Ownership
-                        </button>
-                      ) : null}
-                    </div>
-                  )}
                 </div>
               </div>
             );

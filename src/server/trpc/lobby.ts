@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { router, loggedInProcedure } from ".";
+import { router, loggedInProcedure, anonymousProcedure } from ".";
 import { rooms, users, room_members, games } from "@/server/schema";
 import { and, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { GameConfigUtils } from "@/server/game/lobby";
 import { createGame } from "@/server/game/game-state";
 import { newSeed } from "@/server/game/random";
-import { tracked, TRPCError } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { EventEmitter, on } from "node:events";
 
 const playerSchema = z.object({
@@ -33,13 +33,13 @@ function publishRoomEvent(roomId: string) {
 }
 
 export const lobbyRouter = router({
-  subscribe: loggedInProcedure.subscription(async function* () {
+  subscribe: anonymousProcedure.subscription(async function* () {
     for await (const roomId of on(eventEmitter, "room_update")) {
       yield roomId;
     }
   }),
 
-  rooms: loggedInProcedure
+  rooms: anonymousProcedure
     .output(roomSchema.array())
     .query(async ({ ctx: { db } }) => {
       const roomsWithMembers = await db
@@ -149,7 +149,6 @@ export const lobbyRouter = router({
     }),
 
   startGame: loggedInProcedure.mutation(async ({ ctx: { db, userId } }) => {
-    console.log(userId);
     // Check if in room and owner
     const room_member = await db
       .select()
@@ -157,7 +156,6 @@ export const lobbyRouter = router({
       .where(eq(room_members.playerId, userId))
       .get();
 
-    console.log(room_member);
     if (!room_member) {
       throw new TRPCError({
         code: "NOT_FOUND",
@@ -179,7 +177,6 @@ export const lobbyRouter = router({
       .innerJoin(users, eq(room_members.playerId, users.id))
       .where(eq(room_members.roomId, room_member.roomId))
       .all();
-    console.log(players);
 
     if (players.length < 2) {
       throw new TRPCError({
@@ -197,8 +194,6 @@ export const lobbyRouter = router({
       rngSeed,
     };
 
-    console.log(config);
-
     const initialState = createGame(gameStartAction);
     const game = await db
       .insert(games)
@@ -208,8 +203,6 @@ export const lobbyRouter = router({
       })
       .returning({ id: games.id })
       .get();
-
-    console.log(game);
 
     await db
       .update(rooms)
