@@ -404,4 +404,38 @@ export const lobbyRouter = router({
       publishRoomEvent(input.roomId);
       return { roomId: input.roomId };
     }),
+
+  renameRoom: loggedInProcedure
+    .input(z.object({ roomId: z.string(), name: z.string() }))
+    .mutation(async ({ input, ctx: { userId, db } }) => {
+      // Check if the user is the owner of the room
+      const roomMember = await db
+        .select()
+        .from(room_members)
+        .where(
+          and(
+            eq(room_members.roomId, input.roomId),
+            eq(room_members.playerId, userId),
+            eq(room_members.owner, true)
+          )
+        )
+        .get();
+
+      if (!roomMember) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the room owner can rename the room",
+        });
+      }
+
+      // Update the room name
+      await db
+        .update(rooms)
+        .set({ name: input.name })
+        .where(eq(rooms.id, input.roomId))
+        .run();
+
+      publishRoomEvent(input.roomId);
+      return { roomId: input.roomId, name: input.name };
+    }),
 });

@@ -2,6 +2,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { trpc } from "@/client/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
+import { useRef, useState } from "react";
 
 export const Route = createFileRoute("/lobby")({
   component: LobbyComponent,
@@ -45,6 +46,11 @@ function LobbyComponent() {
   const claimOwnershipMutation = useMutation({
     ...trpc.lobby.claimOwnership.mutationOptions(),
   });
+  const renameRoomMutation = useMutation({
+    ...trpc.lobby.renameRoom.mutationOptions(),
+  });
+
+  const [edittingTitle, setEdittingTitle] = useState<boolean>(false);
 
   return (
     <>
@@ -88,107 +94,142 @@ function LobbyComponent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {rooms.map((room) => {
-            return (
-              <div
-                key={room.id}
-                className={`card ${room.members.some((m) => m.id === userId) ? "bg-base-200" : "bg-base-100"} shadow-md relative`}
-              >
-                <div className="card-body">
-                  <div className="absolute top-2 right-2 flex gap-2"></div>
+          {rooms.map((room) => (
+            <div
+              key={room.id}
+              className={`card ${room.members.some((m) => m.id === userId) ? "bg-base-200" : "bg-base-100"} shadow-md`}
+            >
+              <div className="card-body">
+                <div className="card-title">
+                  {edittingTitle ? (
+                    <input
+                      type="text"
+                      defaultValue={room.name}
+                      autoFocus
+                      onFocus={(e) =>
+                        e.target.setSelectionRange(0, e.target.value.length)
+                      }
+                      onBlur={(e) => {
+                        renameRoomMutation.mutate({
+                          roomId: room.id,
+                          name: e.target.value,
+                        });
+                        setEdittingTitle(false);
+                      }}
+                      className="input input-bordered w-full mb-2"
+                    />
+                  ) : (
+                    <>
+                      <span>{room.name}</span>
+                      {room.owner?.id === userId ? (
+                        <button
+                          onClick={() => setEdittingTitle(true)}
+                          className="btn btn-xs btn-secondary ml-2"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            className="w-4 h-4"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M11 5h-1v4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            ></path>
+                          </svg>
+                        </button>
+                      ) : null}
+                    </>
+                  )}
+                </div>
 
-                  <div className="mb-2">
-                    <div>
-                      <div className="font-medium mb-1">
-                        {room.members.length} players
-                      </div>
-                      <div className="max-h-32 overflow-y-auto bg-base-100 rounded-box p-2 border border-base-300">
-                        {room.members.map((member, index) => (
-                          <div key={index} className="flex items-center py-1">
-                            <span className="badge badge-sm badge-success mr-2"></span>
-                            <span>{member.name}</span>
-                            {member.owner && (
-                              <div className="badge badge-warning badge-sm ml-2">
-                                Owner
-                              </div>
-                            )}
-                            {!member.owner &&
-                              room.members.find((m) => m.id === userId)
-                                ?.owner && (
-                                <button
-                                  onClick={() =>
-                                    transferOwnershipMutation.mutate({
-                                      roomId: room.id,
-                                      newOwnerId: member.id,
-                                    })
-                                  }
-                                  disabled={transferOwnershipMutation.isPending}
-                                  className="btn btn-secondary btn-xs ml-2"
-                                >
-                                  Transfer
-                                </button>
-                              )}
-                          </div>
-                        ))}
-                      </div>
+                <div className="font-medium mb-1">
+                  {room.members.length} players
+                </div>
+                <div className="max-h-32 overflow-y-auto bg-base-100 rounded-box p-2 border border-base-300">
+                  {room.members.map((member, index) => (
+                    <div key={index} className="flex items-center py-1">
+                      <span>{member.name}</span>
+                      {member.owner && (
+                        <div className="badge badge-info badge-sm ml-2">
+                          Host
+                        </div>
+                      )}
+                      {!member.owner &&
+                        room.members.find((m) => m.id === userId)?.owner && (
+                          <button
+                            onClick={() =>
+                              transferOwnershipMutation.mutate({
+                                roomId: room.id,
+                                newOwnerId: member.id,
+                              })
+                            }
+                            disabled={transferOwnershipMutation.isPending}
+                            className="btn btn-secondary btn-xs ml-2"
+                          >
+                            Make Host
+                          </button>
+                        )}
                     </div>
-                  </div>
+                  ))}
+                </div>
 
-                  <div className="flex gap-2">
-                    {room.gameId ? (
-                      <Link to="/game" className="btn btn-primary btn-sm">
-                        Continue Playing
-                      </Link>
-                    ) : userRoom?.id === room.id ? (
-                      <button
-                        onClick={() =>
-                          leaveRoomMutation.mutate({ roomId: room.id })
-                        }
-                        disabled={leaveRoomMutation.isPending}
-                        className="btn btn-warning btn-sm"
-                      >
-                        Leave
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() =>
-                          joinRoomMutation.mutate({ roomId: room.id })
-                        }
-                        disabled={joinRoomMutation.isPending}
-                        className="btn btn-primary "
-                      >
-                        Join
-                      </button>
-                    )}
+                <div className="card-actions flex gap-4">
+                  {room.gameId ? (
+                    <Link to="/game" className="btn btn-primary btn-sm">
+                      Continue Playing
+                    </Link>
+                  ) : userRoom?.id === room.id ? (
+                    <button
+                      onClick={() =>
+                        leaveRoomMutation.mutate({ roomId: room.id })
+                      }
+                      disabled={leaveRoomMutation.isPending}
+                      className="btn btn-warning btn-sm"
+                    >
+                      Leave
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        joinRoomMutation.mutate({ roomId: room.id })
+                      }
+                      disabled={joinRoomMutation.isPending}
+                      className="btn btn-primary "
+                    >
+                      Join
+                    </button>
+                  )}
 
-                    {!room.owner && (
-                      <button
-                        onClick={() =>
-                          claimOwnershipMutation.mutate({ roomId: room.id })
-                        }
-                        disabled={claimOwnershipMutation.isPending}
-                        className="btn btn-info btn-sm"
-                      >
-                        Claim Ownership
-                      </button>
-                    )}
+                  {!room.owner && (
+                    <button
+                      onClick={() =>
+                        claimOwnershipMutation.mutate({ roomId: room.id })
+                      }
+                      disabled={claimOwnershipMutation.isPending}
+                      className="btn btn-info btn-sm"
+                    >
+                      Claim Host
+                    </button>
+                  )}
 
-                    {room.owner?.id === userId ? (
-                      <button
-                        onClick={() => startGameMutation.mutate()}
-                        disabled={
-                          startGameMutation.isPending || room.members.length < 2
-                        }
-                        className="btn btn-success btn-sm"
-                      >
-                        Start Game
-                      </button>
-                    ) : null}
-                  </div>
+                  {room.owner?.id === userId ? (
+                    <button
+                      onClick={() => startGameMutation.mutate()}
+                      disabled={
+                        startGameMutation.isPending || room.members.length < 2
+                      }
+                      className="btn btn-success btn-sm"
+                    >
+                      Start Game
+                    </button>
+                  ) : null}
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </>
