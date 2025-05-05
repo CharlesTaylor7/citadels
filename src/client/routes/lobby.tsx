@@ -3,6 +3,7 @@ import { trpc } from "@/client/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { useRef, useState } from "react";
+import { Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/lobby")({
   component: LobbyComponent,
@@ -116,7 +117,7 @@ function LobbyComponent() {
                         });
                         setEdittingTitle(false);
                       }}
-                      className="input input-bordered w-full mb-2"
+                      className="input border-none mb-2"
                     />
                   ) : (
                     <>
@@ -124,21 +125,9 @@ function LobbyComponent() {
                       {room.owner?.id === userId ? (
                         <button
                           onClick={() => setEdittingTitle(true)}
-                          className="btn btn-xs btn-secondary ml-2"
+                          className="ml-2 cursor-pointer text-sm"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            className="w-4 h-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M11 5h-1v4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            ></path>
-                          </svg>
+                          <Pencil />
                         </button>
                       ) : null}
                     </>
