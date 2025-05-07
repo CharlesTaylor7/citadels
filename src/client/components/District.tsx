@@ -12,18 +12,30 @@ interface Props {
   };
   artifacts?: string[];
   enabled?: boolean;
-  draggable?: boolean;
   height: number;
+  square?: boolean;
 }
-const aspectRatio = 3 / 4;
 
 export function District(props: Props) {
   const data = DistrictNameUtils.data(props.name);
   const assetPath = `/public/districts/${String(data.id).padStart(2, "0")}.webp`;
   const { brightness, saturate } = districtLighting(props.name);
+
+  const lightingStyle = {
+    filter: `brightness(${brightness}) saturate(${props.enabled ? saturate : 0}`,
+  };
+
+  function viewbox() {
+    if (props.square) return undefined;
+
+    const s = props.height;
+    const { x, y } = districtCrop(props.name);
+    const tx = x * s * 0.5;
+    const ty = y * s * 0.5;
+    return `${tx} ${ty} ${s} ${s}`;
+  }
   return (
-    <label
-      data-dropzone=""
+    <div
       className={`
         relative
         select-none
@@ -36,9 +48,7 @@ export function District(props: Props) {
         has-[:checked]:border-4
         has-[:checked]:border-green-500
         ${props.enabled ? "cursor-pointer" : ""}
-        ${props.draggable ? "draggable" : ""}
       `}
-      data-draggable={props.draggable ? "true" : undefined}
       style={{
         zIndex: props.pos?.z,
         transform: props.pos
@@ -46,68 +56,17 @@ export function District(props: Props) {
           : undefined,
       }}
     >
-      <div
-        data-tip={data.description}
-        className={`
-          w-full
-          rounded-t-xl relative h-10 bg-neutral-700
-          ${data.description ? "tooltip tooltip-bottom tooltip-secondary before:w-full" : ""}
-        `}
-      >
-        <div
-          className={`
-            absolute top-2
-            leaded
-            w-full text-center 
-            font-serif
-            text-base text-neutral-100
-            ${props.name === "SchoolOfMagic" ? "ml-2" : ""}
-            ${props.name === "ImperialTreasury" ? "ml-4" : ""}
-            ${props.name === "HauntedQuarter" ? "ml-3" : ""}
-          `}
-        >
-          {data.displayName}
-        </div>
-        <code
-          className={`
-            absolute top-2 left-2
-            h-6 w-6 rounded-full
-            leaded 
-            flex flex-row justify-center items-center 
-            text-black
-            ${getSuitBgColor(data.suit)}
-          `}
-        >
-          {data.cost}
-        </code>
-        {props.beautified && (
-          <div
-            data-tip="Beautified"
-            className="
-              absolute right-2 top-1 
-              tooltip tooltip-secondary 
-              text-2xl 
-            "
-          >
-            ✨
-          </div>
-        )}
-      </div>
       <svg
         className="rounded-b-xl"
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
-        height={props.height}
-        style={{
-          filter: `brightness(${brightness}) saturate(${props.enabled ? saturate : 0}`,
-        }}
+        style={lightingStyle}
+        viewBox={viewbox()}
       >
         <image
           id="img"
-          x={0}
-          y={0}
-          height="100%"
           xlinkHref={assetPath}
+          height="100%"
           preserveAspectRatio="xMinYMin slice"
         />
       </svg>
@@ -124,7 +83,63 @@ export function District(props: Props) {
             ))}
         </div>
       </div>
-    </label>
+    </div>
+  );
+}
+
+interface DistrictHeaderProps {
+  data: DistrictData;
+  beautified?: boolean;
+}
+function DistrictHeader({ data, beautified }: DistrictHeaderProps) {
+  return (
+    <div
+      data-tip={data.description}
+      className={`
+          w-full
+          rounded-t-xl relative h-10 bg-neutral-700
+          ${data.description ? "tooltip tooltip-bottom tooltip-secondary before:w-full" : ""}
+        `}
+    >
+      <div
+        className={`
+            absolute top-2
+            leaded
+            w-full text-center 
+            font-serif
+            text-base text-neutral-100
+            ${data.name === "SchoolOfMagic" ? "ml-2" : ""}
+            ${data.name === "ImperialTreasury" ? "ml-4" : ""}
+            ${data.name === "HauntedQuarter" ? "ml-3" : ""}
+          `}
+      >
+        {data.displayName}
+      </div>
+      <code
+        className={`
+            absolute top-2 left-2
+            h-6 w-6 rounded-full
+            leaded 
+            flex flex-row justify-center items-center 
+            text-black
+            ${getSuitBgColor(data.suit)}
+          `}
+      >
+        {data.cost}
+      </code>
+      {beautified && (
+        <div
+          data-tip="Beautified"
+          className="
+              absolute right-2 top-1 
+              tooltip tooltip-secondary 
+              text-2xl 
+            "
+        >
+          ✨
+        </div>
+      )}
+    </div>
   );
 }
 

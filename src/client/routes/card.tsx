@@ -11,7 +11,10 @@ function CardViewerComponent() {
   return (
     <div className="card-viewer">
       <h1 className="text-2xl font-bold">Card Viewer</h1>
-      <District name="Temple" enabled height={500} />
+      <div className="flex gap-2">
+        <District name="Temple" enabled square height={500} />
+        <District name="Temple" enabled height={500} />
+      </div>
     </div>
   );
 }
