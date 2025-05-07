@@ -73,6 +73,7 @@ export type DistrictName = z.infer<typeof DistrictEnum>;
  * Immutable data for a district
  */
 export interface DistrictData {
+  id: number;
   name: DistrictName;
   displayName: string;
   cost: number;
@@ -83,13 +84,15 @@ export interface DistrictData {
 
 export const DistrictNameUtils = {
   normal(
+    id: number,
     name: DistrictName,
     set: CardSet,
     suit: CardSuit,
     cost: number,
-    displayName: string
+    displayName: string,
   ): DistrictData {
     return {
+      id,
       name,
       set,
       suit,
@@ -100,13 +103,15 @@ export const DistrictNameUtils = {
   },
 
   unique(
+    id: number,
     name: DistrictName,
     set: CardSet,
     displayName: string,
     cost: number,
-    description: string
+    description: string,
   ): DistrictData {
     return {
+      id,
       name,
       set,
       suit: CARD_SUIT.UNIQUE,
@@ -207,56 +212,96 @@ export const DistrictNameUtils = {
  * Normal districts in the game
  */
 export const NORMAL_DISTRICTS: DistrictData[] = [
-  DistrictNameUtils.normal("Temple", "Base", CARD_SUIT.RELIGIOUS, 1, "Temple"),
-  DistrictNameUtils.normal("Church", "Base", CARD_SUIT.RELIGIOUS, 2, "Church"),
   DistrictNameUtils.normal(
+    0,
+    "Temple",
+    "Base",
+    CARD_SUIT.RELIGIOUS,
+    1,
+    "Temple",
+  ),
+  DistrictNameUtils.normal(
+    1,
+    "Church",
+    "Base",
+    CARD_SUIT.RELIGIOUS,
+    2,
+    "Church",
+  ),
+  DistrictNameUtils.normal(
+    2,
     "Monastery",
     "Base",
     CARD_SUIT.RELIGIOUS,
     3,
-    "Monastery"
+    "Monastery",
   ),
   DistrictNameUtils.normal(
+    3,
     "Cathedral",
     "Base",
     CARD_SUIT.RELIGIOUS,
     5,
-    "Cathedral"
+    "Cathedral",
   ),
 
   DistrictNameUtils.normal(
+    4,
     "Watchtower",
     "Base",
     CARD_SUIT.MILITARY,
     1,
-    "Watchtower"
+    "Watchtower",
   ),
-  DistrictNameUtils.normal("Prison", "Base", CARD_SUIT.MILITARY, 2, "Prison"),
-  DistrictNameUtils.normal("Baracks", "Base", CARD_SUIT.MILITARY, 3, "Baracks"),
   DistrictNameUtils.normal(
+    5,
+    "Prison",
+    "Base",
+    CARD_SUIT.MILITARY,
+    2,
+    "Prison",
+  ),
+  DistrictNameUtils.normal(
+    6,
+    "Baracks",
+    "Base",
+    CARD_SUIT.MILITARY,
+    3,
+    "Baracks",
+  ),
+  DistrictNameUtils.normal(
+    7,
     "Fortress",
     "Base",
     CARD_SUIT.MILITARY,
     5,
-    "Fortress"
+    "Fortress",
   ),
 
-  DistrictNameUtils.normal("Manor", "Base", CARD_SUIT.NOBLE, 3, "Manor"),
-  DistrictNameUtils.normal("Castle", "Base", CARD_SUIT.NOBLE, 4, "Castle"),
-  DistrictNameUtils.normal("Palace", "Base", CARD_SUIT.NOBLE, 5, "Palace"),
+  DistrictNameUtils.normal(8, "Manor", "Base", CARD_SUIT.NOBLE, 3, "Manor"),
+  DistrictNameUtils.normal(9, "Castle", "Base", CARD_SUIT.NOBLE, 4, "Castle"),
+  DistrictNameUtils.normal(10, "Palace", "Base", CARD_SUIT.NOBLE, 5, "Palace"),
 
-  DistrictNameUtils.normal("Tavern", "Base", CARD_SUIT.TRADE, 1, "Tavern"),
-  DistrictNameUtils.normal("Market", "Base", CARD_SUIT.TRADE, 2, "Market"),
+  DistrictNameUtils.normal(11, "Tavern", "Base", CARD_SUIT.TRADE, 1, "Tavern"),
+  DistrictNameUtils.normal(12, "Market", "Base", CARD_SUIT.TRADE, 2, "Market"),
   DistrictNameUtils.normal(
+    13,
     "TradingPost",
     "Base",
     CARD_SUIT.TRADE,
     2,
-    "Trading Post"
+    "Trading Post",
   ),
-  DistrictNameUtils.normal("Docks", "Base", CARD_SUIT.TRADE, 3, "Docks"),
-  DistrictNameUtils.normal("Harbor", "Base", CARD_SUIT.TRADE, 4, "Harbor"),
-  DistrictNameUtils.normal("TownHall", "Base", CARD_SUIT.TRADE, 5, "Town Hall"),
+  DistrictNameUtils.normal(14, "Docks", "Base", CARD_SUIT.TRADE, 3, "Docks"),
+  DistrictNameUtils.normal(15, "Harbor", "Base", CARD_SUIT.TRADE, 4, "Harbor"),
+  DistrictNameUtils.normal(
+    16,
+    "TownHall",
+    "Base",
+    CARD_SUIT.TRADE,
+    5,
+    "Town Hall",
+  ),
 ];
 
 /**
@@ -264,6 +309,7 @@ export const NORMAL_DISTRICTS: DistrictData[] = [
  */
 export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
+    id: 17,
     name: "Smithy",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -272,6 +318,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
     description: "Once during your turn, you may pay 2 gold to draw 3 cards.",
   },
   {
+    id: 18,
     name: "Laboratory",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -281,6 +328,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "Once during your turn, you may discard 1 card from your hand to gain 2 gold.",
   },
   {
+    id: 19,
     name: "SchoolOfMagic",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -290,6 +338,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "For the purpose of income, the School of Magic is treated as the district type of your choice.",
   },
   {
+    id: 20,
     name: "Keep",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -298,6 +347,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
     description: "The Keep cannot be destroyed by the Warlord.",
   },
   {
+    id: 21,
     name: "DragonGate",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -306,6 +356,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
     description: "At the end of the game score 2 extra points.",
   },
   {
+    id: 22,
     name: "HauntedQuarter",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -315,6 +366,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "For the purpose of final scoring, the Haunted Quarter is treated as the district type of your choice.",
   },
   {
+    id: 23,
     name: "GreatWall",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -324,6 +376,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "The cost to destroy any of your other districts is increased by 1.",
   },
   {
+    id: 24,
     name: "Observatory",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -333,6 +386,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "If you choose to draw cards when gathering resources, you draw 3 cards instead of 2 and keep 1 of your choice.",
   },
   {
+    id: 25,
     name: "Library",
     suit: CARD_SUIT.UNIQUE,
     set: "Base",
@@ -342,6 +396,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "If you choose to draw cards when gathering resources, you keep both of the cards you draw.",
   },
   {
+    id: 26,
     name: "Quarry",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -351,6 +406,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "You can build districts that are identical to districts in your city.",
   },
   {
+    id: 27,
     name: "Armory",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -360,6 +416,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "During your turn, destroy the Armory to destroy 1 district of your choice.",
   },
   {
+    id: 28,
     name: "Factory",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -368,6 +425,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
     description: "The cost to build other districts is reduced by 1 gold.",
   },
   {
+    id: 29,
     name: "Park",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -377,6 +435,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "At the end of the game, score 2 extra points if you have no cards in your hand.",
   },
   {
+    id: 30,
     name: "Museum",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -386,6 +445,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "Once during your turn, you may place a card from your hand face down under the Museum. At the end of the game, score 1 extra point for each card under the Museum.",
   },
   {
+    id: 31,
     name: "PoorHouse",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -395,6 +455,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "If you have no gold in your stash at the end of your turn, gain 1 gold.",
   },
   {
+    id: 32,
     name: "MapRoom",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -404,6 +465,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "At the end of the game, score 1 extra point for each card in your hand.",
   },
   {
+    id: 33,
     name: "WishingWell",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -413,6 +475,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well).",
   },
   {
+    id: 34,
     name: "ImperialTreasury",
     suit: CARD_SUIT.UNIQUE,
     set: "DarkCity",
@@ -422,6 +485,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "At the end of the game, score 1 extra point for each gold in your stash.",
   },
   {
+    id: 35,
     name: "Framework",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -431,6 +495,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "You can build a district by destroying the Framework instead of paying that district's cost.",
   },
   {
+    id: 36,
     name: "Statue",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -440,6 +505,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "If you have the crown at the end of the game, score 5 extra points.",
   },
   {
+    id: 37,
     name: "GoldMine",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -449,6 +515,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "If you choose to gain gold when gathering resources, gain 1 extra gold.",
   },
   {
+    id: 38,
     name: "IvoryTower",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -458,6 +525,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "If the Ivory Tower is the only UNIQUE district in your city at the end of the game, score 5 extra points",
   },
   {
+    id: 39,
     name: "Necropolis",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -467,6 +535,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "You can build the Necropolis by destroying 1 district in your city instead of paying the Necropolis' cost.",
   },
   {
+    id: 40,
     name: "ThievesDen",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -476,6 +545,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "Pay some or all of the Thieves' Den cost with cards from your hand instead of gold at a rate of 1 card to 1 gold.",
   },
   {
+    id: 41,
     name: "Theater",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -485,6 +555,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "At the end of each selection phase, you may exchange your chosen character card with an opponent's character card.",
   },
   {
+    id: 42,
     name: "Stables",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -494,6 +565,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "Building the Stables does not count toward your building limit for the turn.",
   },
   {
+    id: 43,
     name: "Basilica",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -503,6 +575,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "At the end of the game, score 1 extra point for each district in your city with an odd-numbered cost.",
   },
   {
+    id: 44,
     name: "SecretVault",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -512,6 +585,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "The Secret Vault cannot be built. At the end of the game, reveal the Secret Vault from your hand to score 3 extra points.",
   },
   {
+    id: 45,
     name: "Capitol",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
@@ -521,6 +595,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
       "If you have at least 3 districts of the same type at the end of the game, score 3 extra points.",
   },
   {
+    id: 46,
     name: "Monument",
     suit: CARD_SUIT.UNIQUE,
     set: "Citadels2016",
