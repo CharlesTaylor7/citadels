@@ -330,6 +330,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@angular/elements@npm:^19.2.10":
+  version: 19.2.10
+  resolution: "@angular/elements@npm:19.2.10"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/core": 19.2.10
+    rxjs: ^6.5.3 || ^7.4.0
+  checksum: 10c0/a500c5392e5c2a4d0f7176db2ce12785ac07d6c22893f225baf45d7e575c7f75609ff835fe626bc4f0d9b352897acfce020ea0406893884ce48516efc45cd2c4
+  languageName: node
+  linkType: hard
+
 "@angular/forms@npm:^19.2.0":
   version: 19.2.10
   resolution: "@angular/forms@npm:19.2.10"
@@ -4335,6 +4347,7 @@ __metadata:
     "@angular/compiler": "npm:^19.2.0"
     "@angular/compiler-cli": "npm:^19.2.0"
     "@angular/core": "npm:^19.2.0"
+    "@angular/elements": "npm:^19.2.10"
     "@angular/forms": "npm:^19.2.0"
     "@angular/platform-browser": "npm:^19.2.0"
     "@angular/platform-browser-dynamic": "npm:^19.2.0"
