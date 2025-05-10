@@ -3269,6 +3269,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@trpc/client@npm:^11.1.2":
+  version: 11.1.2
+  resolution: "@trpc/client@npm:11.1.2"
+  peerDependencies:
+    "@trpc/server": 11.1.2
+    typescript: ">=5.7.2"
+  checksum: 10c0/68f646e82965400c7a48924fde1303572a93aabecc9d9242b6516160886f12d8fcbfb3402aefe3bd7540dea27a695c45457686129a3e379788ff28b95ecb1837
+  languageName: node
+  linkType: hard
+
 "@tufjs/canonical-json@npm:2.0.0":
   version: 2.0.0
   resolution: "@tufjs/canonical-json@npm:2.0.0"
@@ -4260,6 +4270,7 @@ __metadata:
     "@angular/platform-browser": "npm:^19.2.0"
     "@angular/platform-browser-dynamic": "npm:^19.2.0"
     "@tailwindcss/postcss": "npm:^4.1.6"
+    "@trpc/client": "npm:^11.1.2"
     postcss: "npm:^8.5.3"
     rxjs: "npm:~7.8.0"
     tailwindcss: "npm:^4.1.6"

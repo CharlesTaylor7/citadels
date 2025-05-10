@@ -1,11 +1,10 @@
-/// reference types="custom-elements"
 import { createFileRoute } from "@tanstack/react-router";
-import React from "react";
 
 export const Route = createFileRoute("/game")({
   component: Game,
 });
 
 function Game() {
+  // @ts-expect-error custom element
   return <citadels-game></citadels-game>;
 }

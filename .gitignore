@@ -4,3 +4,4 @@ node_modules
 .vinxi
 sqlite.db
 /stats/
+.aider*
