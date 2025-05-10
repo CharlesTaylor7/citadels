@@ -2,8 +2,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
-import "@/client/styles.css";
-import { createRouter } from "@/client/router";
+import "./styles.css";
+import { createRouter } from "./router";
 
 // Set up a Router instance
 const router = createRouter();
@@ -14,6 +14,6 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <React.StrictMode>
       <RouterProvider router={router} />
-    </React.StrictMode>,
+    </React.StrictMode>
   );
 }

@@ -12,5 +12,8 @@
      "paths": {                        
       "@/*": ["./src/*"]             
     }
-  }
+  },
+  "exclude": [
+    "angular/"
+  ]
 }

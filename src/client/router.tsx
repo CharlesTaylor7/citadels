@@ -8,8 +8,6 @@ import {
   splitLink,
   createTRPCClient,
   httpBatchLink,
-  wsLink,
-  createWSClient,
   httpSubscriptionLink,
 } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
