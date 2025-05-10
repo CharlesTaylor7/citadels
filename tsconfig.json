@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./types",
     "strict": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -14,6 +17,7 @@
     }
   },
   "exclude": [
-    "angular/"
+    "angular/",
+    "types/"
   ]
 }

@@ -20,7 +20,7 @@
     "baseUrl": "../",
     "paths": {
       "@/*": ["./angular/src/*"],
-      "@citadels-server/*": ["src/server/*"]
+      "@citadels-types/*": ["types/src/server/*"]
     }
   },
   "angularCompilerOptions": {

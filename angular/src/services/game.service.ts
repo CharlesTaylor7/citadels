@@ -6,13 +6,12 @@ import {
   httpSubscriptionLink,
   TRPCClient,
 } from '@trpc/client';
-import type { AppRouter } from "@citadels-server/trpc/router";
+import type { AppRouter } from '@citadels-types/trpc/router';
 
 @Injectable({
   providedIn: 'root',
 })
-export class GameService
-{
+export class GameService {
   trpc: TRPCClient<AppRouter>;
   constructor() {
     const serverLink = splitLink<AppRouter>({
@@ -23,8 +22,6 @@ export class GameService
     this.trpc = createTRPCClient({ links: [serverLink] });
   }
   ngOnInit() {
-
-    this.trpc.game.subscribe({ id: 1 }, {
-      next: (data) => console.log(data),
+    this.trpc.game.heartbeat.subscribe(void {}, {});
   }
 }

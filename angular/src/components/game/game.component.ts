@@ -1,7 +1,5 @@
+import { GameService } from '@/services/game.service';
 import { Component } from '@angular/core';
-// import { DistrictNameUtils } from '@citadels/game/districts';
-
-// console.log('import', DistrictNameUtils.multiplicity('Keep'));
 
 @Component({
   selector: 'app-game',
@@ -9,5 +7,5 @@ import { Component } from '@angular/core';
   templateUrl: './game.component.html',
 })
 export class GameComponent {
-  ngOnInit() {}
+  constructor(private gameService: GameService) {}
 }

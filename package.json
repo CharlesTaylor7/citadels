@@ -6,7 +6,7 @@
     "node": ">=23.6.0"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc",
     "format": "prettier --write src/",
     "lint": "eslint src/",
     "ci": "yarn lint && yarn typecheck",
