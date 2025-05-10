@@ -79,7 +79,7 @@ export const authRouter = router({
       // Set session cookie
       responseHeaders.set(
         "Set-Cookie",
-        `session=${token}; Path=/; HttpOnly; SameSite=Lax`,
+        `session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`,
       );
       responseHeaders.set("Location", "/lobby");
 
@@ -122,7 +122,7 @@ export const authRouter = router({
       // Set session cookie
       responseHeaders.set(
         "Set-Cookie",
-        `session=${token}; Path=/; HttpOnly; SameSite=Lax`,
+        `session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`,
       );
       responseHeaders.set("Location", "/lobby");
       return { userId: user.id };
