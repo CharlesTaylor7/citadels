@@ -113,44 +113,30 @@ export const gameRouter = router({
       // The above is one way. Let's refine the original `heartbeat` to be interval-based.
     }),
   
-  // Refined heartbeat to use interval correctly
+  // Refined heartbeat to use interval correctly (simplified async generator pattern)
   heartbeatRevised: loggedInProcedure
     .input(z.object({ roomId: z.string() }))
     .subscription(async function* ({ input: { roomId } }) {
-      let intervalId: NodeJS.Timeout | undefined = undefined;
+      let timeoutId: NodeJS.Timeout | undefined;
       try {
-        // Create a promise that resolves when the subscription should stop
-        let stopSubscription = () => {};
-        const stopPromise = new Promise<void>(resolve => {
-          stopSubscription = resolve;
-        });
-
-        intervalId = setInterval(() => {
-          // This emit is if other parts of the system need to react to heartbeats.
-          // For the subscription itself, we'll yield directly below.
-          // eventEmitter.emit(`${roomId}-heartbeat-tick`, { type: "tick", roomId });
-        }, 1000);
-
         while (true) {
           // Yield a heartbeat message
           yield { type: "heartbeat", timestamp: Date.now(), roomId, message: "Pulse" };
           
-          // Wait for 1 second or until the subscription is stopped
-          const oneSecondDelay = new Promise<void>(resolve => setTimeout(resolve, 1000));
-          await Promise.race([oneSecondDelay, stopPromise]);
-
-          // If stopPromise resolved, it means we should exit the loop
-          if (!intervalId) break; // intervalId cleared in finally means stop
+          // Wait for 1 second
+          await new Promise<void>(resolve => {
+            timeoutId = setTimeout(resolve, 1000);
+          });
+          timeoutId = undefined; // Clear after it resolves, before next iteration's yield
         }
       } finally {
-        if (intervalId) {
-          clearInterval(intervalId);
-          intervalId = undefined; // Signal that it's cleared
+        // If the generator is exited (e.g., client disconnects, error),
+        // clear any pending timeout.
+        if (timeoutId) {
+          clearTimeout(timeoutId);
         }
-        // stopSubscription(); // Resolve the promise to ensure any pending race condition exits
       }
     }),
-
 
   generalNotifications: loggedInProcedure
     .input(z.object({ roomId: z.string() }))
