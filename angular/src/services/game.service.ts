@@ -22,6 +22,13 @@ export class GameService {
     this.trpc = createTRPCClient({ links: [serverLink] });
   }
   ngOnInit() {
-    this.trpc.game.heartbeat.subscribe(void {}, {});
+    this.trpc.game.heartbeat.subscribe(undefined, {
+      onData: (data) => {
+        console.log('Heartbeat received:', data);
+      },
+      onError: (err) => {
+        console.error('Heartbeat subscription error:', err);
+      },
+    });
   }
 }
