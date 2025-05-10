@@ -1,11 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
+import { Observable } from 'rxjs';
+import { Unsubscribable } from '@trpc/server/observable';
 import {
   splitLink,
   createTRPCClient,
   httpBatchLink,
   httpSubscriptionLink,
   TRPCClient,
-  Unsubscribable,
 } from '@trpc/client';
 import type { AppRouter } from '@citadels-types/trpc/router';
 
@@ -14,7 +15,7 @@ import type { AppRouter } from '@citadels-types/trpc/router';
 })
 export class GameService implements OnDestroy {
   trpc: TRPCClient<AppRouter>;
-  private heartbeatSubscription: Unsubscribable | undefined;
+  heartbeatSubscription: Unsubscribable;
 
   constructor() {
     const serverLink = splitLink<AppRouter>({
