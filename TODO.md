@@ -1,3 +1,11 @@
+# angular
+- [ ] compile to custom element
+- [ ] Type def for custom element
+- [ ] Embed custom element
+- [ ] Get tailwind working across both
+- [ ] split server and core directories based on dependencies
+- [ ] yarn workspaces?
+
 # Shortlist   
 - [ ] Login/signup
   - [ ] Can view errors on page
