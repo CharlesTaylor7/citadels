@@ -1,18 +1,21 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import {
   splitLink,
   createTRPCClient,
   httpBatchLink,
   httpSubscriptionLink,
   TRPCClient,
+  Unsubscribable,
 } from '@trpc/client';
 import type { AppRouter } from '@citadels-types/trpc/router';
 
 @Injectable({
   providedIn: 'root',
 })
-export class GameService {
+export class GameService implements OnDestroy {
   trpc: TRPCClient<AppRouter>;
+  private heartbeatSubscription: Unsubscribable | undefined;
+
   constructor() {
     const serverLink = splitLink<AppRouter>({
       condition: (op) => op.type === 'subscription',
@@ -21,7 +24,7 @@ export class GameService {
     });
     this.trpc = createTRPCClient({ links: [serverLink] });
 
-    this.trpc.game.heartbeat.subscribe(undefined, {
+    this.heartbeatSubscription = this.trpc.game.heartbeat.subscribe(undefined, {
       onData: (data) => {
         console.log('Heartbeat received:', data);
       },
@@ -29,5 +32,12 @@ export class GameService {
         console.error('Heartbeat subscription error:', err);
       },
     });
+  }
+
+  ngOnDestroy() {
+    if (this.heartbeatSubscription) {
+      this.heartbeatSubscription.unsubscribe();
+      console.log('Heartbeat subscription stopped.');
+    }
   }
 }
