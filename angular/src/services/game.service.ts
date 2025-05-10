@@ -20,8 +20,7 @@ export class GameService {
       false: httpBatchLink({ url: '/trpc' }),
     });
     this.trpc = createTRPCClient({ links: [serverLink] });
-  }
-  ngOnInit() {
+
     this.trpc.game.heartbeat.subscribe(undefined, {
       onData: (data) => {
         console.log('Heartbeat received:', data);
