@@ -1,204 +1,23 @@
-import { DistrictName } from "@/core/districts";
-import { RoleName } from "@/core/roles";
-import { CardSuit } from "@/core/types";
+import { z } from "zod";
+import { DistrictName, DISTRICT_NAMES } from "@/core/districts";
+import { RoleName, ROLE_NAMES } from "@/core/roles";
+import { CardSuit, CARD_SUITS } from "@/core/types";
 import { GameConfig } from "@/core/config";
 
-export const ACTION_TAGS = [
-  "DraftPick",
-  "DraftDiscard",
-  "GatherResourceGold",
-  "GatherResourceCards",
-  "GatherCardsPick",
-  "Build",
-  "EndTurn",
-  "GoldFromNobility",
-  "GoldFromReligion",
-  "GoldFromTrade",
-  "GoldFromMilitary",
-  "CardsFromNobility",
-  "MerchantGainOneGold",
-  "ArchitectGainCards",
-  "TakeCrown",
-  "Assassinate",
-  "Steal",
-  "Magic",
-  "WarlordDestroy",
-  "Beautify",
-  "ScholarReveal",
-  "ScholarPick",
-  "EmperorGiveCrown",
-  "EmperorHeirGiveCrown",
-  "ResourcesFromReligion",
-  "TakeFromRich",
-  "CardsFromReligion",
-  "Bewitch",
-  "SendWarrants",
-  "Blackmail",
-  "PayBribe",
-  "IgnoreBlackmail",
-  "RevealWarrant",
-  "RevealBlackmail",
-  "Pass",
-  "MarshalSeize",
-  "CollectTaxes",
-  "DiplomatTrade",
-  "Spy",
-  "SpyAcknowledge",
-  "QueenGainGold",
-  "NavigatorGain",
-  "SeerTake",
-  "SeerDistribute",
-  "WizardPeek",
-  "WizardPick",
-  "Smithy",
-  "Laboratory",
-  "Armory",
-  "Museum",
-  "Theater",
-  "TheaterPass",
-  "PatricianTakeCrown",
-  "CardinalExchange",
-] as const;
-
-/**
- * Type representing an action tag in the game
- */
-export type ActionTag = (typeof ACTION_TAGS)[number];
-
-/**
- * Resources that can be gained in the game
- */
+// types
+export type ActionTag = PlayerAction["action"];
 export const RESOURCES = ["Gold", "Cards"] as const;
-
 export type Resource = (typeof RESOURCES)[number];
-
-/**
- * Target for a district in a player's city
- */
-export interface CityDistrictTarget {
-  player: PlayerName;
-  district: DistrictName;
-  beautified: boolean;
+export type CityDistrictTarget = z.infer<typeof CityDistrictTargetSchema>;
+export type BuildMethod = z.infer<typeof BuildMethodSchema>;
+export type WizardMethod = z.infer<typeof WizardMethodSchema>;
+export type MagicianAction = z.infer<typeof MagicianActionSchema>;
+export type Action = Readonly<GameStartAction | PlayerAction>;
+export interface GameStartAction extends GameConfig {
+  action: "GameStart";
 }
 
-/**
- * Utility functions for CityDistrictTarget
- */
-export const CityDistrictTargetUtils = {
-  /**
-   * Calculate the effective cost of a district, including beautification
-   * @param target The city district target
-   * @returns The effective cost
-   */
-  effectiveCost(target: CityDistrictTarget): number {
-    // In the original, this calls district.data().cost
-    // We'll need to implement this once we have the district data available
-    const baseDistrictCost = 0; // Placeholder - replace with actual implementation
-    return baseDistrictCost + (target.beautified ? 1 : 0);
-  },
-};
-
-/**
- * Methods for building districts
- */
-export type BuildMethod =
-  | { buildMethod: "Regular"; district: DistrictName }
-  | { buildMethod: "Framework"; district: DistrictName }
-  | { buildMethod: "Necropolis"; sacrifice: CityDistrictTarget }
-  | { buildMethod: "ThievesDen"; discard: DistrictName[] }
-  | {
-      buildMethod: "Cardinal";
-      district: DistrictName;
-      discard: DistrictName[];
-      player: PlayerName;
-    };
-
-/**
- * Methods for wizard actions
- */
-export type WizardMethod =
-  | { wizardMethod: "Pick"; district: DistrictName }
-  | { wizardMethod: "Build"; district: DistrictName }
-  | { wizardMethod: "Framework"; district: DistrictName }
-  | { wizardMethod: "Necropolis"; sacrifice: CityDistrictTarget }
-  | { wizardMethod: "ThievesDen"; discard: DistrictName[] };
-
-type PlayerName = string;
-/**
- * Actions for the magician
- */
-export type MagicianAction =
-  | { player: PlayerName }
-  | { district: DistrictName[] };
-
-export type Action = Readonly<GameStartAction | PlayerAction>;
-
-export type GameStartAction = {
-  action: "GameStart";
-} & GameConfig;
-/**
- * All possible player actions in the game
- *
- */
-export type PlayerAction =
-  | { action: "DraftPick"; role: RoleName }
-  | { action: "DraftDiscard"; role: RoleName }
-  | { action: "GatherResourceGold" }
-  | { action: "GatherResourceCards" }
-  | { action: "GatherCardsPick"; district: DistrictName }
-  | { action: "Build"; buildMethod: BuildMethod }
-  | { action: "EndTurn" }
-  | { action: "GoldFromNobility" }
-  | { action: "GoldFromReligion" }
-  | { action: "GoldFromTrade" }
-  | { action: "GoldFromMilitary" }
-  | { action: "CardsFromNobility" }
-  | { action: "MerchantGainOneGold" }
-  | { action: "ArchitectGainCards" }
-  | { action: "TakeCrown" }
-  | { action: "Assassinate"; role: RoleName }
-  | { action: "Steal"; role: RoleName }
-  | { action: "Magic"; magicianAction: MagicianAction }
-  | { action: "WarlordDestroy"; district: CityDistrictTarget }
-  | { action: "Beautify"; district: CityDistrictTarget }
-  | { action: "ScholarReveal" }
-  | { action: "ScholarPick"; district: DistrictName }
-  | { action: "EmperorGiveCrown"; player: PlayerName; resource: Resource }
-  | { action: "EmperorHeirGiveCrown"; player: PlayerName }
-  | { action: "ResourcesFromReligion"; gold: number; cards: number }
-  | { action: "TakeFromRich"; player: PlayerName }
-  | { action: "CardsFromReligion" }
-  | { action: "Bewitch"; role: RoleName }
-  | { action: "SendWarrants"; signed: RoleName; unsigned: [RoleName, RoleName] }
-  | { action: "Blackmail"; flowered: RoleName; unmarked: RoleName }
-  | { action: "PayBribe" }
-  | { action: "IgnoreBlackmail" }
-  | { action: "RevealWarrant" }
-  | { action: "RevealBlackmail" }
-  | { action: "Pass" }
-  | { action: "MarshalSeize"; district: CityDistrictTarget }
-  | { action: "CollectTaxes" }
-  | {
-      action: "DiplomatTrade";
-      district: CityDistrictTarget;
-      theirs: CityDistrictTarget;
-    }
-  | { action: "Spy"; player: PlayerName; suit: CardSuit }
-  | { action: "SpyAcknowledge" }
-  | { action: "QueenGainGold" }
-  | { action: "NavigatorGain"; resource: Resource }
-  | { action: "SeerTake" }
-  | { action: "SeerDistribute"; seer: [PlayerName, DistrictName][] }
-  | { action: "WizardPeek"; player: PlayerName }
-  | { action: "WizardPick"; wizardMethod: WizardMethod }
-  | { action: "Smithy" }
-  | { action: "Laboratory"; district: DistrictName }
-  | { action: "Armory"; district: CityDistrictTarget }
-  | { action: "Museum"; district: DistrictName }
-  | { action: "Theater"; role: RoleName; player: PlayerName }
-  | { action: "TheaterPass" }
-  | { action: "PatricianTakeCrown" }
-  | { action: "CardinalExchange" };
+export type PlayerAction = z.infer<typeof PlayerActionSchema>;
 
 export const ActionTagUtils = {
   isResourceGathering(tag: ActionTag): boolean {
@@ -258,32 +77,18 @@ export const ActionTagUtils = {
         return "Send Warrants";
       case "WarlordDestroy":
         return "Destroy";
-      case "Beautify":
-        return "Beautify";
       case "ScholarReveal":
         return "Draw 7, pick 1";
       case "ScholarPick":
         return "Pick";
-      case "Museum":
-        return "Museum";
-      case "Smithy":
-        return "Smithy";
-      case "Theater":
-        return "Theater";
       case "RevealWarrant":
         return "Confiscate";
-      case "Pass":
-        return "Pass";
       case "RevealBlackmail":
         return "Reveal Blackmail";
       case "PayBribe":
         return "Pay bribe";
       case "IgnoreBlackmail":
         return "Ignore blackmail";
-      case "Armory":
-        return "Armory";
-      case "Laboratory":
-        return "Laboratory";
       case "NavigatorGain":
         return "Navigator";
       case "QueenGainGold":
@@ -300,16 +105,10 @@ export const ActionTagUtils = {
         return "Trade";
       case "CollectTaxes":
         return "Collect Taxes";
-      case "Bewitch":
-        return "Bewitch";
       case "EmperorGiveCrown":
         return "Grant Crown";
       case "EmperorHeirGiveCrown":
         return "Grant Crown";
-      case "Blackmail":
-        return "Blackmail";
-      case "Spy":
-        return "Spy";
       case "GatherCardsPick":
         return "Pick";
       case "TheaterPass":
@@ -329,3 +128,308 @@ export const ActionTagUtils = {
     }
   },
 };
+
+// Zod Schemas
+const DistrictNameSchema = z.enum(DISTRICT_NAMES);
+const RoleNameSchema = z.enum(ROLE_NAMES);
+const CardSuitSchema = z.enum(CARD_SUITS);
+const ResourceSchema = z.enum(RESOURCES);
+
+const PlayerNameSchema = z.string();
+
+/**
+ * Target for a district in a player's city
+ */
+const CityDistrictTargetSchema = z.object({
+  player: PlayerNameSchema,
+  district: DistrictNameSchema,
+  beautified: z.boolean(),
+});
+
+const BuildMethodSchema = z.discriminatedUnion("buildMethod", [
+  z.object({ buildMethod: z.literal("Regular"), district: DistrictNameSchema }),
+  z.object({
+    buildMethod: z.literal("Framework"),
+    district: DistrictNameSchema,
+  }),
+  z.object({
+    buildMethod: z.literal("Necropolis"),
+    sacrifice: CityDistrictTargetSchema,
+  }),
+  z.object({
+    buildMethod: z.literal("ThievesDen"),
+    discard: z.array(DistrictNameSchema),
+  }),
+  z.object({
+    buildMethod: z.literal("Cardinal"),
+    district: DistrictNameSchema,
+    discard: z.array(DistrictNameSchema),
+    player: PlayerNameSchema,
+  }),
+]);
+
+const WizardMethodSchema = z.discriminatedUnion("wizardMethod", [
+  z.object({ wizardMethod: z.literal("Pick"), district: DistrictNameSchema }),
+  z.object({ wizardMethod: z.literal("Build"), district: DistrictNameSchema }),
+  z.object({
+    wizardMethod: z.literal("Framework"),
+    district: DistrictNameSchema,
+  }),
+  z.object({
+    wizardMethod: z.literal("Necropolis"),
+    sacrifice: CityDistrictTargetSchema,
+  }),
+  z.object({
+    wizardMethod: z.literal("ThievesDen"),
+    discard: z.array(DistrictNameSchema),
+  }),
+]);
+
+const MagicianActionSchema = z.union([
+  z.object({ player: PlayerNameSchema }),
+  z.object({ district: z.array(DistrictNameSchema) }),
+]);
+
+const DraftPickPlayerActionSchema = z.object({
+  action: z.literal("DraftPick"),
+  role: RoleNameSchema,
+});
+const DraftDiscardPlayerActionSchema = z.object({
+  action: z.literal("DraftDiscard"),
+  role: RoleNameSchema,
+});
+const GatherResourceGoldPlayerActionSchema = z.object({
+  action: z.literal("GatherResourceGold"),
+});
+const GatherResourceCardsPlayerActionSchema = z.object({
+  action: z.literal("GatherResourceCards"),
+});
+const BuildPlayerActionSchema = z.object({
+  action: z.literal("Build"),
+  buildMethod: BuildMethodSchema,
+});
+const EndTurnPlayerActionSchema = z.object({ action: z.literal("EndTurn") });
+const GoldFromNobilityPlayerActionSchema = z.object({
+  action: z.literal("GoldFromNobility"),
+});
+const GoldFromReligionPlayerActionSchema = z.object({
+  action: z.literal("GoldFromReligion"),
+});
+const GoldFromTradePlayerActionSchema = z.object({
+  action: z.literal("GoldFromTrade"),
+});
+const GoldFromMilitaryPlayerActionSchema = z.object({
+  action: z.literal("GoldFromMilitary"),
+});
+const CardsFromNobilityPlayerActionSchema = z.object({
+  action: z.literal("CardsFromNobility"),
+});
+const MerchantGainOneGoldPlayerActionSchema = z.object({
+  action: z.literal("MerchantGainOneGold"),
+});
+const ArchitectGainCardsPlayerActionSchema = z.object({
+  action: z.literal("ArchitectGainCards"),
+});
+const TakeCrownPlayerActionSchema = z.object({
+  action: z.literal("TakeCrown"),
+});
+const AssassinatePlayerActionSchema = z.object({
+  action: z.literal("Assassinate"),
+  role: RoleNameSchema,
+});
+const StealPlayerActionSchema = z.object({
+  action: z.literal("Steal"),
+  role: RoleNameSchema,
+});
+const MagicPlayerActionSchema = z.object({
+  action: z.literal("Magic"),
+  magicianAction: MagicianActionSchema,
+});
+const WarlordDestroyPlayerActionSchema = z.object({
+  action: z.literal("WarlordDestroy"),
+  district: CityDistrictTargetSchema,
+});
+const BeautifyPlayerActionSchema = z.object({
+  action: z.literal("Beautify"),
+  district: CityDistrictTargetSchema,
+});
+const ScholarRevealPlayerActionSchema = z.object({
+  action: z.literal("ScholarReveal"),
+});
+const ScholarPickPlayerActionSchema = z.object({
+  action: z.literal("ScholarPick"),
+  district: DistrictNameSchema,
+});
+const EmperorGiveCrownPlayerActionSchema = z.object({
+  action: z.literal("EmperorGiveCrown"),
+  player: PlayerNameSchema,
+  resource: ResourceSchema,
+});
+const EmperorHeirGiveCrownPlayerActionSchema = z.object({
+  action: z.literal("EmperorHeirGiveCrown"),
+  player: PlayerNameSchema,
+});
+const ResourcesFromReligionPlayerActionSchema = z.object({
+  action: z.literal("ResourcesFromReligion"),
+  gold: z.number(),
+  cards: z.number(),
+});
+const TakeFromRichPlayerActionSchema = z.object({
+  action: z.literal("TakeFromRich"),
+  player: PlayerNameSchema,
+});
+const CardsFromReligionPlayerActionSchema = z.object({
+  action: z.literal("CardsFromReligion"),
+});
+const BewitchPlayerActionSchema = z.object({
+  action: z.literal("Bewitch"),
+  role: RoleNameSchema,
+});
+const SendWarrantsPlayerActionSchema = z.object({
+  action: z.literal("SendWarrants"),
+  signed: RoleNameSchema,
+  unsigned: z.tuple([RoleNameSchema, RoleNameSchema]),
+});
+const BlackmailPlayerActionSchema = z.object({
+  action: z.literal("Blackmail"),
+  flowered: RoleNameSchema,
+  unmarked: RoleNameSchema,
+});
+const PayBribePlayerActionSchema = z.object({ action: z.literal("PayBribe") });
+const IgnoreBlackmailPlayerActionSchema = z.object({
+  action: z.literal("IgnoreBlackmail"),
+});
+const RevealWarrantPlayerActionSchema = z.object({
+  action: z.literal("RevealWarrant"),
+});
+const RevealBlackmailPlayerActionSchema = z.object({
+  action: z.literal("RevealBlackmail"),
+});
+const PassPlayerActionSchema = z.object({ action: z.literal("Pass") });
+const MarshalSeizePlayerActionSchema = z.object({
+  action: z.literal("MarshalSeize"),
+  district: CityDistrictTargetSchema,
+});
+const CollectTaxesPlayerActionSchema = z.object({
+  action: z.literal("CollectTaxes"),
+});
+const DiplomatTradePlayerActionSchema = z.object({
+  action: z.literal("DiplomatTrade"),
+  district: CityDistrictTargetSchema,
+  theirs: CityDistrictTargetSchema,
+});
+const SpyPlayerActionSchema = z.object({
+  action: z.literal("Spy"),
+  player: PlayerNameSchema,
+  suit: CardSuitSchema,
+});
+const SpyAcknowledgePlayerActionSchema = z.object({
+  action: z.literal("SpyAcknowledge"),
+});
+const QueenGainGoldPlayerActionSchema = z.object({
+  action: z.literal("QueenGainGold"),
+});
+const NavigatorGainPlayerActionSchema = z.object({
+  action: z.literal("NavigatorGain"),
+  resource: ResourceSchema,
+});
+const SeerTakePlayerActionSchema = z.object({ action: z.literal("SeerTake") });
+const SeerDistributePlayerActionSchema = z.object({
+  action: z.literal("SeerDistribute"),
+  seer: z.array(z.tuple([PlayerNameSchema, DistrictNameSchema])),
+});
+const WizardPeekPlayerActionSchema = z.object({
+  action: z.literal("WizardPeek"),
+  player: PlayerNameSchema,
+});
+const WizardPickPlayerActionSchema = z.object({
+  action: z.literal("WizardPick"),
+  wizardMethod: WizardMethodSchema,
+});
+const SmithyPlayerActionSchema = z.object({ action: z.literal("Smithy") });
+const LaboratoryPlayerActionSchema = z.object({
+  action: z.literal("Laboratory"),
+  district: DistrictNameSchema,
+});
+const ArmoryPlayerActionSchema = z.object({
+  action: z.literal("Armory"),
+  district: CityDistrictTargetSchema,
+});
+const MuseumPlayerActionSchema = z.object({
+  action: z.literal("Museum"),
+  district: DistrictNameSchema,
+});
+const TheaterPlayerActionSchema = z.object({
+  action: z.literal("Theater"),
+  role: RoleNameSchema,
+  player: PlayerNameSchema,
+});
+const TheaterPassPlayerActionSchema = z.object({
+  action: z.literal("TheaterPass"),
+});
+const PatricianTakeCrownPlayerActionSchema = z.object({
+  action: z.literal("PatricianTakeCrown"),
+});
+const CardinalExchangePlayerActionSchema = z.object({
+  action: z.literal("CardinalExchange"),
+});
+
+export const PlayerActionSchema = z.discriminatedUnion("action", [
+  DraftPickPlayerActionSchema,
+  DraftDiscardPlayerActionSchema,
+  GatherResourceGoldPlayerActionSchema,
+  GatherResourceCardsPlayerActionSchema,
+  z.object({
+    action: z.literal("GatherCardsPick"),
+    district: DistrictNameSchema,
+  }),
+  BuildPlayerActionSchema,
+  EndTurnPlayerActionSchema,
+  GoldFromNobilityPlayerActionSchema,
+  GoldFromReligionPlayerActionSchema,
+  GoldFromTradePlayerActionSchema,
+  GoldFromMilitaryPlayerActionSchema,
+  CardsFromNobilityPlayerActionSchema,
+  MerchantGainOneGoldPlayerActionSchema,
+  ArchitectGainCardsPlayerActionSchema,
+  TakeCrownPlayerActionSchema,
+  AssassinatePlayerActionSchema,
+  StealPlayerActionSchema,
+  MagicPlayerActionSchema,
+  WarlordDestroyPlayerActionSchema,
+  BeautifyPlayerActionSchema,
+  ScholarRevealPlayerActionSchema,
+  ScholarPickPlayerActionSchema,
+  EmperorGiveCrownPlayerActionSchema,
+  EmperorHeirGiveCrownPlayerActionSchema,
+  ResourcesFromReligionPlayerActionSchema,
+  TakeFromRichPlayerActionSchema,
+  CardsFromReligionPlayerActionSchema,
+  BewitchPlayerActionSchema,
+  SendWarrantsPlayerActionSchema,
+  BlackmailPlayerActionSchema,
+  PayBribePlayerActionSchema,
+  IgnoreBlackmailPlayerActionSchema,
+  RevealWarrantPlayerActionSchema,
+  RevealBlackmailPlayerActionSchema,
+  PassPlayerActionSchema,
+  MarshalSeizePlayerActionSchema,
+  CollectTaxesPlayerActionSchema,
+  DiplomatTradePlayerActionSchema,
+  SpyPlayerActionSchema,
+  SpyAcknowledgePlayerActionSchema,
+  QueenGainGoldPlayerActionSchema,
+  NavigatorGainPlayerActionSchema,
+  SeerTakePlayerActionSchema,
+  SeerDistributePlayerActionSchema,
+  WizardPeekPlayerActionSchema,
+  WizardPickPlayerActionSchema,
+  SmithyPlayerActionSchema,
+  LaboratoryPlayerActionSchema,
+  ArmoryPlayerActionSchema,
+  MuseumPlayerActionSchema,
+  TheaterPlayerActionSchema,
+  TheaterPassPlayerActionSchema,
+  PatricianTakeCrownPlayerActionSchema,
+  CardinalExchangePlayerActionSchema,
+]);
