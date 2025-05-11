@@ -1,5 +1,4 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Observable } from 'rxjs';
 import { Unsubscribable } from '@trpc/server/observable';
 import {
   splitLink,
@@ -35,10 +34,7 @@ export class GameService implements OnDestroy {
     });
   }
 
-  ngOnDestroy() {
-    if (this.heartbeatSubscription) {
-      this.heartbeatSubscription.unsubscribe();
-      console.log('Heartbeat subscription stopped.');
-    }
+  ngOnDestroy(): void {
+    this.heartbeatSubscription.unsubscribe();
   }
 }
