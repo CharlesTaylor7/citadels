@@ -19,8 +19,9 @@
     "module": "ES2022",
     "baseUrl": "../",
     "paths": {
-      "@/*": ["./angular/src/*"],
-      "@citadels-types/*": ["types/src/server/*"]
+      "@/core/*": ["src/core/*"],
+      "@/types/*": ["types/src/server/*"],
+      "@/*": ["./angular/src/*"]
     }
   },
   "angularCompilerOptions": {

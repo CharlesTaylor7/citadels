@@ -1,24 +1,40 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-// Imports from server game logic - adjust path if necessary
 import {
   DistrictName,
   DistrictData,
   DistrictNameUtils,
-} from '@citadels-utils/districts';
+} from '@/core/districts';
 
 @Component({
   selector: 'app-district',
   standalone: true,
-  imports: [CommonModule], // Import CommonModule for Angular directives
+  imports: [CommonModule],
   templateUrl: './district.component.html',
 })
 export class DistrictComponent {
-  @Input() district!: District;
+  @Input() name: string | null = null;
   @Input() enabled: boolean = true;
   @Input() draggable: boolean = false;
   @Input() inputType: string = 'checkbox';
+  district!: District;
+
+  ngOnChanges(): void {
+    console.log(this.name);
+    this.district =
+      // eslint-disable-next-line
+      DistrictFactory.fromDistrictName(this.name as DistrictName) ??
+      // eslint-disable-next-line
+      ({
+        name: 'Unknown',
+        // eslint-disable-next-line
+        value: 'Unknown' as DistrictName,
+        // eslint-disable-next-line
+        suit: 'Unknown' as CardSuit,
+        beautified: false,
+      } as District);
+  }
 
   get labelStyle() {
     if (!this.district?.pos) return {};
@@ -98,6 +114,44 @@ export interface District {
 }
 
 class DistrictFactory {
+  public static fromDistrictName(districtName: DistrictName): District | null {
+    const data: DistrictData = DistrictNameUtils.data(districtName);
+    if (!data) return null;
+
+    const length = 170.0;
+    const scale = 10.0;
+    const { x: p_x, y: p_y } = this.crop(districtName);
+    // 'saturate' is calculated by lighting() but not part of TS DistrictAsset interface, so it's not used in 'asset'
+    const { brightness /*, saturate */ } = this.lighting(districtName);
+
+    const crop_offset_x = p_x * length;
+    const crop_offset_y = p_y * length;
+
+    const full_height = (length * scale) / 5.0;
+    const full_width = length * (125.8 / 200.0) * (scale / 5.0);
+
+    const asset: DistrictAsset = {
+      brightness,
+      path: '/public/districts.jpeg',
+      height: length,
+      width: length,
+      scale_percentage: scale * 100.0,
+      offset_x: -crop_offset_x - full_width * (data.id % 10),
+      offset_y: -crop_offset_y - full_height * Math.floor(data.id / 10),
+    };
+
+    return {
+      value: districtName,
+      name: data.displayName,
+      cost: districtName === 'SecretVault' ? null : data.cost,
+      suit: data.suit,
+      description: data.description ?? null,
+      beautified: false, // Default value
+      pos: { x: 0, y: 0, z: 0 }, // Default position
+      artifacts: [], // Default empty artifacts
+      asset,
+    };
+  }
   private static crop(districtName: DistrictName): { x: number; y: number } {
     switch (districtName) {
       // yellow
@@ -293,43 +347,5 @@ class DistrictFactory {
       default:
         return { brightness: 1.3, saturate: 1.0 };
     }
-  }
-
-  public static fromDistrictName(districtName: DistrictName): District {
-    const data: DistrictData = DistrictNameUtils.data(districtName);
-
-    const length = 170.0;
-    const scale = 10.0;
-    const { x: p_x, y: p_y } = this.crop(districtName);
-    // 'saturate' is calculated by lighting() but not part of TS DistrictAsset interface, so it's not used in 'asset'
-    const { brightness /*, saturate */ } = this.lighting(districtName);
-
-    const crop_offset_x = p_x * length;
-    const crop_offset_y = p_y * length;
-
-    const full_height = (length * scale) / 5.0;
-    const full_width = length * (125.8 / 200.0) * (scale / 5.0);
-
-    const asset: DistrictAsset = {
-      brightness,
-      path: '/public/districts.jpeg',
-      height: length,
-      width: length,
-      scale_percentage: scale * 100.0,
-      offset_x: -crop_offset_x - full_width * (data.id % 10),
-      offset_y: -crop_offset_y - full_height * Math.floor(data.id / 10),
-    };
-
-    return {
-      value: districtName,
-      name: data.displayName,
-      cost: districtName === 'SecretVault' ? null : data.cost,
-      suit: data.suit,
-      description: data.description ?? null,
-      beautified: false, // Default value
-      pos: { x: 0, y: 0, z: 0 }, // Default position
-      artifacts: [], // Default empty artifacts
-      asset,
-    };
   }
 }

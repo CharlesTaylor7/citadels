@@ -7,7 +7,7 @@ import {
   httpSubscriptionLink,
   TRPCClient,
 } from '@trpc/client';
-import type { AppRouter } from '@citadels-types/trpc/router';
+import type { AppRouter } from '@/types/trpc/router';
 
 @Injectable({
   providedIn: 'root',
