@@ -123,20 +123,23 @@ export class DistrictComponent {
     this.dragging.set(true);
     console.log(this.dragging);
     console.log(this.dragging());
+    // Add console.log to inspect event.dx and event.dy
+    // console.log('onDragMove event:', event); 
     this.position.update((pos) => ({
       ...pos,
-      x: pos.x - event.dx,
-      y: pos.y - event.dy,
+      x: pos.x + event.dx, // Changed to + for standard drag behavior
+      y: pos.y + event.dy, // Changed to + for standard drag behavior
     }));
-    console.log(this.position());
+    // Check this log carefully:
+    console.log('Position after update in onDragMove:', this.position());
   }
 
   onDragEnd(event: unknown) {
     console.log('end', event);
     this.dragging.set(false);
     this.position.update((pos) => {
-      pos.z++;
-      return pos;
+      // Return a new object for the update
+      return { ...pos, z: pos.z + 1 };
     });
   }
 }
