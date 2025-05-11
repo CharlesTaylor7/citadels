@@ -35,6 +35,9 @@
             "styles": [
               "../src/client/styles.css"
             ],
+           "allowedCommonJsDependencies": [
+                "interactjs"
+             ],
             "scripts": []
           },
           "configurations": {
