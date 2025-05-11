@@ -28,7 +28,7 @@ export class DistrictComponent {
   selectable = input(false);
   draggable = input(false);
 
-  dragging = signal(false);
+  dragging = signal<boolean>(false);
   district = computed(() => DistrictFactory.fromDistrictName(this.name()));
   position = linkedSignal(() => this.district().pos ?? { x: 0, y: 0, z: 0 });
 
@@ -102,29 +102,29 @@ export class DistrictComponent {
       // if not draggable don't setup interactjs
       if (!element || !this.draggable()) return;
 
-      interact(element).draggable({
-        inertia: true,
-        // modifiers: [
-        //   interact.modifiers.restrictRect({
-        //     restriction: '.',
-        //     endOnly: true,
-        //   }),
-        // ],
-        autoScroll: true,
-        listeners: {
-          move: this.onDragMove.bind(this),
-          end: this.onDragEnd.bind(this),
-        },
-      });
+      interact(element)
+        .styleCursor(false)
+        .draggable({
+          // inertia: true,
+          // modifiers: [
+          //   interact.modifiers.restrictRect({
+          //     restriction: '.',
+          //     endOnly: true,
+          //   }),
+          // ],
+          // autoScroll: true,
+          listeners: {
+            move: this.onDragMove.bind(this),
+            end: this.onDragEnd.bind(this),
+          },
+        });
     });
   }
 
   onDragMove(event: { dx: number; dy: number }) {
     this.dragging.set(true);
-    console.log(this.dragging);
-    console.log(this.dragging());
     // Add console.log to inspect event.dx and event.dy
-    // console.log('onDragMove event:', event); 
+    // console.log('onDragMove event:', event);
     this.position.update((pos) => ({
       ...pos,
       x: pos.x + event.dx, // Changed to + for standard drag behavior
