@@ -88,14 +88,4 @@ export class DistrictComponent {
       height: `${this.district.asset.height}px`,
     };
   }
-
-  onInputKeyupEnter(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    if (inputElement) {
-      inputElement.checked = !inputElement.checked;
-      // Manually dispatch a change event as some libraries or parent components might listen for it
-      const changeEvent = new Event('change', { bubbles: true });
-      inputElement.dispatchEvent(changeEvent);
-    }
-  }
 }
