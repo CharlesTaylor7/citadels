@@ -1,48 +1,6 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: light --default;
-}
 @source "angular/src";
-  /* override daisy ui */
-@layer components {
-  .tooltip {
-    display: revert;
-  }
-
-  .tooltip::before {
-    content: none;
-  }
-
-  .dropdown {
-    position: revert;
-  }
-
-  .tab:is(input[type="radio"]) {
-    border-bottom-right-radius: var(--rounded-btn, 0.5rem);
-    border-bottom-left-radius: var(--rounded-btn, 0.5rem);
-  }
-
-  .collapse {
-    @apply rounded-none;
-  }
-
-  .collapse-title {
-    @apply min-h-0 p-0;
-  }
-
-  .collapse-content {
-    @apply pb-0 cursor-pointer;
-  }
-    
-  /* my components */
-  .header {
-    @apply underline text-lg font-semibold w-full text-center;
-  }
-
-  .panel {
-    @apply p-2 border border-base-200 bg-base-100;
-  }
-
+@plugin "daisyui" {
 }
 
 @layer utilities {

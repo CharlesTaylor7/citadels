@@ -1,5 +1,7 @@
 <div class="flex flex-row flex-wrap">
-  @for (name of districts; track name) {
-    <app-district [name]="name" [selectable]="true"></app-district>
-  }
+
+  <app-district name="SecretVault" [draggable]="true"></app-district>
+  <!-- @for (name of districts; track name) { -->
+  <!--   <app-district [name]="name" [draggable]="true"></app-district> -->
+  <!-- } -->
 </div>

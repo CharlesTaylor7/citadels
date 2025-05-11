@@ -1,8 +1,7 @@
-<div class="flex flex-row" *ngIf="district">
+<div class="flex flex-row" *ngIf="name() && district() as district">
   <label
+    #dragRoot
     data-dropzone
-    [attr.data-district]="district.value"
-    [id]="'card-' + district.value"
     class="
       relative
       select-none
@@ -14,16 +13,14 @@
       has-[:checked]:border-4
       has-[:checked]:border-success
     "
-    [class.cursor-pointer]="selectable || draggable"
-    [class.draggable]="draggable"
-    [attr.data-draggable]="draggable ? '' : null"
-    [attr.data-x]="district.pos.x + 'px'"
-    [attr.data-y]="district.pos.y + 'px'"
-    [ngStyle]="labelStyle"
+    [class.cursor-pointer]="selectable()"
+    [class.cursor-grab]="draggable()"
+    [class.cursor-grabbing]="dragging()"
+    [ngStyle]="labelStyle()"
   >
     <div
       [attr.data-tip]="district.description"
-      class="block w-full rounded-t-xl relative h-10 bg-slate-800"
+      class="block w-full rounded-t-xl relative h-10 bg-info-content"
       [ngClass]="{
         'tooltip': district.description,
         'tooltip-bottom': district.description,
@@ -39,7 +36,7 @@
           font-serif
           text-base text-neutral-content
         "
-        [ngClass]="districtNameMarginClass"
+        [class]="districtNameMarginClass()"
       >
         {{ district.name }}
       </div>
@@ -51,7 +48,7 @@
           flex flex-row justify-center items-center
           text-black
         "
-        [ngClass]="getSuitBgColorClass(district.suit)"
+        [class]="suitClass()"
       >
         @if ( district.cost != null) {
           {{ district.cost }}
@@ -74,8 +71,7 @@
       class="absolute top-0 peer opacity-0"
       name="district"
       [value]="district.value"
-      [disabled]="!selectable"
-      [checked]="selected"
+      [disabled]="!selectable()"
     />
     <ng-container *ngIf="district.asset as asset">
       <svg
@@ -84,7 +80,7 @@
         xmlns:xlink="http://www.w3.org/1999/xlink"
         [attr.height]="asset.height"
         [attr.width]="asset.width"
-        [style.filter]="svgFilterStyle"
+        [style]="svgStyle()"
       >
         <image
           id="img"
@@ -97,7 +93,7 @@
       </svg>
       <div
         class="absolute top-10"
-        [ngStyle]="artifactContainerStyle"
+        [style]="artifactContainerStyle()"
       >
         <div class="flex flex-row flex-wrap gap-0 justify-center items-center h-full">
           <div

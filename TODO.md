@@ -1,7 +1,7 @@
 # districts
 - [x] Cards have no cost
 - [x] header
-- [ ] Cards with tooltip have a gap between header and image
+- [x] Cards with tooltip have a gap between header and image
 - [ ] Draggable cards
 
 # angular

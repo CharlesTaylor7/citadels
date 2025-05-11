@@ -1,4 +1,13 @@
-import { Component, Input, input } from '@angular/core';
+import {
+  ElementRef,
+  ViewChild,
+  Component,
+  effect,
+  input,
+  signal,
+  computed,
+  linkedSignal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import {
@@ -6,6 +15,7 @@ import {
   DistrictData,
   DistrictNameUtils,
 } from '@/core/districts';
+import interact from 'interactjs';
 
 @Component({
   selector: 'app-district',
@@ -14,35 +24,42 @@ import {
   templateUrl: './district.component.html',
 })
 export class DistrictComponent {
-  @Input() name: string | null = null;
-  @Input() selected: boolean = false;
-  @Input() selectable: boolean = false;
-  @Input() draggable: boolean = false;
-  district?: District;
+  name = input.required<DistrictName>();
+  selectable = input(false);
+  draggable = input(false);
 
-  ngOnChanges(): void {
-    // eslint-disable-next-line
-    this.district = DistrictFactory.fromDistrictName(this.name as DistrictName);
-  }
+  dragging = signal(false);
+  district = computed(() => DistrictFactory.fromDistrictName(this.name()));
+  position = linkedSignal(() => this.district().pos ?? { x: 0, y: 0, z: 0 });
 
-  get labelStyle() {
-    if (!this.district?.pos) return {};
+  labelStyle = computed(() => {
+    const { x, y, z } = this.position();
+    console.log(this.position());
     return {
-      'z-index': this.district.pos.z,
-      transform: `translate(${this.district.pos.x}px, ${this.district.pos.y}px)`,
+      'z-index': z,
+      transform: `translate(${x}px, ${y}px)`,
     };
-  }
+  });
 
-  get districtNameMarginClass() {
-    if (!this.district?.value) return {};
-    return {
-      'ml-2': this.district.value === 'SchoolOfMagic',
-      'ml-4': this.district.value === 'ImperialTreasury',
-      'ml-3': this.district.value === 'HauntedQuarter',
-    };
-  }
+  districtNameMarginClass = computed(() => {
+    const { value: name } = this.district() ?? { value: undefined };
+    switch (name) {
+      case 'SchoolOfMagic':
+        return 'ml-2';
 
-  getSuitBgColorClass(suit: CardSuit): string {
+      case 'HauntedQuarter':
+        return 'ml-3';
+
+      case 'ImperialTreasury':
+        return 'ml-4';
+
+      default:
+        return '';
+    }
+  });
+
+  suitClass = computed(() => {
+    const { suit } = this.district() ?? { suit: undefined };
     switch (suit) {
       case 'Military':
         return 'bg-suit-military';
@@ -57,18 +74,70 @@ export class DistrictComponent {
       default:
         return '';
     }
-  }
+  });
 
-  get svgFilterStyle() {
-    if (!this.district?.asset) return {};
-    return `brightness(${this.district.asset.brightness})`;
-  }
+  svgStyle = computed(() => {
+    const { brightness, saturate } = this.district().asset;
+    return { filter: `brightness(${brightness}) saturate(${saturate}) ` };
+  });
 
-  get artifactContainerStyle() {
-    if (!this.district?.asset) return {};
+  artifactContainerStyle = computed(() => {
+    const { height } = this.district().asset;
     return {
-      height: `${this.district.asset.height}px`,
+      height: `${height}px`,
     };
+  });
+
+  @ViewChild('dragRoot') dragRef: ElementRef<HTMLLabelElement> | null = null;
+  dragEl = signal<HTMLLabelElement | undefined>(undefined);
+
+  ngAfterViewInit() {
+    this.dragEl.set(this.dragRef?.nativeElement);
+  }
+
+  constructor() {
+    effect(() => {
+      const element = this.dragEl();
+
+      // if not draggable don't setup interactjs
+      if (!element || !this.draggable()) return;
+
+      interact(element).draggable({
+        inertia: true,
+        // modifiers: [
+        //   interact.modifiers.restrictRect({
+        //     restriction: '.',
+        //     endOnly: true,
+        //   }),
+        // ],
+        autoScroll: true,
+        listeners: {
+          move: this.onDragMove.bind(this),
+          end: this.onDragEnd.bind(this),
+        },
+      });
+    });
+  }
+
+  onDragMove(event: { dx: number; dy: number }) {
+    this.dragging.set(true);
+    console.log(this.dragging);
+    console.log(this.dragging());
+    this.position.update((pos) => ({
+      ...pos,
+      x: pos.x - event.dx,
+      y: pos.y - event.dy,
+    }));
+    console.log(this.position());
+  }
+
+  onDragEnd(event: unknown) {
+    console.log('end', event);
+    this.dragging.set(false);
+    this.position.update((pos) => {
+      pos.z++;
+      return pos;
+    });
   }
 }
 
@@ -82,6 +151,7 @@ export interface DistrictAsset {
   height: number | string;
   width: number | string;
   brightness: number;
+  saturate: number;
   offset_x: number;
   offset_y: number;
   scale_percentage: number;
@@ -91,7 +161,7 @@ export interface DistrictAsset {
 export type CardSuit = 'Military' | 'Religious' | 'Noble' | 'Trade' | 'Unique';
 
 export interface District {
-  value: string;
+  value: DistrictName;
   name: string;
   description?: string | null;
   suit: CardSuit;
@@ -103,17 +173,13 @@ export interface District {
 }
 
 class DistrictFactory {
-  public static fromDistrictName(
-    districtName: DistrictName,
-  ): District | undefined {
+  public static fromDistrictName(districtName: DistrictName): District {
     const data: DistrictData = DistrictNameUtils.data(districtName);
-    if (!data) return undefined;
 
     const length = 170.0;
     const scale = 10.0;
     const { x: p_x, y: p_y } = this.crop(districtName);
-    // 'saturate' is calculated by lighting() but not part of TS DistrictAsset interface, so it's not used in 'asset'
-    const { brightness /*, saturate */ } = this.lighting(districtName);
+    const { brightness, saturate } = this.lighting(districtName);
 
     const crop_offset_x = p_x * length;
     const crop_offset_y = p_y * length;
@@ -123,6 +189,7 @@ class DistrictFactory {
 
     const asset: DistrictAsset = {
       brightness,
+      saturate,
       path: '/public/districts.jpeg',
       height: length,
       width: length,
