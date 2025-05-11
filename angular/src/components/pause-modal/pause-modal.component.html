@@ -1,0 +1,34 @@
+<div *ngIf="isPaused()" class="modal-overlay">
+  <div class="modal-content">
+    <h2 class="header">Paused</h2>
+    <!-- Content will be ported from reference/citadels_server/templates/game/modal.html -->
+    <p>Pause Modal works!</p>
+    <!-- Theme dropdown would go here -->
+    <button (click)="isPaused.set(false)">Resume (placeholder)</button>
+  </div>
+</div>
+<!-- Basic styling for modal, can be improved - reuse from game-end-modal or a common style -->
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(30,30,30,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+  }
+  .modal-content {
+    background-color: var(--fallback-b2, oklch(var(--b2) / 1)); /* DaisyUI base-200 */
+    padding: 1rem;
+    border-radius: 0.5rem; /* DaisyUI rounded-lg */
+    border: 1px solid var(--fallback-n, oklch(var(--n) / 1)); /* DaisyUI neutral */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem; /* DaisyUI gap-2 */
+  }
+</style>

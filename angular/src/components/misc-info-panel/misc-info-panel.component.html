@@ -1,0 +1,9 @@
+<section class="panel min-h-[268px] grow flex flex-col items-center gap-2 text-base">
+  <h2 class="header">Info</h2>
+  <!-- Content will be ported from reference/citadels_server/templates/game/misc.html -->
+  <p>Misc Info panel works!</p>
+  <div *ngIf="miscInfo(); let info">
+    <p>Round: {{ info.round }}</p>
+    <p>Deck size: {{ info.deck }}</p>
+  </div>
+</section>

@@ -1,0 +1,29 @@
+<div *ngIf="gameEndData() && !gameEndData().hidden" class="modal-overlay">
+  <div class="modal-content">
+    <h2 class="header">Final Scores</h2>
+    <!-- Content will be ported from reference/citadels_server/templates/game/end.html -->
+    <p>Game End Modal works!</p>
+    <!-- Display scores from gameEndData().players -->
+  </div>
+</div>
+<!-- Basic styling for modal, can be improved -->
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(30,30,30,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+  }
+  .modal-content {
+    background-color: var(--fallback-b1, oklch(var(--b1) / 1)); /* Using DaisyUI base color variable */
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--fallback-n, oklch(var(--n) / 1)); /* DaisyUI neutral */
+  }
+</style>

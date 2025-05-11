@@ -1,0 +1,8 @@
+<section class="panel grow">
+  <h2 class="header">My Hand</h2>
+  <!-- Content will be ported from reference/citadels_server/templates/game/hand.html -->
+  <p>Hand panel works!</p>
+  <div *ngIf="myPlayer(); let player">
+    <p>Cards in hand: {{ player.hand?.length || 0 }}</p>
+  </div>
+</section>

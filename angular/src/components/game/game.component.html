@@ -1,7 +1,54 @@
-<div class="flex flex-row flex-wrap">
+<!--
+  This structure mirrors reference/citadels_server/templates/game/index.html
+  Data binding uses a hypothetical gameStateSignal from GameService for now.
+  Actual data structure and service interaction will need further refinement.
+-->
+<main
+  class="h-screen bg-base-300 flex flex-row focus:outline-none text-base-content"
+  tabindex="-1"
+  autofocus
+  <!-- Global keydown for pause modal might be handled in AppComponent or via a global service -->
+>
+  <!-- Modals -->
+  <app-game-end-modal [gameEndData]="gameService.gameStateSignal()?.gameEnd"></app-game-end-modal>
+  <app-pause-modal [isPaused]="gameService.gameStateSignal()?.isPaused"></app-pause-modal>
 
-  <app-district name="SecretVault" [draggable]="true"></app-district>
-  <!-- @for (name of districts; track name) { -->
-  <!--   <app-district [name]="name" [draggable]="true"></app-district> -->
-  <!-- } -->
-</div>
+  <!-- Left Panel -->
+  <div class="w-72 flex flex-col">
+    <app-roles-panel [characters]="gameService.gameStateSignal()?.characters"></app-roles-panel>
+    <app-my-stash-panel [myPlayer]="gameService.gameStateSignal()?.myPlayer"></app-my-stash-panel>
+  </div>
+
+  <!-- Center Panel -->
+  <div class="grow flex flex-col">
+    <!-- City Panel -->
+    <app-player-city-panel [cityData]="gameService.gameStateSignal()?.city"></app-player-city-panel>
+
+    <!-- Menu Panel -->
+    <section class="panel grow flex flex-col gap-2 items-center">
+      <app-game-menu-panel
+        [menuData]="gameService.gameStateSignal()?.menu"
+        [gameContext]="gameService.gameStateSignal()?.context"
+        (action)="handleAction($event)"
+      ></app-game-menu-panel>
+      <div id="error">
+        <!-- Error messages from actions could be displayed here -->
+      </div>
+    </section>
+
+    <!-- Bottom part of Center Panel: Hand and My Roles -->
+    <div class="flex flex-row">
+      <app-hand-panel [myPlayer]="gameService.gameStateSignal()?.myPlayer"></app-hand-panel>
+      <app-my-roles-panel [myPlayer]="gameService.gameStateSignal()?.myPlayer"></app-my-roles-panel>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="flex flex-col">
+    <app-players-info-panel [playersInfo]="gameService.gameStateSignal()?.playersInfo"></app-players-info-panel>
+    <app-misc-info-panel [miscInfo]="gameService.gameStateSignal()?.miscInfo"></app-misc-info-panel>
+  </div>
+
+  <!-- Audio element for notifications -->
+  <!-- <audio id="bell-audio" src="/public/audio/cow.mp3" preload="auto" class="hidden"></audio> -->
+</main>
