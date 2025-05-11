@@ -1,1 +1,114 @@
-<p>district works!</p>
+<!-- Check if district is loaded to prevent errors during initialization -->
+<ng-container *ngIf="district">
+  <label
+    data-dropzone
+    [attr.data-district]="district.value"
+    [id]="'card-' + district.value"
+    class="
+      relative
+      select-none
+      p-1 box-content
+      rounded-2xl
+      has-[:focus-visible]:ring-4
+      has-[:checked]:p-0
+      has-[:checked]:border
+      has-[:checked]:border-4
+      has-[:checked]:border-success
+    "
+    [class.cursor-pointer]="enabled"
+    [class.draggable]="draggable"
+    [attr.data-draggable]="draggable ? '' : null"
+    [attr.data-x]="district.pos.x + 'px'"
+    [attr.data-y]="district.pos.y + 'px'"
+    [ngStyle]="labelStyle"
+  >
+    <div
+      [attr.data-tip]="district.description"
+      class="w-full rounded-t-xl relative h-10 bg-neutral"
+      [ngClass]="{
+        'tooltip': district.description,
+        'tooltip-bottom': district.description,
+        'tooltip-secondary': district.description,
+        'before:w-full': district.description
+      }"
+    >
+      <div
+        class="
+          absolute top-2
+          leaded
+          w-full text-center
+          font-serif
+          text-base text-neutral-content
+        "
+        [ngClass]="districtNameMarginClass"
+      >
+        {{ district.name }}
+      </div>
+      <code
+        class="
+          absolute top-2 left-2
+          h-6 w-6 rounded-full
+          leaded
+          flex flex-row justify-center items-center
+          text-black
+        "
+        [ngClass]="getSuitBgColorClass(district.suit)"
+      >
+        <ng-container *ngIf="district.cost !== null && district.cost !== undefined">
+          {{ district.cost }}
+        </ng-container>
+      </code>
+      <div
+        *ngIf="district.beautified"
+        data-tip="Beautified"
+        class="
+          absolute right-2 top-1
+          tooltip tooltip-secondary
+          text-2xl
+        "
+      >
+        ✨
+      </div>
+    </div>
+    <input
+      [type]="inputType"
+      class="absolute top-0 peer opacity-0"
+      name="district"
+      [value]="district.value"
+      [disabled]="!enabled"
+      (keyup.enter)="onInputKeyupEnter($event)"
+    />
+    <ng-container *ngIf="district.asset as asset">
+      <svg
+        class="rounded-b-xl"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        [attr.height]="asset.height"
+        [attr.width]="asset.width"
+        [style.filter]="svgFilterStyle"
+      >
+        <image
+          id="img"
+          [attr.x]="asset.offset_x"
+          [attr.y]="asset.offset_y"
+          [attr.height]="asset.scale_percentage + '%'"
+          [attr.xlink:href]="asset.path"
+          preserveAspectRatio="xMinYMin slice"
+        />
+      </svg>
+      <div
+        class="absolute top-10"
+        [ngStyle]="artifactContainerStyle"
+      >
+        <div class="flex flex-row flex-wrap gap-0 justify-center items-center h-full">
+          <div
+            *ngFor="let item of district.artifacts"
+            class="rounded-full leaded h-10 w-10 draggable text-4xl bg-gradient-radial from-indigo-500 text-center"
+          >
+            {{ item }}
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </label>
+</ng-container>
