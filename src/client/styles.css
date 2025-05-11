@@ -3,28 +3,86 @@
   themes: light --default;
 }
 @source "angular/src";
+  /* override daisy ui */
+@layer components {
+  .tooltip {
+    display: revert;
+  }
 
-.bg-suit-military {
-  --tw-bg-opacity: 1;
-  background-color: rgb(223 71 71 / var(--tw-bg-opacity, 1));
+  .tooltip::before {
+    content: none;
+  }
+
+  .dropdown {
+    position: revert;
+  }
+
+  .tab:is(input[type="radio"]) {
+    border-bottom-right-radius: var(--rounded-btn, 0.5rem);
+    border-bottom-left-radius: var(--rounded-btn, 0.5rem);
+  }
+
+  .collapse {
+    @apply rounded-none;
+  }
+
+  .collapse-title {
+    @apply min-h-0 p-0;
+  }
+
+  .collapse-content {
+    @apply pb-0 cursor-pointer;
+  }
+    
+  /* my components */
+  .header {
+    @apply underline text-lg font-semibold w-full text-center;
+  }
+
+  .panel {
+    @apply p-2 border border-base-200 bg-base-100;
+  }
+
 }
 
-.bg-suit-noble {
-  --tw-bg-opacity: 1;
-  background-color: rgb(224 189 22 / var(--tw-bg-opacity, 1));
-}
+@layer utilities {
+  /* 
+   * This is a workaround for mobile, so that scroll 
+   * and other gestures don't interfere with dragging
+   * https://github.com/taye/interact.js/issues/595#issuecomment-372888571 
+   */
+  .draggable {
+    @apply cursor-grab touch-none ;
+  }
 
-.bg-suit-religious {
-  --tw-bg-opacity: 1;
-  background-color: rgb(75 203 214 / var(--tw-bg-opacity, 1));
-}
+  .dragging {
+    @apply cursor-grabbing ;
+    z-index: 1000 ; 
+  }
 
-.bg-suit-trade {
-  --tw-bg-opacity: 1;
-  background-color: rgb(104 189 126 / var(--tw-bg-opacity, 1));
-}
+  .bg-suit-military {
+    --tw-bg-opacity: 1;
+    background-color: rgb(223 71 71 / var(--tw-bg-opacity, 1));
+  }
 
-.bg-suit-unique {
-  --tw-bg-opacity: 1;
-  background-color: rgb(169 107 244 / var(--tw-bg-opacity, 1));
+  .bg-suit-noble {
+    --tw-bg-opacity: 1;
+    background-color: rgb(224 189 22 / var(--tw-bg-opacity, 1));
+  }
+
+  .bg-suit-religious {
+    --tw-bg-opacity: 1;
+    background-color: rgb(75 203 214 / var(--tw-bg-opacity, 1));
+  }
+
+  .bg-suit-trade {
+    --tw-bg-opacity: 1;
+    background-color: rgb(104 189 126 / var(--tw-bg-opacity, 1));
+  }
+
+  .bg-suit-unique {
+    --tw-bg-opacity: 1;
+    background-color: rgb(169 107 244 / var(--tw-bg-opacity, 1));
+  }
+
 }
