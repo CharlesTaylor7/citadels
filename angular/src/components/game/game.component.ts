@@ -13,4 +13,7 @@ export class GameComponent {
   constructor(private gameService: GameService) {}
 
   districts = DISTRICT_NAMES;
+  ngOnInit() {
+    console.log(this.districts);
+  }
 }

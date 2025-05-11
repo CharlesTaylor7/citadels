@@ -1,17 +1,30 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: light --default;
+}
+@source "angular/src";
 
-@theme {
-  --font-sans:
-    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+.bg-suit-military {
+  --tw-bg-opacity: 1;
+  background-color: rgb(223 71 71 / var(--tw-bg-opacity, 1));
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
+.bg-suit-noble {
+  --tw-bg-opacity: 1;
+  background-color: rgb(224 189 22 / var(--tw-bg-opacity, 1));
+}
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+.bg-suit-religious {
+  --tw-bg-opacity: 1;
+  background-color: rgb(75 203 214 / var(--tw-bg-opacity, 1));
+}
+
+.bg-suit-trade {
+  --tw-bg-opacity: 1;
+  background-color: rgb(104 189 126 / var(--tw-bg-opacity, 1));
+}
+
+.bg-suit-unique {
+  --tw-bg-opacity: 1;
+  background-color: rgb(169 107 244 / var(--tw-bg-opacity, 1));
 }

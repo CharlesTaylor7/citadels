@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import {
@@ -15,25 +15,14 @@ import {
 })
 export class DistrictComponent {
   @Input() name: string | null = null;
-  @Input() enabled: boolean = true;
+  @Input() selected: boolean = false;
+  @Input() selectable: boolean = false;
   @Input() draggable: boolean = false;
-  @Input() inputType: string = 'checkbox';
-  district!: District;
+  district?: District;
 
   ngOnChanges(): void {
-    console.log(this.name);
-    this.district =
-      // eslint-disable-next-line
-      DistrictFactory.fromDistrictName(this.name as DistrictName) ??
-      // eslint-disable-next-line
-      ({
-        name: 'Unknown',
-        // eslint-disable-next-line
-        value: 'Unknown' as DistrictName,
-        // eslint-disable-next-line
-        suit: 'Unknown' as CardSuit,
-        beautified: false,
-      } as District);
+    // eslint-disable-next-line
+    this.district = DistrictFactory.fromDistrictName(this.name as DistrictName);
   }
 
   get labelStyle() {
@@ -114,9 +103,11 @@ export interface District {
 }
 
 class DistrictFactory {
-  public static fromDistrictName(districtName: DistrictName): District | null {
+  public static fromDistrictName(
+    districtName: DistrictName,
+  ): District | undefined {
     const data: DistrictData = DistrictNameUtils.data(districtName);
-    if (!data) return null;
+    if (!data) return undefined;
 
     const length = 170.0;
     const scale = 10.0;

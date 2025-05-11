@@ -14,7 +14,7 @@
       has-[:checked]:border-4
       has-[:checked]:border-success
     "
-    [class.cursor-pointer]="enabled"
+    [class.cursor-pointer]="selectable || draggable"
     [class.draggable]="draggable"
     [attr.data-draggable]="draggable ? '' : null"
     [attr.data-x]="district.pos.x + 'px'"
@@ -23,7 +23,7 @@
   >
     <div
       [attr.data-tip]="district.description"
-      class="w-full rounded-t-xl relative h-10 bg-neutral"
+      class="w-full rounded-t-xl relative h-10 bg-slate-800"
       [ngClass]="{
         'tooltip': district.description,
         'tooltip-bottom': district.description,
@@ -53,9 +53,9 @@
         "
         [ngClass]="getSuitBgColorClass(district.suit)"
       >
-        <ng-container *ngIf="district.cost !== null && district.cost !== undefined">
+        @if ( district.cost != null) {
           {{ district.cost }}
-        </ng-container>
+        }
       </code>
       <div
         *ngIf="district.beautified"
@@ -70,11 +70,12 @@
       </div>
     </div>
     <input
-      [type]="inputType"
+      type="checkbox"
       class="absolute top-0 peer opacity-0"
       name="district"
       [value]="district.value"
-      [disabled]="!enabled"
+      [disabled]="!selectable"
+      [checked]="selected"
     />
     <ng-container *ngIf="district.asset as asset">
       <svg

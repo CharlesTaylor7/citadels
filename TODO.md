@@ -1,10 +1,11 @@
+# districts
+- [x] Cards have no cost
+- [x] header
+- [ ] Cards with tooltip have a gap between header and image
+- [ ] Draggable cards
+
 # angular
-- [x] compile to custom element
-- [x] Embed custom element
-- [ ] Angular reload dev mode
 - [~] Type def for custom element
-- [ ] Get tailwind working across both
-- [ ] split server and core directories based on dependencies
 - [ ] yarn workspaces?
 
 # Shortlist   
