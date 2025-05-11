@@ -1,5 +1,4 @@
-<!-- Check if district is loaded to prevent errors during initialization -->
-<ng-container *ngIf="district">
+<div class="flex flex-row" *ngIf="district">
   <label
     data-dropzone
     [attr.data-district]="district.value"
@@ -76,7 +75,6 @@
       name="district"
       [value]="district.value"
       [disabled]="!enabled"
-      (keyup.enter)="onInputKeyupEnter($event)"
     />
     <ng-container *ngIf="district.asset as asset">
       <svg
@@ -111,4 +109,4 @@
       </div>
     </ng-container>
   </label>
-</ng-container>
+</div>
