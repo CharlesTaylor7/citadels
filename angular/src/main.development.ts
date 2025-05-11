@@ -1,15 +1,7 @@
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { GameComponent } from '@/components/game/game.component';
+import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './components/app/app.component';
+import { provideExperimentalZonelessChangeDetection } from '@angular/core';
 
-@NgModule({
-  imports: [BrowserModule, GameComponent],
-  bootstrap: [AppComponent],
-})
-class AppModule {}
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule, { ngZone: 'noop' })
-  .catch((err) => console.error(err));
+bootstrapApplication(AppComponent, {
+  providers: [provideExperimentalZonelessChangeDetection()],
+});
