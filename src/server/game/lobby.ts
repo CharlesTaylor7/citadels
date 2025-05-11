@@ -1,23 +1,8 @@
-/**
- * TypeScript port of the Citadels lobby
- * Converted from Rust implementation
- */
-import { DistrictName } from "./districts";
-import { Rank, RANKS, RoleName } from "./roles";
-import { PlayerId } from "./types";
-import { ROLES } from "./characters";
-import { newSeed, Seed, shuffle } from "./random";
-
-export interface LobbyMember {
-  id: PlayerId;
-  name: string;
-}
-
-export interface GameConfig {
-  players: LobbyMember[];
-  config: GameOptions;
-  rngSeed: Seed;
-}
+import { DistrictName } from "@/core/districts";
+import { Rank, RANKS, RoleName } from "@/core/roles";
+import { ROLES } from "@/core/characters";
+import { newSeed, shuffle } from "@/server/game/random";
+import { GameOptions, GameConfig, ConfigOption } from "@/core/config";
 
 export function demo(count: number): GameConfig {
   const players = [
@@ -39,22 +24,6 @@ export function demo(count: number): GameConfig {
       name: p,
     })),
   };
-}
-
-/**
- * Configuration options for game elements
- */
-export const CONFIG_OPTIONS = ["Sometimes", "Always", "Never"] as const;
-
-export type ConfigOption = (typeof CONFIG_OPTIONS)[number];
-
-/**
- * Game configuration settings
- */
-export interface GameOptions {
-  roleAnarchy: boolean;
-  roles: Set<RoleName>;
-  districts: Map<DistrictName, ConfigOption>;
 }
 
 /**
@@ -82,30 +51,17 @@ export const GameConfigUtils = {
 
   /**
    * Set the enabled roles for the game
-   * @param config The game configuration
-   * @param roles The set of roles to enable
-   * @returns A Result object indicating success or failure
    */
-  setRoles(
-    config: GameOptions,
-    roles: Set<RoleName>,
-  ): Result<void, [Set<RoleName>, Set<Rank>]> {
-    const errorRanks = new Set<Rank>();
-
+  setRoles(config: GameOptions, roles: Set<RoleName>) {
     // Check if any rank has all its roles disabled
     for (let i = 0; i < ROLES.length; i += 3) {
       const chunk = ROLES.slice(i, i + 3);
       if (chunk.every((c) => !roles.has(c.name))) {
-        errorRanks.add(chunk[0].rank);
+        throw new Error("Must enable a role of rank: " + chunk[0].rank);
       }
     }
 
-    if (errorRanks.size > 0) {
-      return { success: false, error: [roles, errorRanks] };
-    }
-
     config.roles = roles;
-    return { success: true, value: undefined };
   },
 
   /**
@@ -165,7 +121,7 @@ export const GameConfigUtils = {
     config: GameOptions,
     rng: () => number,
     numPlayers: number,
-  ): Result<RoleName[]> {
+  ): RoleName[] {
     // 9th rank is disallowed for 2
     // 9th rank is required for 3
     // 9th rank is optional for 4-7
@@ -183,10 +139,7 @@ export const GameConfigUtils = {
       });
 
       // Randomly select roles
-      return {
-        success: true,
-        value: this.chooseMultiple(eligibleRoles, roleCount, rng),
-      };
+      return this.chooseMultiple(eligibleRoles, roleCount, rng);
     } else {
       // Group roles by rank
       const groupedByRank: RoleName[][] = Array(roleCount)
@@ -210,17 +163,14 @@ export const GameConfigUtils = {
       for (let i = 0; i < groupedByRank.length; i++) {
         const roles = groupedByRank[i];
         if (roles.length === 0) {
-          return {
-            success: false,
-            error: `No enabled roles for rank ${i + 1}`,
-          };
+          throw new Error(`No enabled roles for rank ${i + 1}`);
         }
 
         const selectedRole = this.choose(roles, rng);
         result.push(selectedRole);
       }
 
-      return { success: true, value: result };
+      return result;
     }
   },
 
@@ -287,23 +237,6 @@ export const GameConfigUtils = {
   },
 };
 
-/**
- * Generic result type for operations that can fail
- */
-export interface SuccessResult<T> {
-  success: true;
-  value: T;
-}
-
-export interface ErrorResult<E = string> {
-  success: false;
-  error: E;
-}
-
-export type Result<T, E = string> = SuccessResult<T> | ErrorResult<E>;
-
-// Import these from roles.ts once they're implemented
-// Temporary placeholders to make the file compile
 const RoleNameUtils = {
   minPlayerCount: (role: RoleName): number => {
     switch (role) {

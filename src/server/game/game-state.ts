@@ -1,10 +1,14 @@
-import { PlayerAction } from "./actions";
-import { DistrictName, DISTRICT_NAMES, DistrictNameUtils } from "./districts";
-import { GameConfig as GameConfig } from "./lobby";
-import { Museum } from "./museum";
-import { RoleName, ROLE_NAMES } from "./roles";
-import { CardSuit, PlayerId } from "./types";
-import { asRng, newPrng, PRNG, shuffle } from "./random";
+import { PlayerAction } from "@/core/actions";
+import {
+  DistrictName,
+  DISTRICT_NAMES,
+  DistrictNameUtils,
+} from "@/core/districts";
+import { RoleName, ROLE_NAMES } from "@/core/roles";
+import { CardSuit, PlayerId } from "@/core/types";
+import { GameConfig } from "@/core/config";
+import { Museum } from "@/server/game/museum";
+import { asRng, newPrng, PRNG, shuffle } from "@/server/game/random";
 
 /*
 #[derive(Debug)]

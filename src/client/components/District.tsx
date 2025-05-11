@@ -1,6 +1,6 @@
-import type { DistrictName, DistrictData } from "@/server/game/districts";
-import { type CardSuit } from "@/server/game/types";
-import { DistrictNameUtils } from "@/server/game/districts";
+import type { DistrictName, DistrictData } from "@/core/districts";
+import { type CardSuit } from "@/core/types";
+import { DistrictNameUtils } from "@/core/districts";
 
 interface Props {
   name: DistrictName;
@@ -189,7 +189,7 @@ function districtCrop(name: DistrictName) {
       return { x: 0.236, y: 0.6 };
     case "Prison":
       return { x: 0.236, y: 0.3 };
-    case "Baracks":
+    case "Barracks":
       return { x: 0.236, y: 0.3 };
     case "Fortress":
       return { x: 0.236, y: 0.15 };
@@ -278,7 +278,7 @@ function districtLighting(name: DistrictName) {
       return { brightness: 1.3, saturate: 1.0 };
     case "Prison":
       return { brightness: 1.5, saturate: 1.0 };
-    case "Baracks":
+    case "Barracks":
       return { brightness: 1.3, saturate: 1.0 };
     case "Fortress":
       return { brightness: 1.5, saturate: 1.0 };

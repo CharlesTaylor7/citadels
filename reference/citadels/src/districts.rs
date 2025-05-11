@@ -15,7 +15,7 @@ pub enum DistrictName {
 
     Watchtower,
     Prison,
-    Baracks,
+    Barracks,
     Fortress,
 
     Manor,
@@ -134,7 +134,7 @@ impl DistrictName {
             Self::Manor => 5,
 
             Self::Fortress => 2,
-            Self::Baracks => 3,
+            Self::Barracks => 3,
             Self::Prison => 3,
             Self::Watchtower => 3,
 
@@ -164,7 +164,7 @@ pub const NORMAL: [DistrictData; 17] = [
     DistrictName::Cathedral.normal(Base, Religious, 5, "Cathedral"),
     DistrictName::Watchtower.normal(Base, Military, 1, "Watchtower"),
     DistrictName::Prison.normal(Base, Military, 2, "Prison"),
-    DistrictName::Baracks.normal(Base, Military, 3, "Baracks"),
+    DistrictName::Barracks.normal(Base, Military, 3, "Barracks"),
     DistrictName::Fortress.normal(Base, Military, 5, "Fortress"),
     DistrictName::Manor.normal(Base, Noble, 3, "Manor"),
     DistrictName::Castle.normal(Base, Noble, 4, "Castle"),

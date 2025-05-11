@@ -1,14 +1,5 @@
-/**
- * TypeScript port of the Citadels characters data
- * Converted from Rust implementation
- */
-import { ActionTag } from "@/server/game/actions";
-import { RoleData } from "@/server/game/roles";
-import { CARD_SUIT } from "@/server/game/types";
+import { RoleData } from "@/core/roles";
 
-/**
- * All character roles in the game
- */
 export const ROLES: RoleData[] = [
   // Rank 1 characters
   {
@@ -114,7 +105,7 @@ export const ROLES: RoleData[] = [
     rank: "Four",
     name: "King",
     set: "Base",
-    suit: CARD_SUIT.NOBLE,
+    suit: "Noble",
     actions: [
       [1, "TakeCrown"],
       [1, "GoldFromNobility"],
@@ -127,7 +118,7 @@ export const ROLES: RoleData[] = [
     rank: "Four",
     name: "Emperor",
     set: "DarkCity",
-    suit: CARD_SUIT.NOBLE,
+    suit: "Noble",
     actions: [
       [1, "EmperorGiveCrown"],
       [1, "GoldFromNobility"],
@@ -140,7 +131,7 @@ export const ROLES: RoleData[] = [
     rank: "Four",
     name: "Patrician",
     set: "Citadels2016",
-    suit: CARD_SUIT.NOBLE,
+    suit: "Noble",
     actions: [
       [1, "PatricianTakeCrown"],
       [1, "GoldFromNobility"],
@@ -155,7 +146,7 @@ export const ROLES: RoleData[] = [
     rank: "Five",
     name: "Bishop",
     set: "Base",
-    suit: CARD_SUIT.RELIGIOUS,
+    suit: "Religious",
     actions: [[1, "GoldFromReligion"]],
     description:
       "The rank 8 character cannot use its ability on your districts. Gain 1 gold for each of your RELIGIOUS districts.",
@@ -165,7 +156,7 @@ export const ROLES: RoleData[] = [
     rank: "Five",
     name: "Abbot",
     set: "DarkCity",
-    suit: CARD_SUIT.RELIGIOUS,
+    suit: "Religious",
     actions: [
       [1, "TakeFromRich"],
       [1, "ResourcesFromReligion"],
@@ -178,7 +169,7 @@ export const ROLES: RoleData[] = [
     rank: "Five",
     name: "Cardinal",
     set: "Citadels2016",
-    suit: CARD_SUIT.RELIGIOUS,
+    suit: "Religious",
     actions: [
       [1, "CardinalExchange"],
       [1, "GoldFromReligion"],
@@ -193,7 +184,7 @@ export const ROLES: RoleData[] = [
     rank: "Six",
     name: "Merchant",
     set: "Base",
-    suit: CARD_SUIT.TRADE,
+    suit: "Trade",
     actions: [
       [1, "MerchantGainOneGold"],
       [1, "GoldFromTrade"],
@@ -217,7 +208,7 @@ export const ROLES: RoleData[] = [
     rank: "Six",
     name: "Trader",
     set: "Citadels2016",
-    suit: CARD_SUIT.TRADE,
+    suit: "Trade",
     actions: [[1, "GoldFromTrade"]],
     description:
       "You can build any number of TRADE districts. Gain 1 gold for each of your TRADE districts.",
@@ -260,7 +251,7 @@ export const ROLES: RoleData[] = [
     rank: "Eight",
     name: "Warlord",
     set: "Base",
-    suit: CARD_SUIT.MILITARY,
+    suit: "Military",
     actions: [
       [1, "GoldFromMilitary"],
       [1, "WarlordDestroy"],
@@ -274,7 +265,7 @@ export const ROLES: RoleData[] = [
     rank: "Eight",
     name: "Diplomat",
     set: "DarkCity",
-    suit: CARD_SUIT.MILITARY,
+    suit: "Military",
     actions: [
       [1, "GoldFromMilitary"],
       [1, "DiplomatTrade"],
@@ -287,7 +278,7 @@ export const ROLES: RoleData[] = [
     rank: "Eight",
     name: "Marshal",
     set: "Citadels2016",
-    suit: CARD_SUIT.MILITARY,
+    suit: "Military",
     actions: [
       [1, "GoldFromMilitary"],
       [1, "MarshalSeize"],

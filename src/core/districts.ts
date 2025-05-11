@@ -2,13 +2,10 @@
  * TypeScript port of the Citadels districts
  * Converted from Rust implementation
  */
-import { CardSuit, CARD_SUIT } from "./types";
+import { CardSet, CardSuit } from "@/core/types";
 import { ActionTag } from "./actions";
-import { CardSet } from "./roles";
-import { z } from "zod";
 
-// Define the Zod enum
-export const DistrictEnum = z.enum([
+export const DISTRICT_NAMES = [
   // religious
   "Temple",
   "Church",
@@ -17,7 +14,7 @@ export const DistrictEnum = z.enum([
   "Watchtower",
   // military
   "Prison",
-  "Baracks",
+  "Barracks",
   "Fortress",
   // noble
   "Manor",
@@ -61,17 +58,10 @@ export const DistrictEnum = z.enum([
   "SecretVault",
   "Capitol",
   "Monument",
-]);
+] as const;
 
-// Export the array of district names
-export const DISTRICT_NAMES = DistrictEnum.options;
+export type DistrictName = (typeof DISTRICT_NAMES)[number];
 
-// Type representing a district name in the game
-export type DistrictName = z.infer<typeof DistrictEnum>;
-
-/**
- * Immutable data for a district
- */
 export interface DistrictData {
   id: number;
   name: DistrictName;
@@ -114,7 +104,7 @@ export const DistrictNameUtils = {
       id,
       name,
       set,
-      suit: CARD_SUIT.UNIQUE,
+      suit: "Unique",
       cost,
       displayName,
       description,
@@ -173,7 +163,7 @@ export const DistrictNameUtils = {
 
       case "Fortress":
         return 2;
-      case "Baracks":
+      case "Barracks":
         return 3;
       case "Prison":
         return 3;
@@ -212,96 +202,40 @@ export const DistrictNameUtils = {
  * Normal districts in the game
  */
 export const NORMAL_DISTRICTS: DistrictData[] = [
-  DistrictNameUtils.normal(
-    0,
-    "Temple",
-    "Base",
-    CARD_SUIT.RELIGIOUS,
-    1,
-    "Temple",
-  ),
-  DistrictNameUtils.normal(
-    1,
-    "Church",
-    "Base",
-    CARD_SUIT.RELIGIOUS,
-    2,
-    "Church",
-  ),
-  DistrictNameUtils.normal(
-    2,
-    "Monastery",
-    "Base",
-    CARD_SUIT.RELIGIOUS,
-    3,
-    "Monastery",
-  ),
-  DistrictNameUtils.normal(
-    3,
-    "Cathedral",
-    "Base",
-    CARD_SUIT.RELIGIOUS,
-    5,
-    "Cathedral",
-  ),
+  DistrictNameUtils.normal(0, "Temple", "Base", "Religious", 1, "Temple"),
+  DistrictNameUtils.normal(1, "Church", "Base", "Religious", 2, "Church"),
+  DistrictNameUtils.normal(2, "Monastery", "Base", "Religious", 3, "Monastery"),
+  DistrictNameUtils.normal(3, "Cathedral", "Base", "Religious", 5, "Cathedral"),
 
   DistrictNameUtils.normal(
     4,
     "Watchtower",
     "Base",
-    CARD_SUIT.MILITARY,
+    "Military",
     1,
     "Watchtower",
   ),
-  DistrictNameUtils.normal(
-    5,
-    "Prison",
-    "Base",
-    CARD_SUIT.MILITARY,
-    2,
-    "Prison",
-  ),
-  DistrictNameUtils.normal(
-    6,
-    "Baracks",
-    "Base",
-    CARD_SUIT.MILITARY,
-    3,
-    "Baracks",
-  ),
-  DistrictNameUtils.normal(
-    7,
-    "Fortress",
-    "Base",
-    CARD_SUIT.MILITARY,
-    5,
-    "Fortress",
-  ),
+  DistrictNameUtils.normal(5, "Prison", "Base", "Military", 2, "Prison"),
+  DistrictNameUtils.normal(6, "Barracks", "Base", "Military", 3, "Barracks"),
+  DistrictNameUtils.normal(7, "Fortress", "Base", "Military", 5, "Fortress"),
 
-  DistrictNameUtils.normal(8, "Manor", "Base", CARD_SUIT.NOBLE, 3, "Manor"),
-  DistrictNameUtils.normal(9, "Castle", "Base", CARD_SUIT.NOBLE, 4, "Castle"),
-  DistrictNameUtils.normal(10, "Palace", "Base", CARD_SUIT.NOBLE, 5, "Palace"),
+  DistrictNameUtils.normal(8, "Manor", "Base", "Noble", 3, "Manor"),
+  DistrictNameUtils.normal(9, "Castle", "Base", "Noble", 4, "Castle"),
+  DistrictNameUtils.normal(10, "Palace", "Base", "Noble", 5, "Palace"),
 
-  DistrictNameUtils.normal(11, "Tavern", "Base", CARD_SUIT.TRADE, 1, "Tavern"),
-  DistrictNameUtils.normal(12, "Market", "Base", CARD_SUIT.TRADE, 2, "Market"),
+  DistrictNameUtils.normal(11, "Tavern", "Base", "Trade", 1, "Tavern"),
+  DistrictNameUtils.normal(12, "Market", "Base", "Trade", 2, "Market"),
   DistrictNameUtils.normal(
     13,
     "TradingPost",
     "Base",
-    CARD_SUIT.TRADE,
+    "Trade",
     2,
     "Trading Post",
   ),
-  DistrictNameUtils.normal(14, "Docks", "Base", CARD_SUIT.TRADE, 3, "Docks"),
-  DistrictNameUtils.normal(15, "Harbor", "Base", CARD_SUIT.TRADE, 4, "Harbor"),
-  DistrictNameUtils.normal(
-    16,
-    "TownHall",
-    "Base",
-    CARD_SUIT.TRADE,
-    5,
-    "Town Hall",
-  ),
+  DistrictNameUtils.normal(14, "Docks", "Base", "Trade", 3, "Docks"),
+  DistrictNameUtils.normal(15, "Harbor", "Base", "Trade", 4, "Harbor"),
+  DistrictNameUtils.normal(16, "TownHall", "Base", "Trade", 5, "Town Hall"),
 ];
 
 /**
@@ -311,7 +245,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 17,
     name: "Smithy",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "Smithy",
     cost: 5,
@@ -320,7 +254,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 18,
     name: "Laboratory",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "Laboratory",
     cost: 5,
@@ -330,7 +264,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 19,
     name: "SchoolOfMagic",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "School of Magic",
     cost: 6,
@@ -340,7 +274,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 20,
     name: "Keep",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "Keep",
     cost: 3,
@@ -349,7 +283,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 21,
     name: "DragonGate",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "Dragon Gate",
     cost: 6,
@@ -358,7 +292,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 22,
     name: "HauntedQuarter",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "Haunted Quarter",
     cost: 2,
@@ -368,7 +302,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 23,
     name: "GreatWall",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "Great Wall",
     cost: 6,
@@ -378,7 +312,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 24,
     name: "Observatory",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "Observatory",
     cost: 4,
@@ -388,7 +322,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 25,
     name: "Library",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Base",
     displayName: "Library",
     cost: 6,
@@ -398,7 +332,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 26,
     name: "Quarry",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Quarry",
     cost: 5,
@@ -408,7 +342,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 27,
     name: "Armory",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Armory",
     cost: 3,
@@ -418,7 +352,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 28,
     name: "Factory",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Factory",
     cost: 5,
@@ -427,7 +361,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 29,
     name: "Park",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Park",
     cost: 6,
@@ -437,7 +371,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 30,
     name: "Museum",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Museum",
     cost: 4,
@@ -447,7 +381,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 31,
     name: "PoorHouse",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Poor House",
     cost: 4,
@@ -457,7 +391,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 32,
     name: "MapRoom",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Map Room",
     cost: 5,
@@ -467,7 +401,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 33,
     name: "WishingWell",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Wishing Well",
     cost: 5,
@@ -477,7 +411,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 34,
     name: "ImperialTreasury",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "DarkCity",
     displayName: "Imperial Treasury",
     cost: 5,
@@ -487,7 +421,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 35,
     name: "Framework",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Framework",
     cost: 3,
@@ -497,7 +431,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 36,
     name: "Statue",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Statue",
     cost: 3,
@@ -507,7 +441,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 37,
     name: "GoldMine",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Gold Mine",
     cost: 6,
@@ -517,7 +451,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 38,
     name: "IvoryTower",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Ivory Tower",
     cost: 5,
@@ -527,7 +461,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 39,
     name: "Necropolis",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Necropolis",
     cost: 5,
@@ -537,7 +471,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 40,
     name: "ThievesDen",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Thieves' Den",
     cost: 6,
@@ -547,7 +481,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 41,
     name: "Theater",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Theater",
     cost: 6,
@@ -557,7 +491,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 42,
     name: "Stables",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Stables",
     cost: 2,
@@ -567,7 +501,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 43,
     name: "Basilica",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Basilica",
     cost: 4,
@@ -577,7 +511,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 44,
     name: "SecretVault",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Secret Vault",
     cost: 1000000,
@@ -587,7 +521,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 45,
     name: "Capitol",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Capitol",
     cost: 5,
@@ -597,7 +531,7 @@ export const UNIQUE_DISTRICTS: DistrictData[] = [
   {
     id: 46,
     name: "Monument",
-    suit: CARD_SUIT.UNIQUE,
+    suit: "Unique",
     set: "Citadels2016",
     displayName: "Monument",
     cost: 4,

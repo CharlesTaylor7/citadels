@@ -117,7 +117,7 @@ impl<'a> DistrictTemplate<'a> {
 
             // red
             DistrictName::Prison => (0.236, 0.3),
-            DistrictName::Baracks => (0.236, 0.3),
+            DistrictName::Barracks => (0.236, 0.3),
             DistrictName::Fortress => (0.236, 0.15),
 
             DistrictName::Library => (0.27, 0.3),
@@ -173,7 +173,7 @@ impl<'a> DistrictTemplate<'a> {
 
             // red
             DistrictName::Prison => (1.5, 1.0),
-            DistrictName::Baracks => (1.3, 1.0),
+            DistrictName::Barracks => (1.3, 1.0),
             DistrictName::Fortress => (1.5, 1.0),
 
             DistrictName::Library => (1.0, 1.0),

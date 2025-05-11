@@ -1,5 +1,6 @@
 import { shuffle } from "@/server/game/random";
-import { DistrictName } from "./types";
+import { DistrictName } from "@/core/types";
+
 export class Museum {
   private cards: DistrictName[] = [];
   private artifacts: string[] = [];

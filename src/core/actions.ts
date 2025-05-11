@@ -1,7 +1,7 @@
-import { DistrictName } from "./districts";
-import { GameConfig } from "./lobby";
-import { RoleName } from "./roles";
-import { CardSuit } from "./types";
+import { DistrictName } from "@/core/districts";
+import { RoleName } from "@/core/roles";
+import { CardSuit } from "@/core/types";
+import { GameConfig } from "@/core/config";
 
 export const ACTION_TAGS = [
   "DraftPick",
@@ -327,19 +327,5 @@ export const ActionTagUtils = {
       default:
         return tag;
     }
-  },
-};
-
-/**
- * Utility functions for Action
- */
-export const ActionUtils = {
-  /**
-   * Check if an action is a build action
-   * @param action The action to check
-   * @returns True if the action is a build action
-   */
-  isBuild(action: PlayerAction): boolean {
-    return action.action === "Build";
   },
 };

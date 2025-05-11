@@ -8,13 +8,17 @@ export const CARD_SUITS = [
 
 export type CardSuit = (typeof CARD_SUITS)[number];
 
-export const CARD_SUIT = {
-  TRADE: CARD_SUITS[0],
-  RELIGIOUS: CARD_SUITS[1],
-  MILITARY: CARD_SUITS[2],
-  NOBLE: CARD_SUITS[3],
-  UNIQUE: CARD_SUITS[4],
-} as const;
+/**
+ * Type for card sets
+ */
+export const CARD_SETS = [
+  "Base",
+  "DarkCity",
+  "Citadels2016",
+  "Custom",
+] as const;
+
+export type CardSet = (typeof CARD_SETS)[number];
 
 export type BlackmailMarker = { type: "Blackmail"; flowered: boolean };
 export type WarrantMarker = { type: "Warrant"; signed: boolean };

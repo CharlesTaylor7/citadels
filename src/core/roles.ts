@@ -1,10 +1,6 @@
-/**
- * TypeScript port of the Citadels game roles
- * Converted from Rust implementation
- */
-import { CardSuit } from "./types";
-import { ActionTag } from "./actions";
-import { ROLES } from "./characters";
+import { CardSet, CardSuit } from "@/core/types";
+import { ActionTag } from "@/core/actions";
+import { ROLES } from "@/core/characters";
 
 /**
  * All available ranks in the game
@@ -204,19 +200,6 @@ export const RoleNameUtils = {
     }
   },
 };
-
-/**
- * Type for card sets
- */
-export const CARD_SETS = [
-  "Base",
-  "DarkCity",
-  "Citadels2016",
-  "Custom",
-] as const;
-
-export type CardSet = (typeof CARD_SETS)[number];
-
 /**
  * Immutable data for a role
  */
