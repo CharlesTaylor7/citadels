@@ -1,5 +1,11 @@
-import { Injectable, OnDestroy } from '@angular/core';
-import { Unsubscribable } from '@trpc/server/observable';
+import {
+  Injectable,
+  OnDestroy,
+  signal,
+  effect,
+  DestroyRef,
+  inject,
+} from '@angular/core';
 import {
   splitLink,
   createTRPCClient,
@@ -12,9 +18,9 @@ import type { AppRouter } from '@/types/trpc/router';
 @Injectable({
   providedIn: 'root',
 })
-export class GameService implements OnDestroy {
+export class GameService {
   trpc: TRPCClient<AppRouter>;
-  heartbeatSubscription: Unsubscribable;
+  gameStateSignal = signal<FrontendState | null>(null);
 
   constructor() {
     const serverLink = splitLink<AppRouter>({
@@ -24,7 +30,7 @@ export class GameService implements OnDestroy {
     });
     this.trpc = createTRPCClient({ links: [serverLink] });
 
-    this.heartbeatSubscription = this.trpc.game.heartbeat.subscribe(undefined, {
+    const subscription = this.trpc.game.heartbeat.subscribe(undefined, {
       onData: (data) => {
         console.log('Heartbeat received:', data);
       },
@@ -32,9 +38,9 @@ export class GameService implements OnDestroy {
         console.error('Heartbeat subscription error:', err);
       },
     });
-  }
-
-  ngOnDestroy(): void {
-    this.heartbeatSubscription.unsubscribe();
+    const ref = inject(DestroyRef);
+    ref.onDestroy(subscription.unsubscribe);
   }
 }
+
+interface FrontendState {}

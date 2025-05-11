@@ -1,32 +1,3 @@
-# districts
-- [x] Cards have no cost
-- [x] header
-- [x] Cards with tooltip have a gap between header and image
-- [ ] Draggable cards
-
-# angular
-- [~] Type def for custom element
-- [ ] yarn workspaces?
-
-# Shortlist   
-- [ ] Login/signup
-  - [ ] Can view errors on page
-- [ ] Card viewer
-- [ ] lobby
-    - [x] flicker on load. use loader?
-    - [x] can transfer owner
-    - [x] Can claim ownership
-    - [x] can create room
-    - [x] Can display rooms
-    - [x] query updates for room
-    - [x] live updates for rooms
-    - [x] Can join room
-    - [x] can leave room
-    - [x] Can start game
-- [ ] We should not be sending stacktraces back to the client
-- [ ] Github action to build docker image
-- [ ] Deploy from docker image
-
 # Backend
 - [x] setup seedable rng
 - [] Setup route to apply action, and serialize action into game model.
@@ -35,19 +6,23 @@ Need to serialize actions and make game replayable from actions
 
 # Frontend
 ## Game
-- [ ] Each player can see their dealt district cards
-- [ ] Draft
+- [ ] Cities
+- [ ] City tabs
 - [ ] Need to start porting templates
 
+## District
+- [x] Selectable
+- [x] Draggable
+
 ## Lobby
-- [ ] Websocket for rooms
-- [] can transfer ownership of a room to someone else
+- [x] Live updates for rooms
+- [x] Can transfer owner
+- [x] Can claim ownership
 - [x] Can create room
-- [x] Should only be allowed to be in one room at a time
-- [x] If in a room, and its game has started redirect to that game
-- [x] Can Join a room
-- [x] can leave a room
-- [x] Owner can start game
+- [x] Can display rooms
+- [x] Can join room
+- [x] can leave room
+- [x] Can start game
 
 
 # PLAN

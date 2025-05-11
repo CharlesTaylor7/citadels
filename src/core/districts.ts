@@ -3,7 +3,7 @@
  * Converted from Rust implementation
  */
 import { CardSet, CardSuit } from "@/core/types";
-import { ActionTag } from "./actions";
+import { ActionTag } from "@/core/actions";
 
 export const DISTRICT_NAMES = [
   // religious

@@ -12,7 +12,6 @@ import { MyRolesPanelComponent } from '../my-roles-panel/my-roles-panel.componen
 import { PlayersInfoPanelComponent } from '../players-info-panel/players-info-panel.component';
 import { MiscInfoPanelComponent } from '../misc-info-panel/misc-info-panel.component';
 import { GameEndModalComponent } from '../game-end-modal/game-end-modal.component';
-import { PauseModalComponent } from '../pause-modal/pause-modal.component';
 
 @Component({
   selector: 'app-game',
@@ -29,7 +28,6 @@ import { PauseModalComponent } from '../pause-modal/pause-modal.component';
     PlayersInfoPanelComponent,
     MiscInfoPanelComponent,
     GameEndModalComponent,
-    PauseModalComponent,
   ],
 })
 export class GameComponent {
