@@ -194,8 +194,8 @@ export function createGame(gameStartAction: GameStartAction): GameState {
 
   // 1. Add all "Always" districts
   const alwaysDistrictNames = UNIQUE_DISTRICTS.filter(
-    (d) => gameOptions.districts.get(d.name) === ConfigOption.Always
-  ).map(d => d.name);
+    (d) => gameOptions.districts.get(d.name) === "Always",
+  ).map((d) => d.name);
   selectedUniqueDistricts.push(...alwaysDistrictNames);
 
   // 2. Determine how many more unique districts are needed
@@ -213,10 +213,12 @@ export function createGame(gameStartAction: GameStartAction): GameState {
       // - Not already an "Always" pick (already in selectedUniqueDistricts)
       // - Not "Never"
       // - Is "Enabled" OR has no specific config (undefined, implies default availability from the main UNIQUE_DISTRICTS list)
-      return !selectedUniqueDistricts.includes(d.name) &&
-             option !== ConfigOption.Never &&
-             (option === ConfigOption.Enabled || option === undefined);
-    }).map(d => d.name);
+      return (
+        !selectedUniqueDistricts.includes(d.name) &&
+        option !== "Never" &&
+        option === "Always"
+      );
+    }).map((d) => d.name);
 
     shuffle(availablePoolNames, gameRng);
 
@@ -239,20 +241,6 @@ export function createGame(gameStartAction: GameStartAction): GameState {
   if (deck.length !== expectedDeckSizeBasedOnSelection) {
      console.warn(
       `Deck size integrity check failed: actual deck size ${deck.length} does not match expected ${expectedDeckSizeBasedOnSelection} (normal: ${expectedNormalDistrictCount}, unique: ${selectedUniqueDistricts.length})`,
-    );
-  } else if (deck.length !== 68 && selectedUniqueDistricts.length === 14) { // Using literal 68 for EXPECTED_DECK_SIZE and 14 for NUM_UNIQUE_DISTRICTS_TO_SELECT
-    // This condition implies the number of unique districts is as expected (14),
-    // but the total deck size is still off, likely due to normal district count issues.
-    console.warn(
-      `Deck size check failed: expected ${68} (normal: ${expectedNormalDistrictCount}, unique: ${14}), got ${deck.length}. This might be due to custom district configurations or normal district multiplicity issues.`,
-    );
-  } else if (selectedUniqueDistricts.length < 14) { // Using literal 14
-    console.warn(
-      `Deck assembly warning: Selected ${selectedUniqueDistricts.length} unique districts, less than target ${14}. Total deck size: ${deck.length}.`
-    );
-  } else if (deck.length !== 68) { // General fallback if previous conditions didn't catch it but still not 68
-     console.warn(
-      `Deck size check failed: expected ${68}, got ${deck.length}. Unique districts selected: ${selectedUniqueDistricts.length}. Normal districts: ${expectedNormalDistrictCount}.`,
     );
   }
 
@@ -350,13 +338,12 @@ export function completeAction(
 }
 
 export function discardDistrict(game: GameState, district: DistrictName): void {
-  // Rust version has special handling for Museum.
   if (district === "Museum") {
-    const museumCards = [...game.museum.cards, "Museum" as DistrictName]; // Museum itself is a card
-    shuffle(museumCards, asRng(game.prng!)); // Use game's prng
+    const museumCards = [...game.museum.cards, district];
+    shuffle(museumCards, asRng(game.prng));
     game.discard.push(...museumCards);
     game.museum.cards = [];
-    game.museum.artifacts = []; // Also clear artifacts if museum is discarded
+    game.museum.artifacts = [];
   } else {
     game.discard.push(district);
   }
