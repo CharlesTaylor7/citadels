@@ -1,11 +1,12 @@
-import { GameStartAction, PlayerAction } from "@/core/actions";
+import { GameStartAction } from "@/core/actions";
 import {
   DistrictName,
-  DISTRICT_NAMES,
   DistrictNameUtils,
+  NORMAL_DISTRICTS,
+  UNIQUE_DISTRICTS,
 } from "@/core/districts";
-import { RoleName, ROLE_NAMES } from "@/core/roles";
-import { CardSuit, PlayerId } from "@/core/types";
+import { RoleName, RoleNameUtils, RANKS, ROLE_NAMES } from "@/core/roles";
+import { CardSuit, PlayerId, ConfigOption } from "@/core/types";
 import {
   ActionOutput,
   CityDistrict,
@@ -13,9 +14,15 @@ import {
   GameRole,
   GameState,
   Player,
+  Followup, // Assuming Followup might be on GameState or needed for other parts
 } from "@/core/game";
-import { GameConfig } from "@/core/config";
-import { asRng, newPrng, shuffle } from "@/server/game/random";
+import { GameConfig, GameOptions } from "@/core/config"; // GameOptions for gameStartAction.config
+import { asRng, newPrng, shuffle, RNG } from "@/server/game/random";
+
+// Constants for game setup
+const NUM_UNIQUE_DISTRICTS_TO_SELECT = 14;
+const EXPECTED_DECK_SIZE = 68; // 54 normal (sum of multiplicities) + 14 unique
+const STARTING_HAND_SIZE = 4;
 
 export function createPlayer(
   index: number,
@@ -49,10 +56,10 @@ export function createCharacter(role: RoleName): GameRole {
   };
 }
 
-export function shuffleDeck(game: GameState): void {
+export function shuffleDeck(game: GameState, rng: RNG): void {
   game.deck.push(...game.discard);
   game.discard = [];
-  shuffle(game.deck, asRng(game.prng));
+  shuffle(game.deck, rng);
 }
 
 export function drawCard(game: GameState): DistrictName | null {
@@ -77,63 +84,168 @@ export function drawCards(game: GameState, count: number): DistrictName[] {
   return cards;
 }
 
-// TODO: aider
 export function beginDraft(
   playerCount: number,
-  playerIndex: number,
-  roles: readonly RoleName[],
+  playerIndex: number, // This is the crowned player who starts the draft
+  roles: readonly RoleName[], // These are the roles selected for the game, already shuffled
+  rng: RNG,
 ): Draft {
+  const draftRoles = [...roles]; // Mutable copy
+
   const draft: Draft = {
     playerCount,
     playerIndex,
-    remaining: [...roles],
+    remaining: draftRoles,
     theaterStep: false,
     initialDiscard: null,
     faceupDiscard: [],
   };
 
+  const rolesForDraftRound = draft.remaining.length;
+
+  // Number of roles to discard face up.
+  // Rust: for _ in draft.player_count + 2..role_count
+  // This means role_count - (draft.player_count + 2) cards are discarded face up.
+  const numFaceupToDiscard = rolesForDraftRound - (playerCount + 2);
+
+  if (playerCount >= 4 && numFaceupToDiscard > 0) {
+    for (let i = 0; i < numFaceupToDiscard; i++) {
+      if (draft.remaining.length === 0) break; // Should not happen if logic is correct
+
+      let discardIndex = -1;
+      // Try to find a role that can be discarded face up (not Rank Four)
+      // Create a list of indices to try to ensure we check all if needed
+      const tryOrder = draft.remaining.map((_, idx) => idx);
+      shuffle(tryOrder, rng); // Shuffle order of checking
+
+      for (const potentialIndex of tryOrder) {
+        if (RoleNameUtils.data(draft.remaining[potentialIndex]).rank !== RANKS[3]) { // RANKS[3] is "Four"
+          discardIndex = potentialIndex;
+          break;
+        }
+      }
+
+      if (discardIndex === -1) {
+        // Fallback: if all remaining are rank 4 (highly unlikely), or no suitable card found,
+        // just pick one randomly. Rust's loop `loop { index = rng.gen_range... break; }`
+        // implies it will always find one if one exists, or keep trying.
+        // If all are rank 4, it would pick a rank 4.
+        // To be safe, if no non-rank-4 is found, pick any.
+        if (draft.remaining.length > 0) {
+          discardIndex = rng(draft.remaining.length);
+        } else {
+          break; // No cards left to discard
+        }
+      }
+      draft.faceupDiscard.push(draft.remaining.splice(discardIndex, 1)[0]);
+    }
+  }
+
+  // Discard 1 card facedown
+  if (draft.remaining.length > 0) {
+    const facedownDiscardIndex = rng(draft.remaining.length);
+    draft.initialDiscard = draft.remaining.splice(facedownDiscardIndex, 1)[0];
+  }
+
+  // Restore sort of roles by rank (primary) and then by original enum order (secondary for stability)
+  draft.remaining.sort((a, b) => {
+    const rankA = RoleNameUtils.data(a).rank;
+    const rankB = RoleNameUtils.data(b).rank;
+    if (rankA !== rankB) {
+      return RANKS.indexOf(rankA) - RANKS.indexOf(rankB);
+    }
+    return ROLE_NAMES.indexOf(a) - ROLE_NAMES.indexOf(b);
+  });
+
   return draft;
 }
 
-export function createGame(config: GameStartAction): GameState {
-  // Initialize players
-  const players = config.players.map((player, index) =>
-    createPlayer(index, player.id, player.name),
-  );
-  const prng = newPrng(config.rngSeed);
+export function createGame(gameStartAction: GameStartAction): GameState {
+  const { players: playerConfigs, config: gameOptions, rngSeed } = gameStartAction;
+  const prng = newPrng(rngSeed); // This is the PRNG object
+  const gameRng = asRng(prng);  // This is the RNG function derived from prng
 
-  // Initialize characters
-  // TODO: aider
-  const characters = ROLE_NAMES.map((role) => createCharacter(role));
-  // TODO: aider
-  const deck = Array.from(DISTRICT_NAMES);
-  shuffle(deck, asRng(prng));
+  // Initialize and shuffle players for seating order
+  const initialPlayerConfigs = [...playerConfigs]; // Clone to avoid mutating input
+  shuffle(initialPlayerConfigs, gameRng);
+  const players = initialPlayerConfigs.map((playerConfig, index) =>
+    createPlayer(index, playerConfig.id, playerConfig.name),
+  );
+
+  // Role Selection from game configuration
+  const selectedRolesForGame = Array.from(gameOptions.roles);
+  shuffle(selectedRolesForGame, gameRng); // Shuffle the roles to be used in the game.
+
+  const characters = selectedRolesForGame.map((role) => createCharacter(role));
+
+  // Deck Construction
+  const normalDistrictCards: DistrictName[] = [];
+  NORMAL_DISTRICTS.forEach((districtData) => {
+    const multiplicity = DistrictNameUtils.data(districtData.name).multiplicity; // Get multiplicity from static data
+    for (let i = 0; i < multiplicity; i++) {
+      normalDistrictCards.push(districtData.name);
+    }
+  });
+
+  const enabledUniqueDistricts = UNIQUE_DISTRICTS.filter(
+    (districtData) =>
+      gameOptions.districts.get(districtData.name) === ConfigOption.Enabled,
+  ).map(d => d.name);
+  shuffle(enabledUniqueDistricts, gameRng);
+  const selectedUniqueDistricts = enabledUniqueDistricts.slice(0, NUM_UNIQUE_DISTRICTS_TO_SELECT);
+
+  const deck: DistrictName[] = [...normalDistrictCards, ...selectedUniqueDistricts];
+  shuffle(deck, gameRng);
+
+  // Assertion for deck size, matches Rust's 68 for standard setup
+  if (deck.length !== EXPECTED_DECK_SIZE) {
+    console.warn(
+      `Deck size check failed: expected ${EXPECTED_DECK_SIZE}, got ${deck.length}. This might be due to custom district configurations.`,
+    );
+  }
+
+
+  const crownedPlayerIndex = 0; // Player 0 (after shuffling) is initially crowned and starts the draft
 
   // Create the game state
+  // Note: GameState interface from core/game.ts should be the source of truth for these fields.
+  // Assuming 'prng' is part of GameState based on current file structure,
+  // but 'actions' and 'notifications' are not standard.
   const game: GameState = {
-    actions: [config],
+    // actions: [gameStartAction], // Not in core GameState definition
     players,
     characters,
     deck,
     discard: [],
-    prng,
+    prng, // Storing the PRNG object itself, as in Rust's Game struct
     museum: { artifacts: [], cards: [] },
     logs: [],
-    crowned: 0,
-    taxCollector: 0,
-    alchemist: 0,
+    crowned: crownedPlayerIndex,
+    taxCollector: 0, // Assuming these are initialized to 0
+    alchemist: 0,    // Assuming these are initialized to 0
     firstToComplete: null,
     followup: null,
-    notifications: [],
+    // notifications: [], // Not in core GameState definition
     activeTurn: {
       type: "Draft",
-      // TODO: aider
-      draft: beginDraft(players.length, 0, ROLE_NAMES),
+      draft: beginDraft(players.length, crownedPlayerIndex, selectedRolesForGame, gameRng),
     },
   };
+
   // Deal initial cards
   for (const player of players) {
-    player.hand = drawCards(game, 4);
+    player.hand = drawCards(game, STARTING_HAND_SIZE);
+  }
+
+  // Mark face-up discarded roles in the characters list
+  if (game.activeTurn.type === "Draft") {
+    game.activeTurn.draft.faceupDiscard.forEach(discardedRoleName => {
+      const char = game.characters.find(c => c.role === discardedRoleName);
+      if (char) {
+        char.markers.push({ type: "Discarded" });
+        // Note: In Rust, GameRole.revealed is false by default. Discarded doesn't mean revealed.
+      }
+    });
   }
 
   return game;
@@ -177,18 +289,29 @@ export function completeAction(
   }
 
   // Check for first to complete
-  if (game.firstToComplete === null && player.city.length >= 8) {
+  // The Rust version uses complete_city_size() which is 7 or 8.
+  const citySizeTarget = game.players.length <= 3 ? 8 : 7; // Align with Rust's complete_city_size
+  if (game.firstToComplete === null && player.city.length >= citySizeTarget) {
     game.firstToComplete = playerIndex;
   }
 }
 
 export function discardDistrict(game: GameState, district: DistrictName): void {
-  game.discard.push(district);
+  // Rust version has special handling for Museum.
+  if (district === "Museum") {
+    const museumCards = [...game.museum.cards, "Museum" as DistrictName]; // Museum itself is a card
+    shuffle(museumCards, asRng(game.prng!)); // Use game's prng
+    game.discard.push(...museumCards);
+    game.museum.cards = [];
+    game.museum.artifacts = []; // Also clear artifacts if museum is discarded
+  } else {
+    game.discard.push(district);
+  }
 }
 
 export function gainCards(game: GameState, amount: number): number {
   const player = getActivePlayer(game);
-  if (!player) throw new Error();
+  if (!player) throw new Error("No active player to gain cards");
 
   const cards = drawCards(game, amount);
   player.hand.push(...cards);
@@ -202,9 +325,10 @@ export function gainGoldForSuit(game: GameState, suit: CardSuit): ActionOutput {
 
   player.gold += amount;
 
-  const activeRole = getActiveRole(game);
+  const activeRole = getActiveRole(game); // getActiveRole can return null
+  const roleName = activeRole ? RoleNameUtils.data(activeRole.role).name : "Current Role";
   return {
-    log: `The ${activeRole} (${player.name}) gains ${amount} gold from their $${suit} districts.`,
+    log: `The ${roleName} (${player.name}) gains ${amount} gold from their ${suit} districts.`,
   };
 }
 
@@ -216,10 +340,11 @@ export function gainCardsForSuit(
   if (!player) throw new Error("no active player");
   const count = countSuitForResourceGain(player, suit);
 
-  const amount = gainCards(game, count);
+  const amount = gainCards(game, count); // gainCards ensures activePlayer exists
   const activeRole = getActiveRole(game);
+  const roleName = activeRole ? RoleNameUtils.data(activeRole.role).name : "Current Role";
   return {
-    log: `The ${activeRole} (${player.name}) gains ${amount} cards from their $${suit} districts.`,
+    log: `The ${roleName} (${player.name}) gains ${amount} cards from their ${suit} districts.`,
   };
 }
 
