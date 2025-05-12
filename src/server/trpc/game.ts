@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { router, loggedInProcedure } from ".";
 import { EventEmitter, on } from "node:events";
+import { PlayerActionSchema } from "@/core/actions";
+import { games, room_members, rooms } from "../schema";
+import { eq } from "drizzle-orm";
+import { deserializeGame, serializeGame } from "@/server/game/serialization";
 
 const eventEmitter = new EventEmitter();
 
@@ -24,6 +28,24 @@ function notifyPlayer(notify: PlayerNotification) {
 }
 
 export const gameRouter = router({
+  act: loggedInProcedure
+    .input(PlayerActionSchema)
+    .mutation(async ({ input, ctx: { userId, db } }) => {
+      const row = await db
+        .select({ game: games })
+        .from(room_members)
+        .innerJoin(rooms, eq(rooms.id, room_members.roomId))
+        .innerJoin(games, eq(games.id, rooms.gameId))
+        .where(eq(room_members.playerId, userId))
+        .get();
+
+      if (!row) {
+        throw new Error("not part of a game");
+      }
+      row.game.actions.push(input);
+
+      console.log(input);
+    }),
   // message every second
   heartbeat: loggedInProcedure.subscription(async function* () {
     let timeoutId: NodeJS.Timeout | undefined;

@@ -1,4 +1,4 @@
-import { GameState } from "./game-state";
+import { GameState } from "@/core/game";
 import { prngReplacer, prngReviver } from "@/server/game/random";
 
 export function serializeGame(game: GameState): string {

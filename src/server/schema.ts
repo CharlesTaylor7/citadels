@@ -56,11 +56,7 @@ export const rooms = table("rooms", {
 
 export const games = table("games", {
   id: integer("id").primaryKey(),
-  // json of the game state
   state: text("state").notNull(),
-  // json array of actions
-  // the current state should ideally be derivable by replaying all the actions
-  actions: text("actions").notNull(),
 });
 
 export const tables = { users, sessions, games, rooms, room_members };

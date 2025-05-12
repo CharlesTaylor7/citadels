@@ -22,6 +22,5 @@ export type Marker =
 
 type MarkerType = Marker["type"];
 
-export type DistrictName = string;
 export type PlayerId = number;
 export type Cost = number;

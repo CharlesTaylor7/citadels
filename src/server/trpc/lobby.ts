@@ -4,7 +4,7 @@ import { rooms, users, room_members, games } from "@/server/schema";
 import { and, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { GameConfigUtils } from "@/server/game/lobby";
-import { createGame } from "@/server/game/game-state";
+import { createGame } from "@/server/game/game";
 import { newSeed } from "@/server/game/random";
 import { TRPCError } from "@trpc/server";
 import { EventEmitter, on } from "node:events";
@@ -416,8 +416,8 @@ export const lobbyRouter = router({
           and(
             eq(room_members.roomId, input.roomId),
             eq(room_members.playerId, userId),
-            eq(room_members.owner, true)
-          )
+            eq(room_members.owner, true),
+          ),
         )
         .get();
 
