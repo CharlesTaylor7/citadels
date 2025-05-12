@@ -6,7 +6,7 @@ import {
   UNIQUE_DISTRICTS,
 } from "@/core/districts";
 import { RoleName, RoleNameUtils, RANKS, ROLE_NAMES } from "@/core/roles";
-import { CardSuit, PlayerId, ConfigOption } from "@/core/types";
+import { CardSuit, PlayerId } from "@/core/types";
 import {
   ActionOutput,
   CityDistrict,
@@ -14,15 +14,9 @@ import {
   GameRole,
   GameState,
   Player,
-  Followup, // Assuming Followup might be on GameState or needed for other parts
 } from "@/core/game";
-import { GameConfig, GameOptions } from "@/core/config"; // GameOptions for gameStartAction.config
+import { ConfigOption } from "@/core/config";
 import { asRng, newPrng, shuffle, RNG } from "@/server/game/random";
-
-// Constants for game setup
-const NUM_UNIQUE_DISTRICTS_TO_SELECT = 14;
-const EXPECTED_DECK_SIZE = 68; // 54 normal (sum of multiplicities) + 14 unique
-const STARTING_HAND_SIZE = 4;
 
 export function createPlayer(
   index: number,
@@ -119,7 +113,10 @@ export function beginDraft(
       shuffle(tryOrder, rng); // Shuffle order of checking
 
       for (const potentialIndex of tryOrder) {
-        if (RoleNameUtils.data(draft.remaining[potentialIndex]).rank !== RANKS[3]) { // RANKS[3] is "Four"
+        if (
+          RoleNameUtils.data(draft.remaining[potentialIndex]).rank !== RANKS[3]
+        ) {
+          // RANKS[3] is "Four"
           discardIndex = potentialIndex;
           break;
         }
@@ -161,9 +158,13 @@ export function beginDraft(
 }
 
 export function createGame(gameStartAction: GameStartAction): GameState {
-  const { players: playerConfigs, config: gameOptions, rngSeed } = gameStartAction;
+  const {
+    players: playerConfigs,
+    config: gameOptions,
+    rngSeed,
+  } = gameStartAction;
   const prng = newPrng(rngSeed); // This is the PRNG object
-  const gameRng = asRng(prng);  // This is the RNG function derived from prng
+  const gameRng = asRng(prng); // This is the RNG function derived from prng
 
   // Initialize and shuffle players for seating order
   const initialPlayerConfigs = [...playerConfigs]; // Clone to avoid mutating input
@@ -181,7 +182,7 @@ export function createGame(gameStartAction: GameStartAction): GameState {
   // Deck Construction
   const normalDistrictCards: DistrictName[] = [];
   NORMAL_DISTRICTS.forEach((districtData) => {
-    const multiplicity = DistrictNameUtils.data(districtData.name).multiplicity; // Get multiplicity from static data
+    const multiplicity = districtData.multiplicity;
     for (let i = 0; i < multiplicity; i++) {
       normalDistrictCards.push(districtData.name);
     }
@@ -190,60 +191,64 @@ export function createGame(gameStartAction: GameStartAction): GameState {
   const enabledUniqueDistricts = UNIQUE_DISTRICTS.filter(
     (districtData) =>
       gameOptions.districts.get(districtData.name) === ConfigOption.Enabled,
-  ).map(d => d.name);
+  ).map((d) => d.name);
   shuffle(enabledUniqueDistricts, gameRng);
-  const selectedUniqueDistricts = enabledUniqueDistricts.slice(0, NUM_UNIQUE_DISTRICTS_TO_SELECT);
+  const selectedUniqueDistricts = enabledUniqueDistricts.slice(0, 14);
 
-  const deck: DistrictName[] = [...normalDistrictCards, ...selectedUniqueDistricts];
+  const deck: DistrictName[] = [
+    ...normalDistrictCards,
+    ...selectedUniqueDistricts,
+  ];
   shuffle(deck, gameRng);
 
   // Assertion for deck size, matches Rust's 68 for standard setup
-  if (deck.length !== EXPECTED_DECK_SIZE) {
+  if (deck.length !== 68) {
     console.warn(
-      `Deck size check failed: expected ${EXPECTED_DECK_SIZE}, got ${deck.length}. This might be due to custom district configurations.`,
+      `Deck size check failed: expected ${68}, got ${deck.length}. This might be due to custom district configurations.`,
     );
   }
-
 
   const crownedPlayerIndex = 0; // Player 0 (after shuffling) is initially crowned and starts the draft
 
   // Create the game state
-  // Note: GameState interface from core/game.ts should be the source of truth for these fields.
-  // Assuming 'prng' is part of GameState based on current file structure,
-  // but 'actions' and 'notifications' are not standard.
   const game: GameState = {
-    // actions: [gameStartAction], // Not in core GameState definition
+    actions: [gameStartAction],
     players,
     characters,
     deck,
     discard: [],
-    prng, // Storing the PRNG object itself, as in Rust's Game struct
+    prng,
     museum: { artifacts: [], cards: [] },
     logs: [],
     crowned: crownedPlayerIndex,
-    taxCollector: 0, // Assuming these are initialized to 0
-    alchemist: 0,    // Assuming these are initialized to 0
+    taxCollector: 0,
+    alchemist: 0,
     firstToComplete: null,
     followup: null,
-    // notifications: [], // Not in core GameState definition
+    notifications: [],
     activeTurn: {
       type: "Draft",
-      draft: beginDraft(players.length, crownedPlayerIndex, selectedRolesForGame, gameRng),
+      draft: beginDraft(
+        players.length,
+        crownedPlayerIndex,
+        selectedRolesForGame,
+        gameRng,
+      ),
     },
   };
 
   // Deal initial cards
   for (const player of players) {
-    player.hand = drawCards(game, STARTING_HAND_SIZE);
+    player.hand = drawCards(game, 4);
   }
 
   // Mark face-up discarded roles in the characters list
   if (game.activeTurn.type === "Draft") {
-    game.activeTurn.draft.faceupDiscard.forEach(discardedRoleName => {
-      const char = game.characters.find(c => c.role === discardedRoleName);
+    game.activeTurn.draft.faceupDiscard.forEach((discardedRoleName) => {
+      const char = game.characters.find((c) => c.role === discardedRoleName);
       if (char) {
         char.markers.push({ type: "Discarded" });
-        // Note: In Rust, GameRole.revealed is false by default. Discarded doesn't mean revealed.
+        char.revealed = true;
       }
     });
   }
@@ -326,7 +331,9 @@ export function gainGoldForSuit(game: GameState, suit: CardSuit): ActionOutput {
   player.gold += amount;
 
   const activeRole = getActiveRole(game); // getActiveRole can return null
-  const roleName = activeRole ? RoleNameUtils.data(activeRole.role).name : "Current Role";
+  const roleName = activeRole
+    ? RoleNameUtils.data(activeRole.role).name
+    : "Current Role";
   return {
     log: `The ${roleName} (${player.name}) gains ${amount} gold from their ${suit} districts.`,
   };
@@ -342,7 +349,9 @@ export function gainCardsForSuit(
 
   const amount = gainCards(game, count); // gainCards ensures activePlayer exists
   const activeRole = getActiveRole(game);
-  const roleName = activeRole ? RoleNameUtils.data(activeRole.role).name : "Current Role";
+  const roleName = activeRole
+    ? RoleNameUtils.data(activeRole.role).name
+    : "Current Role";
   return {
     log: `The ${roleName} (${player.name}) gains ${amount} cards from their ${suit} districts.`,
   };

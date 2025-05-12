@@ -20,7 +20,5 @@ export type Marker =
   | BlackmailMarker
   | WarrantMarker;
 
-type MarkerType = Marker["type"];
-
 export type PlayerId = number;
 export type Cost = number;
