@@ -188,23 +188,71 @@ export function createGame(gameStartAction: GameStartAction): GameState {
     }
   });
 
-  const enabledUniqueDistricts = UNIQUE_DISTRICTS.filter(
-    (districtData) =>
-      gameOptions.districts.get(districtData.name) === ConfigOption.Enabled,
-  ).map((d) => d.name);
-  shuffle(enabledUniqueDistricts, gameRng);
-  const selectedUniqueDistricts = enabledUniqueDistricts.slice(0, 14);
+  // Deck Construction - Unique Districts Selection
+  // Constants NUM_UNIQUE_DISTRICTS_TO_SELECT = 14 and EXPECTED_DECK_SIZE = 68 are defined above.
+  let selectedUniqueDistricts: DistrictName[] = [];
+
+  // 1. Add all "Always" districts
+  const alwaysDistrictNames = UNIQUE_DISTRICTS.filter(
+    (d) => gameOptions.districts.get(d.name) === ConfigOption.Always
+  ).map(d => d.name);
+  selectedUniqueDistricts.push(...alwaysDistrictNames);
+
+  // 2. Determine how many more unique districts are needed
+  let numStillNeeded = 14 - selectedUniqueDistricts.length; // Using literal 14 for NUM_UNIQUE_DISTRICTS_TO_SELECT
+
+  if (numStillNeeded <= 0) {
+    // If "Always" districts already meet or exceed the target, shuffle and take the exact number
+    shuffle(selectedUniqueDistricts, gameRng);
+    selectedUniqueDistricts = selectedUniqueDistricts.slice(0, 14); // Using literal 14
+  } else {
+    // 3. Create a pool of other available unique districts
+    const availablePoolNames = UNIQUE_DISTRICTS.filter(d => {
+      const option = gameOptions.districts.get(d.name);
+      // Include if:
+      // - Not already an "Always" pick (already in selectedUniqueDistricts)
+      // - Not "Never"
+      // - Is "Enabled" OR has no specific config (undefined, implies default availability from the main UNIQUE_DISTRICTS list)
+      return !selectedUniqueDistricts.includes(d.name) &&
+             option !== ConfigOption.Never &&
+             (option === ConfigOption.Enabled || option === undefined);
+    }).map(d => d.name);
+
+    shuffle(availablePoolNames, gameRng);
+
+    // 4. Add from the pool until NUM_UNIQUE_DISTRICTS_TO_SELECT is reached (or pool exhausted)
+    const toAddFromPool = availablePoolNames.slice(0, numStillNeeded);
+    selectedUniqueDistricts.push(...toAddFromPool);
+  }
+  // Now, selectedUniqueDistricts contains the final list of unique district names.
 
   const deck: DistrictName[] = [
     ...normalDistrictCards,
-    ...selectedUniqueDistricts,
+    ...selectedUniqueDistricts, // Use the refined list
   ];
   shuffle(deck, gameRng);
 
-  // Assertion for deck size, matches Rust's 68 for standard setup
-  if (deck.length !== 68) {
+  // Assertion for deck size.
+  const expectedNormalDistrictCount = NORMAL_DISTRICTS.reduce((sum, dist) => sum + dist.multiplicity, 0);
+  const expectedDeckSizeBasedOnSelection = expectedNormalDistrictCount + selectedUniqueDistricts.length;
+
+  if (deck.length !== expectedDeckSizeBasedOnSelection) {
+     console.warn(
+      `Deck size integrity check failed: actual deck size ${deck.length} does not match expected ${expectedDeckSizeBasedOnSelection} (normal: ${expectedNormalDistrictCount}, unique: ${selectedUniqueDistricts.length})`,
+    );
+  } else if (deck.length !== 68 && selectedUniqueDistricts.length === 14) { // Using literal 68 for EXPECTED_DECK_SIZE and 14 for NUM_UNIQUE_DISTRICTS_TO_SELECT
+    // This condition implies the number of unique districts is as expected (14),
+    // but the total deck size is still off, likely due to normal district count issues.
     console.warn(
-      `Deck size check failed: expected ${68}, got ${deck.length}. This might be due to custom district configurations.`,
+      `Deck size check failed: expected ${68} (normal: ${expectedNormalDistrictCount}, unique: ${14}), got ${deck.length}. This might be due to custom district configurations or normal district multiplicity issues.`,
+    );
+  } else if (selectedUniqueDistricts.length < 14) { // Using literal 14
+    console.warn(
+      `Deck assembly warning: Selected ${selectedUniqueDistricts.length} unique districts, less than target ${14}. Total deck size: ${deck.length}.`
+    );
+  } else if (deck.length !== 68) { // General fallback if previous conditions didn't catch it but still not 68
+     console.warn(
+      `Deck size check failed: expected ${68}, got ${deck.length}. Unique districts selected: ${selectedUniqueDistricts.length}. Normal districts: ${expectedNormalDistrictCount}.`,
     );
   }
 
