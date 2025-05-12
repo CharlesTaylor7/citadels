@@ -207,7 +207,7 @@ export function createGame(gameStartAction: GameStartAction): GameState {
     selectedUniqueDistricts = selectedUniqueDistricts.slice(0, 14); // Using literal 14
   } else {
     // 3. Create a pool of other available unique districts
-    const availablePoolNames = UNIQUE_DISTRICTS.filter(d => {
+    const availablePoolNames = UNIQUE_DISTRICTS.filter((d) => {
       const option = gameOptions.districts.get(d.name);
       // Include if:
       // - Not already an "Always" pick (already in selectedUniqueDistricts)
@@ -235,11 +235,15 @@ export function createGame(gameStartAction: GameStartAction): GameState {
   shuffle(deck, gameRng);
 
   // Assertion for deck size.
-  const expectedNormalDistrictCount = NORMAL_DISTRICTS.reduce((sum, dist) => sum + dist.multiplicity, 0);
-  const expectedDeckSizeBasedOnSelection = expectedNormalDistrictCount + selectedUniqueDistricts.length;
+  const expectedNormalDistrictCount = NORMAL_DISTRICTS.reduce(
+    (sum, dist) => sum + dist.multiplicity,
+    0,
+  );
+  const expectedDeckSizeBasedOnSelection =
+    expectedNormalDistrictCount + selectedUniqueDistricts.length;
 
   if (deck.length !== expectedDeckSizeBasedOnSelection) {
-     console.warn(
+    console.warn(
       `Deck size integrity check failed: actual deck size ${deck.length} does not match expected ${expectedDeckSizeBasedOnSelection} (normal: ${expectedNormalDistrictCount}, unique: ${selectedUniqueDistricts.length})`,
     );
   }
