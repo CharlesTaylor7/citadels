@@ -2,6 +2,7 @@ import { Marker, PlayerId } from "@/core/types";
 import { RoleName } from "@/core/roles";
 import { DistrictName } from "@/core/districts";
 import { PRNG } from "@/server/game/random";
+import { Action } from "./actions";
 
 export interface GameState {
   players: Player[];
@@ -18,6 +19,9 @@ export interface GameState {
   alchemist: number;
   taxCollector: number;
   prng: PRNG;
+  // record of all game actions
+  // whole state should be recreatable by replaying this log
+  actions: Action[];
 }
 export type Followup =
   | { type: "Bewitch" }
@@ -38,9 +42,9 @@ export type Followup =
 
 export interface ActionOutput {
   log: string;
-  followup: Followup | null;
-  end_turn: boolean;
-  notifications: Notification[];
+  followup?: Followup;
+  end_turn?: boolean;
+  notifications?: Notification[];
 }
 
 export type PlayerIndex = number;

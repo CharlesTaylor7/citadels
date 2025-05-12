@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { router, loggedInProcedure, anonymousProcedure } from ".";
-import { rooms, users, room_members, games } from "@/server/schema";
+import { rooms, users, room_members, games, Game } from "@/server/schema";
 import { and, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { GameConfigUtils } from "@/server/game/lobby";
@@ -8,6 +8,8 @@ import { createGame } from "@/server/game/game";
 import { newSeed } from "@/server/game/random";
 import { TRPCError } from "@trpc/server";
 import { EventEmitter, on } from "node:events";
+import { serializeGame } from "../game/serialization";
+import { GameStartAction } from "@/core/actions";
 
 const playerSchema = z.object({
   id: z.number(),
@@ -187,7 +189,7 @@ export const lobbyRouter = router({
 
     const config = GameConfigUtils.default();
     const rngSeed = newSeed();
-    const gameStartAction = {
+    const gameStartAction: GameStartAction = {
       action: "GameStart",
       players,
       config,
@@ -198,8 +200,7 @@ export const lobbyRouter = router({
     const game = await db
       .insert(games)
       .values({
-        state: JSON.stringify(initialState),
-        actions: JSON.stringify([gameStartAction]),
+        state: serializeGame(initialState),
       })
       .returning({ id: games.id })
       .get();

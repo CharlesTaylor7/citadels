@@ -1,6 +1,4 @@
-use crate::actions::{
-    Action, ActionTag, BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
-};
+use crate::actions::{Action, ActionTag};
 use crate::districts::DistrictName;
 use crate::game_actions::perform_action;
 use crate::lobby::{self, Lobby};
@@ -812,7 +810,6 @@ impl Game {
                 } else {
                     vec![ActionTag::DraftDiscard]
                 }
-                //else { vec![] }
             }
 
             Turn::Call(Call {
@@ -1076,11 +1073,7 @@ impl Game {
 
     pub fn gain_cards_for_suit(&mut self, suit: CardSuit) -> Result<ActionOutput> {
         let player = self.active_player()?;
-        let count = player
-            .city
-            .iter()
-            .filter(|c| c.name.data().suit == suit || c.name == DistrictName::SchoolOfMagic)
-            .count();
+        let count = player.count_suit_for_resource_gain(suit);
 
         // they may have drawn less cards then the number of districts
         // if the deck was low on cards.

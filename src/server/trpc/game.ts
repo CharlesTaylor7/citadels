@@ -28,6 +28,7 @@ function notifyPlayer(notify: PlayerNotification) {
 }
 
 export const gameRouter = router({
+  // todo: aider
   act: loggedInProcedure
     .input(PlayerActionSchema)
     .mutation(async ({ input, ctx: { userId, db } }) => {
@@ -42,7 +43,7 @@ export const gameRouter = router({
       if (!row) {
         throw new Error("not part of a game");
       }
-      row.game.actions.push(input);
+      // row.game.actions.push(input);
 
       console.log(input);
     }),

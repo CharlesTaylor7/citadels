@@ -1,4 +1,4 @@
-import { PlayerAction } from "@/core/actions";
+import { GameStartAction, PlayerAction } from "@/core/actions";
 import {
   DistrictName,
   DISTRICT_NAMES,
@@ -6,7 +6,14 @@ import {
 } from "@/core/districts";
 import { RoleName, ROLE_NAMES } from "@/core/roles";
 import { CardSuit, PlayerId } from "@/core/types";
-import { CityDistrict, Draft, GameRole, GameState, Player } from "@/core/game";
+import {
+  ActionOutput,
+  CityDistrict,
+  Draft,
+  GameRole,
+  GameState,
+  Player,
+} from "@/core/game";
 import { GameConfig } from "@/core/config";
 import { asRng, newPrng, shuffle } from "@/server/game/random";
 
@@ -88,7 +95,7 @@ export function beginDraft(
   return draft;
 }
 
-export function createGame(config: GameConfig): GameState {
+export function createGame(config: GameStartAction): GameState {
   // Initialize players
   const players = config.players.map((player, index) =>
     createPlayer(index, player.id, player.name),
@@ -104,6 +111,7 @@ export function createGame(config: GameConfig): GameState {
 
   // Create the game state
   const game: GameState = {
+    actions: [config],
     players,
     characters,
     deck,
@@ -119,10 +127,10 @@ export function createGame(config: GameConfig): GameState {
     notifications: [],
     activeTurn: {
       type: "Draft",
+      // TODO: aider
       draft: beginDraft(players.length, 0, ROLE_NAMES),
     },
   };
-
   // Deal initial cards
   for (const player of players) {
     player.hand = drawCards(game, 4);
@@ -178,39 +186,41 @@ export function discardDistrict(game: GameState, district: DistrictName): void {
   game.discard.push(district);
 }
 
-export function gainCards(game: GameState, amount: number): void {
+export function gainCards(game: GameState, amount: number): number {
   const player = getActivePlayer(game);
-  if (!player) return;
+  if (!player) throw new Error();
 
   const cards = drawCards(game, amount);
   player.hand.push(...cards);
-
-  const activeRole = getActiveRole(game);
-  if (activeRole) {
-    activeRole.logs.push(`${player.name} gains ${amount} cards.`);
-  }
+  return cards.length;
 }
 
-export function gainResourcesForSuit(game: GameState, suit: CardSuit): void {
+export function gainGoldForSuit(game: GameState, suit: CardSuit): ActionOutput {
   const player = getActivePlayer(game);
-  if (!player) return;
+  if (!player) throw new Error("no active player");
+  const amount = countSuitForResourceGain(player, suit);
 
-  const count = player.city.filter(
-    (c) =>
-      c.name === "SchoolOfMagic" ||
-      DistrictNameUtils.data(c.name).suit === suit,
-  ).length;
+  player.gold += amount;
 
-  if (count > 0) {
-    player.gold += count;
+  const activeRole = getActiveRole(game);
+  return {
+    log: `The ${activeRole} (${player.name}) gains ${amount} gold from their $${suit} districts.`,
+  };
+}
 
-    const activeRole = getActiveRole(game);
-    if (activeRole) {
-      activeRole.logs.push(
-        `${player.name} gains ${count} gold from ${suit} districts.`,
-      );
-    }
-  }
+export function gainCardsForSuit(
+  game: GameState,
+  suit: CardSuit,
+): ActionOutput {
+  const player = getActivePlayer(game);
+  if (!player) throw new Error("no active player");
+  const count = countSuitForResourceGain(player, suit);
+
+  const amount = gainCards(game, count);
+  const activeRole = getActiveRole(game);
+  return {
+    log: `The ${activeRole} (${player.name}) gains ${amount} cards from their $${suit} districts.`,
+  };
 }
 
 export function countSuitForResourceGain(
