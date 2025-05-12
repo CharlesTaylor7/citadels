@@ -50,10 +50,10 @@ export function createCharacter(role: RoleName): GameRole {
   };
 }
 
-export function shuffleDeck(game: GameState, rng: RNG): void {
+export function shuffleDeck(game: GameState): void {
   game.deck.push(...game.discard);
   game.discard = [];
-  shuffle(game.deck, rng);
+  shuffle(game.deck, asRng(game.prng));
 }
 
 export function drawCard(game: GameState): DistrictName | null {
