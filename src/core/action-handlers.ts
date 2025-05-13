@@ -671,6 +671,36 @@ function handleMagic(
   return { log };
 }
 
+function handleTakeCrown(
+  game: GameState,
+  _action: Extract<Action, { action: "TakeCrown" }>,
+): ActionOutput {
+  // Find King or Patrician
+  const royalCharacter = game.characters.find(
+    (c) =>
+      (c.role === "King" || c.role === "Patrician") &&
+      c.playerIndex !== undefined,
+  );
+
+  if (!royalCharacter || royalCharacter.playerIndex === undefined) {
+    // This check is a bit redundant due to the find condition, but good for type safety
+    throw new Error("No King or Patrician found to take the crown.");
+  }
+
+  const royalPlayerIndex = royalCharacter.playerIndex;
+  game.crowned = royalPlayerIndex;
+  const royalPlayer = game.players[royalPlayerIndex];
+
+  if (!royalPlayer) {
+    throw new Error(
+      `Player not found for crowned role ${royalCharacter.role} at index ${royalPlayerIndex}.`,
+    );
+  }
+
+  const log = `${royalPlayer.name} takes the crown.`;
+  return { log };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -692,5 +722,6 @@ export const playerActionHandlers: {
   Assassinate: handleAssassinate,
   Steal: handleSteal,
   Magic: handleMagic,
+  TakeCrown: handleTakeCrown,
   // Other PlayerAction handlers will be added here
 };
