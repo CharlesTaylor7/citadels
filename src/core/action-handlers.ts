@@ -7,8 +7,11 @@ import {
   Notification,
   PlayerIndex,
   DistrictName,
-} from "./game"; // Added PlayerIndex, DistrictName
+  Player,
+  GameRole,
+} from "./game"; // Added PlayerIndex, DistrictName, Player, GameRole
 import { RoleName, RoleNameUtils, RANKS } from "@/core/roles";
+import { CardSuit } from "@/core/types"; // Added CardSuit
 
 // Individual action handler functions
 function handleRevealWarrant(
@@ -701,6 +704,40 @@ function handleTakeCrown(
   return { log };
 }
 
+// Helper function to count districts of a specific suit for resource gain,
+// mirroring Rust's `Player::count_suit_for_resource_gain`.
+function countSuitForResourceGain(player: Player, suit: CardSuit): number {
+  return player.city.filter(
+    (cityDistrict) =>
+      DistrictNameUtils.data(cityDistrict.name).suit === suit ||
+      cityDistrict.name === "SchoolOfMagic",
+  ).length;
+}
+
+// Generic handler for gaining gold based on suit count.
+function handleGainGoldForSuit(
+  game: GameState,
+  suit: CardSuit,
+  roleForLog: RoleName, // e.g., "King" for Noble, "Bishop" for Religious
+): ActionOutput {
+  const activePlayer = getActivePlayer(game);
+  const count = countSuitForResourceGain(activePlayer, suit);
+  activePlayer.gold += count;
+
+  const log = `The ${RoleNameUtils.data(roleForLog).name} (${activePlayer.name}) gains ${count} gold from their ${suit} districts.`;
+  return { log };
+}
+
+function handleGoldFromReligion(
+  game: GameState,
+  _action: Extract<Action, { action: "GoldFromReligion" }>,
+): ActionOutput {
+  // Assuming Bishop is the role associated with gaining gold from Religious districts for logging.
+  // This might need adjustment if other roles can trigger this or if the log should be more generic.
+  const activeCharacter = getCharacterInTurn(game);
+  return handleGainGoldForSuit(game, "Religious", activeCharacter.role);
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -723,5 +760,6 @@ export const playerActionHandlers: {
   Steal: handleSteal,
   Magic: handleMagic,
   TakeCrown: handleTakeCrown,
+  GoldFromReligion: handleGoldFromReligion,
   // Other PlayerAction handlers will be added here
 };
