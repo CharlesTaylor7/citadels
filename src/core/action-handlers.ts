@@ -276,6 +276,66 @@ function handlePass(
   return { log };
 }
 
+function handleRevealBlackmail(
+  game: GameState,
+  _action: Extract<Action, { action: "RevealBlackmail" }>,
+): ActionOutput {
+  if (game.followup?.type !== "Blackmail") {
+    throw new Error("Invalid followup state for RevealBlackmail");
+  }
+  const blackmailFollowup = game.followup;
+  const blackmailerPlayerIndex = blackmailFollowup.blackmailer;
+  const blackmailerPlayer = game.players[blackmailerPlayerIndex];
+
+  if (!blackmailerPlayer) {
+    throw new Error(
+      `Blackmailer player not found at index ${blackmailerPlayerIndex}`,
+    );
+  }
+
+  if (game.activeTurn.type !== "Call") {
+    throw new Error("RevealBlackmail action must occur during a Call turn.");
+  }
+  const characterInTurn = game.characters[game.activeTurn.call.index];
+  if (
+    characterInTurn === undefined ||
+    characterInTurn.playerIndex === undefined
+  ) {
+    throw new Error("No active character/player found for RevealBlackmail.");
+  }
+  const activePlayerIndex = characterInTurn.playerIndex;
+  const activePlayer = game.players[activePlayerIndex];
+  if (!activePlayer) {
+    throw new Error("Active player (target of blackmail) not found.");
+  }
+
+  const isFlowered = characterInTurn.markers.some(
+    (marker) => marker.type === "Blackmail" && marker.flowered,
+  );
+
+  let log = "";
+
+  if (isFlowered) {
+    const goldTaken = activePlayer.gold;
+    activePlayer.gold = 0;
+    blackmailerPlayer.gold += goldTaken;
+
+    // Clear all blackmail markers from all characters
+    game.characters.forEach((character) => {
+      character.markers = character.markers.filter(
+        (marker) => marker.type !== "Blackmail",
+      );
+    });
+
+    log = `The Blackmailer (${blackmailerPlayer.name}) reveals an active threat against ${activePlayer.name}, and takes all ${goldTaken} of their gold.`;
+  } else {
+    log = `The Blackmailer (${blackmailerPlayer.name}) reveals an empty threat against ${activePlayer.name}. Nothing happens.`;
+  }
+
+  game.followup = null; // Clear the followup
+  return { log };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -289,5 +349,6 @@ export const playerActionHandlers: {
   PayBribe: handlePayBribe,
   IgnoreBlackmail: handleIgnoreBlackmail,
   Pass: handlePass,
+  RevealBlackmail: handleRevealBlackmail,
   // Other PlayerAction handlers will be added here
 };
