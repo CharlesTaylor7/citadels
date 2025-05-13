@@ -2,7 +2,7 @@
 
 layout {
   floating_panes {
-    pane name="aider" command="aider"
+    // pane name="aider" command="aider"
   }
   pane split_direction="vertical" {
     pane name="Neovim" edit="." 

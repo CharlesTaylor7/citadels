@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameService } from '@/services/game.service';
 
@@ -16,6 +16,7 @@ import { GameEndModalComponent } from '../game-end-modal/game-end-modal.componen
 @Component({
   selector: 'app-game',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './game.component.html',
   imports: [
     CommonModule,

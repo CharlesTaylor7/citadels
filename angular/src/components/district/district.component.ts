@@ -7,6 +7,7 @@ import {
   signal,
   computed,
   linkedSignal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -19,9 +20,10 @@ import interact from 'interactjs';
 
 @Component({
   selector: 'app-district',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './district.component.html',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DistrictComponent {
   name = input.required<DistrictName>();
