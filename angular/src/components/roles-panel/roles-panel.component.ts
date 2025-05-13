@@ -1,5 +1,6 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RoleName } from '@/core/roles';
 
 @Component({
   selector: 'app-roles-panel',
@@ -8,5 +9,5 @@ import { CommonModule } from '@angular/common';
   templateUrl: './roles-panel.component.html',
 })
 export class RolesPanelComponent {
-  characters = input<any[]>(); // Corresponds to game.characters.0 in Rust template
+  roles = input.required<RoleName[]>();
 }

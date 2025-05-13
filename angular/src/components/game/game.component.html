@@ -1,39 +1,15 @@
-<!-- Modals -->
-<app-game-end-modal [gameEndData]="gameService.gameStateSignal()?.gameEnd"></app-game-end-modal>
-
-<!-- Left Panel -->
-
-<app-roles-panel [characters]="gameService.gameStateSignal()?.characters"></app-roles-panel>
-<app-my-stash-panel [myPlayer]="gameService.gameStateSignal()?.myPlayer"></app-my-stash-panel>
-
-
-<!-- Center Panel -->
-
-<!-- City Panel -->
-<app-player-city-panel [cityData]="gameService.gameStateSignal()?.city"></app-player-city-panel>
-
-<!-- Menu Panel -->
-
-<app-game-menu-panel
-  [menuData]="gameService.gameStateSignal()?.menu"
-  [gameContext]="gameService.gameStateSignal()?.context"
-  (action)="handleAction($event)"
-></app-game-menu-panel>
-<div id="error">
-  <!-- Error messages from actions could be displayed here -->
+@if (gameService.gameStateSignal() ; as game) {
+  <div class="flex flex-row">
+        <app-hand-panel [districts]="game.myHand.districts"></app-hand-panel>
+  <app-my-roles-panel [roles]="game.myHand.roles" ></app-my-roles-panel>
 </div>
+}
+@else {
+Loading...
+
+}
 
 
-<!-- Bottom part of Center Panel: Hand and My Roles -->
-<div class="flex flex-row">
-  <app-hand-panel [myPlayer]="gameService.gameStateSignal()?.myPlayer"></app-hand-panel>
-  <app-my-roles-panel [myPlayer]="gameService.gameStateSignal()?.myPlayer"></app-my-roles-panel>
-</div>
-
-<!-- Right Panel -->
-
-<app-players-info-panel [playersInfo]="gameService.gameStateSignal()?.playersInfo"></app-players-info-panel>
-<app-misc-info-panel [miscInfo]="gameService.gameStateSignal()?.miscInfo"></app-misc-info-panel>
 
 
 

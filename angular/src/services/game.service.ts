@@ -14,6 +14,8 @@ import {
   TRPCClient,
 } from '@trpc/client';
 import type { AppRouter } from '@/types/trpc/router';
+import { DistrictName } from '@/core/districts';
+import { RoleName } from '@/core/roles';
 
 @Injectable({
   providedIn: 'root',
@@ -43,4 +45,10 @@ export class GameService {
   }
 }
 
-interface FrontendState {}
+interface FrontendState {
+  myHand: Hand;
+}
+interface Hand {
+  districts: DistrictName[];
+  roles: RoleName[];
+}

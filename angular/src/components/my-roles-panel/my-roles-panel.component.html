@@ -1,8 +1,6 @@
-<section class="panel min-h-[268px] grow-0">
-  <h2 class="header">My Roles</h2>
-  <!-- Content will be ported from reference/citadels_server/templates/game/my-roles.html -->
-  <p>My Roles panel works!</p>
-  <div *ngIf="myPlayer(); let player">
-    <p>Number of roles: {{ player.roles?.length || 0 }}</p>
-  </div>
-</section>
+<div class="panel grow flex flex-col">
+  <h2 class="header">Roles</h2>
+  @for (role of roles(); track role) {
+    {{ role }}
+  }
+</div>

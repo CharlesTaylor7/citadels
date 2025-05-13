@@ -1,0 +1,27 @@
+layout {
+  floating_panes {
+    pane name="aider" command="aider"
+  }
+  pane split_direction="vertical" {
+    pane name="Neovim" edit="." 
+    pane split_direction="horizontal" {
+      pane {
+        name "Angular"
+        cwd "angular"
+        command "yarn"
+        args "dev"
+      }
+      pane {
+        name "React"
+        command "yarn"
+        args "dev"
+      }
+      pane {
+        name "Typescript"
+        command "yarn"
+        args "typecheck" "--watch"
+      }
+    }
+  }
+}
+

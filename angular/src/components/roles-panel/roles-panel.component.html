@@ -1,8 +1,6 @@
 <div class="panel grow flex flex-col">
   <h2 class="header">Roles</h2>
-  <!-- Content will be ported from reference/citadels_server/templates/game/roles.html -->
-  <p>Roles panel works!</p>
-  <div *ngIf="characters(); let chars">
-    <p>Number of characters: {{ chars.length }}</p>
-  </div>
+  @for (role of roles(); track role) {
+    {{ role }}
+  }
 </div>

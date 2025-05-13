@@ -1299,7 +1299,7 @@ mod tests {
         assert_eq!(deck.draw(), Some(2));
         assert_eq!(deck.draw(), Some(3));
         assert_eq!(deck.draw(), Some(4));
-        assert_eq!(deck.draw(), Some(5));
+        assert_eq!(e21deck.draw(), Some(5));
         assert_eq!(deck.draw(), None);
     }
 }

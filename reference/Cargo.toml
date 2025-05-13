@@ -1,11 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
-  "citadels_server", 
-  "citadels",
-  "macros",
-  "macros-impl"
-]
+members = ["citadels_server", "citadels", "macros", "macros-impl"]
 
 [profile.dev]
 debug = 0
