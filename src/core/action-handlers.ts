@@ -1,7 +1,4 @@
-import {
-  Action,
-  PlayerAction,
-} from "./actions";
+import { Action, PlayerAction } from "./actions";
 import { DistrictNameUtils } from "./districts";
 import { ActionOutput, Followup, GameState, Notification } from "./game"; // Assuming ActionOutput, GameState etc. are exported from game.ts
 
@@ -56,9 +53,7 @@ function handleRevealWarrant(
     const activePlayerIndex = characterInTurn.playerIndex;
     const targetPlayer = game.players[activePlayerIndex];
     if (!targetPlayer) {
-      throw new Error(
-        `Invalid player index for target: ${activePlayerIndex}`,
-      );
+      throw new Error(`Invalid player index for target: ${activePlayerIndex}`);
     }
 
     const districtData = DistrictNameUtils.data(warrantFollowup.district);
@@ -165,7 +160,9 @@ function completeBuild_simplified(
 ): void {
   const player = game.players[playerIndex];
   if (!player) {
-    throw new Error(`Player not found at index ${playerIndex} for completeBuild`);
+    throw new Error(
+      `Player not found at index ${playerIndex} for completeBuild`,
+    );
   }
 
   // Check for duplicates if not Quarry or Wizard (simplified, actual build action would handle this better)
@@ -245,14 +242,18 @@ function handlePass(
     case "Blackmail": {
       // Active player is the Blackmailer.
       if (game.activeTurn.type !== "Call") {
-        throw new Error("Pass (Blackmail) action must occur during a Call turn.");
+        throw new Error(
+          "Pass (Blackmail) action must occur during a Call turn.",
+        );
       }
       const characterInTurn = game.characters[game.activeTurn.call.index];
       if (
         characterInTurn === undefined ||
         characterInTurn.playerIndex === undefined
       ) {
-        throw new Error("No active player (Blackmailer) found for Pass action.");
+        throw new Error(
+          "No active player (Blackmailer) found for Pass action.",
+        );
       }
       // const blackmailerPlayerIndex = characterInTurn.playerIndex;
       const blackmailerPlayer = game.players[currentFollowup.blackmailer];
@@ -267,7 +268,7 @@ function handlePass(
       game.followup = currentFollowup;
       throw new Error(
         `Pass action is not applicable for the current followup type: ${
-          (currentFollowup as any).type
+          currentFollowup.type
         }`,
       );
   }
@@ -279,14 +280,14 @@ function handlePass(
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
 export const playerActionHandlers: {
-  [K in PlayerAction["action"]]?: (
+  [K in PlayerAction["action"]]: (
     game: GameState,
     action: Extract<PlayerAction, { action: K }>,
   ) => ActionOutput;
 } = {
-  RevealWarrant: handleRevealWarrant as any,
-  PayBribe: handlePayBribe as any,
-  IgnoreBlackmail: handleIgnoreBlackmail as any,
-  Pass: handlePass as any,
+  RevealWarrant: handleRevealWarrant,
+  PayBribe: handlePayBribe,
+  IgnoreBlackmail: handleIgnoreBlackmail,
+  Pass: handlePass,
   // Other PlayerAction handlers will be added here
 };
