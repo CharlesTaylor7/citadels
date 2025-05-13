@@ -510,6 +510,27 @@ function handleGatherResourceCards(
   return { log, followup: finalFollowup };
 }
 
+function handleGatherResourceGold(
+  game: GameState,
+  _action: Extract<Action, { action: "GatherResourceGold" }>,
+): ActionOutput {
+  const activePlayer = getActivePlayer(game);
+  let amount = 2;
+  let log = "";
+
+  if (activePlayer.city.some(d => d.name === "GoldMine")) {
+    amount += 1;
+    log = `${activePlayer.name} gathers 3 gold. (1 extra from their Gold Mine).`;
+  } else {
+    log = `${activePlayer.name} gathers 2 gold.`;
+  }
+
+  activePlayer.gold += amount;
+  const followup = determineFollowupAfterGather(game);
+
+  return { log, followup };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -527,5 +548,6 @@ export const playerActionHandlers: {
   DraftPick: handleDraftPick,
   DraftDiscard: handleDraftDiscard,
   GatherResourceCards: handleGatherResourceCards,
+  GatherResourceGold: handleGatherResourceGold,
   // Other PlayerAction handlers will be added here
 };
