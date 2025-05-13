@@ -5,26 +5,29 @@ import { PlayerActionSchema } from "@/core/actions";
 import { games, room_members, rooms } from "../schema";
 import { eq } from "drizzle-orm";
 import { deserializeGame, serializeGame } from "@/server/game/serialization";
+import { performAction } from "@/server/game/game";
 
-const eventEmitter = new EventEmitter();
+// Types for the result object with discriminated union
+type Success<T> = {
+  data: T;
+  error: null;
+};
 
-interface RoomNotification {
-  roomId: string;
-  message: string;
-}
+type Failure<E> = {
+  data: null;
+  error: E;
+};
 
-interface PlayerNotification {
-  roomId: string;
-  userId: number;
-  message: string;
-}
+type Result<T, E = unknown> = Success<T> | Failure<E>;
 
-function notifyRoom(notify: RoomNotification) {
-  eventEmitter.emit(notify.roomId, notify.message);
-}
-
-function notifyPlayer(notify: PlayerNotification) {
-  eventEmitter.emit(`${notify.roomId}-${notify.userId}`, notify.message);
+// Main wrapper function
+export function tryCatch<T>(func: () => T): Result<T> {
+  try {
+    const data = func();
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
 }
 
 export const gameRouter = router({
@@ -43,36 +46,13 @@ export const gameRouter = router({
       if (!row) {
         throw new Error("not part of a game");
       }
-      // row.game.actions.push(input);
-
-      console.log(input);
+      const game = deserializeGame(row.game.state);
+      performAction(game, input);
+      await db
+        .update(games)
+        .set({ state: serializeGame(game) })
+        .where(eq(games.id, row.game.id));
     }),
-  // message every second
-  heartbeat: loggedInProcedure.subscription(async function* () {
-    let timeoutId: NodeJS.Timeout | undefined;
-    try {
-      while (true) {
-        // Yield a heartbeat message
-        yield {
-          type: "heartbeat",
-          timestamp: Date.now(),
-          message: "Pulse",
-        };
-
-        // Wait for 1 second
-        await new Promise<void>((resolve) => {
-          timeoutId = setTimeout(resolve, 1000);
-        });
-        timeoutId = undefined; // Clear after it resolves, before next iteration's yield
-      }
-    } finally {
-      // If the generator is exited (e.g., client disconnects, error),
-      // clear any pending timeout.
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    }
-  }),
 
   generalNotifications: loggedInProcedure
     .input(z.object({ roomId: z.string() }))

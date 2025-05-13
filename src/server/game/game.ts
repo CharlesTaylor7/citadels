@@ -15,7 +15,6 @@ import {
   GameState,
   Player,
 } from "@/core/game";
-import { ConfigOption } from "@/core/config";
 import { asRng, newPrng, shuffle, RNG } from "@/server/game/random";
 
 export function createPlayer(
@@ -199,7 +198,7 @@ export function createGame(gameStartAction: GameStartAction): GameState {
   selectedUniqueDistricts.push(...alwaysDistrictNames);
 
   // 2. Determine how many more unique districts are needed
-  let numStillNeeded = 14 - selectedUniqueDistricts.length; // Using literal 14 for NUM_UNIQUE_DISTRICTS_TO_SELECT
+  const numStillNeeded = 14 - selectedUniqueDistricts.length; // Using literal 14 for NUM_UNIQUE_DISTRICTS_TO_SELECT
 
   if (numStillNeeded <= 0) {
     // If "Always" districts already meet or exceed the target, shuffle and take the exact number
@@ -253,6 +252,7 @@ export function createGame(gameStartAction: GameStartAction): GameState {
   // Create the game state
   const game: GameState = {
     actions: [gameStartAction],
+    turnActions: [],
     players,
     characters,
     deck,
@@ -263,8 +263,6 @@ export function createGame(gameStartAction: GameStartAction): GameState {
     crowned: crownedPlayerIndex,
     taxCollector: 0,
     alchemist: 0,
-    firstToComplete: null,
-    followup: null,
     notifications: [],
     activeTurn: {
       type: "Draft",
@@ -405,4 +403,22 @@ export function countSuitForResourceGain(
       c.name === "SchoolOfMagic" ||
       DistrictNameUtils.data(c.name).suit === suit,
   ).length;
+}
+
+export function performAction(game: GameState, action: PlayerAction) {
+  const { followup, log, end_turn, notifications } = runHandler(game, action);
+
+  game.followup = followup;
+  game.turnActions.push(action);
+  game.actions.push(action);
+  const role = getActiveRole(game);
+  if (role) {
+    role.logs.push(log);
+  }
+
+  if (end_turn) endTurn(game);
+}
+
+function endTurn(game: GameState) {
+  console.log("TODO: end turn");
 }

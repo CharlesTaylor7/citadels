@@ -2,8 +2,9 @@ import { Marker, PlayerId } from "@/core/types";
 import { RoleName } from "@/core/roles";
 import { DistrictName } from "@/core/districts";
 import { PRNG } from "@/server/game/random";
-import { Action } from "./actions";
-import { playerActionHandlers } from "./action-handlers";
+import { Action, PlayerAction } from "./actions";
+import { playerActionHandlers, runHandler } from "./action-handlers";
+import { getActiveRole } from "@/server/game/game";
 
 export interface GameState {
   players: Player[];
@@ -13,13 +14,14 @@ export interface GameState {
   logs: string[];
   activeTurn: Turn;
   crowned: PlayerIndex;
-  firstToComplete: PlayerIndex | null;
-  followup: Followup | null;
+  firstToComplete?: PlayerIndex;
+  followup?: Followup;
   notifications: Notification[];
   museum: Museum;
   alchemist: number;
   taxCollector: number;
   prng: PRNG;
+  turnActions: Action[];
   // record of all game actions
   // whole state should be recreatable by replaying this log
   actions: Action[];
@@ -102,27 +104,4 @@ export interface Notification {
 export interface Museum {
   cards: DistrictName[];
   artifacts: string[];
-}
-
-export function performAction(game: GameState, action: Action): ActionOutput {
-  if (action.action === "GameStart") {
-    // GameStartAction is not a PlayerAction and should be handled by a different mechanism.
-    throw new Error(
-      `Action type ${action.action} is not a PlayerAction and cannot be processed by performAction.`,
-    );
-  } else {
-    // In this block, TypeScript infers `action` as `PlayerAction`.
-    const handler = playerActionHandlers[action.action];
-
-    if (handler) {
-      // The `action` object (now inferred as PlayerAction) is passed to the specific handler.
-      // The `playerActionHandlers` map ensures that `handler` expects the correct subtype of `PlayerAction`.
-      return handler(game, action);
-    } else {
-      // Fallback for PlayerAction types that are not yet in the map or are misspelled.
-      throw new Error(
-        `No handler implemented for action type ${action.action}.`,
-      );
-    }
-  }
 }

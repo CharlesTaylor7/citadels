@@ -190,7 +190,7 @@ export const lobbyRouter = router({
     const config = GameConfigUtils.default();
     const rngSeed = newSeed();
     const gameStartAction: GameStartAction = {
-      action: "GameStart",
+      tag: "GameStart",
       players,
       config,
       rngSeed,

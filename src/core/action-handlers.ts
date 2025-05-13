@@ -1,4 +1,4 @@
-import { Action, PlayerAction } from "./actions";
+import { ActionTag, PlayerAction } from "./actions";
 import { DistrictNameUtils } from "./districts";
 import {
   ActionOutput,
@@ -16,7 +16,7 @@ import { CardSuit } from "@/core/types"; // Added CardSuit
 // Individual action handler functions
 function handleRevealWarrant(
   game: GameState,
-  _action: Extract<Action, { action: "RevealWarrant" }>,
+  _action: ActionCase<"RevealWarrant">,
 ): ActionOutput {
   let log = "";
   if (game.followup?.type !== "Warrant") {
@@ -81,7 +81,7 @@ function handleRevealWarrant(
 
 function handlePayBribe(
   game: GameState,
-  _action: Extract<Action, { action: "PayBribe" }>,
+  _action: ActionCase<"PayBribe">,
 ): ActionOutput {
   const blackmailerRole = game.characters.find(
     (r) => r.role === "Blackmailer" && r.playerIndex !== undefined,
@@ -123,7 +123,7 @@ function handlePayBribe(
 
 function handleIgnoreBlackmail(
   game: GameState,
-  _action: Extract<Action, { action: "IgnoreBlackmail" }>,
+  _action: Extract<Action, { tag: "IgnoreBlackmail" }>,
 ): ActionOutput {
   const blackmailerRole = game.characters.find(
     (r) => r.role === "Blackmailer" && r.playerIndex !== undefined,
@@ -165,11 +165,15 @@ function getCharacterInTurn(game: GameState): GameRole {
   if (game.activeTurn.type !== "Call") {
     // This check might be too restrictive if called by actions usable in other phases.
     // For now, assuming actions needing "active character" are in Call phase.
-    throw new Error("Action requires to be in Call turn phase to identify active character.");
+    throw new Error(
+      "Action requires to be in Call turn phase to identify active character.",
+    );
   }
   const character = game.characters[game.activeTurn.call.index];
   if (!character) {
-    throw new Error(`Character not found at Call index ${game.activeTurn.call.index}`);
+    throw new Error(
+      `Character not found at Call index ${game.activeTurn.call.index}`,
+    );
   }
   return character;
 }
@@ -180,7 +184,9 @@ function getActivePlayer(game: GameState): Player {
   if (game.activeTurn.type === "Draft") {
     const player = game.players[game.activeTurn.draft.playerIndex];
     if (!player) {
-      throw new Error(`Player not found at Draft index ${game.activeTurn.draft.playerIndex}`);
+      throw new Error(
+        `Player not found at Draft index ${game.activeTurn.draft.playerIndex}`,
+      );
     }
     return player;
   }
@@ -190,11 +196,15 @@ function getActivePlayer(game: GameState): Player {
   if (characterInTurn.playerIndex === undefined) {
     // TODO: Handle complex active player logic from Rust, e.g., Bewitched player's turn taken by Witch.
     // For now, this is a direct interpretation.
-    throw new Error(`Character ${characterInTurn.role} has no assigned player for this turn.`);
+    throw new Error(
+      `Character ${characterInTurn.role} has no assigned player for this turn.`,
+    );
   }
   const player = game.players[characterInTurn.playerIndex];
   if (!player) {
-    throw new Error(`Player not found at index ${characterInTurn.playerIndex} for character ${characterInTurn.role}.`);
+    throw new Error(
+      `Player not found at index ${characterInTurn.playerIndex} for character ${characterInTurn.role}.`,
+    );
   }
   return player;
 }
@@ -202,7 +212,7 @@ function getActivePlayer(game: GameState): Player {
 // Helper for after_gather_resources logic from Rust
 function determineFollowupAfterGather(game: GameState): Followup | undefined {
   const characterInTurn = getCharacterInTurn(game);
-  if (characterInTurn.markers.some(marker => marker.type === "Bewitched")) {
+  if (characterInTurn.markers.some((marker) => marker.type === "Bewitched")) {
     return { type: "Bewitch" };
   }
   return undefined;
@@ -249,7 +259,7 @@ function completeBuild_simplified(
 
 function handlePass(
   game: GameState,
-  _action: Extract<Action, { action: "Pass" }>,
+  _action: Extract<Action, { tag: "Pass" }>,
 ): ActionOutput {
   let log = "";
 
@@ -337,7 +347,7 @@ function handlePass(
 
 function handleRevealBlackmail(
   game: GameState,
-  _action: Extract<Action, { action: "RevealBlackmail" }>,
+  _action: Extract<Action, { tag: "RevealBlackmail" }>,
 ): ActionOutput {
   if (game.followup?.type !== "Blackmail") {
     throw new Error("Invalid followup state for RevealBlackmail");
@@ -397,7 +407,7 @@ function handleRevealBlackmail(
 
 function handleDraftPick(
   game: GameState,
-  action: Extract<Action, { action: "DraftPick" }>,
+  action: Extract<Action, { tag: "DraftPick" }>,
 ): ActionOutput {
   if (game.activeTurn.type !== "Draft") {
     throw new Error("DraftPick action is only valid during a Draft turn.");
@@ -454,7 +464,7 @@ function handleDraftPick(
 
 function handleDraftDiscard(
   game: GameState,
-  action: Extract<Action, { action: "DraftDiscard" }>,
+  action: ActionCase<"DraftDiscard">,
 ): ActionOutput {
   if (game.activeTurn.type !== "Draft") {
     throw new Error("DraftDiscard action is only valid during a Draft turn.");
@@ -481,12 +491,12 @@ function handleDraftDiscard(
 
 function handleGatherResourceCards(
   game: GameState,
-  _action: Extract<Action, { action: "GatherResourceCards" }>,
+  _action: ActionCase<"GatherResourceCards">,
 ): ActionOutput {
   const activePlayer = getActivePlayer(game);
 
   let drawAmount = 2;
-  if (activePlayer.city.some(d => d.name === "Observatory")) {
+  if (activePlayer.city.some((d) => d.name === "Observatory")) {
     drawAmount += 1;
   }
 
@@ -496,7 +506,7 @@ function handleGatherResourceCards(
   let log = "";
   let finalFollowup: Followup | undefined = undefined;
 
-  if (activePlayer.city.some(d => d.name === "Library")) {
+  if (activePlayer.city.some((d) => d.name === "Library")) {
     activePlayer.hand.push(...drawnCards);
     log = `${activePlayer.name} gathers cards. With the aid of their library they keep all ${drawnCards.length} cards.`;
     finalFollowup = determineFollowupAfterGather(game);
@@ -515,13 +525,13 @@ function handleGatherResourceCards(
 
 function handleGatherResourceGold(
   game: GameState,
-  _action: Extract<Action, { action: "GatherResourceGold" }>,
+  _action: ActionCase<"GatherResourceGold">,
 ): ActionOutput {
   const activePlayer = getActivePlayer(game);
   let amount = 2;
   let log = "";
 
-  if (activePlayer.city.some(d => d.name === "GoldMine")) {
+  if (activePlayer.city.some((d) => d.name === "GoldMine")) {
     amount += 1;
     log = `${activePlayer.name} gathers 3 gold. (1 extra from their Gold Mine).`;
   } else {
@@ -536,7 +546,7 @@ function handleGatherResourceGold(
 
 function handleAssassinate(
   game: GameState,
-  action: Extract<Action, { action: "Assassinate" }>,
+  action: ActionCase<"Assassinate">,
 ): ActionOutput {
   const targetRoleName = action.role;
 
@@ -567,7 +577,7 @@ function handleAssassinate(
 
 function handleSteal(
   game: GameState,
-  action: Extract<Action, { action: "Steal" }>,
+  action: ActionCase<"Steal">,
 ): ActionOutput {
   const targetRoleName = action.role;
 
@@ -614,7 +624,7 @@ function handleSteal(
 
 function handleMagic(
   game: GameState,
-  action: Extract<Action, { action: "Magic" }>,
+  action: ActionCase<"Magic">,
 ): ActionOutput {
   const magicianPlayer = getActivePlayer(game);
   let log = "";
@@ -649,9 +659,7 @@ function handleMagic(
     for (const card of cardsToDiscard) {
       const indexInHand = magicianHandCopy.indexOf(card);
       if (indexInHand === -1) {
-        throw new Error(
-          `Magician does not have ${card} in hand to discard.`,
-        );
+        throw new Error(`Magician does not have ${card} in hand to discard.`);
       }
       magicianHandCopy.splice(indexInHand, 1); // Remove one instance
     }
@@ -676,7 +684,7 @@ function handleMagic(
 
 function handleTakeCrown(
   game: GameState,
-  _action: Extract<Action, { action: "TakeCrown" }>,
+  _action: ActionCase<"TakeCrown">,
 ): ActionOutput {
   // Find King or Patrician
   const royalCharacter = game.characters.find(
@@ -730,7 +738,7 @@ function handleGainGoldForSuit(
 
 function handleGoldFromReligion(
   game: GameState,
-  _action: Extract<Action, { action: "GoldFromReligion" }>,
+  _action: ActionCase<"GoldFromReligion">,
 ): ActionOutput {
   // Assuming Bishop is the role associated with gaining gold from Religious districts for logging.
   // This might need adjustment if other roles can trigger this or if the log should be more generic.
@@ -741,11 +749,9 @@ function handleGoldFromReligion(
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
-export const playerActionHandlers: {
-  [K in PlayerAction["action"]]: (
-    game: GameState,
-    action: Extract<PlayerAction, { action: K }>,
-  ) => ActionOutput;
+// @ts-expect-error Not all handlers are implemented
+const playerActionHandlers: {
+  [K in ActionTag]: (game: GameState, action: ActionCase<K>) => ActionOutput;
 } = {
   RevealWarrant: handleRevealWarrant,
   PayBribe: handlePayBribe,
@@ -763,3 +769,13 @@ export const playerActionHandlers: {
   GoldFromReligion: handleGoldFromReligion,
   // Other PlayerAction handlers will be added here
 };
+type ActionCase<K> = Extract<PlayerAction, { tag: K }>;
+
+export function runHandler(
+  game: GameState,
+  action: PlayerAction,
+): ActionOutput {
+  const handler = playerActionHandlers[action.tag];
+  // @ts-expect-error The handler dictionary ensures the type is right. This line gets confused because TS doesn;t do existential types. It fails to infer that the action matches the handler.
+  return handler(game, action);
+}
