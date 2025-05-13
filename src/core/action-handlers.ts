@@ -1,6 +1,14 @@
 import { Action, PlayerAction } from "./actions";
 import { DistrictNameUtils } from "./districts";
-import { ActionOutput, Followup, GameState, Notification } from "./game"; // Assuming ActionOutput, GameState etc. are exported from game.ts
+import {
+  ActionOutput,
+  Followup,
+  GameState,
+  Notification,
+  PlayerIndex,
+  DistrictName,
+} from "./game"; // Added PlayerIndex, DistrictName
+import { RoleName, RoleNameUtils, RANKS } from "@/core/roles";
 
 // Individual action handler functions
 function handleRevealWarrant(
@@ -336,6 +344,63 @@ function handleRevealBlackmail(
   return { log };
 }
 
+function handleDraftPick(
+  game: GameState,
+  action: Extract<Action, { action: "DraftPick" }>,
+): ActionOutput {
+  if (game.activeTurn.type !== "Draft") {
+    throw new Error("DraftPick action is only valid during a Draft turn.");
+  }
+  const draft = game.activeTurn.draft;
+  const pickedRole = action.role;
+
+  // Remove pickedRole from draft.remaining
+  const roleIndexInRemaining = draft.remaining.indexOf(pickedRole);
+  if (roleIndexInRemaining === -1) {
+    throw new Error(
+      `Role ${pickedRole} not found in remaining draft roles. Available: ${draft.remaining.join(", ")}`,
+    );
+  }
+  draft.remaining.splice(roleIndexInRemaining, 1);
+
+  // Assign player to the character
+  const character = game.characters.find((c) => c.role === pickedRole);
+  if (!character) {
+    // This should not happen if roles are set up correctly
+    throw new Error(
+      `Character for role ${pickedRole} not found in game characters.`,
+    );
+  }
+  character.playerIndex = draft.playerIndex;
+
+  // Add role to player's roles and sort
+  const player = game.players[draft.playerIndex];
+  if (!player) {
+    throw new Error(`Player not found at index ${draft.playerIndex}.`);
+  }
+  player.roles.push(pickedRole);
+  player.roles.sort(
+    (a, b) =>
+      RANKS.indexOf(RoleNameUtils.data(a).rank) -
+      RANKS.indexOf(RoleNameUtils.data(b).rank),
+  );
+
+  const log = `${player.name} drafts a role.`;
+
+  let endTurn = true;
+  // In a 2-player game, the turn does not end after certain picks to allow for a discard.
+  // Rust: if game.players.len() == 2 && (draft.remaining.len() == 5 || draft.remaining.len() == 3)
+  // This means if the condition is true, end_turn is false. Otherwise, it's true.
+  if (
+    game.players.length === 2 &&
+    (draft.remaining.length === 5 || draft.remaining.length === 3)
+  ) {
+    endTurn = false;
+  }
+
+  return { log, end_turn: endTurn };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -350,5 +415,6 @@ export const playerActionHandlers: {
   IgnoreBlackmail: handleIgnoreBlackmail,
   Pass: handlePass,
   RevealBlackmail: handleRevealBlackmail,
+  DraftPick: handleDraftPick,
   // Other PlayerAction handlers will be added here
 };
