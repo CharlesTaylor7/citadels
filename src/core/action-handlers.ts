@@ -115,6 +115,45 @@ function handlePayBribe(
   return { log };
 }
 
+function handleIgnoreBlackmail(
+  game: GameState,
+  _action: Extract<Action, { action: "IgnoreBlackmail" }>,
+): ActionOutput {
+  const blackmailerRole = game.characters.find(
+    (r) => r.role === "Blackmailer" && r.playerIndex !== undefined,
+  );
+  if (!blackmailerRole || blackmailerRole.playerIndex === undefined) {
+    // This case should ideally not happen if IgnoreBlackmail is a valid action,
+    // as it implies a Blackmailer is in play and has targeted someone.
+    throw new Error("Blackmailer not found or has no assigned player.");
+  }
+  const blackmailerPlayerIndex = blackmailerRole.playerIndex;
+
+  // Determine active player name for logging
+  if (game.activeTurn.type !== "Call") {
+    throw new Error("IgnoreBlackmail action must occur during a Call turn.");
+  }
+  const characterInTurn = game.characters[game.activeTurn.call.index];
+  if (
+    characterInTurn === undefined ||
+    characterInTurn.playerIndex === undefined
+  ) {
+    throw new Error("No active player found for IgnoreBlackmail logging.");
+  }
+  const activePlayer = game.players[characterInTurn.playerIndex];
+  if (!activePlayer) {
+    throw new Error("Active player not found.");
+  }
+
+  const log = `${activePlayer.name} ignored the blackmail. Waiting on the Blackmailer's response.`;
+  const followup: Followup = {
+    type: "Blackmail", // This should match the existing Followup type in game.ts
+    blackmailer: blackmailerPlayerIndex,
+  };
+
+  return { log, followup };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -126,5 +165,6 @@ export const playerActionHandlers: {
 } = {
   RevealWarrant: handleRevealWarrant as any,
   PayBribe: handlePayBribe as any,
+  IgnoreBlackmail: handleIgnoreBlackmail as any,
   // Other PlayerAction handlers will be added here
 };
