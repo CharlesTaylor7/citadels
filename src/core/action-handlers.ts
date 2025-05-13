@@ -609,6 +609,68 @@ function handleSteal(
   return { log };
 }
 
+function handleMagic(
+  game: GameState,
+  action: Extract<Action, { action: "Magic" }>,
+): ActionOutput {
+  const magicianPlayer = getActivePlayer(game);
+  let log = "";
+
+  if ("player" in action.magicianAction) {
+    // TargetPlayer: Swap hands with another player
+    const targetPlayerName = action.magicianAction.player;
+    const targetPlayer = game.players.find((p) => p.name === targetPlayerName);
+
+    if (!targetPlayer) {
+      throw new Error(`Target player "${targetPlayerName}" not found.`);
+    }
+    if (targetPlayer.id === magicianPlayer.id) {
+      throw new Error("Magician cannot target themselves for hand swap.");
+    }
+
+    const magicianHandCount = magicianPlayer.hand.length;
+    const targetHandCount = targetPlayer.hand.length;
+
+    // Swap hands
+    const tempHand = magicianPlayer.hand;
+    magicianPlayer.hand = targetPlayer.hand;
+    targetPlayer.hand = tempHand;
+
+    log = `The Magician (${magicianPlayer.name}) swaps their hand of ${magicianHandCount} cards with ${targetPlayer.name}'s hand of ${targetHandCount} cards.`;
+  } else if ("district" in action.magicianAction) {
+    // TargetDeck: Discard cards and draw new ones
+    const cardsToDiscard = action.magicianAction.district; // This is an array of DistrictName
+
+    // Verify magician has these cards
+    const magicianHandCopy = [...magicianPlayer.hand];
+    for (const card of cardsToDiscard) {
+      const indexInHand = magicianHandCopy.indexOf(card);
+      if (indexInHand === -1) {
+        throw new Error(
+          `Magician does not have ${card} in hand to discard.`,
+        );
+      }
+      magicianHandCopy.splice(indexInHand, 1); // Remove one instance
+    }
+
+    // Perform discard
+    magicianPlayer.hand = magicianHandCopy; // Hand after removing cards
+    game.discard.push(...cardsToDiscard); // Add to game's discard pile
+
+    // Draw new cards
+    const numToDraw = cardsToDiscard.length;
+    const drawnCards = game.deck.splice(0, numToDraw);
+    magicianPlayer.hand.push(...drawnCards);
+
+    log = `The Magician (${magicianPlayer.name}) discarded ${cardsToDiscard.length} cards and drew ${drawnCards.length} more.`;
+  } else {
+    // Should not happen due to Zod schema validation, but good for exhaustiveness
+    throw new Error("Invalid MagicianAction structure.");
+  }
+
+  return { log };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -629,5 +691,6 @@ export const playerActionHandlers: {
   GatherResourceGold: handleGatherResourceGold,
   Assassinate: handleAssassinate,
   Steal: handleSteal,
+  Magic: handleMagic,
   // Other PlayerAction handlers will be added here
 };
