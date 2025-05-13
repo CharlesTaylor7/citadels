@@ -562,6 +562,53 @@ function handleAssassinate(
   return { log };
 }
 
+function handleSteal(
+  game: GameState,
+  action: Extract<Action, { action: "Steal" }>,
+): ActionOutput {
+  const targetRoleName = action.role;
+
+  if (targetRoleName === "Thief") {
+    throw new Error("Cannot steal from self (Thief).");
+  }
+
+  const targetCharacter = game.characters.find(
+    (c) => c.role === targetRoleName,
+  );
+
+  if (!targetCharacter) {
+    throw new Error(
+      `Role ${targetRoleName} not found in this game's characters.`,
+    );
+  }
+
+  if (targetCharacter.revealed) {
+    throw new Error(
+      `Cannot steal from ${RoleNameUtils.data(targetRoleName).name} who has already taken their turn.`,
+    );
+  }
+
+  if (
+    targetCharacter.markers.some(
+      (marker) => marker === "Killed" || marker.type === "Bewitched",
+    )
+  ) {
+    throw new Error(
+      `Cannot rob from the ${RoleNameUtils.data(targetRoleName).name} who is killed or bewitched.`,
+    );
+  }
+
+  // Ensure the "Robbed" marker is not already present, though Rust code doesn't check this.
+  // It's generally safe to add.
+  targetCharacter.markers.push("Robbed");
+
+  const thiefPlayer = getActivePlayer(game); // Assumes Thief is the active player
+
+  const log = `The Thief (${thiefPlayer.name}) robs the ${RoleNameUtils.data(targetRoleName).name}; At the start of their turn, all their gold will be taken.`;
+
+  return { log };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -581,5 +628,6 @@ export const playerActionHandlers: {
   GatherResourceCards: handleGatherResourceCards,
   GatherResourceGold: handleGatherResourceGold,
   Assassinate: handleAssassinate,
+  Steal: handleSteal,
   // Other PlayerAction handlers will be added here
 };
