@@ -531,6 +531,37 @@ function handleGatherResourceGold(
   return { log, followup };
 }
 
+function handleAssassinate(
+  game: GameState,
+  action: Extract<Action, { action: "Assassinate" }>,
+): ActionOutput {
+  const targetRoleName = action.role;
+
+  if (targetRoleName === "Assassin") {
+    throw new Error("Cannot assassinate self (Assassin).");
+  }
+
+  const targetCharacter = game.characters.find(
+    (c) => c.role === targetRoleName,
+  );
+
+  if (!targetCharacter) {
+    throw new Error(
+      `Role ${targetRoleName} not found in this game's characters.`,
+    );
+  }
+
+  // Ensure the "Killed" marker is not already present, though Rust code doesn't check this.
+  // It's generally safe to add, as multiple "Killed" markers don't change behavior.
+  targetCharacter.markers.push("Killed");
+
+  const assassinPlayer = getActivePlayer(game); // Assumes Assassin is the active player
+
+  const log = `The Assassin (${assassinPlayer.name}) kills the ${RoleNameUtils.data(targetRoleName).name}; Their turn will be skipped.`;
+
+  return { log };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -549,5 +580,6 @@ export const playerActionHandlers: {
   DraftDiscard: handleDraftDiscard,
   GatherResourceCards: handleGatherResourceCards,
   GatherResourceGold: handleGatherResourceGold,
+  Assassinate: handleAssassinate,
   // Other PlayerAction handlers will be added here
 };
