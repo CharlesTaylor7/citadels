@@ -401,6 +401,33 @@ function handleDraftPick(
   return { log, end_turn: endTurn };
 }
 
+function handleDraftDiscard(
+  game: GameState,
+  action: Extract<Action, { action: "DraftDiscard" }>,
+): ActionOutput {
+  if (game.activeTurn.type !== "Draft") {
+    throw new Error("DraftDiscard action is only valid during a Draft turn.");
+  }
+  const draft = game.activeTurn.draft;
+  const roleToDiscard = action.role;
+
+  const roleIndexInRemaining = draft.remaining.indexOf(roleToDiscard);
+  if (roleIndexInRemaining === -1) {
+    throw new Error(
+      `Role ${roleToDiscard} not found in remaining draft roles to discard. Available: ${draft.remaining.join(", ")}`,
+    );
+  }
+  draft.remaining.splice(roleIndexInRemaining, 1);
+
+  const activePlayer = game.players[draft.playerIndex];
+  if (!activePlayer) {
+    throw new Error(`Active player not found at index ${draft.playerIndex}.`);
+  }
+
+  const log = `${activePlayer.name} discards a role face down.`;
+  return { log, end_turn: true };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -416,5 +443,6 @@ export const playerActionHandlers: {
   Pass: handlePass,
   RevealBlackmail: handleRevealBlackmail,
   DraftPick: handleDraftPick,
+  DraftDiscard: handleDraftDiscard,
   // Other PlayerAction handlers will be added here
 };
