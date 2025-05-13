@@ -1,8 +1,9 @@
 import { Marker, PlayerId } from "@/core/types";
 import { RoleName } from "@/core/roles";
-import { DistrictName, DistrictNameUtils } from "@/core/districts";
+import { DistrictName } from "@/core/districts";
 import { PRNG } from "@/server/game/random";
 import { Action } from "./actions";
+import { playerActionHandlers } from "./action-handlers";
 
 export interface GameState {
   players: Player[];
@@ -104,78 +105,24 @@ export interface Museum {
 }
 
 export function performAction(game: GameState, action: Action): ActionOutput {
-  let log = "";
-  let notifications: Notification[] | undefined = undefined;
-  let followup: Followup | null = null; // By default, followup is cleared unless set otherwise
+  if (action.action === "GameStart") {
+    // GameStartAction is not a PlayerAction and should be handled by a different mechanism.
+    throw new Error(
+      `Action type ${action.action} is not a PlayerAction and cannot be processed by performAction.`,
+    );
+  } else {
+    // In this block, TypeScript infers `action` as `PlayerAction`.
+    const handler = playerActionHandlers[action.action];
 
-  switch (action.action) {
-    case "RevealWarrant": {
-      if (game.followup?.type !== "Warrant") {
-        throw new Error("Invalid followup state for RevealWarrant");
-      }
-      const warrantFollowup = game.followup; // alias for type narrowing
-
-      if (!warrantFollowup.signed) {
-        const magistratePlayer = game.players[warrantFollowup.magistrate];
-        if (!magistratePlayer) {
-          throw new Error(
-            `Invalid player index for Magistrate: ${warrantFollowup.magistrate}`,
-          );
-        }
-        magistratePlayer.gold += warrantFollowup.gold;
-        const districtData = DistrictNameUtils.data(warrantFollowup.district);
-
-        // Determine active player name for logging
-        if (game.activeTurn.type !== "Call") {
-            throw new Error("RevealWarrant action must occur during a Call turn.");
-        }
-        const characterInTurn = game.characters[game.activeTurn.call.index];
-        if (characterInTurn === undefined || characterInTurn.playerIndex === undefined) {
-            throw new Error("No active player found for RevealWarrant logging.");
-        }
-        const activePlayer = game.players[characterInTurn.playerIndex];
-        if (!activePlayer) {
-            throw new Error("Active player not found.");
-        }
-
-        log = `${activePlayer.name} reveals an unsigned warrant. ${magistratePlayer.name} takes ${warrantFollowup.gold} gold and the ${districtData.displayName}.`;
-      } else {
-        if (game.activeTurn.type !== "Call") {
-          throw new Error("RevealWarrant action must occur during a Call turn.");
-        }
-        const characterInTurn = game.characters[game.activeTurn.call.index];
-        if (characterInTurn === undefined || characterInTurn.playerIndex === undefined) {
-          throw new Error("No active player found for RevealWarrant.");
-        }
-        const activePlayerIndex = characterInTurn.playerIndex;
-        const targetPlayer = game.players[activePlayerIndex];
-        if (!targetPlayer) {
-          throw new Error(
-            `Invalid player index for target: ${activePlayerIndex}`,
-          );
-        }
-
-        const districtData = DistrictNameUtils.data(warrantFollowup.district);
-        log = `${targetPlayer.name} reveals a signed warrant. The ${districtData.displayName} is confiscated from ${targetPlayer.name}.`;
-
-        targetPlayer.city = targetPlayer.city.filter(
-          (d) => d.name !== warrantFollowup.district,
-        );
-        game.deck.push(warrantFollowup.district);
-      }
-      game.followup = null; // Clear the followup
-      return { log };
+    if (handler) {
+      // The `action` object (now inferred as PlayerAction) is passed to the specific handler.
+      // The `playerActionHandlers` map ensures that `handler` expects the correct subtype of `PlayerAction`.
+      return handler(game, action);
+    } else {
+      // Fallback for PlayerAction types that are not yet in the map or are misspelled.
+      throw new Error(
+        `No handler implemented for action type ${action.action}.`,
+      );
     }
-    // Add other action cases here based on reference/citadels/src/game_actions.rs
-    // Action::GameStart is not a PlayerAction, handle separately if needed or ensure Action type for this function is PlayerAction
-    default:
-      // Ensure exhaustiveness for PlayerAction if 'action' is narrowed, or handle GameStartAction
-      if (action.action === "GameStart") {
-        // Logic for GameStart if it were to be handled here
-        // For now, assume performAction is for player actions during the game
-        throw new Error(`Action type ${action.action} not handled by performAction.`);
-      }
-      // If action is PlayerAction, this will catch unhandled specific player actions
-      throw new Error(`Action type ${(action as any).action} not implemented.`);
   }
 }
