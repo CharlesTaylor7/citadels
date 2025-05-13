@@ -157,6 +157,54 @@ function handleIgnoreBlackmail(
   return { log, followup };
 }
 
+// Helper to get the current character whose turn it is (based on Call phase)
+function getCharacterInTurn(game: GameState): GameRole {
+  if (game.activeTurn.type !== "Call") {
+    // This check might be too restrictive if called by actions usable in other phases.
+    // For now, assuming actions needing "active character" are in Call phase.
+    throw new Error("Action requires to be in Call turn phase to identify active character.");
+  }
+  const character = game.characters[game.activeTurn.call.index];
+  if (!character) {
+    throw new Error(`Character not found at Call index ${game.activeTurn.call.index}`);
+  }
+  return character;
+}
+
+// Helper to get the player controlling the current character in turn
+function getActivePlayer(game: GameState): Player {
+  // If Draft phase, active player is directly from draft.playerIndex
+  if (game.activeTurn.type === "Draft") {
+    const player = game.players[game.activeTurn.draft.playerIndex];
+    if (!player) {
+      throw new Error(`Player not found at Draft index ${game.activeTurn.draft.playerIndex}`);
+    }
+    return player;
+  }
+
+  // For Call phase (and potentially others if active player logic is centralized)
+  const characterInTurn = getCharacterInTurn(game);
+  if (characterInTurn.playerIndex === undefined) {
+    // TODO: Handle complex active player logic from Rust, e.g., Bewitched player's turn taken by Witch.
+    // For now, this is a direct interpretation.
+    throw new Error(`Character ${characterInTurn.role} has no assigned player for this turn.`);
+  }
+  const player = game.players[characterInTurn.playerIndex];
+  if (!player) {
+    throw new Error(`Player not found at index ${characterInTurn.playerIndex} for character ${characterInTurn.role}.`);
+  }
+  return player;
+}
+
+// Helper for after_gather_resources logic from Rust
+function determineFollowupAfterGather(game: GameState): Followup | undefined {
+  const characterInTurn = getCharacterInTurn(game);
+  if (characterInTurn.markers.some(marker => marker.type === "Bewitched")) {
+    return { type: "Bewitch" };
+  }
+  return undefined;
+}
+
 // Simplified helper for completing a build.
 // TODO: Expand this to include all special district effects from Rust's `Game::complete_build`
 // (e.g., PoorHouse, HauntedQuarter, Smithy, MapRoom, ImperialTreasury, SchoolOfMagic effects, cost interactions).
@@ -428,6 +476,40 @@ function handleDraftDiscard(
   return { log, end_turn: true };
 }
 
+function handleGatherResourceCards(
+  game: GameState,
+  _action: Extract<Action, { action: "GatherResourceCards" }>,
+): ActionOutput {
+  const activePlayer = getActivePlayer(game);
+
+  let drawAmount = 2;
+  if (activePlayer.city.some(d => d.name === "Observatory")) {
+    drawAmount += 1;
+  }
+
+  // Draw cards from the deck (removes them from game.deck)
+  const drawnCards = game.deck.splice(0, drawAmount);
+
+  let log = "";
+  let finalFollowup: Followup | undefined = undefined;
+
+  if (activePlayer.city.some(d => d.name === "Library")) {
+    activePlayer.hand.push(...drawnCards);
+    log = `${activePlayer.name} gathers cards. With the aid of their library they keep all ${drawnCards.length} cards.`;
+    finalFollowup = determineFollowupAfterGather(game);
+  } else {
+    log = `${activePlayer.name} reveals ${drawnCards.length} cards from the top of the deck.`;
+    if (drawnCards.length > 0) {
+      finalFollowup = { type: "GatherCardsPick", revealed: drawnCards };
+    } else {
+      // If no cards drawn (e.g., deck was empty), then check for Bewitch followup
+      finalFollowup = determineFollowupAfterGather(game);
+    }
+  }
+
+  return { log, followup: finalFollowup };
+}
+
 // Map of action types to their handlers
 // We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
 // The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
@@ -444,5 +526,6 @@ export const playerActionHandlers: {
   RevealBlackmail: handleRevealBlackmail,
   DraftPick: handleDraftPick,
   DraftDiscard: handleDraftDiscard,
+  GatherResourceCards: handleGatherResourceCards,
   // Other PlayerAction handlers will be added here
 };
