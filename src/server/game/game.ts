@@ -1,4 +1,4 @@
-import { GameStartAction } from "@/core/actions";
+import { GameStartAction, PlayerAction } from "@/core/actions";
 import {
   DistrictName,
   DistrictNameUtils,
@@ -16,6 +16,8 @@ import {
   Player,
 } from "@/core/game";
 import { asRng, newPrng, shuffle, RNG } from "@/server/game/random";
+import { runHandler } from "@/core/action-handlers";
+import { notifyPlayer, notifyRoom } from "./notifications";
 
 export function createPlayer(
   index: number,
@@ -405,7 +407,11 @@ export function countSuitForResourceGain(
   ).length;
 }
 
-export function performAction(game: GameState, action: PlayerAction) {
+export function performAction(
+  game: GameState,
+  action: PlayerAction,
+  roomId: string,
+) {
   const { followup, log, end_turn, notifications } = runHandler(game, action);
 
   game.followup = followup;
@@ -414,6 +420,17 @@ export function performAction(game: GameState, action: PlayerAction) {
   const role = getActiveRole(game);
   if (role) {
     role.logs.push(log);
+  }
+
+  if (notifications) {
+    for (const { message, playerIndex } of notifications) {
+      if (playerIndex == null) {
+        notifyRoom({ roomId, message });
+      } else {
+        const userId = game.players[playerIndex].id;
+        notifyPlayer({ roomId, userId, message });
+      }
+    }
   }
 
   if (end_turn) endTurn(game);

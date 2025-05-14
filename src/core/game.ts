@@ -2,9 +2,7 @@ import { Marker, PlayerId } from "@/core/types";
 import { RoleName } from "@/core/roles";
 import { DistrictName } from "@/core/districts";
 import { PRNG } from "@/server/game/random";
-import { Action, PlayerAction } from "./actions";
-import { playerActionHandlers, runHandler } from "./action-handlers";
-import { getActiveRole } from "@/server/game/game";
+import { Action } from "./actions";
 
 export interface GameState {
   players: Player[];
