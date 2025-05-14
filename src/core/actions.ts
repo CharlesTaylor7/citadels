@@ -22,20 +22,22 @@ export type PlayerAction = z.infer<typeof PlayerActionSchema>;
 
 export const ActionTagUtils = {
   isResourceGathering(tag: ActionTag): boolean {
-    return [
+    const gatherAction: ActionTag[] = [
       "GatherResourceGold",
       "GatherResourceCards",
       "GatherCardsPick",
-    ].includes(tag);
+    ];
+    return gatherAction.includes(tag);
   },
 
   isRequired(tag: ActionTag): boolean {
-    return [
+    const requiredActions: ActionTag[] = [
       "DraftPick",
       "GatherResourceGold",
       "GatherResourceCards",
       "EndTurn",
-    ].includes(tag);
+    ];
+    return requiredActions.includes(tag);
   },
 
   label(tag: ActionTag): string {

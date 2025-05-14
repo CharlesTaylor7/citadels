@@ -14,151 +14,6 @@ import { RoleName, RoleNameUtils, RANKS } from "@/core/roles";
 import { CardSuit } from "@/core/types"; // Added CardSuit
 
 // Individual action handler functions
-function handleRevealWarrant(
-  game: GameState,
-  _action: ActionCase<"RevealWarrant">,
-): ActionOutput {
-  let log = "";
-  if (game.followup?.type !== "Warrant") {
-    throw new Error("Invalid followup state for RevealWarrant");
-  }
-  const warrantFollowup = game.followup; // alias for type narrowing
-
-  if (!warrantFollowup.signed) {
-    const magistratePlayer = game.players[warrantFollowup.magistrate];
-    if (!magistratePlayer) {
-      throw new Error(
-        `Invalid player index for Magistrate: ${warrantFollowup.magistrate}`,
-      );
-    }
-    magistratePlayer.gold += warrantFollowup.gold;
-    const districtData = DistrictNameUtils.data(warrantFollowup.district);
-
-    if (game.activeTurn.type !== "Call") {
-      throw new Error("RevealWarrant action must occur during a Call turn.");
-    }
-    const characterInTurn = game.characters[game.activeTurn.call.index];
-    if (
-      characterInTurn === undefined ||
-      characterInTurn.playerIndex === undefined
-    ) {
-      throw new Error("No active player found for RevealWarrant logging.");
-    }
-    const activePlayer = game.players[characterInTurn.playerIndex];
-    if (!activePlayer) {
-      throw new Error("Active player not found.");
-    }
-
-    log = `${activePlayer.name} reveals an unsigned warrant. ${magistratePlayer.name} takes ${warrantFollowup.gold} gold and the ${districtData.displayName}.`;
-  } else {
-    if (game.activeTurn.type !== "Call") {
-      throw new Error("RevealWarrant action must occur during a Call turn.");
-    }
-    const characterInTurn = game.characters[game.activeTurn.call.index];
-    if (
-      characterInTurn === undefined ||
-      characterInTurn.playerIndex === undefined
-    ) {
-      throw new Error("No active player found for RevealWarrant.");
-    }
-    const activePlayerIndex = characterInTurn.playerIndex;
-    const targetPlayer = game.players[activePlayerIndex];
-    if (!targetPlayer) {
-      throw new Error(`Invalid player index for target: ${activePlayerIndex}`);
-    }
-
-    const districtData = DistrictNameUtils.data(warrantFollowup.district);
-    log = `${targetPlayer.name} reveals a signed warrant. The ${districtData.displayName} is confiscated from ${targetPlayer.name}.`;
-
-    targetPlayer.city = targetPlayer.city.filter(
-      (d) => d.name !== warrantFollowup.district,
-    );
-    game.deck.push(warrantFollowup.district);
-  }
-  game.followup = null; // Clear the followup
-  return { log };
-}
-
-function handlePayBribe(
-  game: GameState,
-  _action: ActionCase<"PayBribe">,
-): ActionOutput {
-  const blackmailerRole = game.characters.find(
-    (r) => r.role === "Blackmailer" && r.playerIndex !== undefined,
-  );
-  if (!blackmailerRole || blackmailerRole.playerIndex === undefined) {
-    throw new Error("Blackmailer not found or has no assigned player.");
-  }
-  const blackmailerPlayerIndex = blackmailerRole.playerIndex;
-  const blackmailerPlayer = game.players[blackmailerPlayerIndex];
-  if (!blackmailerPlayer) {
-    throw new Error(
-      `Invalid player index for Blackmailer: ${blackmailerPlayerIndex}`,
-    );
-  }
-
-  if (game.activeTurn.type !== "Call") {
-    throw new Error("PayBribe action must occur during a Call turn.");
-  }
-  const characterInTurn = game.characters[game.activeTurn.call.index];
-  if (
-    characterInTurn === undefined ||
-    characterInTurn.playerIndex === undefined
-  ) {
-    throw new Error("No active player found for PayBribe.");
-  }
-  const activePlayerIndex = characterInTurn.playerIndex;
-  const activePlayer = game.players[activePlayerIndex];
-  if (!activePlayer) {
-    throw new Error("Active player not found.");
-  }
-
-  const bribeAmount = Math.floor(activePlayer.gold / 2);
-  activePlayer.gold -= bribeAmount;
-  blackmailerPlayer.gold += bribeAmount;
-
-  const log = `${activePlayer.name} bribed the Blackmailer (${blackmailerPlayer.name}) with ${bribeAmount} gold.`;
-  return { log };
-}
-
-function handleIgnoreBlackmail(
-  game: GameState,
-  _action: Extract<Action, { tag: "IgnoreBlackmail" }>,
-): ActionOutput {
-  const blackmailerRole = game.characters.find(
-    (r) => r.role === "Blackmailer" && r.playerIndex !== undefined,
-  );
-  if (!blackmailerRole || blackmailerRole.playerIndex === undefined) {
-    // This case should ideally not happen if IgnoreBlackmail is a valid action,
-    // as it implies a Blackmailer is in play and has targeted someone.
-    throw new Error("Blackmailer not found or has no assigned player.");
-  }
-  const blackmailerPlayerIndex = blackmailerRole.playerIndex;
-
-  // Determine active player name for logging
-  if (game.activeTurn.type !== "Call") {
-    throw new Error("IgnoreBlackmail action must occur during a Call turn.");
-  }
-  const characterInTurn = game.characters[game.activeTurn.call.index];
-  if (
-    characterInTurn === undefined ||
-    characterInTurn.playerIndex === undefined
-  ) {
-    throw new Error("No active player found for IgnoreBlackmail logging.");
-  }
-  const activePlayer = game.players[characterInTurn.playerIndex];
-  if (!activePlayer) {
-    throw new Error("Active player not found.");
-  }
-
-  const log = `${activePlayer.name} ignored the blackmail. Waiting on the Blackmailer's response.`;
-  const followup: Followup = {
-    type: "Blackmail", // This should match the existing Followup type in game.ts
-    blackmailer: blackmailerPlayerIndex,
-  };
-
-  return { log, followup };
-}
 
 // Helper to get the current character whose turn it is (based on Call phase)
 function getCharacterInTurn(game: GameState): GameRole {
@@ -221,45 +76,10 @@ function determineFollowupAfterGather(game: GameState): Followup | undefined {
 // Simplified helper for completing a build.
 // TODO: Expand this to include all special district effects from Rust's `Game::complete_build`
 // (e.g., PoorHouse, HauntedQuarter, Smithy, MapRoom, ImperialTreasury, SchoolOfMagic effects, cost interactions).
-function completeBuild_simplified(
-  game: GameState,
-  playerIndex: PlayerIndex,
-  districtName: DistrictName,
-  _cost: number, // Cost is passed for potential future use (e.g. Smithy refund)
-): void {
-  const player = game.players[playerIndex];
-  if (!player) {
-    throw new Error(
-      `Player not found at index ${playerIndex} for completeBuild`,
-    );
-  }
-
-  // Check for duplicates if not Quarry or Wizard (simplified, actual build action would handle this better)
-  // For now, Pass action assumes the build is valid if it reaches this stage.
-  // if (player.city.some(d => d.name === districtName) && districtName !== "Quarry" /* and not wizard role */) {
-  //   throw new Error(`Player ${player.name} already has district ${districtName} in their city.`);
-  // }
-
-  player.city.push({ name: districtName, beautified: false });
-
-  // Simplified city size calculation (as in Player.city_size in Rust)
-  const citySize = player.city.reduce(
-    (acc, d) => acc + (d.name === "Monument" ? 2 : 1),
-    0,
-  );
-
-  // Determine complete city size (as in Game.complete_city_size in Rust)
-  const requiredCitySize = game.players.length <= 3 ? 8 : 7;
-
-  if (citySize >= requiredCitySize && game.firstToComplete === null) {
-    game.firstToComplete = playerIndex;
-    // TODO: Consider adding a log or notification for "first to complete city".
-  }
-}
 
 function handlePass(
   game: GameState,
-  _action: Extract<Action, { tag: "Pass" }>,
+  _action: ActionCase<"Pass">,
 ): ActionOutput {
   let log = "";
 
@@ -345,69 +165,9 @@ function handlePass(
   return { log };
 }
 
-function handleRevealBlackmail(
-  game: GameState,
-  _action: Extract<Action, { tag: "RevealBlackmail" }>,
-): ActionOutput {
-  if (game.followup?.type !== "Blackmail") {
-    throw new Error("Invalid followup state for RevealBlackmail");
-  }
-  const blackmailFollowup = game.followup;
-  const blackmailerPlayerIndex = blackmailFollowup.blackmailer;
-  const blackmailerPlayer = game.players[blackmailerPlayerIndex];
-
-  if (!blackmailerPlayer) {
-    throw new Error(
-      `Blackmailer player not found at index ${blackmailerPlayerIndex}`,
-    );
-  }
-
-  if (game.activeTurn.type !== "Call") {
-    throw new Error("RevealBlackmail action must occur during a Call turn.");
-  }
-  const characterInTurn = game.characters[game.activeTurn.call.index];
-  if (
-    characterInTurn === undefined ||
-    characterInTurn.playerIndex === undefined
-  ) {
-    throw new Error("No active character/player found for RevealBlackmail.");
-  }
-  const activePlayerIndex = characterInTurn.playerIndex;
-  const activePlayer = game.players[activePlayerIndex];
-  if (!activePlayer) {
-    throw new Error("Active player (target of blackmail) not found.");
-  }
-
-  const isFlowered = characterInTurn.markers.some(
-    (marker) => marker.type === "Blackmail" && marker.flowered,
-  );
-
-  let log = "";
-
-  if (isFlowered) {
-    const goldTaken = activePlayer.gold;
-    activePlayer.gold = 0;
-    blackmailerPlayer.gold += goldTaken;
-
-    // Clear all blackmail markers from all characters
-    game.characters.forEach((character) => {
-      character.markers = character.markers.filter(
-        (marker) => marker.type !== "Blackmail",
-      );
-    });
-
-    log = `The Blackmailer (${blackmailerPlayer.name}) reveals an active threat against ${activePlayer.name}, and takes all ${goldTaken} of their gold.`;
-  } else {
-    log = `The Blackmailer (${blackmailerPlayer.name}) reveals an empty threat against ${activePlayer.name}. Nothing happens.`;
-  }
-
-  game.followup = null; // Clear the followup
-  return { log };
-}
-
 function handleDraftPick(
   game: GameState,
-  action: Extract<Action, { tag: "DraftPick" }>,
+  action: ActionCase<"DraftPick">,
 ): ActionOutput {
   if (game.activeTurn.type !== "Draft") {
     throw new Error("DraftPick action is only valid during a Draft turn.");
@@ -622,66 +382,6 @@ function handleSteal(
   return { log };
 }
 
-function handleMagic(
-  game: GameState,
-  action: ActionCase<"Magic">,
-): ActionOutput {
-  const magicianPlayer = getActivePlayer(game);
-  let log = "";
-
-  if ("player" in action.magicianAction) {
-    // TargetPlayer: Swap hands with another player
-    const targetPlayerName = action.magicianAction.player;
-    const targetPlayer = game.players.find((p) => p.name === targetPlayerName);
-
-    if (!targetPlayer) {
-      throw new Error(`Target player "${targetPlayerName}" not found.`);
-    }
-    if (targetPlayer.id === magicianPlayer.id) {
-      throw new Error("Magician cannot target themselves for hand swap.");
-    }
-
-    const magicianHandCount = magicianPlayer.hand.length;
-    const targetHandCount = targetPlayer.hand.length;
-
-    // Swap hands
-    const tempHand = magicianPlayer.hand;
-    magicianPlayer.hand = targetPlayer.hand;
-    targetPlayer.hand = tempHand;
-
-    log = `The Magician (${magicianPlayer.name}) swaps their hand of ${magicianHandCount} cards with ${targetPlayer.name}'s hand of ${targetHandCount} cards.`;
-  } else if ("district" in action.magicianAction) {
-    // TargetDeck: Discard cards and draw new ones
-    const cardsToDiscard = action.magicianAction.district; // This is an array of DistrictName
-
-    // Verify magician has these cards
-    const magicianHandCopy = [...magicianPlayer.hand];
-    for (const card of cardsToDiscard) {
-      const indexInHand = magicianHandCopy.indexOf(card);
-      if (indexInHand === -1) {
-        throw new Error(`Magician does not have ${card} in hand to discard.`);
-      }
-      magicianHandCopy.splice(indexInHand, 1); // Remove one instance
-    }
-
-    // Perform discard
-    magicianPlayer.hand = magicianHandCopy; // Hand after removing cards
-    game.discard.push(...cardsToDiscard); // Add to game's discard pile
-
-    // Draw new cards
-    const numToDraw = cardsToDiscard.length;
-    const drawnCards = game.deck.splice(0, numToDraw);
-    magicianPlayer.hand.push(...drawnCards);
-
-    log = `The Magician (${magicianPlayer.name}) discarded ${cardsToDiscard.length} cards and drew ${drawnCards.length} more.`;
-  } else {
-    // Should not happen due to Zod schema validation, but good for exhaustiveness
-    throw new Error("Invalid MagicianAction structure.");
-  }
-
-  return { log };
-}
-
 function handleTakeCrown(
   game: GameState,
   _action: ActionCase<"TakeCrown">,
@@ -746,28 +446,14 @@ function handleGoldFromReligion(
   return handleGainGoldForSuit(game, "Religious", activeCharacter.role);
 }
 
-// Map of action types to their handlers
-// We use `Extract<Action, { action: K }>` to ensure type safety for each handler's action parameter.
-// The `as any` cast is a pragmatic way to satisfy TypeScript's complex type inference for such dynamic dispatch maps.
 // @ts-expect-error Not all handlers are implemented
 const playerActionHandlers: {
   [K in ActionTag]: (game: GameState, action: ActionCase<K>) => ActionOutput;
 } = {
-  RevealWarrant: handleRevealWarrant,
-  PayBribe: handlePayBribe,
-  IgnoreBlackmail: handleIgnoreBlackmail,
-  Pass: handlePass,
-  RevealBlackmail: handleRevealBlackmail,
   DraftPick: handleDraftPick,
   DraftDiscard: handleDraftDiscard,
   GatherResourceCards: handleGatherResourceCards,
   GatherResourceGold: handleGatherResourceGold,
-  Assassinate: handleAssassinate,
-  Steal: handleSteal,
-  Magic: handleMagic,
-  TakeCrown: handleTakeCrown,
-  GoldFromReligion: handleGoldFromReligion,
-  // Other PlayerAction handlers will be added here
 };
 type ActionCase<K> = Extract<PlayerAction, { tag: K }>;
 
