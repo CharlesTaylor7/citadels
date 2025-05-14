@@ -711,7 +711,7 @@ None =>
             }
 
             if target.district == DistrictName::Armory {
-                return Err("The armory cannot destroy itgame".into());
+                return Err("The armory cannot destroy itself".into());
             }
 
             let complete_size = game.complete_city_size();

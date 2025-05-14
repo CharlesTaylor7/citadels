@@ -158,8 +158,8 @@ export const ROLES: RoleData[] = [
     set: "DarkCity",
     suit: "Religious",
     actions: [
-      [1, "TakeFromRich"],
-      [1, "ResourcesFromReligion"],
+      [1, "AbbotTakeFromRich"],
+      [1, "AbbotGainFromReligion"],
     ],
     description:
       "Take 1 gold or 1 card from the player with the most gold. Gain 1 gold or 1 card for each of your RELIGIOUS districts.",
@@ -170,12 +170,9 @@ export const ROLES: RoleData[] = [
     name: "Cardinal",
     set: "Citadels2016",
     suit: "Religious",
-    actions: [
-      [1, "CardinalExchange"],
-      [1, "GoldFromReligion"],
-    ],
+    actions: [[1, "CardsFromReligion"]],
     description:
-      "When another player builds a district, you can exchange cards from your hand for their gold. Gain 1 gold for each of your RELIGIOUS districts.",
+      "When another player builds a district, you can exchange cards from your hand for their gold. Gain 1 card for each of your RELIGIOUS districts.",
     reminder: "",
   },
 

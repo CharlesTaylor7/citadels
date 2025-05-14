@@ -39,95 +39,6 @@ export const ActionTagUtils = {
     ];
     return requiredActions.includes(tag);
   },
-
-  label(tag: ActionTag): string {
-    switch (tag) {
-      case "GoldFromTrade":
-        return "Gain gold from Trade";
-      case "GoldFromReligion":
-        return "Gain gold from Religious";
-      case "GoldFromMilitary":
-        return "Gain gold from Military";
-      case "GoldFromNobility":
-        return "Gain gold from Noble";
-      case "CardsFromNobility":
-        return "Gain cards from Noble";
-      case "CardsFromReligion":
-        return "Gain cards from Religious";
-      case "ResourcesFromReligion":
-        return "Gain resources from Religious";
-      case "DraftPick":
-        return "Pick";
-      case "DraftDiscard":
-        return "Discard";
-      case "Build":
-        return "Build";
-      case "EndTurn":
-        return "End turn";
-      case "Steal":
-        return "Steal";
-      case "Magic":
-        return "Magic";
-      case "TakeCrown":
-        return "Take Crown";
-      case "MerchantGainOneGold":
-        return "Gain 1 extra gold";
-      case "ArchitectGainCards":
-        return "Gain 2 extra cards";
-      case "SendWarrants":
-        return "Send Warrants";
-      case "WarlordDestroy":
-        return "Destroy";
-      case "ScholarReveal":
-        return "Draw 7, pick 1";
-      case "ScholarPick":
-        return "Pick";
-      case "RevealWarrant":
-        return "Confiscate";
-      case "RevealBlackmail":
-        return "Reveal Blackmail";
-      case "PayBribe":
-        return "Pay bribe";
-      case "IgnoreBlackmail":
-        return "Ignore blackmail";
-      case "NavigatorGain":
-        return "Navigator";
-      case "QueenGainGold":
-        return "Queen";
-      case "TakeFromRich":
-        return "Take 1 gold from the richest";
-      case "SeerTake":
-        return "Seer";
-      case "WizardPeek":
-        return "Wizard";
-      case "MarshalSeize":
-        return "Seize";
-      case "DiplomatTrade":
-        return "Trade";
-      case "CollectTaxes":
-        return "Collect Taxes";
-      case "EmperorGiveCrown":
-        return "Grant Crown";
-      case "EmperorHeirGiveCrown":
-        return "Grant Crown";
-      case "GatherCardsPick":
-        return "Pick";
-      case "TheaterPass":
-        return "Pass";
-      case "SpyAcknowledge":
-        return "Acknowledge";
-      case "SeerDistribute":
-        return "Distribute";
-      case "WizardPick":
-        return "Pick";
-      case "PatricianTakeCrown":
-        return "Take Crown";
-      case "CardinalExchange":
-        return "Exchange";
-      default:
-        return tag;
-    }
-  },
 };
 
 // Zod Schemas
@@ -206,88 +117,6 @@ const MagicianActionSchema = z.discriminatedUnion("tag", [
   }),
 ]);
 
-const DraftDiscardPlayerActionSchema = z.object({
-  tag: z.literal("DraftDiscard"),
-  role: RoleNameSchema,
-});
-const GatherResourceGoldPlayerActionSchema = z.object({
-  tag: z.literal("GatherResourceGold"),
-});
-const GatherResourceCardsPlayerActionSchema = z.object({
-  tag: z.literal("GatherResourceCards"),
-});
-const BuildPlayerActionSchema = z.object({
-  tag: z.literal("Build"),
-  build: BuildMethodSchema,
-});
-const EndTurnPlayerActionSchema = z.object({
-  tag: z.literal("EndTurn"),
-});
-const GoldFromNobilityPlayerActionSchema = z.object({
-  tag: z.literal("GoldFromNobility"),
-});
-const GoldFromReligionPlayerActionSchema = z.object({
-  tag: z.literal("GoldFromReligion"),
-});
-const GoldFromTradePlayerActionSchema = z.object({
-  tag: z.literal("GoldFromTrade"),
-});
-const GoldFromMilitaryPlayerActionSchema = z.object({
-  tag: z.literal("GoldFromMilitary"),
-});
-const CardsFromNobilityPlayerActionSchema = z.object({
-  tag: z.literal("CardsFromNobility"),
-});
-const MerchantGainOneGoldPlayerActionSchema = z.object({
-  tag: z.literal("MerchantGainOneGold"),
-});
-const ArchitectGainCardsPlayerActionSchema = z.object({
-  tag: z.literal("ArchitectGainCards"),
-});
-const TakeCrownPlayerActionSchema = z.object({
-  tag: z.literal("TakeCrown"),
-});
-const AssassinatePlayerActionSchema = z.object({
-  tag: z.literal("Assassinate"),
-  role: RoleNameSchema,
-});
-const MagicPlayerActionSchema = z.object({
-  tag: z.literal("Magic"),
-  magic: MagicianActionSchema,
-});
-const BeautifyPlayerActionSchema = z.object({
-  tag: z.literal("Beautify"),
-  district: CityDistrictTargetSchema,
-});
-const ScholarRevealPlayerActionSchema = z.object({
-  tag: z.literal("ScholarReveal"),
-});
-const ScholarPickPlayerActionSchema = z.object({
-  tag: z.literal("ScholarPick"),
-  district: DistrictNameSchema,
-});
-const EmperorGiveCrownPlayerActionSchema = z.object({
-  tag: z.literal("EmperorGiveCrown"),
-  player: PlayerNameSchema,
-  resource: ResourceSchema,
-});
-const EmperorHeirGiveCrownPlayerActionSchema = z.object({
-  tag: z.literal("EmperorHeirGiveCrown"),
-  player: PlayerNameSchema,
-});
-const TakeFromRichPlayerActionSchema = z.object({
-  tag: z.literal("TakeFromRich"),
-  player: PlayerNameSchema,
-});
-const CardsFromReligionPlayerActionSchema = z.object({
-  tag: z.literal("CardsFromReligion"),
-});
-const SendWarrantsPlayerActionSchema = z.object({
-  tag: z.literal("SendWarrants"),
-  signed: RoleNameSchema,
-  unsigned: z.tuple([RoleNameSchema, RoleNameSchema]),
-});
-
 export const PlayerActionSchema = z.discriminatedUnion("tag", [
   // draft actions
   z.object({
@@ -299,11 +128,26 @@ export const PlayerActionSchema = z.discriminatedUnion("tag", [
     tag: z.literal("DraftDiscard"),
     role: RoleNameSchema,
   }),
+
   // core actions
   z.object({
     tag: z.literal("GatherCardsPick"),
     district: DistrictNameSchema,
   }),
+  z.object({
+    tag: z.literal("GatherResourceGold"),
+  }),
+  z.object({
+    tag: z.literal("GatherResourceCards"),
+  }),
+  z.object({
+    tag: z.literal("Build"),
+    build: BuildMethodSchema,
+  }),
+  z.object({
+    tag: z.literal("EndTurn"),
+  }),
+
   // role actions
 
   // rank 1
@@ -344,6 +188,10 @@ export const PlayerActionSchema = z.discriminatedUnion("tag", [
   }),
   // rank 3
   z.object({
+    tag: z.literal("SeerTake"),
+    player: PlayerNameSchema,
+  }),
+  z.object({
     tag: z.literal("WizardPeek"),
     player: PlayerNameSchema,
   }),
@@ -353,11 +201,19 @@ export const PlayerActionSchema = z.discriminatedUnion("tag", [
   }),
   // rank 4
   z.object({
+    tag: z.literal("GoldFromNobility"),
+  }),
+
+  z.object({
+    tag: z.literal("CardsFromNobility"),
+  }),
+  z.object({
     tag: z.literal("PatricianTakeCrown"),
   }),
   // rank 5
+
   z.object({
-    tag: z.literal("CardinalExchange"),
+    tag: z.literal("CardsFromReligion"),
   }),
 
   z.object({
@@ -381,6 +237,9 @@ export const PlayerActionSchema = z.discriminatedUnion("tag", [
     resource: ResourceSchema,
   }),
   // rank 8
+  z.object({
+    tag: z.literal("GoldFromMilitary"),
+  }),
   z.object({
     tag: z.literal("WarlordDestroy"),
     district: CityDistrictTargetSchema,
@@ -421,5 +280,58 @@ export const PlayerActionSchema = z.discriminatedUnion("tag", [
   }),
   z.object({
     tag: z.literal("Smithy"),
+  }),
+
+  z.object({
+    tag: z.literal("Armory"),
+    district: CityDistrictTargetSchema,
+  }),
+  z.object({
+    tag: z.literal("GoldFromReligion"),
+  }),
+  z.object({
+    tag: z.literal("GoldFromTrade"),
+  }),
+  z.object({
+    tag: z.literal("MerchantGainOneGold"),
+  }),
+  z.object({
+    tag: z.literal("ArchitectGainCards"),
+  }),
+  z.object({
+    tag: z.literal("TakeCrown"),
+  }),
+  z.object({
+    tag: z.literal("Assassinate"),
+    role: RoleNameSchema,
+  }),
+  z.object({
+    tag: z.literal("Magic"),
+    magic: MagicianActionSchema,
+  }),
+  z.object({
+    tag: z.literal("Beautify"),
+    district: CityDistrictTargetSchema,
+  }),
+  z.object({
+    tag: z.literal("ScholarReveal"),
+  }),
+  z.object({
+    tag: z.literal("ScholarPick"),
+    district: DistrictNameSchema,
+  }),
+  z.object({
+    tag: z.literal("EmperorGiveCrown"),
+    player: PlayerNameSchema,
+    resource: ResourceSchema,
+  }),
+  z.object({
+    tag: z.literal("EmperorHeirGiveCrown"),
+    player: PlayerNameSchema,
+  }),
+  z.object({
+    tag: z.literal("SendWarrants"),
+    signed: RoleNameSchema,
+    unsigned: z.tuple([RoleNameSchema, RoleNameSchema]),
   }),
 ]);

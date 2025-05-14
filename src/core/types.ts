@@ -12,11 +12,11 @@ export const CARD_SETS = ["Base", "DarkCity", "Citadels2016"] as const;
 
 export type CardSet = (typeof CARD_SETS)[number];
 
-export type BlackmailMarker = { type: "Blackmail"; flowered: boolean };
-export type WarrantMarker = { type: "Warrant"; signed: boolean };
+export type BlackmailMarker = { tag: "Blackmail"; flowered: boolean };
+export type WarrantMarker = { tag: "Warrant"; signed: boolean };
 
 export type Marker =
-  | { type: "Discarded" | "Killed" | "Bewitched" | "Robbed" }
+  | { tag: "Discarded" | "Killed" | "Bewitched" | "Robbed" }
   | BlackmailMarker
   | WarrantMarker;
 

@@ -287,7 +287,7 @@ export function createGame(gameStartAction: GameStartAction): GameState {
     game.activeTurn.draft.faceupDiscard.forEach((discardedRoleName) => {
       const char = game.characters.find((c) => c.role === discardedRoleName);
       if (char) {
-        char.markers.push({ type: "Discarded" });
+        char.markers.push({ tag: "Discarded" });
         char.revealed = true;
       }
     });

@@ -4,14 +4,11 @@ import {
   ActionOutput,
   Followup,
   GameState,
-  Notification,
-  PlayerIndex,
-  DistrictName,
   Player,
   GameRole,
-} from "./game"; // Added PlayerIndex, DistrictName, Player, GameRole
+} from "@/core/game";
 import { RoleName, RoleNameUtils, RANKS } from "@/core/roles";
-import { CardSuit } from "@/core/types"; // Added CardSuit
+import { CardSuit } from "@/core/types";
 
 // Individual action handler functions
 
@@ -67,102 +64,10 @@ function getActivePlayer(game: GameState): Player {
 // Helper for after_gather_resources logic from Rust
 function determineFollowupAfterGather(game: GameState): Followup | undefined {
   const characterInTurn = getCharacterInTurn(game);
-  if (characterInTurn.markers.some((marker) => marker.type === "Bewitched")) {
+  if (characterInTurn.markers.some((marker) => marker.tag === "Bewitched")) {
     return { type: "Bewitch" };
   }
   return undefined;
-}
-
-// Simplified helper for completing a build.
-// TODO: Expand this to include all special district effects from Rust's `Game::complete_build`
-// (e.g., PoorHouse, HauntedQuarter, Smithy, MapRoom, ImperialTreasury, SchoolOfMagic effects, cost interactions).
-
-function handlePass(
-  game: GameState,
-  _action: ActionCase<"Pass">,
-): ActionOutput {
-  let log = "";
-
-  if (!game.followup) {
-    throw new Error(
-      "Pass action is only valid when there is a followup pending.",
-    );
-  }
-
-  const currentFollowup = game.followup;
-  game.followup = null; // Clear followup immediately
-
-  switch (currentFollowup.type) {
-    case "Warrant": {
-      // Active player is the Magistrate.
-      // According to Rust, if Magistrate passes, they build the district.
-      if (game.activeTurn.type !== "Call") {
-        throw new Error("Pass (Warrant) action must occur during a Call turn.");
-      }
-      const characterInTurn = game.characters[game.activeTurn.call.index];
-      if (
-        characterInTurn === undefined ||
-        characterInTurn.playerIndex === undefined
-      ) {
-        throw new Error("No active player (Magistrate) found for Pass action.");
-      }
-      const magistratePlayerIndex = characterInTurn.playerIndex;
-      const magistratePlayer = game.players[magistratePlayerIndex];
-      if (!magistratePlayer) {
-        throw new Error("Magistrate player object not found.");
-      }
-
-      // The magistrate from the followup is the same as the active player here.
-      const magistrateName =
-        game.players[currentFollowup.magistrate]?.name ?? "Unknown Magistrate";
-
-      completeBuild_simplified(
-        game,
-        magistratePlayerIndex,
-        currentFollowup.district,
-        currentFollowup.gold, // This is the original cost
-      );
-      log = `The Magistrate (${magistrateName}) did not reveal the warrant. The ${currentFollowup.district} is built.`;
-      // NOTE: This interpretation (Magistrate builds it) is based on a direct reading of Rust's
-      // `game.complete_build(game.active_player_index()?, gold, district);` where active_player is Magistrate.
-      // This might need review as it's counter-intuitive that the original builder loses out.
-      break;
-    }
-    case "Blackmail": {
-      // Active player is the Blackmailer.
-      if (game.activeTurn.type !== "Call") {
-        throw new Error(
-          "Pass (Blackmail) action must occur during a Call turn.",
-        );
-      }
-      const characterInTurn = game.characters[game.activeTurn.call.index];
-      if (
-        characterInTurn === undefined ||
-        characterInTurn.playerIndex === undefined
-      ) {
-        throw new Error(
-          "No active player (Blackmailer) found for Pass action.",
-        );
-      }
-      // const blackmailerPlayerIndex = characterInTurn.playerIndex;
-      const blackmailerPlayer = game.players[currentFollowup.blackmailer];
-      if (!blackmailerPlayer) {
-        throw new Error("Blackmailer player object not found from followup.");
-      }
-      log = `The Blackmailer (${blackmailerPlayer.name}) did not reveal the blackmail.`;
-      break;
-    }
-    default:
-      // Restore followup if it was not a type we handle with Pass
-      game.followup = currentFollowup;
-      throw new Error(
-        `Pass action is not applicable for the current followup type: ${
-          currentFollowup.type
-        }`,
-      );
-  }
-
-  return { log };
 }
 
 function handleDraftPick(
@@ -326,7 +231,7 @@ function handleAssassinate(
 
   // Ensure the "Killed" marker is not already present, though Rust code doesn't check this.
   // It's generally safe to add, as multiple "Killed" markers don't change behavior.
-  targetCharacter.markers.push("Killed");
+  targetCharacter.markers.push({ tag: "Killed" });
 
   const assassinPlayer = getActivePlayer(game); // Assumes Assassin is the active player
 
@@ -363,7 +268,7 @@ function handleSteal(
 
   if (
     targetCharacter.markers.some(
-      (marker) => marker === "Killed" || marker.type === "Bewitched",
+      (marker) => marker.tag === "Killed" || marker.tag === "Bewitched",
     )
   ) {
     throw new Error(
@@ -373,7 +278,7 @@ function handleSteal(
 
   // Ensure the "Robbed" marker is not already present, though Rust code doesn't check this.
   // It's generally safe to add.
-  targetCharacter.markers.push("Robbed");
+  targetCharacter.markers.push({ tag: "Robbed" });
 
   const thiefPlayer = getActivePlayer(game); // Assumes Thief is the active player
 
@@ -454,6 +359,7 @@ const playerActionHandlers: {
   DraftDiscard: handleDraftDiscard,
   GatherResourceCards: handleGatherResourceCards,
   GatherResourceGold: handleGatherResourceGold,
+  TakeCrown: handleTakeCrown,
 };
 type ActionCase<K> = Extract<PlayerAction, { tag: K }>;
 
