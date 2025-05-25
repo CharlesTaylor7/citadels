@@ -1,12 +1,10 @@
-use crate::actions::{
-    Action, ActionTag, BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
-};
+use crate::actions::{Action, ActionTag};
 use crate::districts::DistrictName;
 use crate::game_actions::perform_action;
 use crate::lobby::{self, Lobby};
 use crate::museum::Museum;
 use crate::random::Prng;
-use crate::roles::{Rank, RoleName};
+use crate::roles::RoleName;
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use macros::tag::Tag;
 use rand::prelude::*;
