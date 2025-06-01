@@ -1,18 +1,11 @@
-mod deserializer;
-
 use crate::game::Player;
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
 use macros::tag::Tag;
 use poem_openapi::Enum;
-use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
 use std::borrow::Cow;
 
-#[serde_as]
-#[derive(Serialize, Deserialize, Tag, Debug, Clone)]
-#[tag(serde::Deserialize)]
-#[serde(tag = "action")]
+#[derive(Tag, Debug, Clone)]
 pub enum Action {
     DraftPick {
         role: RoleName,
@@ -60,9 +53,7 @@ pub enum Action {
         player: PlayerName,
     },
     ResourcesFromReligion {
-        #[serde_as(as = "serde_with::DisplayFromStr")]
         gold: usize,
-        #[serde_as(as = "serde_with::DisplayFromStr")]
         cards: usize,
     },
     TakeFromRich {
@@ -104,8 +95,6 @@ pub enum Action {
     },
     SeerTake,
     SeerDistribute {
-        #[serde_as(as = "serde_with::Map<_, _>")]
-        #[serde(flatten)]
         seer: Vec<(PlayerName, DistrictName)>,
     },
     WizardPeek {
@@ -129,9 +118,7 @@ pub enum Action {
     TheaterPass,
 }
 
-#[serde_as]
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag = "build_method")]
+#[derive(Debug, Clone)]
 pub enum BuildMethod {
     Regular {
         district: DistrictName,
@@ -143,37 +130,22 @@ pub enum BuildMethod {
         sacrifice: CityDistrictTarget,
     },
     ThievesDen {
-        #[serde_as(as = "serde_with::OneOrMany<_>")]
         discard: Vec<DistrictName>,
     },
     Cardinal {
         district: DistrictName,
-        #[serde_as(as = "serde_with::OneOrMany<_>")]
         discard: Vec<DistrictName>,
         player: PlayerName,
     },
 }
 
-#[serde_as]
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag = "wizard_method")]
+#[derive(Debug, Clone)]
 pub enum WizardMethod {
-    Pick {
-        district: DistrictName,
-    },
-    Build {
-        district: DistrictName,
-    },
-    Framework {
-        district: DistrictName,
-    },
-    Necropolis {
-        sacrifice: CityDistrictTarget,
-    },
-    ThievesDen {
-        #[serde_as(as = "serde_with::OneOrMany<_>")]
-        discard: Vec<DistrictName>,
-    },
+    Pick { district: DistrictName },
+    Build { district: DistrictName },
+    Framework { district: DistrictName },
+    Necropolis { sacrifice: CityDistrictTarget },
+    ThievesDen { discard: Vec<DistrictName> },
 }
 #[derive(Debug, Clone)]
 pub struct CityDistrictTarget {
@@ -188,23 +160,16 @@ impl CityDistrictTarget {
     }
 }
 
-#[derive(Enum, Serialize, Deserialize, Debug, Clone)]
+#[derive(Enum, Debug, Clone)]
 pub enum Resource {
     Gold,
     Cards,
 }
 
-#[serde_as]
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
+#[derive(Debug, Clone)]
 pub enum MagicianAction {
-    TargetPlayer {
-        player: PlayerName,
-    },
-    TargetDeck {
-        #[serde_as(as = "serde_with::OneOrMany<_>")]
-        district: Vec<DistrictName>,
-    },
+    TargetPlayer { player: PlayerName },
+    TargetDeck { district: Vec<DistrictName> },
 }
 impl Action {
     pub fn is_build(&self) -> bool {

@@ -1,7 +1,14 @@
+use crate::actions::ActionTag;
+use crate::game::{ActionOutput, Game};
 use crate::types::{CardSuit, PlayerId, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
 use poem_openapi::{Enum, NewType, Object, Union};
 use serde::{Deserialize, Serialize};
+
+pub trait ActionTrait {
+    // const TAG: ActionTag;
+    fn act(&self, game: &mut Game) -> anyhow::Result<ActionOutput>;
+}
 
 #[derive(Union)]
 #[oai(discriminator_name = "tag")]
@@ -27,18 +34,18 @@ pub struct EndTurnAction;
 
 #[derive(Object)]
 pub struct DraftPickAction {
-    role: RoleName,
+    pub role: RoleName,
 }
 
 #[derive(Object)]
 pub struct DraftDiscardAction {
-    role: RoleName,
+    pub role: RoleName,
 }
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct BuildAction {
-    district: DistrictName,
-    method: BuildMethod,
+    pub district: DistrictName,
+    pub method: BuildMethod,
 }
 
 #[derive(Union, Serialize, Deserialize, Debug, Clone)]
@@ -66,19 +73,16 @@ pub struct WizardPickAction {
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct NecropolisBuildMethod {
     sacrifice: DistrictId,
-    discard: Vec<DistrictName>,
-    player: PlayerId,
 }
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct ThievesDenBuildMethod {
-    discard: Vec<DistrictName>,
+    discard: Vec<DistrictId>,
 }
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct CardinalBuildMethod {
-    district: DistrictName,
-    discard: Vec<DistrictName>,
+    discard: Vec<DistrictId>,
     player: PlayerId,
 }
 #[derive(Object, Debug, Clone)]

@@ -6,6 +6,7 @@ use crate::museum::Museum;
 use crate::random::Prng;
 use crate::roles::RoleName;
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
+use anyhow::{anyhow, bail};
 use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut, Cow};
@@ -19,7 +20,7 @@ pub enum ForcedToGatherReason {
     Blackmailed,
 }
 
-pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
+pub type Result<T> = anyhow::Result<T>;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct PlayerIndex(pub usize);
@@ -158,7 +159,7 @@ impl Turn {
         if let Turn::Call(call) = self {
             Ok(call)
         } else {
-            Err("not the call phase".into())
+            Err(anyhow!("not the call phase"))
         }
     }
 
@@ -166,7 +167,7 @@ impl Turn {
         if let Turn::Draft(draft) = self {
             Ok(draft)
         } else {
-            Err("not the draft".into())
+            Err(anyhow!("not the draft phase"))
         }
     }
 
@@ -174,7 +175,7 @@ impl Turn {
         if let Turn::Draft(draft) = self {
             Ok(draft)
         } else {
-            Err("not the draft".into())
+            Err(anyhow!("not the draft phase"))
         }
     }
 }
@@ -492,11 +493,7 @@ impl Characters {
 
 impl Game {
     pub fn complete_city_size(&self) -> usize {
-        if self.players.len() <= 3 {
-            8
-        } else {
-            7
-        }
+        if self.players.len() <= 3 { 8 } else { 7 }
     }
 
     pub fn total_score(&self, player: &Player) -> usize {
@@ -695,7 +692,7 @@ impl Game {
                 Followup::GatherCardsPick { .. } => self.active_player_index(),
             };
         }
-        Err("No pending response".into())
+        bail!("No pending response")
     }
 
     pub fn responding_player(&self) -> Result<&Player> {
@@ -705,7 +702,7 @@ impl Game {
 
     pub fn active_player_index(&self) -> Result<PlayerIndex> {
         match &self.active_turn {
-            Turn::GameOver => Err("game over".into()),
+            Turn::GameOver => bail!("game over"),
             Turn::Draft(draft) => Ok(draft.player),
             Turn::Call(call) => {
                 let c = self.characters.index(call.index);
@@ -715,10 +712,10 @@ impl Game {
                     self.characters
                         .get(RoleName::Witch)
                         .and_then(|game_role| game_role.player)
-                        .ok_or("No witch!".into())
+                        .ok_or(anyhow!("No witch!"))
                 } else {
                     c.player
-                        .ok_or(format!("No role at index {} in the roster!", call.index).into())
+                        .ok_or(anyhow!("No role at index {} in the roster!", call.index))
                 }
             }
         }
@@ -877,7 +874,7 @@ impl Game {
 
     pub fn perform(&mut self, action: Action, id: &str) -> Result<()> {
         if !self.allowed_for(Some(id)).contains(&action.tag()) {
-            return Err("not allowed".into());
+            bail!("not allowed");
         }
 
         let ActionOutput {
@@ -1128,7 +1125,7 @@ impl Game {
                     && draft.remaining.len() == 1
                     && draft.initial_discard.is_some()
                 {
-                    let initial = draft.initial_discard.take().ok_or("impossible")?;
+                    let initial = draft.initial_discard.take().ok_or(anyhow!("impossible"))?;
                     draft.remaining.push(initial);
                 }
 
@@ -1215,7 +1212,7 @@ impl Game {
                     .0
                     .iter()
                     .enumerate()
-                    .find(|(i, game_role)| game_role.role == RoleName::Emperor)
+                    .find(|(_, game_role)| game_role.role == RoleName::Emperor)
                 {
                     self.active_turn = Turn::Call(Call {
                         index: i as u8,

@@ -17,13 +17,13 @@ pub type NotificationHandle = UnboundedSender<Event>;
 pub struct Notifications(Arc<Mutex<HashMap<RoomId, HashMap<PlayerId, NotificationHandle>>>>);
 
 impl Notifications {
-    pub fn notify_room(&self, roomId: RoomId, message: ArcStr) -> RequestResult<()> {
+    pub fn notify_room(&self, room_id: RoomId, message: ArcStr) -> RequestResult<()> {
         let event = Event::message(message.to_string());
         // TODO: decide on a comprehensive error handling approach
         self.0
             .lock()
             .unwrap()
-            .get_mut(&roomId)
+            .get_mut(&room_id)
             .unwrap()
             .values_mut()
             .for_each(|handle| handle.send(event.clone()).unwrap());
@@ -31,17 +31,17 @@ impl Notifications {
     }
     pub fn notify_player(
         &self,
-        roomId: RoomId,
-        playerId: PlayerId,
+        room_id: RoomId,
+        player_id: PlayerId,
         message: ArcStr,
     ) -> RequestResult<()> {
         let event = Event::message(message.to_string());
         self.0
             .lock()
             .unwrap()
-            .get_mut(&roomId)
+            .get_mut(&room_id)
             .unwrap()
-            .get_mut(&playerId)
+            .get_mut(&player_id)
             .unwrap()
             .send(event)
             .unwrap();

@@ -5,6 +5,7 @@ pub mod data;
 pub mod districts;
 pub mod game;
 pub mod game_actions;
+mod handlers;
 pub mod lobby;
 pub mod logger;
 pub mod museum;
