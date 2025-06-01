@@ -1,0 +1,17 @@
+
+$schema: https://raw.githubusercontent.com/ast-grep/ast-grep/refs/tags/0.38.2/schemas/typescript_rule.json
+
+id: no-type-assertions
+language: typescript
+description: Disallow type assertions 
+message: Type unsafe, define a zod schema and parse
+severity: warning
+rule:
+  pattern: $EXPR as $TYPE
+constraints:
+  TYPE:
+    not:
+      regex: const
+fix:
+  $EXPR
+

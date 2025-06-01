@@ -1,0 +1,10 @@
+# ast-grep-disable require-schema
+ruleDirs:
+- sg/rules
+testConfigs:
+- testDir: sg/tests
+utilDirs:
+- sg/utils
+
+languageGlobs:
+  TypeScript: ["*.js", "*.json"]

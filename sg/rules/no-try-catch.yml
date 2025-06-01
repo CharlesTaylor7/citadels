@@ -1,0 +1,12 @@
+$schema: https://raw.githubusercontent.com/ast-grep/ast-grep/refs/tags/0.38.2/schemas/typescript_rule.json
+
+id: no-try-catch
+language: typescript
+description: Disallow try catch blocks
+message: No try, catch or finally blocks
+severity: warning
+rule:
+  kind: try_statement
+  pattern: try { $$$BODY } 
+fix:
+  $$$BODY

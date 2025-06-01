@@ -1,0 +1,11 @@
+$schema: https://raw.githubusercontent.com/ast-grep/ast-grep/refs/tags/0.38.2/schemas/typescript_rule.json
+
+id: replace-any-with-unknown
+language: typescript
+message: Any is not type safe, use unknown
+severity: warning
+rule:
+  kind: predefined_type
+  regex: any
+fix:
+  unknown

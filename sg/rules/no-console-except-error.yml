@@ -1,0 +1,16 @@
+$schema: https://raw.githubusercontent.com/ast-grep/ast-grep/refs/tags/0.38.2/schemas/typescript_rule.json
+
+id: no-console-except-error
+language: typescript
+rule:
+  any:
+    - pattern: console.error($$$)
+      not:
+        inside:
+          kind: catch_clause
+          stopBy: end
+    - pattern: console.$METHOD($$$)
+fix: ""
+constraints:
+  METHOD:
+    regex: 'log|debug|warn'

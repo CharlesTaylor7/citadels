@@ -1,0 +1,16 @@
+$schema: https://raw.githubusercontent.com/ast-grep/ast-grep/refs/tags/0.38.2/schemas/typescript_rule.json
+
+id: require-schema
+message: Please provide a $schema attribute for validation
+language: yaml
+rule:
+  kind: document
+  not:
+    has:
+      kind: block_node
+      has:
+        kind: block_mapping
+        has:
+          kind: block_mapping_pair
+          pattern: |
+            $schema: $SCHEMA
