@@ -5,7 +5,7 @@ members = [
   "citadels",
   "macros",
   "macros-impl"
-]
+, "citadels_api"]
 
 [profile.dev]
 debug = 0

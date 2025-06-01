@@ -1,4 +1,6 @@
-etag cache invalidation
+setup sqlx
+Test SSE
+error handling type
 UI: Notifications
 Notify: Seer: card is taken. 
 Notify: Seer: card is given.
@@ -33,3 +35,4 @@ All Cities in 1 panel, scroll.
 Timer:  2 minute timer, +20secs every turn, capped at 2 minutes.
 Ui: spy hide players with no hands
 UI: see city even when in action menu
+etag cache invalidation

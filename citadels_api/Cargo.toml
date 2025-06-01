@@ -1,0 +1,29 @@
+[package]
+name = "citadels_api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# citadels = { version = "0.0.0", path = "../citadels" }
+futures-util = "0.3.30"
+poem = { version = "3.1.10", features = ["sse"] }
+poem-openapi = { version = "5.1.14", features = [
+  "sqlx",
+  "static-files",
+  "swagger-ui",
+] }
+tokio = { version = "1.45.1", features = ["rt-multi-thread"] }
+tokio-stream = "0.1.17"
+arcstr = { version = "1.2.0", features = ["serde"], default-features = false }
+serde = "1.0.219"
+anyhow = "1.0.98"
+color-eyre = "0.6.5"
+dotenvy = { version = "0.15.0" }
+sqlx-postgres = { version = "0.8.6", features = ["json"] }
+sqlx = { version = "0.8.6", default-features = false, features = [
+  "migrate",
+  "runtime-tokio",
+  "postgres",
+  "tls-rustls",
+  "macros",
+] }
