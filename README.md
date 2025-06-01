@@ -66,7 +66,7 @@ How to release:
 
 ## Secret management
 
-Script to generate a new signing key:
+Script to generate a new COOKIE_SIGNING_KEY:
 ```nu
 random binary 64 | encode hex
 ```
