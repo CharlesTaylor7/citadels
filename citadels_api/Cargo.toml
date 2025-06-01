@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 # citadels = { version = "0.0.0", path = "../citadels" }
 futures-util = "0.3.30"
-poem = { version = "3.1.10", features = ["sse"] }
+poem = { version = "3.1.10", features = ["session", "sse"] }
 poem-openapi = { version = "5.1.14", features = [
   "sqlx",
   "static-files",
@@ -27,3 +27,4 @@ sqlx = { version = "0.8.6", default-features = false, features = [
   "tls-rustls",
   "macros",
 ] }
+thiserror = "2.0.12"

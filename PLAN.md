@@ -1,6 +1,39 @@
 # Intro
 This is my plan to resuccistate the project.
 
+## Poem
+Build a dummy project using poem and SQLx to write a simple REST API server.
+Try to suss out pain points of building it out to be the citadels api server.
+Figure it if SSE is a good fit.
+
+Aspects to evaluate
+- [x] SSE
+- [x] SQLx
+- [x] Misc headers, Location, etc. 
+- [x] Customizing status codes
+- [x] error handling, thiserror & color-eyre integration
+- [x] Cookies
+- [ ] Auth
+  - poem-auth
+  - poem-grants
+
+- [ ] ArcStr, can it easily work?
+
+## Auth
+- managed auth: auth0
+- manual auth
+- reuse node server auth
+
+## Wasm
+
+Figure out if we can compile the citadels library to wasm, and then call from a node server.
+
+## Glue
+Glue together the best parts of previous implementations.
+Angular custom elements
+React based lobby
+Rust based core game logic
+
 ## Deploy
 Redpeloy to Azure. Limited to 2 free servers on Fly.io, but I want to learn Azure. So move it over and see how it goes.
 
@@ -12,29 +45,6 @@ portal.azure.com
 
 So far Azure has been insanely complicated and obnoxious. I should try aws at some point, but thinking about trying easier options like Railway now.
 
-## Poem
-Build a dummy project using poem and SQLx to write a simple REST API server.
-Try to suss out pain points of building it out to be the citadels api server.
-Figure it if SSE is a good fit.
-
-Aspects to evaluate
-- [ ] SSE
-- [ ] SQLx
-- [ ] error handling, thiserror & color-eyre integration
-- [ ] Cookies
-- [ ] Auth
-- [ ] Misc headers, Location, etc. 
-- [ ] Customizing status codes
-
-## Wasm
-
-Figure out if we can compile the citadels library to wasm, and then call rom a node server.
-
-## Glue
-Glue together the best parts of previous implementations.
-Angular custom elements
-React based lobby
-Rust based core game logic
 
 
 ## Test

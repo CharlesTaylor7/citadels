@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::{self, UnboundedSender};
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
-use crate::errors;
+use crate::errors::{self, RequestResult};
 
 pub type NotificationHandle = UnboundedSender<Event>;
 
@@ -17,7 +17,7 @@ pub type NotificationHandle = UnboundedSender<Event>;
 pub struct Notifications(Arc<Mutex<HashMap<RoomId, HashMap<PlayerId, NotificationHandle>>>>);
 
 impl Notifications {
-    pub fn notify_room(&self, roomId: RoomId, message: ArcStr) -> errors::Result<()> {
+    pub fn notify_room(&self, roomId: RoomId, message: ArcStr) -> RequestResult<()> {
         let event = Event::message(message.to_string());
         // TODO: decide on a comprehensive error handling approach
         self.0
@@ -34,7 +34,7 @@ impl Notifications {
         roomId: RoomId,
         playerId: PlayerId,
         message: ArcStr,
-    ) -> errors::Result<()> {
+    ) -> RequestResult<()> {
         let event = Event::message(message.to_string());
         self.0
             .lock()

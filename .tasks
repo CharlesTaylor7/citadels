@@ -1,6 +1,4 @@
-setup sqlx
-Test SSE
-error handling type
+auth
 UI: Notifications
 Notify: Seer: card is taken. 
 Notify: Seer: card is given.
