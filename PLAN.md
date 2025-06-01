@@ -17,12 +17,18 @@ Aspects to evaluate
   - poem-auth
   - poem-grants
 
-- [ ] ArcStr, can it easily work?
+- [~] ArcStr, can it easily work?
+  no.
+  it's awkward and unnecessary optimization
+
+
+I think poem is a go overall. Just need to start gluing pieces together.
 
 ## Auth
 - managed auth: auth0
 - manual auth
 - reuse node server auth
+- authless, guest users + session
 
 ## Wasm
 

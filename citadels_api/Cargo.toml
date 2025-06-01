@@ -25,6 +25,5 @@ sqlx = { version = "0.8.6", default-features = false, features = [
   "runtime-tokio",
   "postgres",
   "tls-rustls",
-  "macros",
 ] }
 thiserror = "2.0.12"

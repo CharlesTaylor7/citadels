@@ -1,4 +1,6 @@
-use citadels_api::api::Api;
+use citadels_api::api::auth::AuthApi;
+use citadels_api::api::game::GameApi;
+use citadels_api::api::lobby::LobbyApi;
 use citadels_api::middleware::sessions::PlayerSessions;
 use citadels_api::notifications::{Notifications, sse_handler};
 use poem::endpoint::{EndpointExt, StaticFilesEndpoint};
@@ -23,8 +25,8 @@ async fn main() {
         .await
         .expect("Could not connect to database");
 
-    let api_service =
-        OpenApiService::new(Api, "Citadels API", "1.0").server("http://localhost:3000/api");
+    let api_service = OpenApiService::new((AuthApi, LobbyApi, GameApi), "Citadels API", "1.0")
+        .server("http://localhost:3000/api");
     let ui = api_service.swagger_ui();
     let app = Route::new()
         .at("/sse", post(sse_handler))

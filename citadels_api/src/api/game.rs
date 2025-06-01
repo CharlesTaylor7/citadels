@@ -1,3 +1,5 @@
+use crate::api::tags::ApiTags;
+use crate::db::DB;
 use crate::errors::{RequestError, RequestResult};
 use poem::web::Data;
 use poem_openapi::ApiResponse;
@@ -5,10 +7,8 @@ use poem_openapi::Object;
 use poem_openapi::OpenApi;
 use poem_openapi::param::Path;
 use poem_openapi::payload::{Json, PlainText};
-use sqlx::{Pool, Postgres};
 
-type DB = Pool<Postgres>;
-pub struct Api;
+pub struct GameApi;
 
 #[derive(ApiResponse)]
 enum CreateResponse {
@@ -16,9 +16,9 @@ enum CreateResponse {
     Created(PlainText<&'static str>, #[oai(header = "location")] String),
 }
 
-#[OpenApi]
-impl Api {
-    #[oai(path = "/games", method = "post")]
+#[OpenApi(tag = "ApiTags::Game", prefix_path = "/games")]
+impl GameApi {
+    #[oai(path = "/", method = "post")]
     async fn new_game(&self, body: Json<Game>, db: Data<&DB>) -> poem::Result<CreateResponse> {
         let id = sqlx::query!("insert into games (state) values ('{}') returning id",)
             .fetch_one(db.0)
@@ -31,7 +31,7 @@ impl Api {
         ))
     }
 
-    #[oai(path = "/games/:id", method = "get")]
+    #[oai(path = "/:id", method = "get")]
     async fn get_game(&self, id: Path<i32>, db: Data<&DB>) -> poem::Result<Json<Game>> {
         let title = sqlx::query!("select state from games where id = $1", id.0)
             .fetch_one(db.0)
