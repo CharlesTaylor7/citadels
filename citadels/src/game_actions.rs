@@ -1,14 +1,14 @@
 use crate::actions::{
-    Action, ActionTag, BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
+    Action,  BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
 };
 use crate::districts::DistrictName;
 use crate::game::{ActionOutput, ActionResult, CityDistrict, Followup, Game, PlayerIndex, Result};
 use crate::roles::{Rank, RoleName};
-use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
+use crate::types::{CardSuit, Marker};
 
 use macros::tag::Tag;
 use rand::prelude::*;
-use std::borrow::{Borrow, BorrowMut, Cow};
+use std::borrow::{Borrow, BorrowMut};
 use std::collections::HashMap;
 use std::mem;
 

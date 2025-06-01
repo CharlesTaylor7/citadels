@@ -3,9 +3,10 @@ use crate::types::CardSet;
 use crate::types::CardSet::*;
 use crate::types::CardSuit;
 use crate::types::CardSuit::*;
+use poem_openapi::Enum;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Enum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 #[repr(usize)]
 pub enum DistrictName {
     Temple,

@@ -1,5 +1,9 @@
-guest sessions
-auth
+Rebuild actions as open api union
+map actions from api to lib version
+convert auth pages and auth routes to use new backend
+build out lobby rest api
+convert frontend lobby to use rest api
+====
 UI: Notifications
 Notify: Seer: card is taken. 
 Notify: Seer: card is given.

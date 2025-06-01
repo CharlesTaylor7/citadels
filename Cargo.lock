@@ -273,6 +273,7 @@ dependencies = [
  "log",
  "macros",
  "maud",
+ "poem-openapi",
  "rand 0.8.5",
  "rand_core 0.6.4",
  "rand_xoshiro",
@@ -292,6 +293,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "arcstr",
+ "citadels",
  "color-eyre",
  "dotenvy",
  "futures-util",

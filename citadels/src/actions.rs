@@ -4,6 +4,7 @@ use crate::game::Player;
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
 use macros::tag::Tag;
+use poem_openapi::Enum;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::borrow::Cow;
@@ -187,7 +188,7 @@ impl CityDistrictTarget {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Enum, Serialize, Deserialize, Debug, Clone)]
 pub enum Resource {
     Gold,
     Cards,
@@ -343,11 +344,4 @@ impl ActionTag {
             ActionTag::WizardPick => "Pick".into(),
         }
     }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum ActionSubmission {
-    Complete(Action),
-    Incomplete { action: ActionTag },
 }

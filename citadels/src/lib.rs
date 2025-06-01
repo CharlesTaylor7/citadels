@@ -10,4 +10,5 @@ pub mod logger;
 pub mod museum;
 pub mod random;
 pub mod roles;
+pub mod schema;
 pub mod types;

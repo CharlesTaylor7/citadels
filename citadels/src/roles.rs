@@ -1,3 +1,4 @@
+use poem_openapi::Enum;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -45,7 +46,7 @@ impl std::fmt::Display for Rank {
     }
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug, Deserialize, Serialize, Hash)]
+#[derive(Enum, PartialEq, Eq, Copy, Clone, Debug, Deserialize, Serialize, Hash)]
 #[repr(usize)]
 /// Laid out in the order of the asset file for their images
 pub enum RoleName {
