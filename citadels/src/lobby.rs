@@ -4,6 +4,8 @@ use crate::{
     roles::{Rank, RoleName},
     types::{PlayerId, PlayerName},
 };
+
+use anyhow::{anyhow, bail};
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::{Deserialize, Serialize};
@@ -63,7 +65,7 @@ impl Lobby {
             .iter()
             .any(|p| p.id != id && p.name.borrow() as &str == name)
         {
-            return Err("username taken".into());
+            bail!("username taken")
         }
         match self.players.iter_mut().find(|p| p.id == id) {
             Some(p) => {
@@ -207,7 +209,7 @@ impl GameConfig {
                     roles
                         .choose(rng)
                         .copied()
-                        .ok_or(format!("No enabled roles for rank {}", i + 1).into())
+                        .ok_or(anyhow!("No enabled roles for rank {}", i + 1))
                 })
                 .collect();
         }

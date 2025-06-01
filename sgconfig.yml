@@ -7,4 +7,5 @@ utilDirs:
 - sg/utils
 
 languageGlobs:
-  TypeScript: ["*.js", "*.json"]
+  Typescript: ["*.js", "*.json"]
+  # Javascript: ["*.rs"]

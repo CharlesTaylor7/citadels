@@ -711,11 +711,9 @@ impl Game {
                 {
                     self.characters
                         .get(RoleName::Witch)
-                        .and_then(|game_role| game_role.player)
-                        .ok_or(anyhow!("No witch!"))
+                        .and_then(|game_role| game_role.player).ok_or(anyhow!(anyhow!("No witch!")))
                 } else {
-                    c.player
-                        .ok_or(anyhow!("No role at index {} in the roster!", call.index))
+                    c.player.ok_or(anyhow!(anyhow!("No role at index {} in the roster!", call.index)))
                 }
             }
         }
@@ -1125,7 +1123,7 @@ impl Game {
                     && draft.remaining.len() == 1
                     && draft.initial_discard.is_some()
                 {
-                    let initial = draft.initial_discard.take().ok_or(anyhow!("impossible"))?;
+                    let initial = draft.initial_discard.take().ok_or(anyhow!(anyhow!("impossible")))?;
                     draft.remaining.push(initial);
                 }
 
