@@ -1,7 +1,4 @@
-use poem::{
-    Endpoint, FromRequest, Middleware, Request, Result, session::Session,
-};
-
+use poem::{Endpoint, FromRequest, Middleware, Request, Result, session::Session};
 
 pub struct PlayerSessions;
 
@@ -15,6 +12,7 @@ impl<E: Endpoint> Middleware<E> for PlayerSessions {
 
 pub struct PlayerSessionsImpl<E>(E);
 
+#[allow(unused)]
 impl<E: Endpoint> Endpoint for PlayerSessionsImpl<E> {
     type Output = E::Output;
 
@@ -59,6 +57,7 @@ impl<E: Endpoint> Endpoint for PlayerSessionsImpl<E> {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct PlayerSession {
     user_id: i32,

@@ -6,6 +6,7 @@ use crate::{db::DB, errors::RequestError};
 
 pub struct LobbyApi;
 
+#[allow(unused)]
 #[OpenApi(tag = "ApiTags::Lobby", prefix_path = "/rooms")]
 impl LobbyApi {
     #[oai(path = "/:id", method = "get")]

@@ -16,6 +16,7 @@ enum CreateResponse {
     Created(PlainText<&'static str>, #[oai(header = "location")] String),
 }
 
+#[allow(unused)]
 #[OpenApi(tag = "ApiTags::Game", prefix_path = "/games")]
 impl GameApi {
     #[oai(path = "/", method = "post")]
