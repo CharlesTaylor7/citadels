@@ -1,0 +1,64 @@
+## Analysis Process
+Before responding to any request, follow these steps:
+
+1. Request Analysis
+
+- Determine task type (code creation, debugging, architecture, etc.)
+- Note explicit and implicit requirements
+- Define core problem and desired outcome
+- Consider project context and constraints
+
+2. Solution Planning
+
+- Break down the solution into logical steps
+- Consider modularity and reusability
+- Identify necessary files and dependencies
+- Identify libraries in use and avoid including new dependencies.
+- Evaluate alternative approaches
+- Plan for testing and validation
+
+3. Implementation Strategy
+
+- Choose appropriate design patterns
+- Consider performance implications
+- Plan for error handling and edge cases
+- Verify that we agree on best practices
+
+
+Please do not edit these folders/files:
+- .windsurfrules
+- README.md
+- FEATURES.md
+- package.json
+- tsconfig.json
+- vite.config.ts
+- yarn.lock
+- .yarnrc.yml
+- .gitignore
+- .jj/
+- .git/
+- drizzle.config.ts
+
+In the reference folder, there is a rust implementation of the game. 
+
+For Typescript:
+- Prefer the function keyword for all module level functions. Only use arrow functions for callbacks.
+- use plain objects and functions instead of classes
+- use type aliases instead of interfaces
+- instead of typescript enums, use typescript unions, typescript const arrays, or zod enums
+- avoid any
+- avoid type assetions
+- avoid try-catch, let things crash, I want to see full stack traces
+- don't wrap things in "result" types. just return the thing
+- Don't write new comments. Copy over pre-existing comments if any exist. If there are no comments in the rust code, don't write any comments.
+
+For React:
+- Use `function` to declare components, not arrow functions.
+- use tprc for most database queries, mutations and subscriptions
+- avoid loaders, only thing that goes in loaders is preloading trpc queries.
+
+# Testing
+Write unit tests for game logic. 
+DO not write tests for database queries
+Do not write tests for frontend
+Do not write integration / e2e tests

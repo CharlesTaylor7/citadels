@@ -1,0 +1,27 @@
+# https://fly.io/docs/reference/configuration/
+app = "citadels"
+primary_region = "iad"
+
+[[services]]
+internal_port = 3000
+protocol = "tcp"
+
+[services.concurrency]
+hard_limit = 25
+soft_limit = 20
+
+[[services.ports]]
+handlers = ["http"]
+port = "80"
+
+[[services.ports]]
+handlers = ["tls", "http"]
+port = "443"
+
+[mounts]
+source = "sqlite"
+destination = "/volume"
+initial_size = "1gb"
+
+[env]
+VOLUME = "/volume"

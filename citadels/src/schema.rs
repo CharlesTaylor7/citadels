@@ -73,28 +73,29 @@ pub enum WizardAction {
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct WizardPickAction {
-    district: DistrictId,
+    pub district: DistrictName,
 }
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct NecropolisBuildMethod {
-    sacrifice: DistrictId,
+    pub sacrifice: CityDistrictTarget,
 }
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct ThievesDenBuildMethod {
-    discard: Vec<DistrictId>,
+    pub discard: Vec<DistrictName>,
 }
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct CardinalBuildMethod {
-    discard: Vec<DistrictId>,
-    player: PlayerId,
+    pub discard: Vec<DistrictName>,
+    pub player: PlayerId,
 }
-#[derive(Object, Debug, Clone)]
+#[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct CityDistrictTarget {
     pub player: PlayerId,
-    pub district: DistrictId,
+    pub district: DistrictName,
+    pub beautified: bool,
 }
 
 #[derive(Enum, Serialize, Deserialize, Debug, Clone)]
@@ -102,11 +103,6 @@ pub enum Resource {
     Gold,
     Cards,
 }
-
-/// id from 1 to 60ish.
-/// assigned upon deck creation, consistent for whole game.
-#[derive(NewType, Serialize, Deserialize, Debug, Clone)]
-pub struct DistrictId(usize);
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
 pub struct Empty;

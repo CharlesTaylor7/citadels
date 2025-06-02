@@ -1,0 +1,8 @@
+<div class="panel">
+  <h2 class="header">Players</h2>
+  <!-- Content will be ported from reference/citadels_server/templates/game/players.html -->
+  <p>Players Info panel works!</p>
+  <div *ngIf="playersInfo(); let players">
+    <p>Number of players: {{ players.length }}</p>
+  </div>
+</div>

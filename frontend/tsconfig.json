@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./types",
+    "strict": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "jsx": "react-jsx",
+    "target": "ESNext",
+    "moduleResolution": "Bundler",
+    "skipLibCheck": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+     "baseUrl": ".",                      
+     "paths": {                        
+      "@/*": ["./src/*"]             
+    }
+  },
+  "exclude": [
+    "angular/",
+    "types/"
+  ]
+}

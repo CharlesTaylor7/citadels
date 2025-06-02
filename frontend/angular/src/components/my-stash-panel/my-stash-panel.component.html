@@ -1,0 +1,8 @@
+<div class="panel min-h-[268px] grow-0">
+  <h2 class="header">My Stash</h2>
+  <!-- Content will be ported from reference/citadels_server/templates/game/my-stash.html -->
+  <p>My Stash panel works!</p>
+  <div *ngIf="myPlayer(); let player">
+    <p>Player Gold: {{ player.gold }}</p>
+  </div>
+</div>
