@@ -14,15 +14,22 @@ pub trait ActionTrait {
 pub enum Action {
     DraftPick(DraftPickAction),
     DraftDiscard(DraftDiscardAction),
-    GatherResource(GatherResourceAction),
+    GatherCards(GatherCardsAction),
+    GatherGold(GatherGoldAction),
     Build(BuildAction),
     Pass(PassAction),
     EndTurn(EndTurnAction),
 }
 
 #[derive(Object, Debug, Serialize, Deserialize)]
-pub struct GatherResourceAction {
-    resource: Resource,
+pub struct GatherCardsAction;
+
+#[derive(Object, Debug, Serialize, Deserialize)]
+pub struct GatherGoldAction;
+
+#[derive(Object, Debug, Serialize, Deserialize)]
+pub struct GatherCardsPickAction {
+    pub district: DistrictName,
 }
 
 #[derive(Object, Serialize, Deserialize, Debug, Clone)]
