@@ -1,6 +1,6 @@
 use crate::api::tags::ApiTags;
 use crate::db::DB;
-use crate::errors::{RequestError, RequestResult};
+use crate::errors::RequestError;
 use poem::web::Data;
 use poem_openapi::ApiResponse;
 use poem_openapi::Object;

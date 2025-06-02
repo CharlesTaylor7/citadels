@@ -2,7 +2,7 @@ use crate::game::{ActionOutput, Game};
 use crate::schema::{ActionTrait, DraftDiscardAction, DraftPickAction};
 use anyhow::{Result, anyhow};
 
-use std::borrow::{Borrow, BorrowMut};
+use std::borrow::BorrowMut;
 
 impl ActionTrait for DraftPickAction {
     fn act(&self, game: &mut Game) -> Result<ActionOutput> {

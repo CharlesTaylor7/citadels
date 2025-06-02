@@ -1650,7 +1650,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         },
         Action::Bewitch { role } => {
             if *role == RoleName::Witch {
-                return bail!("Cannot target self");
+                bail!("Cannot target self");
             }
             if let Some(c) = game.characters.get_mut(*role) {
                 c.markers.push(Marker::Bewitched);

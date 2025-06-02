@@ -1,10 +1,7 @@
 use poem::{
-    Endpoint, EndpointExt, FromRequest, IntoResponse, Middleware, Request, Response, Result, Route,
-    Server, get, handler, listener::TcpListener, session::Session, web::Data,
+    Endpoint, FromRequest, Middleware, Request, Result, session::Session,
 };
-use sqlx::Pool;
 
-use crate::db::DB;
 
 pub struct PlayerSessions;
 
@@ -21,7 +18,7 @@ pub struct PlayerSessionsImpl<E>(E);
 impl<E: Endpoint> Endpoint for PlayerSessionsImpl<E> {
     type Output = E::Output;
 
-    async fn call(&self, mut req: Request) -> Result<Self::Output> {
+    async fn call(&self, req: Request) -> Result<Self::Output> {
         let session = <&Session>::from_request_without_body(&req).await.unwrap();
         // let user_id: Option<i32> = session.get("user_id");
         // let user_id = match user_id {

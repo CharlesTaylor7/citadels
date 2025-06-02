@@ -1,5 +1,5 @@
 use crate::api::tags::ApiTags;
-use poem::web::{Data, Json};
+use poem::web::Data;
 use poem_openapi::{OpenApi, param::Path, payload::PlainText};
 
 use crate::{db::DB, errors::RequestError};

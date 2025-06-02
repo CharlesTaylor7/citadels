@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::{self, UnboundedSender};
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
-use crate::errors::{self, RequestResult};
+use crate::errors::RequestResult;
 
 pub type NotificationHandle = UnboundedSender<Event>;
 
