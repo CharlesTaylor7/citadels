@@ -13,7 +13,7 @@ pub struct GameApi;
 #[derive(ApiResponse)]
 enum CreateResponse {
     #[oai(status = 201)]
-    Created(PlainText<&'static str>, #[oai(header = "location")] String),
+    Created(Json<Game>, #[oai(header = "location")] String),
 }
 
 #[allow(unused)]
@@ -27,7 +27,7 @@ impl GameApi {
             .map_err(RequestError::Database)?
             .id;
         Ok(CreateResponse::Created(
-            PlainText("success"),
+            Json(Game { id }),
             format!("/api/games/{}", id),
         ))
     }
@@ -41,11 +41,11 @@ impl GameApi {
             .state
             .to_string();
 
-        Ok(Json(Game { title }))
+        Ok(Json(Game { id: 42 }))
     }
 }
 
 #[derive(Object)]
 pub struct Game {
-    title: String,
+    id: i32,
 }
