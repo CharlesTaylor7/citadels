@@ -94,7 +94,7 @@ impl AuthApi {
     #[oai(path = "/logout", method = "post")]
     async fn logout(&self, session: &Session) -> poem::Result<PlainText<String>> {
         session.remove("user_id");
-        Ok(PlainText("Hey".to_string()))
+        Ok(PlainText("Logged out".to_string()))
     }
 
     #[oai(path = "/me", method = "get")]
