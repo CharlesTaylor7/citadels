@@ -127,11 +127,17 @@ impl LobbyApi {
     #[oai(path = "/:id/rename", method = "post")]
     async fn rename_room(
         &self,
-        title: Json<RoomTitle>,
+        id: Path<i32>,
+        body: Json<RoomTitle>,
         session: &Session,
         db: Data<&DB>,
-    ) -> poem::Result<Json<Room>> {
-        todo!()
+    ) -> poem::Result<PlainText<String>> {
+        let user_id: i32 = session.get("user_id").unwrap();
+        sqlx::query!("update rooms set name = $1 where id = $2", body.title, id.0)
+            .execute(db.0)
+            .await;
+
+        Ok(PlainText("Renamed room".to_string()))
     }
 }
 
@@ -147,4 +153,14 @@ pub struct TransferTo {
 }
 
 #[derive(Object)]
-pub struct Room {}
+pub struct Room {
+    name: String,
+    players: Vec<Player>,
+}
+
+#[derive(Object)]
+pub struct Player {
+    id: i32,
+    username: String,
+    owner: bool,
+}
