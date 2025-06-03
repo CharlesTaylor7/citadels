@@ -17,7 +17,4 @@ export interface PlayerConfig {
 export interface GameConfig {
   players: PlayerConfig[];
   config: GameOptions;
-  rngSeed: Seed;
 }
-
-type Seed = number;

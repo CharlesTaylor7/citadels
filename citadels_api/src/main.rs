@@ -1,6 +1,4 @@
-use citadels_api::api::auth::AuthApi;
-use citadels_api::api::game::GameApi;
-use citadels_api::api::lobby::LobbyApi;
+use citadels_api::api;
 use citadels_api::middleware::sessions::PlayerSessions;
 use citadels_api::notifications::{Notifications, sse_handler};
 use poem::endpoint::{EndpointExt, StaticFilesEndpoint};
@@ -9,7 +7,6 @@ use poem::middleware::{AddData, Tracing};
 use poem::session::{CookieConfig, CookieSession};
 use poem::web::cookie::SameSite;
 use poem::{Route, Server, post};
-use poem_openapi::OpenApiService;
 use sqlx_postgres::PgPoolOptions;
 
 #[tokio::main]
@@ -25,8 +22,7 @@ async fn main() {
         .await
         .expect("Could not connect to database");
 
-    let api_service = OpenApiService::new((AuthApi, LobbyApi, GameApi), "Citadels API", "1.0")
-        .server("http://localhost:3000/api");
+    let api_service = api::service();
     let ui = api_service.swagger_ui();
     let app = Route::new()
         .at("/sse", post(sse_handler))
@@ -43,7 +39,7 @@ async fn main() {
         ))
         .with(Tracing);
 
-    let _ = Server::new(TcpListener::bind("127.0.0.1:3000"))
+    let _ = Server::new(TcpListener::bind(format!("127.0.0.1:{}", api::PORT)))
         .run(app)
         .await;
 }

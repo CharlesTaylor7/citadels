@@ -1,3 +1,4 @@
+import { Toaster } from "sonner";
 import {
   Link,
   Outlet,
@@ -7,20 +8,31 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { trpc } from "@/client/router";
-import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import type { AppRouter } from "@/server/trpc/router";
 import type { QueryClient } from "@tanstack/react-query";
 
 export interface RouterAppContext {
-  trpc: TRPCOptionsProxy<AppRouter>;
   queryClient: QueryClient;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,
-  loader: async ({ context: { trpc, queryClient } }) => {
-    await queryClient.ensureQueryData(trpc.auth.me.queryOptions());
+  head: () => ({
+    meta: [
+      {
+        name: "description",
+        content: "Play Citadels in browser",
+      },
+    ],
+    // emoji favicon
+    links: [
+      {
+        rel: "icon",
+        href: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>",
+      },
+    ],
+  }),
+  loader: async ({ context: { queryClient } }) => {
+    //await queryClient.ensureQueryData(trpc.auth.me.queryOptions());
   },
 });
 
@@ -102,6 +114,7 @@ function RootComponent() {
         <Outlet />
       </main>
 
+      <Toaster />
       <TanStackRouterDevtools />
       <ReactQueryDevtools />
     </div>

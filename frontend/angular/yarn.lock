@@ -363,7 +363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/language-server@npm:19":
+"@angular/language-server@npm:19.2.4":
   version: 19.2.4
   resolution: "@angular/language-server@npm:19.2.4"
   dependencies:
@@ -4297,7 +4297,7 @@ __metadata:
     "@angular/core": "npm:^19.2.0"
     "@angular/elements": "npm:^19.2.10"
     "@angular/forms": "npm:^19.2.0"
-    "@angular/language-server": "npm:19"
+    "@angular/language-server": "npm:19.2.4"
     "@angular/platform-browser": "npm:^19.2.0"
     "@angular/platform-browser-dynamic": "npm:^19.2.0"
     "@tailwindcss/postcss": "npm:^4.1.6"
