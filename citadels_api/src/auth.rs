@@ -1,9 +1,9 @@
 use poem::Request;
-use poem_openapi::{SecurityScheme, auth::Bearer};
+use poem_openapi::{Object, SecurityScheme, auth::Bearer};
 
-#[allow(dead_code)]
 pub struct User {
-    name: String,
+    email: String,
+    username: String,
 }
 
 #[allow(dead_code)]

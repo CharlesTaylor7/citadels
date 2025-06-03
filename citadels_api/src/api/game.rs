@@ -1,26 +1,24 @@
 use crate::api::tags::ApiTags;
+use crate::api::utils::CreateResponse;
 use crate::db::DB;
 use crate::errors::RequestError;
 use poem::web::Data;
-use poem_openapi::ApiResponse;
 use poem_openapi::Object;
 use poem_openapi::OpenApi;
 use poem_openapi::param::Path;
-use poem_openapi::payload::{Json, PlainText};
+use poem_openapi::payload::Json;
 
 pub struct GameApi;
-
-#[derive(ApiResponse)]
-enum CreateResponse {
-    #[oai(status = 201)]
-    Created(Json<Game>, #[oai(header = "location")] String),
-}
 
 #[allow(unused)]
 #[OpenApi(tag = "ApiTags::Game", prefix_path = "/games")]
 impl GameApi {
     #[oai(path = "/", method = "post")]
-    async fn new_game(&self, body: Json<Game>, db: Data<&DB>) -> poem::Result<CreateResponse> {
+    async fn new_game(
+        &self,
+        body: Json<Game>,
+        db: Data<&DB>,
+    ) -> poem::Result<CreateResponse<Game>> {
         let id = sqlx::query!("insert into games (state) values ('{}') returning id",)
             .fetch_one(db.0)
             .await

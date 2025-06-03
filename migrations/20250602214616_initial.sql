@@ -1,6 +1,10 @@
+create extension citext;
+
 create table users (
   id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  username TEXT
+  username TEXT NOT NULL UNIQUE,
+  email CITEXT NOT NULL UNIQUE,
+  hashed_password TEXT NOT NULL
 );
 
 create table games (
@@ -25,3 +29,9 @@ create table room_members (
 create unique index unique_room_owner 
   ON room_members (room_id) 
   WHERE owner = true;
+
+
+create table sessions (
+  id int generated always as identity,
+  user_id int references users (id) on delete cascade
+);
