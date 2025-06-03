@@ -286,12 +286,17 @@ dependencies = [
  "poem",
  "poem-openapi",
  "serde",
+ "serde_json",
  "sqlx",
  "sqlx-postgres",
  "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
 ]
+
+[[package]]
+name = "citadels_openapi_spec_gen"
+version = "0.1.0"
 
 [[package]]
 name = "color-eyre"
