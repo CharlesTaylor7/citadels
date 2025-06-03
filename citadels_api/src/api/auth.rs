@@ -1,8 +1,14 @@
-use crate::api::tags::ApiTags;
+use crate::{api::tags::ApiTags, db::DB};
+use argon2::{
+    Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
+};
+use poem::{session::Session, web::Data};
 use poem_openapi::{
     Object, OpenApi,
     payload::{Json, PlainText},
 };
+
 pub struct AuthApi;
 
 #[derive(Object)]
@@ -14,8 +20,8 @@ pub struct UserSignup {
 
 #[derive(Object)]
 pub struct UserLogin {
-    email: String,
-    username: String,
+    // email or username
+    login: String,
     password: String,
 }
 
@@ -30,21 +36,78 @@ pub struct User {
 impl AuthApi {
     #[oai(path = "/signup", method = "post")]
 
-    async fn signup(&self) -> poem::Result<PlainText<String>> {
-        todo!()
+    async fn signup(
+        &self,
+        body: Json<UserSignup>,
+        session: &Session,
+        db: Data<&DB>,
+    ) -> poem::Result<PlainText<String>> {
+        let salt = SaltString::generate(&mut OsRng);
+
+        // Argon2 with default params (Argon2id v19)
+        let argon2 = Argon2::default();
+
+        // Hash password to PHC string ($argon2id$v=19$...)
+        let password_hash = argon2
+            .hash_password(body.password.as_bytes(), &salt)
+            .unwrap()
+            .to_string();
+
+        let user_id = sqlx::query!(
+            "insert into users (email, username, hashed_password) values ($1, $2, $3) returning id",
+            body.email,
+            body.username,
+            password_hash
+        )
+        .fetch_one(db.0)
+        .await
+        .unwrap()
+        .id;
+        session.set("user_id", user_id);
+
+        Ok(PlainText("Success".to_string()))
     }
     #[oai(path = "/login", method = "post")]
-    async fn login(&self) -> poem::Result<PlainText<String>> {
-        todo!()
+    async fn login(
+        &self,
+        body: Json<UserLogin>,
+        session: &Session,
+        db: Data<&DB>,
+    ) -> poem::Result<PlainText<String>> {
+        let user = sqlx::query!(
+            "select id, hashed_password from users where users.username = $1 or users.email = $1",
+            body.login
+        )
+        .fetch_one(db.0)
+        .await
+        .unwrap();
+        let parsed_hash = PasswordHash::new(&user.hashed_password).unwrap();
+        Argon2::default()
+            .verify_password(body.password.as_bytes(), &parsed_hash)
+            .unwrap();
+
+        session.set("user_id", user.id);
+
+        Ok(PlainText("Hey".to_string()))
     }
 
     #[oai(path = "/logout", method = "post")]
-    async fn logout(&self) -> poem::Result<PlainText<String>> {
-        todo!()
+    async fn logout(&self, session: &Session) -> poem::Result<PlainText<String>> {
+        session.remove("user_id");
+        Ok(PlainText("Hey".to_string()))
     }
 
     #[oai(path = "/me", method = "get")]
-    async fn me(&self) -> poem::Result<Json<User>> {
-        todo!()
+    async fn me(&self, session: &Session, db: Data<&DB>) -> poem::Result<Json<User>> {
+        let user_id: i32 = session.get("user_id").unwrap();
+        let user = sqlx::query_as!(
+            User,
+            "select id, username, email from users where id = $1",
+            user_id
+        )
+        .fetch_one(db.0)
+        .await
+        .unwrap();
+        Ok(Json(user))
     }
 }
