@@ -4,8 +4,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { routeTree } from "@/client/route-tree";
-import type { AppRouter } from "@/server/trpc/router";
+import { routeTree } from "@/route-tree";
 
 export const queryClient = new QueryClient({
   defaultOptions: {

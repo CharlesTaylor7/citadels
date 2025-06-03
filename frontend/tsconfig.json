@@ -4,6 +4,7 @@
     "emitDeclarationOnly": true,
     "outDir": "./types",
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "module": "esnext",
     "jsx": "react-jsx",

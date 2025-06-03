@@ -1,7 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { trpc } from "@/client/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSubscription } from "@trpc/tanstack-react-query";
 import { useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 

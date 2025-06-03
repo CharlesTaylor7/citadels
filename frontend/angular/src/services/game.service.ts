@@ -6,14 +6,6 @@ import {
   DestroyRef,
   inject,
 } from '@angular/core';
-import {
-  splitLink,
-  createTRPCClient,
-  httpBatchLink,
-  httpSubscriptionLink,
-  TRPCClient,
-} from '@trpc/client';
-import type { AppRouter } from '@/types/trpc/router';
 import { DistrictName } from '@/core/districts';
 import { RoleName } from '@/core/roles';
 
@@ -21,7 +13,6 @@ import { RoleName } from '@/core/roles';
   providedIn: 'root',
 })
 export class GameService {
-  trpc: TRPCClient<AppRouter>;
   gameStateSignal = signal<FrontendState | null>(null);
 
   constructor() {

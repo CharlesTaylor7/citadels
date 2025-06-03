@@ -297,6 +297,9 @@ dependencies = [
 [[package]]
 name = "citadels_openapi_spec_gen"
 version = "0.1.0"
+dependencies = [
+ "citadels_api",
+]
 
 [[package]]
 name = "color-eyre"
