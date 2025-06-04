@@ -7,8 +7,8 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
+import { api } from "@/api";
 
 export interface RouterAppContext {
   queryClient: QueryClient;
@@ -31,20 +31,14 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       },
     ],
   }),
-  loader: async ({ context: { queryClient } }) => {
-    //await queryClient.ensureQueryData(trpc.auth.me.queryOptions());
-  },
 });
 
 function RootComponent() {
-  const userQuery = useQuery(trpc.auth.me.queryOptions());
-  const logoutMutation = useMutation(trpc.auth.logout.mutationOptions());
   const navigate = useNavigate();
-  async function logout() {
-    await logoutMutation.mutateAsync();
-    navigate({ to: "/" });
-  }
-  const user = userQuery.data?.userId;
+  const userQuery = api.useQuery("get", "/auth/me", {});
+  const logoutMutation = api.useMutation("post", "/auth/logout", {
+    onSuccess: () => navigate({ to: "/" }),
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-base-100">
@@ -75,7 +69,7 @@ function RootComponent() {
                   Game
                 </Link>
               </li>
-              {user ? (
+              {userQuery.data ? (
                 <li className="dropdown dropdown-hover">
                   <label tabIndex={0} className="btn btn-ghost btn-sm">
                     Account
@@ -86,7 +80,7 @@ function RootComponent() {
                   >
                     <li>
                       <button
-                        onClick={() => logout()}
+                        onClick={() => logoutMutation.mutate({})}
                         className="btn btn-ghost text-error"
                       >
                         Logout

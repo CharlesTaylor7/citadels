@@ -10,135 +10,176 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as SignupImport } from './routes/signup'
-import { Route as LoginImport } from './routes/login'
-import { Route as LobbyImport } from './routes/lobby'
-import { Route as GameImport } from './routes/game'
-import { Route as DeploymentImport } from './routes/deployment'
-import { Route as CardImport } from './routes/card'
-import { Route as IndexImport } from './routes/index'
+import { Route as rootRoute } from "./routes/__root";
+import { Route as SignupImport } from "./routes/signup";
+import { Route as LoginImport } from "./routes/login";
+import { Route as LobbyImport } from "./routes/lobby";
+import { Route as GameImport } from "./routes/game";
+import { Route as DeploymentImport } from "./routes/deployment";
+import { Route as IndexImport } from "./routes/index";
 
 // Create/Update Routes
 
 const SignupRoute = SignupImport.update({
-          id: '/signup',path: '/signup',getParentRoute: () => rootRoute
-        }as any)
+  id: "/signup",
+  path: "/signup",
+  getParentRoute: () => rootRoute,
+} as any);
 
 const LoginRoute = LoginImport.update({
-          id: '/login',path: '/login',getParentRoute: () => rootRoute
-        }as any)
+  id: "/login",
+  path: "/login",
+  getParentRoute: () => rootRoute,
+} as any);
 
 const LobbyRoute = LobbyImport.update({
-          id: '/lobby',path: '/lobby',getParentRoute: () => rootRoute
-        }as any)
+  id: "/lobby",
+  path: "/lobby",
+  getParentRoute: () => rootRoute,
+} as any);
 
 const GameRoute = GameImport.update({
-          id: '/game',path: '/game',getParentRoute: () => rootRoute
-        }as any)
+  id: "/game",
+  path: "/game",
+  getParentRoute: () => rootRoute,
+} as any);
 
 const DeploymentRoute = DeploymentImport.update({
-          id: '/deployment',path: '/deployment',getParentRoute: () => rootRoute
-        }as any)
-
-const CardRoute = CardImport.update({
-          id: '/card',path: '/card',getParentRoute: () => rootRoute
-        }as any)
+  id: "/deployment",
+  path: "/deployment",
+  getParentRoute: () => rootRoute,
+} as any);
 
 const IndexRoute = IndexImport.update({
-          id: '/',path: '/',getParentRoute: () => rootRoute
-        }as any)
+  id: "/",
+  path: "/",
+  getParentRoute: () => rootRoute,
+} as any);
 
 // Populate the FileRoutesByPath interface
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/': {
-          id: '/'
-          path: '/'
-          fullPath: '/'
-          preLoaderRoute: typeof IndexImport
-          parentRoute: typeof rootRoute
-        }
-'/card': {
-          id: '/card'
-          path: '/card'
-          fullPath: '/card'
-          preLoaderRoute: typeof CardImport
-          parentRoute: typeof rootRoute
-        }
-'/deployment': {
-          id: '/deployment'
-          path: '/deployment'
-          fullPath: '/deployment'
-          preLoaderRoute: typeof DeploymentImport
-          parentRoute: typeof rootRoute
-        }
-'/game': {
-          id: '/game'
-          path: '/game'
-          fullPath: '/game'
-          preLoaderRoute: typeof GameImport
-          parentRoute: typeof rootRoute
-        }
-'/lobby': {
-          id: '/lobby'
-          path: '/lobby'
-          fullPath: '/lobby'
-          preLoaderRoute: typeof LobbyImport
-          parentRoute: typeof rootRoute
-        }
-'/login': {
-          id: '/login'
-          path: '/login'
-          fullPath: '/login'
-          preLoaderRoute: typeof LoginImport
-          parentRoute: typeof rootRoute
-        }
-'/signup': {
-          id: '/signup'
-          path: '/signup'
-          fullPath: '/signup'
-          preLoaderRoute: typeof SignupImport
-          parentRoute: typeof rootRoute
-        }
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/deployment": {
+      id: "/deployment";
+      path: "/deployment";
+      fullPath: "/deployment";
+      preLoaderRoute: typeof DeploymentImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/game": {
+      id: "/game";
+      path: "/game";
+      fullPath: "/game";
+      preLoaderRoute: typeof GameImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/lobby": {
+      id: "/lobby";
+      path: "/lobby";
+      fullPath: "/lobby";
+      preLoaderRoute: typeof LobbyImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/login": {
+      id: "/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof LoginImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/signup": {
+      id: "/signup";
+      path: "/signup";
+      fullPath: "/signup";
+      preLoaderRoute: typeof SignupImport;
+      parentRoute: typeof rootRoute;
+    };
   }
 }
 
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute,'/card': typeof CardRoute,'/deployment': typeof DeploymentRoute,'/game': typeof GameRoute,'/lobby': typeof LobbyRoute,'/login': typeof LoginRoute,'/signup': typeof SignupRoute
+  "/": typeof IndexRoute;
+  "/deployment": typeof DeploymentRoute;
+  "/game": typeof GameRoute;
+  "/lobby": typeof LobbyRoute;
+  "/login": typeof LoginRoute;
+  "/signup": typeof SignupRoute;
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute,'/card': typeof CardRoute,'/deployment': typeof DeploymentRoute,'/game': typeof GameRoute,'/lobby': typeof LobbyRoute,'/login': typeof LoginRoute,'/signup': typeof SignupRoute
+  "/": typeof IndexRoute;
+  "/deployment": typeof DeploymentRoute;
+  "/game": typeof GameRoute;
+  "/lobby": typeof LobbyRoute;
+  "/login": typeof LoginRoute;
+  "/signup": typeof SignupRoute;
 }
 
 export interface FileRoutesById {
-  '__root__': typeof rootRoute,
-  '/': typeof IndexRoute,'/card': typeof CardRoute,'/deployment': typeof DeploymentRoute,'/game': typeof GameRoute,'/lobby': typeof LobbyRoute,'/login': typeof LoginRoute,'/signup': typeof SignupRoute
+  __root__: typeof rootRoute;
+  "/": typeof IndexRoute;
+  "/deployment": typeof DeploymentRoute;
+  "/game": typeof GameRoute;
+  "/lobby": typeof LobbyRoute;
+  "/login": typeof LoginRoute;
+  "/signup": typeof SignupRoute;
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'|'/card'|'/deployment'|'/game'|'/lobby'|'/login'|'/signup'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/'|'/card'|'/deployment'|'/game'|'/lobby'|'/login'|'/signup'
-  id: '__root__'|'/'|'/card'|'/deployment'|'/game'|'/lobby'|'/login'|'/signup'
-  fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths:
+    | "/"
+    | "/card"
+    | "/deployment"
+    | "/game"
+    | "/lobby"
+    | "/login"
+    | "/signup";
+  fileRoutesByTo: FileRoutesByTo;
+  to: "/" | "/card" | "/deployment" | "/game" | "/lobby" | "/login" | "/signup";
+  id:
+    | "__root__"
+    | "/"
+    | "/card"
+    | "/deployment"
+    | "/game"
+    | "/lobby"
+    | "/login"
+    | "/signup";
+  fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute,CardRoute: typeof CardRoute,DeploymentRoute: typeof DeploymentRoute,GameRoute: typeof GameRoute,LobbyRoute: typeof LobbyRoute,LoginRoute: typeof LoginRoute,SignupRoute: typeof SignupRoute
+  IndexRoute: typeof IndexRoute;
+  DeploymentRoute: typeof DeploymentRoute;
+  GameRoute: typeof GameRoute;
+  LobbyRoute: typeof LobbyRoute;
+  LoginRoute: typeof LoginRoute;
+  SignupRoute: typeof SignupRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,CardRoute: CardRoute,DeploymentRoute: DeploymentRoute,GameRoute: GameRoute,LobbyRoute: LobbyRoute,LoginRoute: LoginRoute,SignupRoute: SignupRoute
-}
+  IndexRoute: IndexRoute,
+  DeploymentRoute: DeploymentRoute,
+  GameRoute: GameRoute,
+  LobbyRoute: LobbyRoute,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
+};
 
-export const routeTree = rootRoute._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
-
+export const routeTree = rootRoute
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>();
 
 /* ROUTE_MANIFEST_START
 {
@@ -147,7 +188,6 @@ export const routeTree = rootRoute._addFileChildren(rootRouteChildren)._addFileT
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/card",
         "/deployment",
         "/game",
         "/lobby",
@@ -157,9 +197,6 @@ export const routeTree = rootRoute._addFileChildren(rootRouteChildren)._addFileT
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/card": {
-      "filePath": "card.tsx"
     },
     "/deployment": {
       "filePath": "deployment.tsx"
@@ -179,3 +216,4 @@ export const routeTree = rootRoute._addFileChildren(rootRouteChildren)._addFileT
   }
 }
 ROUTE_MANIFEST_END */
+
