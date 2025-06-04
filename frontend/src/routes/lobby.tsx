@@ -1,53 +1,45 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { Pencil } from "lucide-react";
+import { api } from "@/api";
 
 export const Route = createFileRoute("/lobby")({
   component: LobbyComponent,
-  loader: async ({ context: { trpc, queryClient } }) => {
-    await queryClient.ensureQueryData(trpc.lobby.rooms.queryOptions());
-  },
 });
 
 function LobbyComponent() {
-  const queryClient = useQueryClient();
-  useSubscription({
-    ...trpc.lobby.subscribe.subscriptionOptions(),
-    onData: () =>
-      queryClient.invalidateQueries({
-        queryKey: trpc.lobby.rooms.queryKey(),
-      }),
-  });
+  // useSubscription({
+  //   ...trpc.lobby.subscribe.subscriptionOptions(),
+  //   onData: () =>
+  //     queryClient.invalidateQueries({
+  //       queryKey: trpc.lobby.rooms.queryKey(),
+  //     }),
+  // });
 
-  const userQuery = useQuery(trpc.auth.me.queryOptions());
-  const roomsQuery = useQuery(trpc.lobby.rooms.queryOptions());
+  const userQuery = api.useQuery("get", "/auth/me", {});
+  const roomsQuery = api.useQuery("get", "/rooms", {});
 
-  const userId = userQuery.data?.userId;
+  const userId = userQuery.data?.id;
+  console.log(userId);
   const rooms = roomsQuery.data || [];
-  const userRoom = rooms.find((r) => r.members.some((m) => m.id === userId));
+  const userRoom = rooms.find((r) => r.players.some((m) => m.id === userId));
 
-  const startGameMutation = useMutation({
-    ...trpc.lobby.startGame.mutationOptions(),
-  });
-  const leaveRoomMutation = useMutation({
-    ...trpc.lobby.leaveRoom.mutationOptions(),
-  });
-  const createRoomMutation = useMutation({
-    ...trpc.lobby.createRoom.mutationOptions(),
-  });
-  const joinRoomMutation = useMutation({
-    ...trpc.lobby.joinRoom.mutationOptions(),
-  });
-  const transferOwnershipMutation = useMutation({
-    ...trpc.lobby.transferOwnership.mutationOptions(),
-  });
-  const claimOwnershipMutation = useMutation({
-    ...trpc.lobby.claimOwnership.mutationOptions(),
-  });
-  const renameRoomMutation = useMutation({
-    ...trpc.lobby.renameRoom.mutationOptions(),
-  });
+  const createRoomMutation = api.useMutation("post", "/rooms", {});
+  const startGameMutation = api.useMutation("post", "/games", {});
+  const leaveRoomMutation = api.useMutation("post", "/rooms/{id}/leave", {});
+  const joinRoomMutation = api.useMutation("post", "/rooms/{id}/join", {});
+  const transferOwnershipMutation = api.useMutation(
+    "post",
+    "/rooms/{id}/transfer",
+    {},
+  );
+  const claimOwnershipMutation = api.useMutation(
+    "post",
+    "/rooms/{id}/claim",
+    {},
+  );
+
+  const renameRoomMutation = api.useMutation("post", "/rooms/{id}/rename", {});
 
   const [edittingTitle, setEdittingTitle] = useState<boolean>(false);
 
@@ -59,7 +51,7 @@ function LobbyComponent() {
 
       <div className="mb-6">
         <button
-          onClick={() => createRoomMutation.mutate()}
+          onClick={() => createRoomMutation.mutate({})}
           disabled={
             createRoomMutation.isPending || userRoom != null || userId == null
           }

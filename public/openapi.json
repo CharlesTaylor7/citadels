@@ -462,10 +462,15 @@
         "type": "object",
         "title": "Room",
         "required": [
+          "id",
           "name",
           "players"
         ],
         "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
           "name": {
             "type": "string"
           },

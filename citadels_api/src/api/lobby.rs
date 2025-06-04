@@ -154,6 +154,7 @@ pub struct TransferTo {
 
 #[derive(Object)]
 pub struct Room {
+    id: i32,
     name: String,
     players: Vec<Player>,
 }
