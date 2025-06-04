@@ -6,3 +6,5 @@ const fetchClient = createFetchClient<paths>({
   baseUrl: "https://myapi.dev/v1/",
 });
 export const api = createClient(fetchClient);
+export const { useQuery, useMutation, useInfiniteQuery, useSuspenseQuery } =
+  api;

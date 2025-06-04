@@ -1,115 +1,113 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { useMutation } from "@/api";
 
 export const Route = createFileRoute("/signup")({
   component: SignupComponent,
 });
 
+type FormFields = {
+  username: string;
+  email: string;
+  password: string;
+};
 function SignupComponent() {
   const [error, setError] = useState<string>();
-  const signupMutation = useMutation(trpc.auth.signup.mutationOptions());
+  const signupMutation = useMutation("post", "/auth/signup");
   const navigate = useNavigate();
+  const [data, setData] = useState("");
+  const { register, handleSubmit, formState } = useForm<FormFields>();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const username = formData.get("username");
-    const password = formData.get("password");
-    const confirmPassword = formData.get("confirmPassword");
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    // @ts-expect-error the trpc handler will check for this
-    await signupMutation.mutateAsync({ username, password });
-    navigate({ to: "/lobby" });
-  };
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   const formData = new FormData(e.currentTarget);
+  //   const username = formData.get("username");
+  //   const email = formData.get("email");
+  //   const password = formData.get("password");
+  //   const confirmPassword = formData.get("confirmPassword");
+  //
+  //   if (password !== confirmPassword) {
+  //     setError("Passwords do not match");
+  //     return;
+  //   }
+  //
+  //   await signupMutation.mutateAsync({ body: { username, email, password } });
+  //   navigate({ to: "/lobby" });
+  // };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{" "}
-            <Link
-              to="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              sign in to your account
-            </Link>
-          </p>
+    <div className="hero min-h-screen bg-base-200">
+      <div className="hero-content flex-col">
+        <div className="text-center">
+          <h1 className="text-5xl font-bold">Sign Up</h1>
+          <p className="py-6">Create your account</p>
         </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                Username
+        <div className="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+          <form
+            className="card-body"
+            onSubmit={handleSubmit((body) => signupMutation.mutate({ body }))}
+          >
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Email</span>
               </label>
               <input
-                id="username"
-                name="username"
+                type="email"
+                placeholder="email"
+                className="input input-bordered"
+                required
+                disabled={signupMutation.isPending}
+              />
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Password</span>
+              </label>
+              <input
+                {...register("password")}
+                type="password"
+                className="input input-bordered"
+                required
+                disabled={signupMutation.isPending}
+              />
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Firm Name</span>
+              </label>
+              <input
+                {...register("email")}
                 type="text"
+                className="input "
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
+                disabled={signupMutation.isPending}
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-              />
+            <div className="form-control mt-6">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={signupMutation.isPending}
+              >
+                {signupMutation.isPending ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Sign Up"
+                )}
+              </button>
             </div>
-            <div>
-              <label htmlFor="confirmPassword" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-              />
+            <div className="text-center mt-4">
+              <p>
+                Already have an account?{" "}
+                <Link to="/login" className="link link-primary">
+                  Login
+                </Link>
+              </p>
             </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={signupMutation.isPending}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {signupMutation.isPending ? "Creating account..." : "Sign up"}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

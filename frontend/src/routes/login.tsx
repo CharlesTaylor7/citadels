@@ -1,23 +1,23 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { api } from "@/api";
 
 export const Route = createFileRoute("/login")({
   component: LoginComponent,
 });
 
 function LoginComponent() {
-  const loginMutation = useMutation(trpc.auth.login.mutationOptions());
-  const error = loginMutation.error?.message;
+  const loginMutation = api.useMutation("post", "/auth/login");
+  const error = loginMutation.error;
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const username = formData.get("username");
-    const password = formData.get("password");
-    // @ts-expect-error the trpc handler will check for this
-    await loginMutation.mutateAsync({ username, password });
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    await loginMutation.mutateAsync({ body: { login: username, password } });
     navigate({ to: "/lobby" });
   };
 
