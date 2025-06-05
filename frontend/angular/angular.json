@@ -33,7 +33,7 @@
               }
             ],
             "styles": [
-              "../src/client/styles.css"
+              "../src/styles.css"
             ],
            "allowedCommonJsDependencies": [
                 "interactjs"

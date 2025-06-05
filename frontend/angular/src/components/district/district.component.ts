@@ -22,7 +22,6 @@ import interact from 'interactjs';
   selector: 'app-district',
   imports: [CommonModule],
   templateUrl: './district.component.html',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DistrictComponent {
@@ -36,7 +35,6 @@ export class DistrictComponent {
 
   labelStyle = computed(() => {
     const { x, y, z } = this.position();
-    console.log(this.position());
     return {
       'z-index': z,
       transform: `translate(${x}px, ${y}px)`,

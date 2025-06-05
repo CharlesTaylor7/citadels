@@ -18,8 +18,6 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         content: "Play Citadels in browser",
       },
     ],
-    // emoji favicon
-    links: [{}],
   }),
 });
 

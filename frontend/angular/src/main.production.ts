@@ -1,13 +1,13 @@
 import { createApplication } from '@angular/platform-browser';
 import { provideExperimentalZonelessChangeDetection } from '@angular/core';
 import { createCustomElement } from '@angular/elements';
-import { GameComponent } from '@/components/game/game.component';
+import { DistrictComponent } from './components/district/district.component';
 
 createApplication({
   providers: [provideExperimentalZonelessChangeDetection()],
 }).then(({ injector }) => {
   customElements.define(
-    'citadels-game',
-    createCustomElement(GameComponent, { injector }),
+    'citadels-district',
+    createCustomElement(DistrictComponent, { injector }),
   );
 });

@@ -1,7 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './components/app/app.component';
+import { SandboxComponent } from './components/sandbox/sandbox.component';
 import { provideExperimentalZonelessChangeDetection } from '@angular/core';
 
-bootstrapApplication(AppComponent, {
+bootstrapApplication(SandboxComponent, {
   providers: [provideExperimentalZonelessChangeDetection()],
 });
