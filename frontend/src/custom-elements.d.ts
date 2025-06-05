@@ -1,18 +1,14 @@
 import React from "react";
-// declare namespace JSX {
-//   interface IntrinsicElements {
-//     "citadels-district": React.DetailedHTMLProps<
-//       React.HTMLAttributes<HTMLElement>,
-//       HTMLElement
-//     >;
-//   }
-// }
+import { DistrictName } from "./districts";
 
-declare namespace JSX {
-  interface IntrinsicElements {
-    "citadels-district": React.DetailedHTMLProps<
-      React.HTMLAttributes<HTMLElement>,
-      HTMLElement
-    >;
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      ["citadels-district"]: {
+        name: DistrictName;
+        draggable?: boolean;
+        selectable?: boolean;
+      };
+    }
   }
 }

@@ -2,6 +2,7 @@ import {
   ElementRef,
   ViewChild,
   Component,
+  inject,
   effect,
   input,
   signal,
@@ -10,13 +11,13 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-import {
-  DistrictName,
-  DistrictData,
-  DistrictNameUtils,
-} from '@/core/districts';
 import interact from 'interactjs';
+import {
+  CardSuit,
+  DistrictData,
+  type DistrictName,
+  DistrictService,
+} from '@/services/districts.service';
 
 @Component({
   selector: 'app-district',
@@ -25,12 +26,15 @@ import interact from 'interactjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DistrictComponent {
+  service = inject(DistrictService);
   name = input.required<DistrictName>();
   selectable = input(false);
   draggable = input(false);
 
   dragging = signal<boolean>(false);
-  district = computed(() => DistrictFactory.fromDistrictName(this.name()));
+  district = computed(() =>
+    DistrictFactory.fromDistrictName(this.service, this.name()),
+  );
   position = linkedSignal(() => this.district().pos ?? { x: 0, y: 0, z: 0 });
 
   labelStyle = computed(() => {
@@ -123,24 +127,19 @@ export class DistrictComponent {
 
   onDragMove(event: { dx: number; dy: number }) {
     this.dragging.set(true);
-    // Add console.log to inspect event.dx and event.dy
-    // console.log('onDragMove event:', event);
     this.position.update((pos) => ({
       ...pos,
-      x: pos.x + event.dx, // Changed to + for standard drag behavior
-      y: pos.y + event.dy, // Changed to + for standard drag behavior
+      x: pos.x + event.dx,
+      y: pos.y + event.dy,
     }));
-    // Check this log carefully:
-    console.log('Position after update in onDragMove:', this.position());
   }
 
   onDragEnd(event: unknown) {
-    console.log('end', event);
     this.dragging.set(false);
-    this.position.update((pos) => {
-      // Return a new object for the update
-      return { ...pos, z: pos.z + 1 };
-    });
+    this.position.update((pos) => ({
+      ...pos,
+      z: pos.z + 1,
+    }));
   }
 }
 
@@ -161,8 +160,6 @@ export interface DistrictAsset {
   path: string;
 }
 
-export type CardSuit = 'Military' | 'Religious' | 'Noble' | 'Trade' | 'Unique';
-
 export interface District {
   value: DistrictName;
   name: string;
@@ -176,8 +173,11 @@ export interface District {
 }
 
 class DistrictFactory {
-  public static fromDistrictName(districtName: DistrictName): District {
-    const data: DistrictData = DistrictNameUtils.data(districtName);
+  public static fromDistrictName(
+    service: DistrictService,
+    districtName: DistrictName,
+  ): District {
+    const data: DistrictData = service.getDistrictData(districtName);
 
     const length = 170.0;
     const scale = 10.0;

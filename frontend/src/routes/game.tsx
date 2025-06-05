@@ -5,6 +5,9 @@ export const Route = createFileRoute("/game")({
 });
 
 function Game() {
-  // @ts-expect-error custom element
-  return <citadels-game></citadels-game>;
+  return (
+    <>
+      <citadels-district name="SecretVault"></citadels-district>
+    </>
+  );
 }
