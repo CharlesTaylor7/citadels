@@ -1,5 +1,5 @@
 use crate::{
-    districts::DistrictName,
+    districts::{DistrictData, DistrictName},
     game,
     roles::{Rank, RoleName},
     types::{PlayerId, PlayerName},
@@ -221,7 +221,7 @@ impl GameConfig {
     ) -> impl Iterator<Item = DistrictName> + '_ {
         let mut always = Vec::with_capacity(14);
         let mut sometimes = Vec::with_capacity(30);
-        for d in crate::districts::UNIQUE {
+        for d in DistrictData::unique() {
             match self.district(&d.name) {
                 ConfigOption::Always => always.push(d.name),
                 ConfigOption::Sometimes => sometimes.push(d.name),

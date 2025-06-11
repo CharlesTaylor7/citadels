@@ -1,5 +1,5 @@
 use crate::actions::{Action, ActionTag};
-use crate::districts::DistrictName;
+use crate::districts::{DistrictData, DistrictName};
 use crate::game_actions::perform_action;
 use crate::lobby::{self, Lobby};
 use crate::museum::Museum;
@@ -610,9 +610,9 @@ impl Game {
             .map(|(index, lobby::Player { id, name })| Player::new(PlayerIndex(index), id, name))
             .collect();
 
-        let mut deck: Vec<DistrictName> = crate::districts::NORMAL
+        let mut deck: Vec<DistrictName> = DistrictData::normal()
             .iter()
-            .flat_map(|district| repeat(district.name).take(district.name.multiplicity()))
+            .flat_map(|district| repeat(district.name).take(district.multiplicity))
             .chain(config.select_unique_districts(&mut rng))
             .collect();
         deck.shuffle(&mut rng);
@@ -711,9 +711,13 @@ impl Game {
                 {
                     self.characters
                         .get(RoleName::Witch)
-                        .and_then(|game_role| game_role.player).ok_or(anyhow!(anyhow!("No witch!")))
+                        .and_then(|game_role| game_role.player)
+                        .ok_or(anyhow!(anyhow!("No witch!")))
                 } else {
-                    c.player.ok_or(anyhow!(anyhow!("No role at index {} in the roster!", call.index)))
+                    c.player.ok_or(anyhow!(anyhow!(
+                        "No role at index {} in the roster!",
+                        call.index
+                    )))
                 }
             }
         }
@@ -1123,7 +1127,10 @@ impl Game {
                     && draft.remaining.len() == 1
                     && draft.initial_discard.is_some()
                 {
-                    let initial = draft.initial_discard.take().ok_or(anyhow!(anyhow!("impossible")))?;
+                    let initial = draft
+                        .initial_discard
+                        .take()
+                        .ok_or(anyhow!(anyhow!("impossible")))?;
                     draft.remaining.push(initial);
                 }
 

@@ -203,8 +203,8 @@ class DistrictFactory {
 
     return {
       value: districtName,
-      name: data.displayName,
-      cost: districtName === 'SecretVault' ? null : data.cost,
+      name: data.display_name,
+      cost: data.cost,
       suit: data.suit,
       description: data.description ?? null,
       beautified: false, // Default value

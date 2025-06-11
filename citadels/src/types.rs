@@ -29,7 +29,7 @@ impl fmt::Display for CardSuit {
     }
 }
 
-#[derive(Enum, Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Enum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CardSet {
     Base,
     DarkCity,
