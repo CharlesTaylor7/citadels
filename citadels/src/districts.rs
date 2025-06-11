@@ -65,6 +65,7 @@ pub enum DistrictName {
 // Immutable data
 #[derive(Clone, Debug, Serialize)]
 pub struct DistrictData {
+    // pub id: usize,
     pub name: DistrictName,
     pub display_name: &'static str,
     pub cost: usize,
@@ -82,6 +83,7 @@ impl DistrictName {
         display_name: &'static str,
     ) -> DistrictData {
         DistrictData {
+            // id: self as usize,
             name: self,
             set,
             suit,
@@ -99,6 +101,7 @@ impl DistrictName {
         description: &'static str,
     ) -> DistrictData {
         DistrictData {
+            // id: self as usize,
             name: self,
             set,
             suit: Unique,
