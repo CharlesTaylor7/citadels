@@ -63,7 +63,7 @@ pub enum DistrictName {
 }
 
 // Immutable data
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct DistrictData {
     pub name: DistrictName,
     pub display_name: &'static str,
@@ -111,11 +111,7 @@ impl DistrictName {
     pub fn data(self) -> &'static DistrictData {
         let i = self as usize;
         let n = NORMAL.len();
-        if i < n {
-            &NORMAL[i]
-        } else {
-            &UNIQUE[i - n]
-        }
+        if i < n { &NORMAL[i] } else { &UNIQUE[i - n] }
     }
 
     pub fn action(self) -> Option<ActionTag> {
@@ -185,7 +181,7 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Base,
         display_name: "Smithy",
         cost: 5,
-        description:Some("Once per turn, pay 2 gold to gain 3 cards."),
+        description: Some("Once per turn, pay 2 gold to gain 3 cards."),
     },
     DistrictData {
         name: DistrictName::Laboratory,
@@ -201,7 +197,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Base,
         display_name: "School of Magic",
         cost: 6,
-        description: Some("For abilities that gain resources for your districts, the School of Magic counts as the district type of your choice."),
+        description: Some(
+            "For abilities that gain resources for your districts, the School of Magic counts as the district type of your choice.",
+        ),
     },
     DistrictData {
         name: DistrictName::Keep,
@@ -217,7 +215,7 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Base,
         display_name: "Dragon Gate",
         cost: 6,
-        description: Some("At the end of the game score 2 extra points.")
+        description: Some("At the end of the game score 2 extra points."),
     },
     DistrictData {
         name: DistrictName::HauntedQuarter,
@@ -225,7 +223,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Base,
         display_name: "Haunted Quarter",
         cost: 2,
-        description: Some("At the end of the game, the Haunted Quarter counts as any 1 district type of your choice."),
+        description: Some(
+            "At the end of the game, the Haunted Quarter counts as any 1 district type of your choice.",
+        ),
     },
     DistrictData {
         name: DistrictName::GreatWall,
@@ -233,7 +233,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Base,
         display_name: "Great Wall",
         cost: 6,
-        description: Some("The rank 8 character must pay 1 more gold to use its ability on any district in your city."),
+        description: Some(
+            "The rank 8 character must pay 1 more gold to use its ability on any district in your city.",
+        ),
     },
     DistrictData {
         name: DistrictName::Observatory,
@@ -241,7 +243,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Base,
         display_name: "Observatory",
         cost: 4,
-        description: Some("If you choose to draw cards when gathering resources, draw 3 cards instead of 2."),
+        description: Some(
+            "If you choose to draw cards when gathering resources, draw 3 cards instead of 2.",
+        ),
     },
     DistrictData {
         name: DistrictName::Library,
@@ -249,7 +253,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Base,
         display_name: "Library",
         cost: 6,
-        description: Some("If you choose to draw cards when gathering resources, keep all drawn cards."),
+        description: Some(
+            "If you choose to draw cards when gathering resources, keep all drawn cards.",
+        ),
     },
     DistrictData {
         name: DistrictName::Quarry,
@@ -265,7 +271,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: DarkCity,
         display_name: "Armory",
         cost: 3,
-        description: Some( "During your turn, destroy the Armory to destroy 1 district of your choice.")
+        description: Some(
+            "During your turn, destroy the Armory to destroy 1 district of your choice.",
+        ),
     },
     DistrictData {
         name: DistrictName::Factory,
@@ -281,16 +289,19 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: DarkCity,
         display_name: "Park",
         cost: 6,
-        description: Some("If there are no cards in your hand at the end of your turn, gain 2 cards.")
+        description: Some(
+            "If there are no cards in your hand at the end of your turn, gain 2 cards.",
+        ),
     },
-
     DistrictData {
         name: DistrictName::Museum,
         suit: Unique,
         set: DarkCity,
         display_name: "Museum",
         cost: 4,
-        description: Some("Once per turn, assign 1 card from your hand facedown under the Museum. At the end of the game, score 1 extra point for each card under the Museum.")
+        description: Some(
+            "Once per turn, assign 1 card from your hand facedown under the Museum. At the end of the game, score 1 extra point for each card under the Museum.",
+        ),
     },
     DistrictData {
         name: DistrictName::PoorHouse,
@@ -298,7 +309,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: DarkCity,
         display_name: "Poor House",
         cost: 4,
-        description: Some("If you have no gold in your stash at the end of your turn, gain 1 gold.")
+        description: Some(
+            "If you have no gold in your stash at the end of your turn, gain 1 gold.",
+        ),
     },
     DistrictData {
         name: DistrictName::MapRoom,
@@ -306,16 +319,19 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: DarkCity,
         display_name: "Map Room",
         cost: 5,
-        description: Some("At the end of the game, score 1 extra point for each card in your hand."),
+        description: Some(
+            "At the end of the game, score 1 extra point for each card in your hand.",
+        ),
     },
-
     DistrictData {
         name: DistrictName::WishingWell,
         suit: Unique,
         set: DarkCity,
         display_name: "Wishing Well",
         cost: 5,
-        description: Some("At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well)."),
+        description: Some(
+            "At the end of the game, score 1 extra point for each UNIQUE district in your city (including Wishing Well).",
+        ),
     },
     DistrictData {
         name: DistrictName::ImperialTreasury,
@@ -323,7 +339,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: DarkCity,
         display_name: "Imperial Treasury",
         cost: 5,
-        description:Some("At the end of the game, score 1 extra point for each gold in your stash."),
+        description: Some(
+            "At the end of the game, score 1 extra point for each gold in your stash.",
+        ),
     },
     DistrictData {
         name: DistrictName::Framework,
@@ -331,7 +349,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Framework",
         cost: 3,
-        description: Some("You can build a district by destroying the Framework instead of paying that district's cost."),
+        description: Some(
+            "You can build a district by destroying the Framework instead of paying that district's cost.",
+        ),
     },
     DistrictData {
         name: DistrictName::Statue,
@@ -339,7 +359,7 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Statue",
         cost: 3,
-        description: Some("If you have the crown at the end of the game, score 5 extra points.")
+        description: Some("If you have the crown at the end of the game, score 5 extra points."),
     },
     DistrictData {
         name: DistrictName::GoldMine,
@@ -347,7 +367,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Gold Mine",
         cost: 6,
-        description: Some("If you choose to gain gold when gathering resources, gain 1 extra gold.")
+        description: Some(
+            "If you choose to gain gold when gathering resources, gain 1 extra gold.",
+        ),
     },
     DistrictData {
         name: DistrictName::IvoryTower,
@@ -355,7 +377,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Ivory Tower",
         cost: 5,
-        description: Some( "If the Ivory Tower is the only UNIQUE district in your city at the end of the game, score 5 extra points")
+        description: Some(
+            "If the Ivory Tower is the only UNIQUE district in your city at the end of the game, score 5 extra points",
+        ),
     },
     DistrictData {
         name: DistrictName::Necropolis,
@@ -363,16 +387,19 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Necropolis",
         cost: 5,
-        description: Some( "You can build the Necropolis by destroying 1 district in your city instead of paying the Necropolis' cost.")
+        description: Some(
+            "You can build the Necropolis by destroying 1 district in your city instead of paying the Necropolis' cost.",
+        ),
     },
-
     DistrictData {
         name: DistrictName::ThievesDen,
         suit: Unique,
         set: Citadels2016,
         display_name: "Thieves' Den",
         cost: 6,
-        description: Some( "Pay some or all of the Thieves' Den cost with cards from your hand instead of gold at a rate of 1 card to 1 gold.")
+        description: Some(
+            "Pay some or all of the Thieves' Den cost with cards from your hand instead of gold at a rate of 1 card to 1 gold.",
+        ),
     },
     DistrictData {
         name: DistrictName::Theater,
@@ -380,25 +407,29 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Theater",
         cost: 6,
-        description: Some("At the end of each selection phase, you may exchange your chosen character card with an opponent's character card.")
+        description: Some(
+            "At the end of each selection phase, you may exchange your chosen character card with an opponent's character card.",
+        ),
     },
-
     DistrictData {
         name: DistrictName::Stables,
         suit: Unique,
         set: Citadels2016,
         display_name: "Stables",
         cost: 2,
-        description: Some("Building the Stables does not count toward your building limit for the turn.")
+        description: Some(
+            "Building the Stables does not count toward your building limit for the turn.",
+        ),
     },
-
     DistrictData {
         name: DistrictName::Basilica,
         suit: Unique,
         set: Citadels2016,
         display_name: "Basilica",
         cost: 4,
-        description: Some("At the end of the game, score 1 extra point for each district in your city with an odd-numbered cost."),
+        description: Some(
+            "At the end of the game, score 1 extra point for each district in your city with an odd-numbered cost.",
+        ),
     },
     DistrictData {
         name: DistrictName::SecretVault,
@@ -406,7 +437,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Secret Vault",
         cost: 1_000_000,
-        description: Some("The Secret Vault cannot be built. At the end of the game, reveal the Secret Vault from your hand to score 3 extra points."),
+        description: Some(
+            "The Secret Vault cannot be built. At the end of the game, reveal the Secret Vault from your hand to score 3 extra points.",
+        ),
     },
     DistrictData {
         name: DistrictName::Capitol,
@@ -414,7 +447,9 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Capitol",
         cost: 5,
-        description: Some("If you have at least 3 districts of the same type at the end of the game, score 3 extra points.")
+        description: Some(
+            "If you have at least 3 districts of the same type at the end of the game, score 3 extra points.",
+        ),
     },
     DistrictData {
         name: DistrictName::Monument,
@@ -422,6 +457,8 @@ pub const UNIQUE: [DistrictData; 30] = [
         set: Citadels2016,
         display_name: "Monument",
         cost: 4,
-        description: Some( "You cannot build the Monument if you have 5 or more districts in your city. Treat the Monument as being 2 districts toward your completed city.")
+        description: Some(
+            "You cannot build the Monument if you have 5 or more districts in your city. Treat the Monument as being 2 districts toward your completed city.",
+        ),
     },
 ];

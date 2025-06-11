@@ -298,7 +298,9 @@ dependencies = [
 name = "citadels_openapi_spec_gen"
 version = "0.1.0"
 dependencies = [
+ "citadels",
  "citadels_api",
+ "serde_json",
 ]
 
 [[package]]
