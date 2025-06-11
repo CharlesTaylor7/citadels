@@ -1,6 +1,6 @@
 use super::utils::CreateResponse;
 use crate::api::tags::ApiTags;
-use crate::{db::DB, errors::RequestError};
+use crate::db::DB;
 
 use poem::session::Session;
 use poem::web::Data;
@@ -9,6 +9,7 @@ use poem_openapi::{
     param::Path,
     payload::{Json, PlainText},
 };
+use serde::Deserialize;
 
 pub struct LobbyApi;
 
@@ -27,11 +28,38 @@ impl LobbyApi {
     #[oai(path = "/", method = "get")]
     async fn get_room_list(
         &self,
-
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<Json<Vec<Room>>> {
-        todo!()
+        let rooms = sqlx::query!(
+            r#"SELECT 
+                rooms.id, 
+                rooms.name, 
+                JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                        'id', room_members.player_id,
+                        'username', users.username,
+                        'owner', room_members.owner
+                    )
+                ) as players 
+                FROM rooms 
+                LEFT JOIN room_members ON room_members.room_id = rooms.id 
+                LEFT JOIN users ON room_members.player_id = users.id 
+                GROUP by rooms.id"#
+        )
+        .fetch_all(db.0)
+        .await
+        .unwrap()
+        .iter()
+        .map(|raw| Room {
+            id: raw.id,
+            name: raw.name.to_string(),
+            players: serde_json::from_value(raw.players.as_ref().unwrap().clone())
+                .unwrap_or(vec![]),
+        })
+        .collect::<Vec<_>>();
+
+        Ok(Json(rooms))
     }
 
     #[oai(path = "/:id", method = "get")]
@@ -159,7 +187,7 @@ pub struct Room {
     players: Vec<Player>,
 }
 
-#[derive(Object)]
+#[derive(Object, Deserialize)]
 pub struct Player {
     id: i32,
     username: String,

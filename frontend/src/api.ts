@@ -3,7 +3,7 @@ import createClient from "openapi-react-query";
 import type { paths } from "@/schema";
 
 const fetchClient = createFetchClient<paths>({
-  baseUrl: "/api/v1/",
+  baseUrl: "/api",
 });
 export const api = createClient(fetchClient);
 export const { useQuery, useMutation, useInfiniteQuery, useSuspenseQuery } =

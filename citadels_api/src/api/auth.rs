@@ -3,34 +3,17 @@ use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use poem::{session::Session, web::Data};
+use poem::{
+    session::Session,
+    web::{Data, Query},
+};
 use poem_openapi::{
     Object, OpenApi,
     payload::{Json, PlainText},
 };
+use serde::Deserialize;
 
 pub struct AuthApi;
-
-#[derive(Object)]
-pub struct UserSignup {
-    email: String,
-    username: String,
-    password: String,
-}
-
-#[derive(Object)]
-pub struct UserLogin {
-    // email or username
-    login: String,
-    password: String,
-}
-
-#[derive(Object)]
-pub struct User {
-    id: i32,
-    email: String,
-    username: String,
-}
 
 #[OpenApi(tag = "ApiTags::Auth", prefix_path = "/auth")]
 impl AuthApi {
@@ -67,6 +50,7 @@ impl AuthApi {
 
         Ok(PlainText("Success".to_string()))
     }
+
     #[oai(path = "/login", method = "post")]
     async fn login(
         &self,
@@ -88,7 +72,7 @@ impl AuthApi {
 
         session.set("user_id", user.id);
 
-        Ok(PlainText("Hey".to_string()))
+        Ok(PlainText("Success".to_string()))
     }
 
     #[oai(path = "/logout", method = "post")]
@@ -110,4 +94,45 @@ impl AuthApi {
         .unwrap();
         Ok(Json(user))
     }
+
+    // #[oai(path = "/check-username", method = "get")]
+    // async fn check_username(
+    //     &self,
+    //     query: Query<Username>,
+    //     db: Data<&DB>,
+    // ) -> poem::Result<Json<bool> {
+    //    sqlx::query!("select 1 from users where username = $1", query.username).
+    // }
+}
+
+#[derive(Object)]
+pub struct UserSignup {
+    email: String,
+    username: String,
+    password: String,
+}
+
+#[derive(Object)]
+pub struct UserLogin {
+    // email or username
+    login: String,
+    password: String,
+}
+
+#[derive(Object)]
+pub struct User {
+    id: i32,
+    email: String,
+    username: String,
+}
+
+#[derive(Object)]
+pub struct UserSignupError {
+    email: String,
+    username: String,
+}
+
+#[derive(Object, Deserialize)]
+pub struct Username {
+    username: String,
 }

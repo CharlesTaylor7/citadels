@@ -3,39 +3,24 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@/api";
+import { components } from "@/schema";
 
 export const Route = createFileRoute("/signup")({
   component: SignupComponent,
 });
 
-type FormFields = {
-  username: string;
-  email: string;
-  password: string;
-};
+type FormFields = components["schemas"]["UserSignup"];
+
 function SignupComponent() {
   const [error, setError] = useState<string>();
-  const signupMutation = useMutation("post", "/auth/signup");
   const navigate = useNavigate();
-  const [data, setData] = useState("");
+  const signupMutation = useMutation("put", "/auth/signup", {
+    onSuccess: () => {
+      navigate("/");
+    },
+  });
   const { register, handleSubmit, formState } = useForm<FormFields>();
-
-  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const formData = new FormData(e.currentTarget);
-  //   const username = formData.get("username");
-  //   const email = formData.get("email");
-  //   const password = formData.get("password");
-  //   const confirmPassword = formData.get("confirmPassword");
-  //
-  //   if (password !== confirmPassword) {
-  //     setError("Passwords do not match");
-  //     return;
-  //   }
-  //
-  //   await signupMutation.mutateAsync({ body: { username, email, password } });
-  //   navigate({ to: "/lobby" });
-  // };
+  console.log(formState);
 
   return (
     <div className="hero min-h-screen bg-base-200">
@@ -51,9 +36,23 @@ function SignupComponent() {
           >
             <div className="form-control">
               <label className="label">
+                <span className="label-text">Username</span>
+              </label>
+              <input
+                {...register("username")}
+                type="username"
+                placeholder="username"
+                className="input input-bordered"
+                required
+                disabled={signupMutation.isPending}
+              />
+            </div>
+            <div className="form-control">
+              <label className="label">
                 <span className="label-text">Email</span>
               </label>
               <input
+                {...register("email")}
                 type="email"
                 placeholder="email"
                 className="input input-bordered"
@@ -69,18 +68,6 @@ function SignupComponent() {
                 {...register("password")}
                 type="password"
                 className="input input-bordered"
-                required
-                disabled={signupMutation.isPending}
-              />
-            </div>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Firm Name</span>
-              </label>
-              <input
-                {...register("email")}
-                type="text"
-                className="input "
                 required
                 disabled={signupMutation.isPending}
               />
