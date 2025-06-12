@@ -1,6 +1,6 @@
 use crate::game::{ActionOutput, Game};
 use crate::schema::{ActionTrait, DraftDiscardAction, DraftPickAction};
-use anyhow::{Result, anyhow};
+use color_eyre::eyre::{Result, anyhow, bail};
 
 use std::borrow::BorrowMut;
 
@@ -35,7 +35,8 @@ impl ActionTrait for DraftDiscardAction {
         let role = self.role;
         let draft = game.active_turn.draft_mut()?;
         let i = (0..draft.remaining.len())
-            .find(|i| draft.remaining[*i] == role).ok_or(anyhow!(anyhow!("selected role is not available")))?;
+            .find(|i| draft.remaining[*i] == role)
+            .ok_or(anyhow!(anyhow!("selected role is not available")))?;
 
         draft.remaining.remove(i);
         let output = ActionOutput::new(format!(

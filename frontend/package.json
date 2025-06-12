@@ -13,7 +13,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "prebuild": "yarn gen-schema",
-    "gen-schema": "npx openapi-typescript ../public/openapi.json -o src/schema.d.ts"
+    "gen-schema": "openapi-typescript ../public/openapi.json -o src/schema.d.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.74.7",

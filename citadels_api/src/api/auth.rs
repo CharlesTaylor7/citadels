@@ -95,14 +95,21 @@ impl AuthApi {
         Ok(Json(user))
     }
 
-    // #[oai(path = "/check-username", method = "get")]
-    // async fn check_username(
-    //     &self,
-    //     query: Query<Username>,
-    //     db: Data<&DB>,
-    // ) -> poem::Result<Json<bool> {
-    //    sqlx::query!("select 1 from users where username = $1", query.username).
-    // }
+    #[oai(path = "/check-username", method = "get")]
+    async fn check_username(
+        &self,
+        query: Query<Username>,
+        db: Data<&DB>,
+    ) -> poem::Result<Json<bool>> {
+        let row = sqlx::query!(
+            "select 1 as exists from users where username = $1",
+            query.username
+        )
+        .fetch_optional(db.0)
+        .await
+        .unwrap();
+        Ok(Json(row.is_none()))
+    }
 }
 
 #[derive(Object)]

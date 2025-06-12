@@ -6,7 +6,7 @@ use crate::museum::Museum;
 use crate::random::Prng;
 use crate::roles::RoleName;
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
-use anyhow::{anyhow, bail};
+use color_eyre::eyre::{anyhow, bail};
 use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut, Cow};
@@ -20,7 +20,7 @@ pub enum ForcedToGatherReason {
     Blackmailed,
 }
 
-pub type Result<T> = anyhow::Result<T>;
+type Result<T> = color_eyre::Result<T>;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct PlayerIndex(pub usize);

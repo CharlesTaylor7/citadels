@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { useMutation } from "@/api";
+import { useQuery, useMutation } from "@/api";
 import { components } from "@/schema";
 
 export const Route = createFileRoute("/signup")({
@@ -12,15 +12,17 @@ export const Route = createFileRoute("/signup")({
 type FormFields = components["schemas"]["UserSignup"];
 
 function SignupComponent() {
-  const [error, setError] = useState<string>();
   const navigate = useNavigate();
-  const signupMutation = useMutation("put", "/auth/signup", {
+
+  const form = useForm<FormFields>();
+  const usernameQuery = useQuery("get", "/auth/check-username", {
+    params: { query: { username: form.getValues("username") } },
+  });
+  const signupMutation = useMutation("post", "/auth/signup", {
     onSuccess: () => {
       navigate("/");
     },
   });
-  const { register, handleSubmit, formState } = useForm<FormFields>();
-  console.log(formState);
 
   return (
     <div className="hero min-h-screen bg-base-200">
@@ -32,14 +34,16 @@ function SignupComponent() {
         <div className="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
           <form
             className="card-body"
-            onSubmit={handleSubmit((body) => signupMutation.mutate({ body }))}
+            onSubmit={form.handleSubmit((body) =>
+              signupMutation.mutate({ body }),
+            )}
           >
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Username</span>
               </label>
               <input
-                {...register("username")}
+                {...form.register("username")}
                 type="username"
                 placeholder="username"
                 className="input input-bordered"
@@ -52,7 +56,7 @@ function SignupComponent() {
                 <span className="label-text">Email</span>
               </label>
               <input
-                {...register("email")}
+                {...form.register("email")}
                 type="email"
                 placeholder="email"
                 className="input input-bordered"
@@ -65,7 +69,7 @@ function SignupComponent() {
                 <span className="label-text">Password</span>
               </label>
               <input
-                {...register("password")}
+                {...form.register("password")}
                 type="password"
                 className="input input-bordered"
                 required

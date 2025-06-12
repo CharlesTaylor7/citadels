@@ -2,11 +2,11 @@ use crate::actions::{
     Action, BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
 };
 use crate::districts::DistrictName;
-use crate::game::{ActionOutput, ActionResult, CityDistrict, Followup, Game, PlayerIndex, Result};
+use crate::game::{ActionOutput, ActionResult, CityDistrict, Followup, Game, PlayerIndex};
 use crate::roles::{Rank, RoleName};
 use crate::types::{CardSuit, Marker};
 
-use anyhow::{anyhow, bail};
+use color_eyre::eyre::{Result, anyhow, bail};
 use macros::tag::Tag;
 use rand::prelude::*;
 use std::borrow::{Borrow, BorrowMut};

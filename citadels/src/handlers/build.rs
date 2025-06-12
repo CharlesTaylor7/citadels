@@ -6,7 +6,7 @@ use crate::schema::{
     ThievesDenBuildMethod,
 };
 use crate::types::{CardSuit, Marker};
-use anyhow::{Result, anyhow, bail, ensure};
+use color_eyre::eyre::{Result, anyhow, bail, ensure};
 use macros::tag::Tag;
 
 use std::borrow::BorrowMut;

@@ -5,7 +5,7 @@ use crate::{
     types::{PlayerId, PlayerName},
 };
 
-use anyhow::{anyhow, bail};
+use color_eyre::eyre::{Result, anyhow, bail};
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::{Deserialize, Serialize};
@@ -59,7 +59,7 @@ impl Lobby {
         }
     }
 
-    pub fn register(&mut self, id: &str, name: &str) -> game::Result<()> {
+    pub fn register(&mut self, id: &str, name: &str) -> Result<()> {
         if self
             .players
             .iter()
@@ -174,7 +174,7 @@ impl GameConfig {
         &self,
         rng: &'a mut T,
         num_players: usize,
-    ) -> game::Result<Vec<RoleName>> {
+    ) -> Result<Vec<RoleName>> {
         // 9th rank is disallowed for 2
         // 9th rank is required for 3
         // 9th rank is optional for 4-7

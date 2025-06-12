@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow, bail};
+use color_eyre::eyre::{Result, anyhow, bail};
 
 use crate::districts::DistrictName;
 use crate::game::{ActionOutput, Followup, Game};

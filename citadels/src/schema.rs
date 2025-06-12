@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 pub trait ActionTrait {
     // const TAG: ActionTag;
-    fn act(&self, game: &mut Game) -> anyhow::Result<ActionOutput>;
+    fn act(&self, game: &mut Game) -> color_eyre::Result<ActionOutput>;
 }
 
 #[derive(Union)]
