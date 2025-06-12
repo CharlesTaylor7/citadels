@@ -3,12 +3,10 @@ use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use poem::{
-    session::Session,
-    web::{Data, Query},
-};
+use poem::{session::Session, web::Data};
 use poem_openapi::{
     Object, OpenApi,
+    param::Query,
     payload::{Json, PlainText},
 };
 use serde::Deserialize;
@@ -26,11 +24,7 @@ impl AuthApi {
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
         let salt = SaltString::generate(&mut OsRng);
-
-        // Argon2 with default params (Argon2id v19)
         let argon2 = Argon2::default();
-
-        // Hash password to PHC string ($argon2id$v=19$...)
         let password_hash = argon2
             .hash_password(body.password.as_bytes(), &salt)
             .unwrap()
@@ -98,17 +92,19 @@ impl AuthApi {
     #[oai(path = "/check-username", method = "get")]
     async fn check_username(
         &self,
-        query: Query<Username>,
+        username: Query<String>,
         db: Data<&DB>,
-    ) -> poem::Result<Json<bool>> {
+    ) -> poem::Result<Json<CheckUsername>> {
         let row = sqlx::query!(
             "select 1 as exists from users where username = $1",
-            query.username
+            username.0
         )
         .fetch_optional(db.0)
         .await
         .unwrap();
-        Ok(Json(row.is_none()))
+        Ok(Json(CheckUsername {
+            taken: row.is_some(),
+        }))
     }
 }
 
@@ -139,7 +135,7 @@ pub struct UserSignupError {
     username: String,
 }
 
-#[derive(Object, Deserialize)]
-pub struct Username {
-    username: String,
+#[derive(Object)]
+pub struct CheckUsername {
+    taken: bool,
 }

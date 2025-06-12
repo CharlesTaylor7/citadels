@@ -157,7 +157,9 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query: {
+                    username: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -169,7 +171,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json; charset=utf-8": boolean;
+                        "application/json; charset=utf-8": components["schemas"]["CheckUsername"];
                     };
                 };
             };
@@ -534,6 +536,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** CheckUsername */
+        CheckUsername: {
+            taken: boolean;
+        };
         /** Game */
         Game: {
             /** Format: int32 */

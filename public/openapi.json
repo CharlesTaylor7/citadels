@@ -122,13 +122,25 @@
         "tags": [
           "Auth"
         ],
+        "parameters": [
+          {
+            "name": "username",
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "required": true,
+            "deprecated": false,
+            "explode": true
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/CheckUsername"
                 }
               }
             }
@@ -443,6 +455,18 @@
   },
   "components": {
     "schemas": {
+      "CheckUsername": {
+        "type": "object",
+        "title": "CheckUsername",
+        "required": [
+          "taken"
+        ],
+        "properties": {
+          "taken": {
+            "type": "boolean"
+          }
+        }
+      },
       "Game": {
         "type": "object",
         "title": "Game",

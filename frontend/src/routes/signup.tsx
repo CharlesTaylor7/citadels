@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
@@ -15,9 +14,15 @@ function SignupComponent() {
   const navigate = useNavigate();
 
   const form = useForm<FormFields>();
-  const usernameQuery = useQuery("get", "/auth/check-username", {
-    params: { query: { username: form.getValues("username") } },
-  });
+  const username = form.watch("username");
+  const usernameQuery = useQuery(
+    "get",
+    "/auth/check-username",
+    {
+      params: { query: { username } },
+    },
+    { enabled: !!username },
+  );
   const signupMutation = useMutation("post", "/auth/signup", {
     onSuccess: () => {
       navigate("/");
@@ -50,6 +55,9 @@ function SignupComponent() {
                 required
                 disabled={signupMutation.isPending}
               />
+              {usernameQuery.data?.taken && (
+                <span className="text-error">Username taken</span>
+              )}
             </div>
             <div className="form-control">
               <label className="label">
