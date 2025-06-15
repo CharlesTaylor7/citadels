@@ -313,7 +313,7 @@ async fn submit_game_action(
         ActionSubmission::Complete(action) => {
             match game.perform(action, cookie.value()) {
                 Ok(()) => {
-                    // TODO: broadcast other
+                    //
                     let g = &game;
                     app.connections
                         .lock()
