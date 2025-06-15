@@ -1,6 +1,6 @@
 ## Bugs / Issues
+- [ ] Abbot take from richest doesn't work
 - [ ] Bewitch action wipes out the whole screen and forces a page reload.
-- [ ] Need request logging badly. This would help so much in troubleshooting bugs in the middle of a game.
 - [ ] Arrows overlap text in role logs.
 - [ ] No logs for draft phase
 - [ ] No logs for end of previous turn. Very easy to miss Actions of last player
