@@ -1,10 +1,21 @@
 import createFetchClient from "openapi-fetch";
-import createClient from "openapi-react-query";
+import createReactQueryClient from "openapi-react-query";
 import type { paths } from "@/schema";
 
-const fetchClient = createFetchClient<paths>({
+const client = createFetchClient<paths>({
   baseUrl: "/api",
 });
-export const api = createClient(fetchClient);
+
+client.use({
+  onResponse({ request, response, options }) {
+    if (response.status >= 400) {
+      const err = new Error("");
+      //
+      err.cause = response;
+      throw err;
+    }
+  },
+});
+export const api = createReactQueryClient(client);
 export const { useQuery, useMutation, useInfiniteQuery, useSuspenseQuery } =
   api;

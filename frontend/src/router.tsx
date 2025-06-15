@@ -1,27 +1,8 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
-import {
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "@/route-tree";
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // 5 minutes
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-    },
-  },
-  queryCache: new QueryCache({
-    onError: (error) => {
-      console.error(error);
-      sonner.error(error.message);
-    },
-  }),
-});
+export const queryClient = new QueryClient();
 
 export function createRouter() {
   return createTanStackRouter({
