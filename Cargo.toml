@@ -15,5 +15,5 @@ sqlx = { version = "0.8", default-features = false, features = [
   "postgres",
   "macros",
   "runtime-tokio",
-  "tls-native-tls",
+  "tls-rustls",
 ] }
