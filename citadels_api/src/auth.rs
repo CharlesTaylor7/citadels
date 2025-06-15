@@ -1,5 +1,5 @@
 use poem::Request;
-use poem_openapi::{Object, SecurityScheme, auth::Bearer};
+use poem_openapi::{SecurityScheme, auth::Bearer};
 
 pub struct User {
     email: String,

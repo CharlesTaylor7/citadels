@@ -1,11 +1,5 @@
-use crate::db::DB;
-use crate::errors::RequestError;
-use poem::web::Data;
 use poem_openapi::ApiResponse;
-use poem_openapi::Object;
-use poem_openapi::OpenApi;
-use poem_openapi::param::Path;
-use poem_openapi::payload::{Json, PlainText};
+use poem_openapi::payload::Json;
 use poem_openapi::types::ToJSON;
 
 #[derive(ApiResponse)]

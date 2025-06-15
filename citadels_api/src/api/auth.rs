@@ -9,7 +9,6 @@ use poem_openapi::{
     param::Query,
     payload::{Json, PlainText},
 };
-use serde::Deserialize;
 
 pub struct AuthApi;
 
