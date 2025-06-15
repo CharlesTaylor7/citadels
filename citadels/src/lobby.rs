@@ -25,7 +25,7 @@ impl Player {
     }
 }
 
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone, Debug, Serialize)]
 pub struct Lobby {
     pub players: Vec<Player>,
     pub config: GameConfig,
@@ -80,7 +80,7 @@ impl Lobby {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum ConfigOption {
     #[default]
@@ -89,7 +89,7 @@ pub enum ConfigOption {
     Never,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameConfig {
     pub role_anarchy: bool,
     pub roles: HashSet<RoleName>,

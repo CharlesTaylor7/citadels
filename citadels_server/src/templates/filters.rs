@@ -8,7 +8,10 @@ pub fn debug<T: Debug>(item: &T) -> askama::Result<String> {
 }
 
 pub fn asset(path: &str) -> askama::Result<Cow<'_, str>> {
-    Ok(crate::markup::base::asset(path).into())
+    Ok(str_asset(path).into())
+}
+pub fn str_asset(path: &str) -> String {
+    format!("/public/{path}")
 }
 
 pub fn class(item: &ActionTag) -> askama::Result<&'static str> {

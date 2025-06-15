@@ -10,7 +10,7 @@ use std::borrow::Cow;
 
 #[serde_as]
 #[derive(Serialize, Deserialize, Tag, Debug, Clone)]
-#[tag(serde::Deserialize)]
+#[tag(serde::Deserialize, serde::Serialize)]
 #[serde(tag = "action")]
 pub enum Action {
     DraftPick {
@@ -345,7 +345,7 @@ impl ActionTag {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum ActionSubmission {
     Complete(Action),

@@ -8,6 +8,7 @@ use crate::roles::RoleName;
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use macros::tag::Tag;
 use rand::prelude::*;
+use sqlx::{Pool, Postgres};
 use std::borrow::{Borrow, BorrowMut, Cow};
 use std::fmt::Debug;
 use std::iter::repeat;
@@ -597,7 +598,17 @@ impl Game {
         Ok(self.characters.index_mut(call.index))
     }
 
-    pub fn start(lobby: Lobby, mut rng: Prng) -> Result<Game> {
+    pub async fn start(db: Pool<Postgres>, lobby: Lobby, mut rng: Prng) -> Result<Game> {
+        let mut action = serde_json::to_value(lobby.clone()).unwrap();
+        let json = action.as_object_mut().unwrap();
+        json.insert("seed".to_string(), serde_json::to_value(rng.seed).unwrap());
+        json.insert(
+            "action".to_string(),
+            serde_json::Value::String("Start".to_string()),
+        );
+
+        log_action(db, action, None).await;
+
         let Lobby {
             mut players,
             config,
@@ -875,7 +886,10 @@ impl Game {
         }
     }
 
-    pub fn perform(&mut self, action: Action, id: &str) -> Result<()> {
+    pub async fn perform(&mut self, db: Pool<Postgres>, action: Action, id: &str) -> Result<()> {
+        let p = self.players.iter().find(|p| p.id == id).unwrap();
+        let action_json = serde_json::to_value(action.clone()).unwrap();
+        log_action(db, action_json, Some(&p.name)).await;
         if !self.allowed_for(Some(id)).contains(&action.tag()) {
             return Err("not allowed".into());
         }
@@ -1289,6 +1303,21 @@ impl Game {
             player.cleanup_round();
         }
     }
+}
+
+async fn log_action(
+    db: Pool<Postgres>,
+    action: serde_json::Value,
+    player_name: Option<&PlayerName>,
+) -> () {
+    sqlx::query!(
+        "insert into logs (action, player_name) values($1,$2)",
+        action,
+        player_name.as_ref().map(|p| p.0.as_ref())
+    )
+    .execute(&db)
+    .await
+    .unwrap();
 }
 
 #[cfg(test)]

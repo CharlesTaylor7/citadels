@@ -44,7 +44,7 @@ pub async fn handle_socket(state: State<AppState>, player_id: String, socket: We
     state
         .connections
         .lock()
-        .unwrap()
+        .await
         .0
         .insert(player_id, chan_sender);
 

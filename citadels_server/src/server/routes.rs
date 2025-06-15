@@ -5,6 +5,7 @@ use crate::templates::game::*;
 use crate::templates::lobby::*;
 use crate::templates::*;
 use askama::Template;
+use axum::debug_handler;
 use axum::extract::{Json, Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
@@ -15,7 +16,7 @@ use citadels::actions::{ActionSubmission, ActionTag};
 use citadels::districts::DistrictName;
 use citadels::game::Game;
 use citadels::lobby::{ConfigOption, Lobby};
-use citadels::roles::{Rank, RoleName};
+use citadels::roles::RoleName;
 use citadels::types::{Marker, PlayerName};
 use http::StatusCode;
 use rand_core::SeedableRng;
@@ -70,11 +71,11 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
         cookies = cookies.add(cookie);
     }
 
-    if app.game.lock().unwrap().is_some() {
+    if app.game.lock().await.is_some() {
         return (cookies, Redirect::to("/game")).into_response();
     }
 
-    let lobby = app.lobby.lock().unwrap();
+    let lobby = app.lobby.lock().await;
 
     (
         cookies,
@@ -91,7 +92,7 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
 }
 
 pub async fn get_district_config(app: State<AppState>) -> impl IntoResponse {
-    let lobby = app.lobby.lock().unwrap();
+    let lobby = app.lobby.lock().await;
     DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
         .to_html()
         .into_response()
@@ -101,7 +102,7 @@ pub async fn post_district_config(
     app: State<AppState>,
     form: Json<HashMap<DistrictName, ConfigOption>>,
 ) -> impl IntoResponse {
-    let mut lobby = app.lobby.lock().unwrap();
+    let mut lobby = app.lobby.lock().await;
     lobby.config.districts = form.0;
     DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
         .to_html()
@@ -109,7 +110,7 @@ pub async fn post_district_config(
 }
 
 pub async fn get_role_config(app: State<AppState>) -> impl IntoResponse {
-    let lobby = app.lobby.lock().unwrap();
+    let lobby = app.lobby.lock().await;
     RoleConfigTemplate::from_config(lobby.config.roles.borrow(), &HashSet::new())
         .to_html()
         .into_response()
@@ -119,7 +120,7 @@ pub async fn post_role_config(
     app: State<AppState>,
     form: Json<HashMap<RoleName, String>>,
 ) -> Result<Response, ErrorResponse> {
-    let mut lobby = app.lobby.lock().unwrap();
+    let mut lobby = app.lobby.lock().await;
     log::info!("{:?}", form);
 
     let roles = form.0.into_keys().collect::<HashSet<_>>();
@@ -166,7 +167,7 @@ pub async fn register(
 
     let cookie = cookies.get("player_id").unwrap();
     let player_id = cookie.value();
-    let mut lobby = app.lobby.lock().unwrap();
+    let mut lobby = app.lobby.lock().await;
     if let Err(err) = lobby.register(player_id, username) {
         return Err(form_feedback(err));
     }
@@ -178,13 +179,14 @@ pub async fn register(
         .render()
         .unwrap(),
     );
-    app.connections.lock().unwrap().broadcast(html);
+    app.connections.lock().await.broadcast(html);
 
     Ok(StatusCode::OK.into_response())
 }
 
+#[debug_handler]
 pub async fn start(app: State<AppState>) -> Result<Response> {
-    let mut lobby = app.lobby.lock().unwrap();
+    let mut lobby = app.lobby.lock().await;
     if lobby.players.len() < 2 {
         return Err(form_feedback(
             "Need at least 2 players to start a game".into(),
@@ -197,12 +199,13 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
         ));
     }
 
-    let mut game = app.game.lock().unwrap();
+    let mut game = app.game.lock().await;
     if game.is_some() {
         return Err(form_feedback("Can not overwrite a game in progress".into()));
     }
     let clone = lobby.clone();
-    match Game::start(clone, SeedableRng::from_entropy()) {
+    let db = app.db.clone();
+    match Game::start(db, clone, SeedableRng::from_entropy()).await {
         Ok(ok) => {
             // Start the game, and remove all players from the lobby
             *game = Some(ok);
@@ -216,7 +219,7 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
     if let Some(game) = game.as_ref() {
         app.connections
             .lock()
-            .unwrap()
+            .await
             .broadcast_each(move |id| GameTemplate::render_with(game, Some(id)));
         return Ok((StatusCode::OK).into_response());
     }
@@ -229,7 +232,7 @@ pub async fn game(
 ) -> Result<Html<String>, ErrorResponse> {
     let cookie = cookies.get("player_id");
     let id = cookie.as_ref().map(|c| c.value());
-    let game = app.game.lock().unwrap();
+    let game = app.game.lock().await;
     let game = game.as_ref();
     if let Some(game) = game.as_ref() {
         GameTemplate::render_with(game, id)
@@ -243,7 +246,7 @@ pub async fn get_game_actions(
     cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
     let cookie = cookies.get("player_id");
-    let mut game = app.game.lock().unwrap();
+    let mut game = app.game.lock().await;
     let game = game.as_mut().ok_or("game hasn't started")?;
 
     MenuTemplate::from(game, cookie.as_ref().map(|c| c.value())).to_html()
@@ -256,7 +259,7 @@ pub async fn get_game_city(
 ) -> Result<Html<String>, ErrorResponse> {
     let cookie = cookies.get("player_id");
     let id = cookie.as_ref().map(|c| c.value());
-    let game = app.game.lock().unwrap();
+    let game = app.game.lock().await;
     if let Some(game) = game.as_ref() {
         let p = game
             .players
@@ -300,24 +303,30 @@ fn form_feedback(err: Cow<'static, str>) -> ErrorResponse {
         .into()
 }
 
+#[debug_handler]
 async fn submit_game_action(
     app: State<AppState>,
     cookies: PrivateCookieJar,
     action: axum::Json<ActionSubmission>,
 ) -> Result<Response> {
     let cookie = cookies.get("player_id").ok_or("missing cookie")?;
-    let mut game = app.game.lock().unwrap();
+    let mut game = app.game.lock().await;
     let game = game.as_mut().ok_or("game hasn't started")?;
     log::info!("{:#?}", action.0);
+    let player_id = cookie.value();
+
     match action.0 {
         ActionSubmission::Complete(action) => {
-            match game.perform(action, cookie.value()) {
+            match game
+                .perform(app.db.clone(), action.clone(), player_id)
+                .await
+            {
                 Ok(()) => {
                     //
                     let g = &game;
                     app.connections
                         .lock()
-                        .unwrap()
+                        .await
                         .broadcast_each(move |id| GameTemplate::render_with(g, Some(id)));
 
                     Ok((StatusCode::OK, [("HX-Reswap", "none")]).into_response())
@@ -335,7 +344,7 @@ async fn submit_game_action(
                         .filter(|c| !c.revealed)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(game, Some(cookie.value())),
+                    context: GameContext::from_game(&game, Some(cookie.value())),
                     header: "Assassin".into(),
                     action: ActionTag::Assassinate,
                 }
@@ -458,7 +467,7 @@ async fn get_game_menu(
     path: Path<String>,
 ) -> Result<Response> {
     let cookie = cookies.get("player_id").ok_or("missing cookie")?;
-    let mut game = app.game.lock().unwrap();
+    let mut game = app.game.lock().await;
     let game = game.as_mut().ok_or("game hasn't started")?;
 
     let active_player = game.active_player()?;
