@@ -420,6 +420,7 @@ dependencies = [
  "arcstr",
  "argon2",
  "citadels",
+ "citadels_server",
  "color-eyre",
  "cookie",
  "dotenvy",

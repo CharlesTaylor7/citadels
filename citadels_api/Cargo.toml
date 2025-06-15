@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-citadels = { version = "0.0.0", path = "../citadels" }
+citadels = { path = "../citadels" }
+citadels_server = { path = "../citadels_server" }
 cookie = { workspace = true }
 futures-util = { workspace = true }
 poem = { workspace = true }

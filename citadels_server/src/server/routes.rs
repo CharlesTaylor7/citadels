@@ -142,7 +142,7 @@ pub async fn post_role_config(
 
 pub async fn post_anarchy(
     app: State<AppState>,
-    checked: axum::Json<HashMap<String, String>>,
+    checked: Json<HashMap<String, String>>,
 ) -> Result<Response, ErrorResponse> {
     let mut lobby = app.lobby.lock().await;
     lobby.config.role_anarchy = checked.get("role_anarchy").is_some();
