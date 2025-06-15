@@ -1,6 +1,6 @@
 procs:
   Server:
-    shell: GIT_SHA=main RUST_BACKTRACE=1 watchexec -e rs,toml,html -- cargo run --features="dev,dotenv" 
+    shell: GIT_SHA=main RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features="dev,dotenv" 
 
   Tailwind:
     shell: npx tailwindcss --input tailwind.source.css --output public/styles/index.css --watch

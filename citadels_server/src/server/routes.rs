@@ -6,9 +6,11 @@ use crate::templates::lobby::*;
 use crate::templates::*;
 use askama::Template;
 use axum::debug_handler;
+use axum::extract::Query;
 use axum::extract::{Json, Path, State};
 use axum::response::{ErrorResponse, Html, Redirect, Response, Result};
 use axum::routing::{get, post};
+use axum::Form;
 use axum::Router;
 use axum::{extract::ws::WebSocketUpgrade, response::IntoResponse};
 use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
@@ -21,6 +23,7 @@ use citadels::types::{Marker, PlayerName};
 use http::StatusCode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
+use serde_json::Value;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
@@ -38,6 +41,7 @@ pub fn get_router() -> Router {
         .route("/lobby/config/districts", post(post_district_config))
         .route("/lobby/config/roles", get(get_role_config))
         .route("/lobby/config/roles", post(post_role_config))
+        .route("/lobby/config/anarchy", post(post_anarchy))
         .route("/lobby/register", post(register))
         .route("/ws", get(get_ws))
         .route("/game", get(game))
@@ -137,6 +141,16 @@ pub async fn post_role_config(
         )
             .into_response())
     }
+}
+
+pub async fn post_anarchy(
+    app: State<AppState>,
+    checked: axum::Json<HashMap<String, String>>,
+) -> Result<Response, ErrorResponse> {
+    let mut lobby = app.lobby.lock().await;
+    lobby.config.role_anarchy = checked.get("role_anarchy").is_some();
+    log::info!("Set role_anarchy: {}", lobby.config.role_anarchy);
+    Ok(StatusCode::OK.into_response())
 }
 
 #[derive(Deserialize)]
