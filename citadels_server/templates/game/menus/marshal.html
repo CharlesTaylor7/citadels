@@ -1,0 +1,28 @@
+<div class="hidden" 
+  _="init 
+    add .hidden to #city
+    add @required to <#menu input[name=district]/> 
+  ">
+</div>
+
+<h2 class="m-2 underline text-lg font-semibold">
+  Marshal
+</h2>
+
+{% let enabled = true %}
+{% for city in cities %}
+  {% include "game/city.html" %}
+{% endfor %}
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    name="action"
+    value="MarshalSeize"
+  >
+    Seize
+  </button>
+
+  {% include "button/cancel.html" %}
+</div>
+<div id="error"></div>

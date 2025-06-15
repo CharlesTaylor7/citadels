@@ -1,0 +1,42 @@
+<div
+  id="init-send-warrants"
+  class="hidden"
+  _="init enableWarrants()"
+>
+</div>
+
+<h2 class="m-2 underline text-lg font-semibold">
+  Send Warrants
+</h2>
+<div class="flex flex-row flex-wrap gap-2 items-center">
+  {% set input_type = "checkbox" %} 
+  {% set enabled = false %} 
+  {% for role in roles %} 
+    {% include "game/role-card.html" %}
+  {% endfor %}
+</div>
+<div class="flex flex-row flex-wrap gap-2 items-center">
+  {% set signed = true %}
+  {% include "game/markers/warrant.html" %}
+  {% set signed = false %}
+  {% include "game/markers/warrant.html" %}
+  {% include "game/markers/warrant.html" %}
+</div>
+<h3 class="italic text-sm">Drag each warrant to a role</h3>
+<div class="m-2 flex flex-row flex-wrap gap-2 items-center">
+  {% set action = ActionTag::SendWarrants %}
+  <button 
+    id="confirm"
+    class="btn btn-secondary"
+    hx-post="/game/action"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+    name="action"
+    value="{{ action|debug }}"
+    disabled
+  >
+    Confirm 
+  </button>
+  {% include "button/cancel.html" %}
+</div>
+<div id="error"></div>

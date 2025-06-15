@@ -1,4 +1,4 @@
-/target/
-/.env
-/node_modules/
+target
+node_modules
 .aider*
+.env*

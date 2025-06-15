@@ -1,0 +1,37 @@
+<section
+  id="misc"
+  class="panel min-h-[268px] grow flex flex-col items-center gap-2 text-base"
+
+>
+  <h2 class="header">Info</h2>
+  <div class="flex flex-row justify-center gap-3" >
+    <div class="flex flex-col" >
+      <div>
+        Round: 
+      </div>
+      <div>
+        Deck: 
+      </div>
+      {% if misc.timer.is_some() %}
+      <div>
+        Timer: 
+      </div>
+      {% endif %}
+    </div>
+    <div class="flex flex-col">
+      <div>
+        {{ misc.round }}
+      </div>
+      <div>
+        {{ misc.deck }}
+      </div>
+      {% match misc.timer %}
+      {% when Some with (timer) %}
+        <div>
+          {{ timer }}
+        </div>
+      {% else %}
+      {% endmatch %}
+    </div>
+  </div>
+</section>

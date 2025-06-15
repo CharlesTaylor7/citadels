@@ -1,11 +1,9 @@
 use crate::{
-    districts::{DistrictData, DistrictName},
+    districts::DistrictName,
     game,
     roles::{Rank, RoleName},
     types::{PlayerId, PlayerName},
 };
-
-use color_eyre::eyre::{Result, anyhow, bail};
 use rand::seq::SliceRandom;
 use rand_core::RngCore;
 use serde::{Deserialize, Serialize};
@@ -27,7 +25,7 @@ impl Player {
     }
 }
 
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone, Debug, Serialize)]
 pub struct Lobby {
     pub players: Vec<Player>,
     pub config: GameConfig,
@@ -59,13 +57,13 @@ impl Lobby {
         }
     }
 
-    pub fn register(&mut self, id: &str, name: &str) -> Result<()> {
+    pub fn register(&mut self, id: &str, name: &str) -> game::Result<()> {
         if self
             .players
             .iter()
             .any(|p| p.id != id && p.name.borrow() as &str == name)
         {
-            bail!("username taken")
+            return Err("username taken".into());
         }
         match self.players.iter_mut().find(|p| p.id == id) {
             Some(p) => {
@@ -82,7 +80,7 @@ impl Lobby {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum ConfigOption {
     #[default]
@@ -91,7 +89,7 @@ pub enum ConfigOption {
     Never,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameConfig {
     pub role_anarchy: bool,
     pub roles: HashSet<RoleName>,
@@ -174,7 +172,7 @@ impl GameConfig {
         &self,
         rng: &'a mut T,
         num_players: usize,
-    ) -> Result<Vec<RoleName>> {
+    ) -> game::Result<Vec<RoleName>> {
         // 9th rank is disallowed for 2
         // 9th rank is required for 3
         // 9th rank is optional for 4-7
@@ -209,7 +207,7 @@ impl GameConfig {
                     roles
                         .choose(rng)
                         .copied()
-                        .ok_or(anyhow!("No enabled roles for rank {}", i + 1))
+                        .ok_or(format!("No enabled roles for rank {}", i + 1).into())
                 })
                 .collect();
         }
@@ -221,7 +219,7 @@ impl GameConfig {
     ) -> impl Iterator<Item = DistrictName> + '_ {
         let mut always = Vec::with_capacity(14);
         let mut sometimes = Vec::with_capacity(30);
-        for d in DistrictData::unique() {
+        for d in crate::districts::UNIQUE {
             match self.district(&d.name) {
                 ConfigOption::Always => always.push(d.name),
                 ConfigOption::Sometimes => sometimes.push(d.name),

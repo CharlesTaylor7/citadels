@@ -1,0 +1,30 @@
+{% let w_to_h = 321.0 / 390.0 %}
+{% let h = 100.0 %}
+{% let scale = 2.5 %}
+{% let w = w_to_h * h %}
+<div
+  data-draggable
+  class="draggable"
+>
+  <input
+    data-blackmail
+    class="peer hidden"
+    type="checkbox"
+    name="{% if flowered %}flowered{% else %}unmarked{% endif %}"
+    value=""
+
+  />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="{{ h }}"
+    width="{{ w }}"
+    class="rounded-lg"
+  >
+    <image id="img" x="-30" y="-70"
+          height="{{scale * 100.0}}%"
+          xlink:href="{% if flowered %}/public/flowered-threat.png{% else %}/public/unmarked-threat.png{% endif %}"
+          preserveAspectRatio="xMinYMin slice"
+    />
+  </svg>
+</div>

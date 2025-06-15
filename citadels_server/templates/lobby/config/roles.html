@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block config_content %}
+<div class="mx-auto">
+  <form class="flex flex-row gap-1">
+    {% for (i, col) in cols.iter().enumerate() %}
+    <div 
+      id="column-{{i}}"
+      class="
+        flex flex-col gap-1 
+        rounded-lg
+        border border-1 
+        {% if col.invalid %}
+        border-error
+        {% else %}
+        border-transparent
+        {% endif %}
+      "
+    >
+      {% for (selected, role) in col.roles %}
+        <label
+          id="card-{{role.value}}"
+          class="
+            rounded-xl
+            has-[:focus-visible]:ring-4
+            relative
+            {% if role.enabled %}
+            cursor-pointer
+            {% else %}
+            cursor-not-allowed
+            {% endif %}
+          "
+        >
+          <input
+            id="checkbox-{{role.value}}"
+            type="checkbox"
+            class="absolute top-0 peer opacity-0"
+            hx-post="/lobby/config/roles"
+            hx-target="#config"
+            hx-swap="morph"
+            name="{{ role.value }}"
+            _="
+              on keyup [key is 'Enter'] 
+                set my checked to not my checked 
+                trigger change
+              end
+            "
+            
+            {% if selected %}
+              checked
+            {% endif %}
+            {% if !role.enabled %}
+              disabled
+            {% endif %}
+          />
+
+          {% set asset = role.asset %}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            height="{{ asset.height }}"
+            width="{{ asset.width }}"
+            class="rounded-xl saturate-0 peer-checked:saturate-100"
+          >
+            <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
+                  height="{{ asset.scale_percentage }}%"
+                  xlink:href="{{ asset.path }}"
+                  preserveAspectRatio="xMinYMin slice"
+            />
+          </svg>
+          {% if !role.enabled %}
+          <div class="absolute bottom-10 w-full text-center text-sm text-white">
+            Coming Soon...
+          </div>
+          {% endif %}
+          {% if role.min_player_count > 0 %}
+            <div class="absolute bottom-0 right-1 text-sm text-white">
+              {{ role.min_player_count }}+
+            </div>
+          {% endif %}
+          
+          <div
+            data-tip="{{ role.description }}"
+            class="
+              bg-gradient-radial
+              peer-checked:from-indigo-400
+              leaded text-center
+              text-sm
+              absolute
+              top-2
+              right-2
+              h-4
+              w-4
+              rounded-full
+              bg-base-200
+              tooltip
+              tooltip-bottom
+              tooltip-secondary
+              before:max-w-[155px]
+              flex flex-col
+              justify-center
+            "
+          >
+          i
+          </div>
+        </label>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </form>
+</div>
+{% endblock %}

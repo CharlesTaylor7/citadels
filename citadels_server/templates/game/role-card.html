@@ -1,0 +1,57 @@
+<label
+  data-dropzone
+  data-role="{{ role.value }}"
+  class="
+    relative
+    select-none
+    cursor-pointer
+  "
+>
+  <input
+    type="{{ input_type }}"
+    class="peer hidden"
+    name="role"
+    value="{{ role.value }}"
+    {% if !enabled %}
+    disabled
+    {% endif %}
+  />
+
+  {% set asset = role.asset %}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="{{ asset.height }}"
+    width="{{ asset.width }}"
+    style="filter: brightness({{ asset.brightness }})"
+    class="
+      p-1 box-content
+      rounded-xl
+      peer-checked:p-0
+      peer-checked:border
+      peer-checked:border-4
+      peer-checked:border-success
+    "
+  >
+    <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
+          height="{{ asset.scale_percentage }}%"
+          xlink:href="{{ asset.path }}"
+          preserveAspectRatio="xMinYMin slice"
+    />
+  </svg>
+  <div
+    data-tip="{{ role.description }}"
+    class="
+      absolute
+      top-0
+      left-0
+      w-full
+      h-[18%]
+      tooltip
+      tooltip-bottom
+      tooltip-secondary
+      before:max-w-full
+    "
+  >
+  </div>
+</label>

@@ -1,15 +1,14 @@
 use crate::actions::{
-    Action, BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
+    Action, ActionTag, BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
 };
 use crate::districts::DistrictName;
-use crate::game::{ActionOutput, ActionResult, CityDistrict, Followup, Game, PlayerIndex};
+use crate::game::{ActionOutput, ActionResult, CityDistrict, Followup, Game, PlayerIndex, Result};
 use crate::roles::{Rank, RoleName};
-use crate::types::{CardSuit, Marker};
+use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 
-use color_eyre::eyre::{Result, anyhow, bail};
 use macros::tag::Tag;
 use rand::prelude::*;
-use std::borrow::{Borrow, BorrowMut};
+use std::borrow::{Borrow, BorrowMut, Cow};
 use std::collections::HashMap;
 use std::mem;
 
@@ -23,10 +22,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 signed,
             }) => {
                 if !signed {
-                    bail!("Cannot reveal unsigned warrant")
+                    return Err("Cannot reveal unsigned warrant".into());
                 }
                 if game.players[magistrate.0].city_has(district) {
-                    bail!("Cannot confiscate a district you already have.")
+                    return Err("Cannot confiscate a district you already have.".into());
                 }
                 let player = game.active_player_mut().unwrap();
                 player.gold += gold;
@@ -43,22 +42,18 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 }
 
                 ActionOutput::new(format!(
-                    "The Magistrate ({}) reveals a signed warrant and confiscates the {}; {} gold is refunded.",
-                    name,
-                    district.data().display_name,
-                    gold
-                ))
+                            "The Magistrate ({}) reveals a signed warrant and confiscates the {}; {} gold is refunded.",
+                            name,
+                            district.data().display_name, 
+                            gold
+                        )
+                    )
             }
-            _ => bail!("cannot reveal warrant"),
+            _ => return Err("cannot reveal warrant".into()),
         },
 
         Action::PayBribe => {
-            let blackmailer = game
-                .characters
-                .get(RoleName::Blackmailer)
-                .unwrap()
-                .player
-                .unwrap();
+            let blackmailer = game.characters.get(RoleName::Blackmailer).unwrap().player.unwrap();
             let player = game.active_player_mut().unwrap();
             let half = player.gold / 2;
             player.gold -= half;
@@ -72,12 +67,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::IgnoreBlackmail => {
             //
-            let blackmailer = game
-                .characters
-                .get(RoleName::Blackmailer)
-                .unwrap()
-                .player
-                .unwrap();
+            let blackmailer= game.characters.get(RoleName::Blackmailer).unwrap().player.unwrap();
             ActionOutput::new("They ignored the blackmail. Waiting on the Blackmailer's response.")
                 .followup(Followup::Blackmail { blackmailer })
         }
@@ -105,9 +95,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     }
 
                     ActionOutput::new(format!(
-                        "The Blackmailer ({}) reveals an active threat, and takes all {} of their gold.",
-                        game.players[blackmailer.0].name, gold
-                    ))
+                            "The Blackmailer ({}) reveals an active threat, and takes all {} of their gold.", 
+                            game.players[blackmailer.0].name,
+                            gold 
+                        ))
                 } else {
                     let name = game.active_player().unwrap().name.clone();
                     ActionOutput::new(format!(
@@ -116,7 +107,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     ))
                 }
             }
-            _ => bail!("Cannot reveal blackmail"),
+            _ => return Err("Cannot reveal blackmail".into()),
         },
 
         Action::Pass => {
@@ -142,7 +133,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         game.players[blackmailer.0].name,
                     ))
                 }
-                _ => bail!("impossible"),
+                _ => return Err("impossible".into()),
             }
         }
 
@@ -174,7 +165,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             let draft = game.active_turn.draft_mut()?;
             let i = (0..draft.remaining.len())
                 .find(|i| draft.remaining[*i] == *role)
-                .ok_or(anyhow!("selected role is not available"))?;
+                .ok_or("selected role is not available")?;
 
             draft.remaining.remove(i);
             ActionOutput::new(format!(
@@ -245,10 +236,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             {
                 revealed
             } else {
-                bail!("action is not allowed")
+                return Err("action is not allowed".into());
             };
 
-            Game::remove_first(&mut revealed, *district).ok_or(anyhow!("invalid choice"))?;
+            Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
             revealed.shuffle(&mut game.rng);
 
             for remaining in revealed {
@@ -284,7 +275,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::Build(method) => {
             if game.active_role().unwrap().role == RoleName::Navigator {
-                bail!("The navigator is not allowed to build.")
+                Err("The navigator is not allowed to build.")?;
             }
             let district = match method {
                 BuildMethod::Regular { district } => *district,
@@ -296,7 +287,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
             let active = game.active_player()?;
             if active.hand.iter().all(|d| *d != district) {
-                bail!("Card not in hand")
+                Err("Card not in hand")?;
             }
 
             if game
@@ -304,7 +295,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .iter()
                 .all(|a| !a.tag().is_resource_gathering())
             {
-                bail!("Must gather resources before building")
+                Err("Must gather resources before building")?;
             }
 
             let is_free_build = district == DistrictName::Stables
@@ -312,23 +303,21 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     && game.active_role().unwrap().role == RoleName::Trader);
 
             if !is_free_build && game.remaining_builds == 0 {
-                bail!(
+                Err(format!(
                     "With your role, you cannot build more than {} time(s), this turn.",
                     game.active_role().unwrap().role.build_limit()
-                )
+                ))?;
             }
 
             if !(active.city_has(DistrictName::Quarry)
                 || game.active_role().unwrap().role == RoleName::Wizard)
                 && active.city.iter().any(|d| d.name == district)
             {
-                bail!("cannot build duplicate")
+                return Err("cannot build duplicate".into());
             }
 
             if district == DistrictName::Monument && active.city.len() >= 5 {
-                bail!(
-                    "You can only build the Monument, if you have less than 5 districts in your city"
-                )
+                return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
             }
 
             let district = district.data();
@@ -343,26 +332,26 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             match method {
                 BuildMethod::Regular { .. } => {
                     if cost > active.gold {
-                        bail!("Not enough gold")
+                        Err("Not enough gold")?;
                     }
 
                     let active = game.active_player_mut()?;
                     Game::remove_first(&mut active.hand, district.name)
-                        .ok_or(anyhow!("card not in hand"))?;
+                        .ok_or("card not in hand")?;
                     active.gold -= cost;
                 }
                 BuildMethod::Cardinal {
                     discard, player, ..
                 } => {
                     if game.active_role()?.role != RoleName::Cardinal {
-                        bail!("You are not the cardinal")
+                        Err("You are not the cardinal")?;
                     }
                     if active.gold + discard.len() < cost {
-                        bail!("Not enough gold or discarded")
+                        Err("Not enough gold or discarded")?;
                     }
 
                     if active.gold + discard.len() > cost {
-                        bail!("Must spend own gold first, before taking from others")
+                        Err("Must spend own gold first, before taking from others")?;
                     }
 
                     let target = game
@@ -375,10 +364,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                                 None
                             }
                         })
-                        .ok_or(anyhow!("Player does not exist"))?;
+                        .ok_or("Player does not exist")?;
 
                     if game.players[target.0].gold < discard.len() {
-                        bail!("Cannot give more cards than the target has gold")
+                        Err("Cannot give more cards than the target has gold")?;
                     }
 
                     let gold = discard.len();
@@ -395,11 +384,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     }
 
                     if discard.len() > 0 {
-                        bail!("Can't discard cards not in your hand")
+                        Err("Can't discard cards not in your hand")?;
                     }
 
-                    Game::remove_first(&mut new_hand, district.name)
-                        .ok_or(anyhow!("card not in hand"))?;
+                    Game::remove_first(&mut new_hand, district.name).ok_or("card not in hand")?;
 
                     let active = game.active_player_mut().unwrap();
                     active.gold -= cost;
@@ -412,14 +400,14 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
                 BuildMethod::ThievesDen { discard } => {
                     if district.name != DistrictName::ThievesDen {
-                        bail!("You are not building the ThievesDen!")
+                        Err("You are not building the ThievesDen!")?;
                     }
                     if discard.len() > cost {
-                        bail!("Cannot discard more cards than the cost")
+                        Err("Cannot discard more cards than the cost")?;
                     }
 
                     if active.gold + discard.len() < cost {
-                        bail!("Not enough gold or cards discarded")
+                        Err("Not enough gold or cards discarded")?;
                     }
 
                     cost -= discard.len();
@@ -436,10 +424,9 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     }
 
                     if discard_set.len() > 0 {
-                        bail!("Can't discard cards not in your hand")
+                        Err("Can't discard cards not in your hand")?;
                     }
-                    Game::remove_first(&mut new_hand, district.name)
-                        .ok_or(anyhow!("card not in hand"))?;
+                    Game::remove_first(&mut new_hand, district.name).ok_or("card not in hand")?;
 
                     let active = game.active_player_mut().unwrap();
                     active.gold -= cost;
@@ -461,17 +448,17 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                                 None
                             }
                         })
-                        .ok_or(anyhow!("You don't own a framework!"))?;
+                        .ok_or("You don't own a framework!")?;
 
                     let active = game.active_player_mut().unwrap();
                     Game::remove_first(&mut active.hand, district.name)
-                        .ok_or(anyhow!("card not in hand"))?;
+                        .ok_or("card not in hand")?;
                     active.city.swap_remove(city_index);
                 }
 
                 BuildMethod::Necropolis { sacrifice: target } => {
                     if district.name != DistrictName::Necropolis {
-                        bail!("You are not building the necropolis!")
+                        Err("You are not building the necropolis!")?;
                     }
                     let city_index = active
                         .city
@@ -484,11 +471,11 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                                 None
                             }
                         })
-                        .ok_or(anyhow!("Cannot sacrifice a district you don't own!"))?;
+                        .ok_or("Cannot sacrifice a district you don't own!")?;
 
                     let active = game.active_player_mut().unwrap();
                     Game::remove_first(&mut active.hand, district.name)
-                        .ok_or(anyhow!("card not in hand"))?;
+                        .ok_or("card not in hand")?;
 
                     let district = active.city.swap_remove(city_index);
                     game.discard_district(district.name);
@@ -519,12 +506,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     district.display_name
                 ))
                 .followup(Followup::Warrant {
-                    magistrate: game
-                        .characters
-                        .get(RoleName::Magistrate)
-                        .unwrap()
-                        .player
-                        .unwrap(),
+                    magistrate: game.characters.get(RoleName::Magistrate).unwrap().player.unwrap(),
                     gold: cost,
                     district: district.name,
                     signed: game
@@ -548,10 +530,9 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             // King & patrician always get the crown, even when bewitched.
             game.crowned = game
                 .characters
-                .get(RoleName::King)
-                .or(game.characters.get(RoleName::Patrician))
+                .get(RoleName::King).or(game.characters.get(RoleName::Patrician))
                 .and_then(|game_role| game_role.player)
-                .ok_or(anyhow!("No Royalty to take crown!"))?;
+                .ok_or("No Royalty to take crown!")?;
 
             ActionOutput::new(format!(
                 "{} takes the crown.",
@@ -561,13 +542,11 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::Assassinate { role } => {
             if *role == RoleName::Assassin {
-                bail!("Cannot kill self.")
+                return Err("Cannot kill self.".into());
             }
             let target = match game.characters.get_mut(*role) {
                 Some(target) => target,
-                None => {
-                    bail!("Role {} is not in this game", role.display_name())
-                }
+                None => return Err(format!("Role {} is not in this game",role.display_name()).into())
             };
             target.markers.push(Marker::Killed);
 
@@ -580,21 +559,16 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::Steal { role } => {
             if *role == RoleName::Thief {
-                bail!("Cannot steal from self.")
+                return Err("Cannot steal from self.".into());
             }
 
             let target = match game.characters.get_mut(*role) {
                 Some(target) => target,
-                None => {
-                    bail!("Role {} is not in this game", role.display_name())
-                }
+                None => return Err(format!("Role {} is not in this game",role.display_name()).into())
             };
 
             if target.revealed {
-                bail!(
-                    "Cannot steal from {} who has already taken their turn.",
-                    role.display_name()
-                )
+                return Err(format!("Cannot steal from {} who has already taken their turn.",role.display_name()).into())
             }
 
             if target
@@ -602,7 +576,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .iter()
                 .any(|marker| *marker == Marker::Killed)
             {
-                bail!("Cannot rob from the dead.")
+                return Err("Cannot rob from the dead.".into());
             }
 
             if target
@@ -610,23 +584,25 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .iter()
                 .any(|marker| *marker == Marker::Bewitched)
             {
-                bail!("Cannot rob from the bewitched.")
+                return Err("Cannot rob from the bewitched.".into());
             }
 
             target.markers.push(Marker::Robbed);
 
-            ActionOutput::new(format!(
-                "The Thief ({}) robs the {}; At the start of their turn, all their gold will be taken.",
-                game.active_player()?.name,
-                role.display_name(),
-            ))
+            ActionOutput::new(format!( 
+                    "The Thief ({}) robs the {}; At the start of their turn, all their gold will be taken.",
+                    game.active_player()?.name,
+                    role.display_name(),
+                ))
         }
 
         Action::Magic(MagicianAction::TargetPlayer { player }) => {
+
             let mut hand = std::mem::take(&mut game.active_player_mut()?.hand);
-            let target = match game.players.iter_mut().find(|p| p.name == *player) {
+            let target =  match game.players.iter_mut().find(|p| p.name == *player) {
                 Some(target) => target,
-                None => bail!("Invalid target."),
+None => 
+                return Err("Invalid target.".into())
             };
             let hand_count = hand.len();
             let target_count = target.hand.len();
@@ -657,7 +633,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             }
 
             if discard.len() > 0 {
-                bail!("Can't discard cards not in your hand")
+                Err("Can't discard cards not in your hand")?;
             }
             active.hand = new_hand;
 
@@ -677,7 +653,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::WarlordDestroy { district: target } => {
             if target.district == DistrictName::Keep {
-                bail!("Cannot target the Keep")
+                return Err("Cannot target the Keep".into());
             }
 
             let available_gold = game.active_player()?.gold;
@@ -686,13 +662,13 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .players
                 .iter_mut()
                 .find(|p| p.name == target.player)
-                .ok_or(anyhow!("Player does not exist"))?;
+                .ok_or("Player does not exist")?;
 
             if game.characters.has_bishop_protection(player.index) {
-                bail!("Cannot target the Bishop")
+                Err("Cannot target the Bishop")?
             }
             if player.city_size() >= complete_size {
-                bail!("Cannot target a completed city")
+                Err("Cannot target a completed city")?
             }
 
             let city_index = player
@@ -706,7 +682,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         None
                     }
                 })
-                .ok_or(anyhow!("does not exist in the targeted player's city"))?;
+                .ok_or("does not exist in the targeted player's city")?;
 
             let mut destroy_cost = target.effective_cost() - 1;
             if player.city_has(DistrictName::GreatWall) {
@@ -714,7 +690,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             }
 
             if available_gold < destroy_cost {
-                bail!("not enough gold to destroy")
+                return Err("not enough gold to destroy".into());
             }
 
             player.city.remove(city_index);
@@ -731,11 +707,11 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::Armory { district: target } => {
             if target.district == DistrictName::Keep {
-                bail!("Cannot destroy the Keep")
+                return Err("Cannot destroy the Keep".into());
             }
 
             if target.district == DistrictName::Armory {
-                bail!("The armory cannot destroy itgame")
+                return Err("The armory cannot destroy itgame".into());
             }
 
             let complete_size = game.complete_city_size();
@@ -743,9 +719,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .players
                 .iter_mut()
                 .find(|p| p.name == target.player && p.city_size() < complete_size)
-                .ok_or(anyhow!(
-                    "player does not exist or cannot destroy from complete city"
-                ))?;
+                .ok_or("player does not exist or cannot destroy from complete city")?;
 
             let city_index = targeted_player
                 .city
@@ -758,7 +732,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         None
                     }
                 })
-                .ok_or(anyhow!("does not exist in the targeted player's city"))?;
+                .ok_or("does not exist in the targeted player's city")?;
 
             targeted_player.city.remove(city_index);
             let active_player = game.active_player_mut()?;
@@ -767,7 +741,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .iter()
                 .enumerate()
                 .find(|(_, d)| d.name == DistrictName::Armory)
-                .ok_or(anyhow!("You do not have the armory"))?;
+                .ok_or("You do not have the armory")?;
 
             active_player.city.remove(city_index);
             game.discard_district(DistrictName::Armory);
@@ -787,14 +761,14 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             let player = game.active_player_mut()?;
 
             if player.gold < 1 {
-                bail!("Not enough gold")
+                return Err("Not enough gold".into());
             }
 
             let city_district = player
                 .city
                 .iter_mut()
                 .find(|d| !d.beautified && d.name == *district)
-                .ok_or(anyhow!("Invalid target. Is it already beautified?"))?;
+                .ok_or("Invalid target. Is it already beautified?")?;
 
             city_district.beautified = true;
             player.gold -= 1;
@@ -866,7 +840,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     Ok((
                         *players
                             .get(name)
-                            .ok_or(anyhow!("Cannot give {} a card.", name.to_owned()))?,
+                            .ok_or(format!("Cannot give {} a card.", name).to_owned())?,
                         *district,
                     ))
                 })
@@ -878,7 +852,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 if let Some(district) = Game::remove_first(active_hand, *district) {
                     removed.push(district);
                 } else {
-                    bail!("cannot assign district not in hand!")
+                    return Err("cannot assign district not in hand!".into());
                 }
             }
             for (index, district) in pairs {
@@ -892,11 +866,11 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             let player = game.active_player()?;
             let count = player.count_suit_for_resource_gain(CardSuit::Religious);
             if gold + cards < count {
-                bail!("Too few resources, you should select {}", count)
+                return Err(format!("Too few resources, you should select {}", count).into());
             }
 
             if gold + cards > count {
-                bail!("Too many resources, you should select {}", count)
+                return Err(format!("Too many resources, you should select {}", count).into());
             }
 
             let _amount = game.gain_cards(count);
@@ -920,11 +894,8 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             let active = game.active_player_index()?;
             let left = PlayerIndex((active.0 + game.players.len() - 1) % game.players.len());
             let right = PlayerIndex((active.0 + 1) % game.players.len());
-            let seated_next_to_royalty = game.characters.0.iter().find(|game_role| {
-                game_role.revealed
-                    && game_role.role.rank() == Rank::Four
-                    && game_role.player.is_some_and(|p| p == left || p == right)
-            });
+            let seated_next_to_royalty =
+            game.characters.0.iter().find(|game_role| game_role.revealed && game_role.role.rank() == Rank::Four && game_role.player.is_some_and(|p| p == left || p == right));
             let log = if let Some(c) = seated_next_to_royalty {
                 game.players[active.0].gold += 3;
                 format!(
@@ -932,7 +903,9 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     c.role.display_name()
                 )
             } else {
-                format!("The Queen is not seated next to royalty.",)
+                format!(
+                    "The Queen is not seated next to royalty.",
+                )
             };
             ActionOutput::new(log)
         }
@@ -944,7 +917,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::Spy { player, suit } => {
             if player == game.active_player().unwrap().name {
-                bail!("Cannot spy on game.")
+                return Err("Cannot spy on game.".into());
             }
             let target = game
                 .players
@@ -956,7 +929,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         None
                     }
                 })
-                .ok_or(anyhow!("no player with that name"))?;
+                .ok_or("no player with that name")?;
             let matches = game.players[target.0]
                 .hand
                 .iter()
@@ -983,7 +956,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         }
         Action::TakeFromRich { player } => {
             if player == game.active_player().unwrap().name {
-                bail!("Cannot take from yourgame")
+                return Err("Cannot take from yourgame".into());
             }
 
             let my_gold = game.active_player().unwrap().gold;
@@ -1003,7 +976,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             let target = richest
                 .iter_mut()
                 .find(|p| p.name == *player)
-                .ok_or(anyhow!("Not among the richest".to_owned()))?;
+                .ok_or("Not among the richest".to_owned())?;
 
             target.gold -= 1;
             let name = target.name.clone();
@@ -1019,12 +992,12 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             roles.push(signed);
             for role in unsigned {
                 if roles.iter().any(|r| *r == role) {
-                    bail!("Cannot assign more than 1 warrant to a role.")
+                    return Err("Cannot assign more than 1 warrant to a role.".into());
                 }
                 roles.push(role);
             }
             if roles.iter().any(|r| **r == RoleName::Magistrate) {
-                bail!("Cannot assign warrant to self.")
+                return Err("Cannot assign warrant to self.".into());
             }
             roles.sort_by_key(|r| r.rank());
 
@@ -1051,35 +1024,38 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         }
         Action::Blackmail { flowered, unmarked } => {
             if flowered == unmarked {
-                bail!("Cannot blackmail someone twice. ")
+                return Err("Cannot blackmail someone twice. ".into());
             }
 
-            let flower_target = match game.characters.get(*flowered) {
+            let flower_target = 
+            match game .characters .get(*flowered) {
                 Some(target) => target,
-                None => bail!("Can not blackmail someone not in the game"),
+                None => return Err("Can not blackmail someone not in the game".into())
             };
             if !flower_target.revealed {
-                bail!("Cannot blackmail anyone who hasn't gone yet")
+
+                return Err("Cannot blackmail anyone who hasn't gone yet".into());
             }
 
-            if flower_target
+if flower_target
                 .markers
                 .iter()
                 .any(|m| *m == Marker::Killed || *m == Marker::Bewitched)
             {
-                bail!("Cannot blackmail the killed or bewitched")
+                return Err("Cannot blackmail the killed or bewitched".into());
             }
 
-            let unmarked_target = match game.characters.get(*unmarked) {
+            let unmarked_target = 
+            match game .characters .get(*unmarked) {
                 Some(target) => target,
-                None => bail!("Can not blackmail someone not in the game"),
+                None => return Err("Can not blackmail someone not in the game".into())
             };
-            if unmarked_target
+                if unmarked_target
                 .markers
                 .iter()
                 .any(|m| *m == Marker::Killed || *m == Marker::Bewitched)
             {
-                bail!("Cannot blackmail the killed or bewitched")
+                return Err("Cannot blackmail the killed or bewitched".into());
             }
 
             game.characters
@@ -1107,7 +1083,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         Action::Smithy => {
             let active = game.active_player_mut()?;
             if active.gold < 2 {
-                bail!("Not enough gold")
+                Err("Not enough gold")?;
             }
             active.gold -= 2;
             game.gain_cards(3);
@@ -1124,7 +1100,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .iter()
                 .enumerate()
                 .find(|(_, name)| *name == district)
-                .ok_or(anyhow!("district not in hand"))?;
+                .ok_or("district not in hand")?;
             let card = active.hand.remove(index);
             active.gold += 2;
             game.deck.discard_to_bottom(card);
@@ -1142,7 +1118,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .iter()
                 .enumerate()
                 .find(|(_, name)| *name == district)
-                .ok_or(anyhow!("district not in hand"))?;
+                .ok_or("district not in hand")?;
             let card = active.hand.remove(index);
             game.museum.tuck(card);
 
@@ -1168,10 +1144,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 if let Some(Followup::ScholarPick { revealed, .. }) = game.followup.as_mut() {
                     revealed
                 } else {
-                    bail!("action is not allowed")
+                    return Err("action is not allowed".into());
                 };
 
-            Game::remove_first(&mut revealed, *district).ok_or(anyhow!("invalid choice"))?;
+            Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
             for remaining in revealed {
                 game.deck.discard_to_bottom(*remaining);
             }
@@ -1194,16 +1170,16 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         }
         Action::Theater { role, player } => {
             if game.active_player().unwrap().name == *player {
-                bail!("Cannot swap with self")
+                return Err("Cannot swap with game".into());
             }
 
             Game::remove_first(&mut game.active_player_mut()?.roles, *role)
-                .ok_or(anyhow!("You cannot give away a role you don't have"))?;
+                .ok_or("You cannot give away a role you don't have")?;
             let target = game
                 .players
                 .iter_mut()
                 .find(|p| p.name == *player)
-                .ok_or(anyhow!("nonexistent player"))?;
+                .ok_or("nonexistent player")?;
 
             let index = game.rng.gen_range(0..target.roles.len());
             let target_role = target.roles.swap_remove(index);
@@ -1231,10 +1207,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::MarshalSeize { district: target } => {
             if target.district == DistrictName::Keep {
-                bail!("Cannot target the Keep")
+                return Err("Cannot target the Keep".into());
             }
             if game.active_player().unwrap().city_has(target.district) {
-                bail!("Cannot seize a copy of your own district")
+                return Err("Cannot seize a copy of your own district".into());
             }
             let available_gold = game.active_player()?.gold;
             let complete_size = game.complete_city_size();
@@ -1242,13 +1218,13 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .players
                 .iter_mut()
                 .find(|p| p.name == target.player)
-                .ok_or(anyhow!("Player does not exist"))?;
+                .ok_or("Player does not exist")?;
 
             if game.characters.has_bishop_protection(player.index) {
-                bail!("Cannot target the Bishop")
+                Err("Cannot target the Bishop")?
             }
             if player.city_size() >= complete_size {
-                bail!("Cannot target a completed city")
+                Err("Cannot target a completed city")?
             }
 
             let city_index = player
@@ -1262,17 +1238,17 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         None
                     }
                 })
-                .ok_or(anyhow!("does not exist in the targeted player's city"))?;
+                .ok_or("does not exist in the targeted player's city")?;
             let mut seize_cost = target.effective_cost();
             if seize_cost > 3 {
-                bail!("Cannot seize district because it costs more than 3")
+                return Err("Cannot seize district because it costs more than 3".into());
             }
             if player.city_has(DistrictName::GreatWall) {
                 seize_cost += 1;
             }
 
             if available_gold < seize_cost {
-                bail!("Not enough gold to seize")
+                return Err("Not enough gold to seize".into());
             }
 
             let district = player.city.remove(city_index);
@@ -1291,17 +1267,17 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::EmperorGiveCrown { player, resource } => {
             if game.active_player().unwrap().name == *player {
-                bail!("Cannot give the crown to yourself.")
+                Err("Cannot give the crown to yourself.")?;
             }
 
             let target = game
                 .players
                 .iter_mut()
                 .find(|p| p.name == *player)
-                .ok_or(anyhow!("Player does not exist."))?;
+                .ok_or("Player does not exist.")?;
 
             if target.index == game.crowned {
-                bail!("Cannot give the crown to the already crowned player.")
+                Err("Cannot give the crown to the already crowned player.")?;
             }
 
             game.crowned = target.index;
@@ -1332,17 +1308,17 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
         Action::EmperorHeirGiveCrown { player } => {
             if game.active_player().unwrap().name == *player {
-                bail!("Cannot give the crown to yourself.")
+                Err("Cannot give the crown to yourself.")?;
             }
 
             let target = game
                 .players
                 .iter_mut()
                 .find(|p| p.name == *player)
-                .ok_or(anyhow!("Player does not exist"))?;
+                .ok_or("Player does not exist")?;
 
             if target.index == game.crowned {
-                bail!("Cannot give the crown to the already crowned player.")
+                Err("Cannot give the crown to the already crowned player.")?;
             }
 
             game.crowned = target.index;
@@ -1359,7 +1335,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
             theirs: their_target,
         } => {
             if their_target.district == DistrictName::Keep {
-                bail!("Cannot target the Keep")
+                return Err("Cannot target the Keep".into());
             }
 
             let complete_city_size = game.complete_city_size();
@@ -1367,13 +1343,13 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .players
                 .iter()
                 .find(|p| p.name == their_target.player)
-                .ok_or(anyhow!("invalid player target"))?;
+                .ok_or("invalid player target")?;
 
             if game.characters.has_bishop_protection(player.index) {
-                bail!("Cannot target the Bishop")
+                Err("Cannot target the Bishop")?
             }
             if player.city_size() >= complete_city_size {
-                bail!("Cannot target a completed city")
+                Err("Cannot target a completed city")?
             }
 
             let my_cost = my_target.effective_cost();
@@ -1388,11 +1364,11 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 trade_cost += 1;
             }
             if trade_cost > game.active_player().unwrap().gold {
-                bail!("Not enough gold")
+                Err("Not enough gold")?
             }
 
             if player.city_has(my_target.district) {
-                bail!("The targeted player already has a copy of that district")
+                Err("The targeted player already has a copy of that district")?
             }
 
             if game
@@ -1400,7 +1376,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .unwrap()
                 .city_has(their_target.district)
             {
-                bail!("You already have a copy of that district")
+                Err("You already have a copy of that district")?
             }
 
             let my_city_index = game
@@ -1416,7 +1392,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         None
                     }
                 })
-                .ok_or(anyhow!("does not exist in the your city"))?;
+                .ok_or("does not exist in the your city")?;
 
             let their_city_index = player
                 .city
@@ -1429,7 +1405,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         None
                     }
                 })
-                .ok_or(anyhow!("does not exist in the targeted player's city"))?;
+                .ok_or("does not exist in the targeted player's city")?;
             let index = player.index.0;
             let player = game.players[index].borrow_mut();
             player.gold += trade_cost;
@@ -1463,7 +1439,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 .players
                 .iter()
                 .find(|p| p.name == *player)
-                .ok_or(anyhow!("invalid player target"))?;
+                .ok_or("invalid player target")?;
 
             ActionOutput::new(format!(
                 "The Wizard ({}) peeks at {}'s hand.",
@@ -1477,7 +1453,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         Action::WizardPick(WizardMethod::Pick { district }) => match game.followup {
             Some(Followup::WizardPick { player: target }) => {
                 Game::remove_first(&mut game.players[target.0].hand, *district)
-                    .ok_or(anyhow!("district not in target player's hand"))?;
+                    .ok_or("district not in target player's hand")?;
                 game.active_player_mut().unwrap().hand.push(*district);
                 ActionOutput::new(format!(
                     "The Wizard ({}) takes a card from {}'s hand.",
@@ -1485,13 +1461,13 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     game.players[target.0].name,
                 ))
             }
-            _ => bail!("impossible"),
+            _ => Err("impossible")?,
         },
 
         Action::WizardPick(method) => match game.followup {
             Some(Followup::WizardPick { player: target }) => {
                 let district = match method {
-                    WizardMethod::Pick { .. } => bail!("Impossible!"),
+                    WizardMethod::Pick { .. } => Err("Impossible!")?,
                     WizardMethod::Build { district } => *district,
                     WizardMethod::Framework { district } => *district,
                     WizardMethod::ThievesDen { .. } => DistrictName::ThievesDen,
@@ -1499,14 +1475,12 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 };
 
                 if game.players[target.0].hand.iter().all(|d| *d != district) {
-                    bail!("Card not in hand")
+                    Err("Card not in hand")?;
                 }
 
                 let active = game.active_player().unwrap();
                 if district == DistrictName::Monument && active.city.len() >= 5 {
-                    bail!(
-                        "You can only build the Monument, if you have less than 5 districts in your city"
-                    )
+                    return Err("You can only build the Monument, if you have less than 5 districts in your city".into());
                 }
 
                 let district = district.data();
@@ -1519,10 +1493,10 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 }
 
                 match method {
-                    WizardMethod::Pick { .. } => bail!("Impossible"),
+                    WizardMethod::Pick { .. } => Err("Impossible")?,
                     WizardMethod::Build { .. } => {
                         if cost > active.gold {
-                            bail!("Not enough gold")
+                            Err("Not enough gold")?;
                         }
 
                         let active = game.active_player_mut()?;
@@ -1530,14 +1504,14 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     }
                     WizardMethod::ThievesDen { discard } => {
                         if district.name != DistrictName::ThievesDen {
-                            bail!("You are not building the ThievesDen!")
+                            Err("You are not building the ThievesDen!")?;
                         }
                         if discard.len() > cost {
-                            bail!("Cannot discard more cards than the cost")
+                            Err("Cannot discard more cards than the cost")?;
                         }
 
                         if active.gold + discard.len() < cost {
-                            bail!("Not enough gold or cards discarded")
+                            Err("Not enough gold or cards discarded")?;
                         }
 
                         cost -= discard.len();
@@ -1554,7 +1528,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         }
 
                         if discard_set.len() > 0 {
-                            bail!("Can't discard cards not in your hand")
+                            Err("Can't discard cards not in your hand")?;
                         }
 
                         let active = game.active_player_mut().unwrap();
@@ -1577,7 +1551,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                                     None
                                 }
                             })
-                            .ok_or(anyhow!("Cannot sacrifice a district you don't own!"))?;
+                            .ok_or("Cannot sacrifice a district you don't own!")?;
 
                         let active = game.active_player_mut().unwrap();
                         active.city.swap_remove(city_index);
@@ -1585,7 +1559,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
 
                     WizardMethod::Necropolis { sacrifice: target } => {
                         if district.name != DistrictName::Necropolis {
-                            bail!("You are not building the necropolis!")
+                            Err("You are not building the necropolis!")?;
                         }
                         let city_index = active
                             .city
@@ -1598,7 +1572,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                                     None
                                 }
                             })
-                            .ok_or(anyhow!("Cannot sacrifice a district you don't own!"))?;
+                            .ok_or("Cannot sacrifice a district you don't own!")?;
 
                         let active = game.active_player_mut().unwrap();
                         let district = active.city.swap_remove(city_index);
@@ -1624,12 +1598,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         district.display_name
                     ))
                     .followup(Followup::Warrant {
-                        magistrate: game
-                            .characters
-                            .get(RoleName::Magistrate)
-                            .unwrap()
-                            .player
-                            .unwrap(),
+                        magistrate: game.characters.get(RoleName::Magistrate).unwrap().player.unwrap(),
                         gold: cost,
                         district: district.name,
                         signed: game
@@ -1646,16 +1615,16 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 }
             }
 
-            _ => bail!("impossible"),
+            _ => Err("impossible")?,
         },
         Action::Bewitch { role } => {
-            if *role == RoleName::Witch {
-                bail!("Cannot target self");
+            if *role == RoleName::Witch{
+                return Err("Cannot target self")?;
             }
-            if let Some(c) = game.characters.get_mut(*role) {
+            if let Some(c) = game.characters .get_mut(*role) {
                 c.markers.push(Marker::Bewitched);
             } else {
-                bail!("Role {} not found", role.display_name())
+                return Err(format!("Role {} not found", role.display_name()).into());
             }
 
             ActionOutput::new(format!("The Witch bewitches {}.", role.display_name())).end_turn()

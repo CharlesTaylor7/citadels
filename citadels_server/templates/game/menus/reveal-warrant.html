@@ -1,0 +1,16 @@
+<h2 class="header">
+  Warrant
+</h2>
+{{ player }} spent {{ gold }} to build:
+{% set input_type = "" %}
+{% set enabled = false %}
+{% set draggable = false %}
+{% include "district/square-cropped.html" %}
+
+<div class="flex flex-row flex-wrap gap-2">
+  {% for action in actions %}
+    {% include "action.html" %}
+  {% endfor %}
+</div>
+<div id="error"></div>
+

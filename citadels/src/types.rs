@@ -1,10 +1,9 @@
-use poem_openapi::Enum;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::fmt::{self, Debug, Display};
 use std::sync::Arc;
 
-#[derive(Enum, Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub enum CardSuit {
     Trade,
     Religious,
@@ -29,7 +28,7 @@ impl fmt::Display for CardSuit {
     }
 }
 
-#[derive(Enum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CardSet {
     Base,
     DarkCity,

@@ -1,0 +1,29 @@
+<div
+  class="hidden"
+  _="
+    init
+      remove @disabled from <#hand input[name=district]/>
+      add @type=radio to <#hand input[name=district]/>
+  "
+>
+</div>
+
+<h2 class="m-2 underline text-lg font-semibold">
+  Museum
+</h2>
+
+Select a district from your hand
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    hx-post="/game/action"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+    name="action"
+    value="Museum"
+  >
+    Confirm 
+  </button>
+  {% include "button/cancel.html" %}
+</div>
+<div id="error"></div>

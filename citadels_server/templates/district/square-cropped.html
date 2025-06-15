@@ -1,0 +1,133 @@
+<label
+  data-dropzone
+  data-district="{{ district.value }}"
+  id="card-{{district.value}}"
+  class="
+    relative
+    select-none
+    cursor-pointer
+    p-1 box-content
+    rounded-2xl
+    has-[:focus-visible]:ring-4
+    has-[:checked]:p-0
+    has-[:checked]:border
+    has-[:checked]:border-4
+    has-[:checked]:border-success
+    {% if enabled %}
+    cursor-pointer
+    {% endif %}
+    {% if draggable %}
+    draggable
+    {% endif %}
+  "
+  {% if draggable %}
+  data-draggable
+  {% endif %}
+  data-x="{{ district.pos.x }}px"
+  data-y="{{ district.pos.y }}px"
+  style="
+    z-index: {{ district.pos.z }};
+    transform: translate({{ district.pos.x }}px, {{ district.pos.y }}px);
+  "
+>
+  <div 
+    data-tip="{{ district.description|def }}"
+    class="
+      w-full
+      rounded-t-xl relative h-10 bg-neutral
+      {% if district.description.is_some() %}
+      tooltip
+      tooltip-bottom
+      tooltip-secondary
+      before:w-full
+      {% endif %}
+    "
+  >
+    <div
+      class="
+        absolute top-2
+        leaded
+        w-full text-center 
+        font-serif
+        text-base text-neutral-content
+        {% if district.value == "SchoolOfMagic" %}
+        ml-2
+        {% else if district.value == "ImperialTreasury" %}
+        ml-4
+        {% else if district.value == "HauntedQuarter" %}
+        ml-3
+        {% endif %}
+      "
+    >
+      {{ district.name }} 
+    </div>
+    <code
+      class="
+        absolute top-2 left-2
+        h-6 w-6 rounded-full
+        leaded 
+        flex flex-row justify-center items-center 
+        text-black
+        {{ district.suit|suit_bg_color }}
+      "
+    >
+    {% match district.cost %}
+    {% when Some with (cost) %}
+        {{ cost }} 
+    {% else %}
+    {% endmatch %}
+    </code>
+    {% if district.beautified %}
+      <div 
+          data-tip="Beautified"
+          class="
+            absolute right-2 top-1 
+            tooltip tooltip-secondary 
+            text-2xl 
+          "
+      > 
+          ✨
+      </div>
+    {% endif %}
+  </div>
+  <input
+    type="{{ input_type }}"
+    class="absolute top-0 peer opacity-0"
+    name="district"
+    value="{{ district.value }}"
+    {% if !enabled %}
+    disabled
+    {% endif %}
+    _="
+      on keyup [key is 'Enter'] 
+        set my checked to not my checked 
+        trigger change
+      end
+    "
+  />
+  {% set asset = district.asset %}
+  <svg 
+    class="rounded-b-xl"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="{{ asset.height }}"
+    width="{{ asset.width }}"
+    style="filter: brightness({{ asset.brightness }})"
+  >
+    <image id="img" x="{{asset.offset_x}}" y="{{asset.offset_y}}"
+          height="{{ asset.scale_percentage }}%"
+          xlink:href="{{ asset.path }}"
+          preserveAspectRatio="xMinYMin slice"
+    />
+  </svg>
+  <div 
+    class="absolute top-10"
+    style="height: {{ asset.height }}px"
+  >
+    <div class="flex flex-row flex-wrap gap-0 justify-center items-center h-full">
+    {% for item in district.artifacts %}
+      <div class="rounded-full leaded h-10 w-10 draggable text-4xl bg-gradient-radial from-indigo-500 text-center">{{ item }} </div>
+    {% endfor %}
+    </div>
+  </div>
+</label>

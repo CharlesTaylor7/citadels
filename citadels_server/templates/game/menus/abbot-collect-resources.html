@@ -1,0 +1,56 @@
+<h2 class="m-2 underline text-lg font-semibold">
+  Abbot
+</h2>
+
+<div 
+  class="flex flex-col items-end gap-2"
+  data-total="{{ resources }}"
+>
+  <label>
+    Gold
+    <input 
+      class="input input-bordered input-sm w-16"
+      type="number"
+      name="gold"
+      value="{{ resources }}"
+      min="0"
+      max="{{ resources }}"
+      _="
+      on change
+        get the @data-total of the closest <[data-total]/>
+        set total to the result
+        get the next <input /> then set its value to (total - my.value)
+      end
+      "
+    />
+  </label>
+  <label>
+    Cards
+    <input 
+      class="input input-bordered input-sm w-16"
+      type="number"
+      name="cards"
+      value="0"
+      min="0"
+      max="{{ resources }}"
+      _="
+      on change
+        get the @data-total of the closest <[data-total]/>
+        set total to the result
+        get the previous <input /> then set its value to (total - my.value)
+      end
+      "
+    />
+  </label>
+</div>
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    name="action"
+    value="ResourcesFromReligion"
+  >
+    Collect 
+  </button>
+  {% include "button/cancel.html" %}
+</div>
+<div id="error"></div>

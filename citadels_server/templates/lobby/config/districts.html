@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block config_content %}
+  <form class="flex flex-row flex-wrap justify-center gap-3">
+    {% for (option, district) in districts %}
+      <div
+        class="group select-none rounded-2xl"
+        hx-post="/lobby/config/districts"
+        hx-trigger="click"
+        hx-swap="none"
+      >
+        <input
+          type="hidden"
+          name="{{ district.value }}"
+          value="{{ option }}"
+          class="peer"
+        />
+        <div class="relative w-full rounded-t-xl h-10 bg-neutral">
+          <div
+            class="
+              absolute top-2
+              leaded
+              w-full text-center 
+              font-serif
+              text-base text-neutral-content
+              {% if district.value == "SchoolOfMagic" %}
+              ml-2
+              {% else if district.value == "ImperialTreasury" %}
+              ml-4
+              {% else if district.value == "HauntedQuarter" %}
+              ml-3
+              {% endif %}
+            "
+          >
+            {{ district.name }} 
+          </div>
+          <code
+            class="
+              absolute top-2 left-2
+              h-6 w-6 rounded-full
+              leaded 
+              flex flex-row justify-center items-center 
+              text-black 
+              {{ district.suit|suit_bg_color }}
+            "
+          >
+          {% match district.cost %}
+          {% when Some with (cost) %}
+              {{ cost }} 
+          {% else %}
+          {% endmatch %}
+          </code>
+          <div
+              data-tip="{{ district.description|def }}"
+              class="
+                bg-gradient-radial
+                from-indigo-400
+                leaded text-center
+                text-sm
+                absolute
+                top-3
+                right-2
+                h-4
+                w-4
+                rounded-full
+                bg-base-200
+                tooltip
+                tooltip-bottom
+                tooltip-secondary
+                before:max-w-[155px]
+                flex flex-col
+                justify-center
+              "
+            >
+            i
+            </div>
+            {% if district.enabled %}
+              <div class="absolute z-10 top-[180px] w-full flex flex-row gap-3 justify-center items-center">
+                <button 
+                  class="min-h-0 p-0 leaded h-8 w-8 btn group-has-[[value='Always']]:btn-accent"
+                  type="button"
+                  _="on click 
+                    get the <input[name={{district.value}}]/> in <#config/>
+                    if its value is 'Always'
+                      set its value to 'Sometimes'
+                    else
+                      set its value to 'Always'
+                    end
+                  "
+                >
+                  ✔️
+                </button>
+                <button 
+                  class="min-h-0 p-0 leaded h-8 w-8 btn group-has-[[value='Never']]:btn-error"
+                  type="button"
+                  _="on click 
+                    get the <input[name={{district.value}}]/> in <#config/>
+                    if its value is 'Never'
+                      set its value to 'Sometimes'
+                    else
+                      set its value to 'Never'
+                    end
+                  "
+                >
+                  ✖️
+                </button>
+              </div>
+            {% else %}
+              <div class="absolute z-10 top-40 w-full text-center text-sm text-white">
+                Coming Soon...
+              </div>
+            {% endif %}
+        </div>
+        {% set asset = district.asset %}
+        <svg 
+          class="rounded-b-xl"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          height="{{ asset.height }}"
+          width="{{ asset.width }}"
+          style="filter: 
+            brightness({{ asset.brightness }}) 
+            {% if district.enabled %}
+            saturate({{ asset.saturate }})
+            {% else %}
+            saturate(0)
+            {% endif %}
+          "
+        >
+          <image 
+            id="img" 
+            x="{{asset.offset_x}}" 
+            y="{{asset.offset_y}}"
+            height="{{ asset.scale_percentage }}%"
+            xlink:href="{{ asset.path }}"
+            preserveAspectRatio="xMinYMin slice"
+          />
+        </svg>
+      </div>
+    {% endfor %}
+  </form>
+{% endblock %}

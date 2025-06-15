@@ -1,0 +1,12 @@
+<div
+  class="p-7 rounded border border-neutral"
+  id="players"
+  hx-swap-oob="true"
+>
+  <h2 class="underline text-2xl font-semibold">Players</h2>
+  <ul class="list-disc">
+    {% for player in players %}
+    <li id="{{ player.id }}">{{ player.name }}</li>
+    {% endfor %}
+  </ul>
+</div>

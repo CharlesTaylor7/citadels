@@ -1,0 +1,60 @@
+<dialog
+  open
+  id="game-end"
+  style="z-index: 1001;"
+  class="
+    bg-[rgba(30,30,30,0.5)]
+    absolute
+    h-screen
+    w-full
+    flex
+    flex-row
+    items-center
+    justify-center
+    {% if end.hidden %}
+      hidden
+    {% endif %}
+  "
+  _="init enableDrag('#game-end')"
+>
+  {% if !end.hidden %}
+    <div id="game-end-window" data-draggable class="
+        draggable
+        flex flex-col items-center
+        gap-2
+        py-2
+        px-4
+        opacity-100
+        rounded-lg
+        border border-neutral
+        bg-base-100
+      "
+    >
+      <div class="flex flex-row gap-3">
+        <span class="text-3xl">🎉</span>
+        <h2 class="inline header">Final Scores </h2>
+        <span class="text-3xl">🎉</span>
+      </div>
+      <div class="border border-neutral rounded-box" >
+        <table className="border-separate border-spacing-0">
+          <tbody>
+            {% for (name, score) in end.players %}
+              <tr class="border-neutral border-t first:border-t-0">
+                <td
+                  class="p-4"
+                >
+                  {{ name }}
+                </td>
+                <td 
+                  class="p-4 border-neutral border-l p-4" 
+                >
+                  {{ score }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+</dialog>

@@ -1,10 +1,24 @@
 procs:
-  Server:
-    shell: GIT_SHA=main RUST_BACKTRACE=1 watchexec -e rs,toml,html -- cargo run --features="dev,dotenv" 
+  Axum Server:
+    shell: GIT_SHA=main RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features="dev,dotenv" --bin=citadels_server
 
-  Tailwind:
-    shell: npx tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
+  Poem Server:
+    shell: RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features="dev,dotenv" --bin=citadels_api
 
   Docs:
     shell: cargo doc --offline --lib --open
     autostart: false
+
+  Tailwind (for axum server):
+    shell: npx tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
+
+  React Dev Server:
+    cwd: frontend
+    shell: yarn dev
+
+  Angular build:
+    cwd: frontend/angular
+    shell: yarn build
+    autostart: false
+
+

@@ -1,14 +1,14 @@
 use crate::actions::{Action, ActionTag};
-use crate::districts::{DistrictData, DistrictName};
+use crate::districts::DistrictName;
 use crate::game_actions::perform_action;
 use crate::lobby::{self, Lobby};
 use crate::museum::Museum;
 use crate::random::Prng;
 use crate::roles::RoleName;
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
-use color_eyre::eyre::{anyhow, bail};
 use macros::tag::Tag;
 use rand::prelude::*;
+use sqlx::{Pool, Postgres};
 use std::borrow::{Borrow, BorrowMut, Cow};
 use std::fmt::Debug;
 use std::iter::repeat;
@@ -20,7 +20,7 @@ pub enum ForcedToGatherReason {
     Blackmailed,
 }
 
-type Result<T> = color_eyre::Result<T>;
+pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct PlayerIndex(pub usize);
@@ -159,7 +159,7 @@ impl Turn {
         if let Turn::Call(call) = self {
             Ok(call)
         } else {
-            Err(anyhow!("not the call phase"))
+            Err("not the call phase".into())
         }
     }
 
@@ -167,7 +167,7 @@ impl Turn {
         if let Turn::Draft(draft) = self {
             Ok(draft)
         } else {
-            Err(anyhow!("not the draft phase"))
+            Err("not the draft".into())
         }
     }
 
@@ -175,7 +175,7 @@ impl Turn {
         if let Turn::Draft(draft) = self {
             Ok(draft)
         } else {
-            Err(anyhow!("not the draft phase"))
+            Err("not the draft".into())
         }
     }
 }
@@ -493,7 +493,11 @@ impl Characters {
 
 impl Game {
     pub fn complete_city_size(&self) -> usize {
-        if self.players.len() <= 3 { 8 } else { 7 }
+        if self.players.len() <= 3 {
+            8
+        } else {
+            7
+        }
     }
 
     pub fn total_score(&self, player: &Player) -> usize {
@@ -594,7 +598,17 @@ impl Game {
         Ok(self.characters.index_mut(call.index))
     }
 
-    pub fn start(lobby: Lobby, mut rng: Prng) -> Result<Game> {
+    pub async fn start(db: Pool<Postgres>, lobby: Lobby, mut rng: Prng) -> Result<Game> {
+        let mut action = serde_json::to_value(lobby.clone()).unwrap();
+        let json = action.as_object_mut().unwrap();
+        json.insert("seed".to_string(), serde_json::to_value(rng.seed).unwrap());
+        json.insert(
+            "action".to_string(),
+            serde_json::Value::String("Start".to_string()),
+        );
+
+        log_action(db, action, None).await;
+
         let Lobby {
             mut players,
             config,
@@ -610,9 +624,9 @@ impl Game {
             .map(|(index, lobby::Player { id, name })| Player::new(PlayerIndex(index), id, name))
             .collect();
 
-        let mut deck: Vec<DistrictName> = DistrictData::normal()
+        let mut deck: Vec<DistrictName> = crate::districts::NORMAL
             .iter()
-            .flat_map(|district| repeat(district.name).take(district.multiplicity))
+            .flat_map(|district| repeat(district.name).take(district.name.multiplicity()))
             .chain(config.select_unique_districts(&mut rng))
             .collect();
         deck.shuffle(&mut rng);
@@ -692,7 +706,7 @@ impl Game {
                 Followup::GatherCardsPick { .. } => self.active_player_index(),
             };
         }
-        bail!("No pending response")
+        Err("No pending response".into())
     }
 
     pub fn responding_player(&self) -> Result<&Player> {
@@ -702,7 +716,7 @@ impl Game {
 
     pub fn active_player_index(&self) -> Result<PlayerIndex> {
         match &self.active_turn {
-            Turn::GameOver => bail!("game over"),
+            Turn::GameOver => Err("game over".into()),
             Turn::Draft(draft) => Ok(draft.player),
             Turn::Call(call) => {
                 let c = self.characters.index(call.index);
@@ -712,12 +726,10 @@ impl Game {
                     self.characters
                         .get(RoleName::Witch)
                         .and_then(|game_role| game_role.player)
-                        .ok_or(anyhow!(anyhow!("No witch!")))
+                        .ok_or("No witch!".into())
                 } else {
-                    c.player.ok_or(anyhow!(anyhow!(
-                        "No role at index {} in the roster!",
-                        call.index
-                    )))
+                    c.player
+                        .ok_or(format!("No role at index {} in the roster!", call.index).into())
                 }
             }
         }
@@ -874,9 +886,12 @@ impl Game {
         }
     }
 
-    pub fn perform(&mut self, action: Action, id: &str) -> Result<()> {
+    pub async fn perform(&mut self, db: Pool<Postgres>, action: Action, id: &str) -> Result<()> {
+        let p = self.players.iter().find(|p| p.id == id).unwrap();
+        let action_json = serde_json::to_value(action.clone()).unwrap();
+        log_action(db, action_json, Some(&p.name)).await;
         if !self.allowed_for(Some(id)).contains(&action.tag()) {
-            bail!("not allowed");
+            return Err("not allowed".into());
         }
 
         let ActionOutput {
@@ -1127,10 +1142,7 @@ impl Game {
                     && draft.remaining.len() == 1
                     && draft.initial_discard.is_some()
                 {
-                    let initial = draft
-                        .initial_discard
-                        .take()
-                        .ok_or(anyhow!(anyhow!("impossible")))?;
+                    let initial = draft.initial_discard.take().ok_or("impossible")?;
                     draft.remaining.push(initial);
                 }
 
@@ -1217,7 +1229,7 @@ impl Game {
                     .0
                     .iter()
                     .enumerate()
-                    .find(|(_, game_role)| game_role.role == RoleName::Emperor)
+                    .find(|(i, game_role)| game_role.role == RoleName::Emperor)
                 {
                     self.active_turn = Turn::Call(Call {
                         index: i as u8,
@@ -1291,6 +1303,21 @@ impl Game {
             player.cleanup_round();
         }
     }
+}
+
+async fn log_action(
+    db: Pool<Postgres>,
+    action: serde_json::Value,
+    player_name: Option<&PlayerName>,
+) -> () {
+    sqlx::query!(
+        "insert into logs (action, player_name) values($1,$2)",
+        action,
+        player_name.as_ref().map(|p| p.0.as_ref())
+    )
+    .execute(&db)
+    .await
+    .unwrap();
 }
 
 #[cfg(test)]

@@ -1,0 +1,65 @@
+<button
+  class="
+    min-w-36
+    text-base
+    p-2
+    border
+    border-neutral
+    bg-base-100
+    rounded-xl
+    flex flex-col items-center
+  "
+  type="button"
+  hx-get="/game/city/{{ player.name }}"
+  hx-target="#city"
+  hx-swap="outerHTML"
+>
+  <div
+    class="max-w-[144px] text-lg text-center text-wrap font-semibold"
+
+    id="player-{{ player.name }}"
+  >
+      {{ player.name }} 
+  </div>
+  <div class="flex flex-col" >
+      <pre>Gold  {{ "{: >2}"|format(player.gold) }}</pre>
+      <pre>Hand  {{ "{: >2}"|format(player.hand) }}</pre>
+      <pre>City  {{ "{: >2}"|format(player.city) }}</pre>
+      <pre>Score {{ "{: >2}"|format(player.score) }}</pre>
+    {% for (active, role) in player.roles %}
+      <div 
+        {% if active %}
+        class="self-center underline"
+        {% endif %}
+      >
+        {{ role }}
+      </div>
+    {% endfor %}
+
+    </div>
+    <div class="flex flex-row justify-start">
+      {% if player.crowned %}
+        <span 
+          data-tip="The Crown. They will draft first next round."
+          class="tooltip tooltip-left tooltip-secondary text-2xl"
+        > 
+            👑
+        </span>
+      {% endif %}
+      {% if player.first_complete_city %}
+        <span 
+          data-tip="First completed city.&#10;Worth 4 extra points at the end of the game."
+          class="tooltip tooltip-left tooltip-secondary text-2xl"
+        > 
+          🥇 
+        </span>
+      {% else if player.complete_city %}
+        <span
+          data-tip="Completed city, but not first.&#10;Worth 2 extra points at the end of the game."
+          class="tooltip tooltip-left tooltip-secondary text-2xl"
+        >
+          🥈
+        </span>
+      {% endif %}
+  </div>
+</button>

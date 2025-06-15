@@ -5,30 +5,18 @@ edition = "2024"
 
 [dependencies]
 citadels = { version = "0.0.0", path = "../citadels" }
-futures-util = "0.3.30"
-poem = { version = "3.1.10", features = ["session", "sse"] }
-poem-openapi = { version = "5.1.14", features = [
-  "sqlx",
-  "static-files",
-  "swagger-ui",
-] }
-tokio = { version = "1.45.1", features = ["rt-multi-thread"] }
-tokio-stream = "0.1.17"
+cookie = { workspace = true }
+futures-util = { workspace = true }
+poem = { workspace = true }
+poem-openapi = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
 arcstr = { version = "1.2.0", features = ["serde"], default-features = false }
-serde = "1.0.219"
-color-eyre = "0.6.5"
-dotenvy = { version = "0.15.0" }
-sqlx-postgres = { version = "0.8.6", features = ["json"] }
-sqlx = { version = "0.8.6", default-features = false, features = [
-  "migrate",
-  "runtime-tokio",
-  "postgres",
-  "tls-rustls",
-] }
-thiserror = "2.0.12"
-argon2 = "0.5.3"
-serde_json = "1"
-
-[build-dependencies]
-poem-openapi = "5"
-serde_json = "1"
+serde = { workspace = true }
+color-eyre = { workspace = true }
+dotenvy = { workspace = true }
+sqlx-postgres = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+argon2 = { workspace = true }
+serde_json = { workspace = true }

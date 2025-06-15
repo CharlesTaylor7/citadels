@@ -1,0 +1,30 @@
+<div
+  class="hidden"
+  _="
+    init
+      remove @disabled from <#hand input[name=district]/>
+      add @type=radio to <#hand input[name=district]/>
+  "
+>
+</div>
+
+<h2 class="m-2 underline text-lg font-semibold">
+  Laboratory
+</h2>
+
+<span class="text-sm text-center italic">Select a card from your hand to discard</span>
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    hx-post="/game/action"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+    name="action"
+    value="Laboratory"
+  >
+    Discard for 2 gold
+  </button>
+  {% include "button/cancel.html" %}
+</div>
+

@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* override daisy ui */
+  .tooltip {
+    display: revert;
+  }
+
+  .tooltip:before {
+    @apply z-20;
+  }
+
+  .dropdown {
+    position: revert;
+  }
+
+  .tab:is(input[type="radio"]) {
+    border-bottom-right-radius: var(--rounded-btn, 0.5rem);
+    border-bottom-left-radius: var(--rounded-btn, 0.5rem);
+  }
+
+  .collapse {
+    @apply rounded-none;
+  }
+
+  .collapse-title {
+    @apply min-h-0 p-0;
+  }
+
+  .collapse-content {
+    @apply pb-0 cursor-pointer !important;
+  }
+    
+  /* my components */
+  .header {
+    @apply underline text-lg font-semibold w-full text-center;
+  }
+
+  .panel {
+    @apply p-2 border border-base-200 bg-base-100;
+  }
+
+}
+
+@layer utilities {
+  /* 
+   * This is a workaround for mobile, so that scroll 
+   * and other gestures don't interfere with dragging
+   * https://github.com/taye/interact.js/issues/595#issuecomment-372888571 
+   */
+  .draggable {
+    @apply cursor-grab touch-none !important;
+  }
+
+  .dragging {
+    @apply cursor-grabbing !important;
+    z-index: 1000 !important; 
+  }
+}

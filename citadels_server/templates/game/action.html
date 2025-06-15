@@ -1,0 +1,10 @@
+<button 
+  class="btn {{ action|class }}"
+  name="action"
+  value="{{ action|debug }}"
+  {% if context.disabled(action) %}
+  disabled
+  {% endif %}
+>
+  {{ context.label(action) }}
+</button>

@@ -1,0 +1,34 @@
+<dialog
+  id="modal"
+  style="z-index: 1001;"
+  class="
+    bg-[rgba(30,30,30,0.5)]
+    absolute
+    h-screen
+    w-full
+    flex
+    flex-row
+    items-center
+    justify-center
+    hidden
+  "
+  _="init enableDrag('#modal')"
+>
+    <div id="modal-window" data-draggable class="
+        draggable
+        flex flex-col items-center
+        gap-2
+        py-2
+        px-4
+        opacity-100
+        rounded-lg
+        border border-neutral
+        bg-base-200
+      "
+    >
+      <h2 class="header">Paused</h2>
+      <div class="italic text-sm text-wrap max-w-40">The game is paused<sup>*</sup>. You can change your theme.</div>
+      {% include "theme-dropdown.html" %}
+      <div class="italic text-xs text-wrap max-w-40"><b>*</b> The game is not really paused. You can still tell people the game is paused.</div>
+    </div>
+</dialog>

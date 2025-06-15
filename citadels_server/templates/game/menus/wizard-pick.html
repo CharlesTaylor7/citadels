@@ -1,0 +1,76 @@
+<h2 class="header">Wizard</h2>
+<h2 class="header">{{ player }}'s Hand</h2>
+<div class="flex flex-row flex-wrap gap-1" _="init add @required to <input/> in me">
+    {% set input_type = "radio" %}
+    {% set enabled = true %}
+    {% set draggable = false %}
+    {% for district in hand %} 
+      {% include "district/square-cropped.html" %} 
+    {% endfor %}
+</div>
+<div 
+class="tabs tabs-boxed"
+hx-target="#submenu"
+hx-swap="innerHTML"
+>
+<input 
+  aria-label="Pick"
+  class="tab"
+  type="radio"
+  name="wizard_method"
+  value="Pick"
+  _="on click put '' into <#submenu/>'s innerHTML"
+  checked
+/>
+<input 
+  aria-label="Build"
+  class="tab"
+  type="radio"
+  name="wizard_method"
+  value="Build"
+  _="on click put '' into <#submenu/>'s innerHTML"
+/>
+{% if build.framework %}
+<input 
+  aria-label="Framework"
+  class="tab"
+  type="radio"
+  name="wizard_method"
+  value="Framework"
+  _="on click put '' into <#submenu/>'s innerHTML"
+/>
+{% endif %}
+{% if build.necropolis %}
+<input 
+  aria-label="Necropolis"
+  class="tab"
+  type="radio"
+  name="wizard_method"
+  value="Necropolis"
+  hx-get="/game/menu/necropolis"
+/>
+{% endif %}
+{% if build.thieves_den %}
+<input 
+  aria-label="Thieves' Den"
+  class="tab"
+  type="radio"
+  name="wizard_method"
+  value="ThievesDen"
+  hx-get="/game/menu/thieves_den"
+/>
+{% endif %}
+</div>
+
+<div id="submenu"></div>
+
+<button 
+  class="btn btn-primary"
+  type="submit"
+  name="action"
+  value="WizardPick"
+>
+  Confirm 
+</button>
+
+<div id="error"></div>

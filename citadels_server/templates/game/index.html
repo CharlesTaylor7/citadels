@@ -1,0 +1,64 @@
+{% extends "base.html" %} 
+{% block content %}
+<main 
+  id="page-root"
+  hx-swap-oob="morph"
+  data-replace-url="/game" 
+  class="h-screen bg-base-300 flex flex-row focus:outline-none"
+  tabindex="-1"
+  autofocus
+  _="on keydown[key is ' '] log event toggle .hidden on #modal halt end
+  "
+>
+  {% include "end.html" %}
+  {% include "modal.html" %}
+  <div
+    id="left-panel"
+    class="w-72 flex flex-col"
+  >
+    {% include "roles.html" %}
+    {% include "my-stash.html" %}
+  </div>
+  <form
+    id="center-panel"
+    class="grow flex flex-col"
+    hx-post="/game/action"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+  >
+    {% let enabled = false %}
+    {% include "city.html" %}
+    <section
+      id="menu"
+      class="panel grow flex flex-col gap-2 items-center"
+    >
+      {% include "menu.html" %}
+      <div id="error"></div>
+    </section>
+    <div
+      id="hand-panel"
+      class="flex flex-row"
+    >
+      {% include "hand.html" %}
+      {% include "my-roles.html" %}
+    </div>
+  </form>
+  <div
+    id="right-panel"
+    class="flex flex-col"
+  >
+    {% include "players.html" %}
+    {% include "misc.html" %}
+  </div>
+  <audio
+    {% if ring_bell %}
+    data-ring-bell
+    {% endif %}
+    class="hidden"
+    id="bell"
+    src="/public/audio/cow.mp3"
+    preload="auto"
+  >
+  </audio>
+</main>
+{% endblock %}

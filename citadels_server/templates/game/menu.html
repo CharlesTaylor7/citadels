@@ -1,0 +1,289 @@
+<div class="hidden" 
+  _="init 
+    add @disabled to <#main-panel input/> 
+    remove @required from <#main-panel input/> 
+    remove .hidden from #city 
+    remove .hidden from #hand-panel
+  end">
+</div>
+
+{% match menu %} 
+{% when MenuView::GameOver %}
+{% when MenuView::Logs { header, logs } %}
+  <h2 class="header">
+    {{ header }}
+  </h2>
+  <div class="">
+      <code class="text-sm">
+        {% for log in logs %}
+          {{ log }}
+          <br>
+        {% endfor %}
+      </code>
+  </div>
+
+{% when MenuView::HandleBlackmail { blackmailer, bribe } %}
+  <h2 class="header">
+    Blackmailed
+  </h2>
+  You have been blackmailed by {{ blackmailer }}. 
+  You can pay them off with half your gold, or risk all of your gold.
+  <div class="flex flex-row gap-2">
+    {% set action = ActionTag::PayBribe %}
+    {% include "action.html" %}
+    {% set action = ActionTag::IgnoreBlackmail %}
+    {% include "action.html" %}
+  </div>
+
+{% when MenuView::ForcedGatherResources { role, explanation } %}
+  <h2 class="header">
+    {{ role }}'s Turn
+  </h2>
+  {{ explanation }}
+  <div class="flex flex-row gap-2">
+    {% set action = ActionTag::GatherResourceGold %}
+    {% include "action.html" %}
+    {% set action = ActionTag::GatherResourceCards %}
+    {% include "action.html" %}
+  </div>
+
+{% when MenuView::Call { role, abilities } %}
+  <h2 class="header">
+    {{ role }}'s Turn
+  </h2>
+  <div class="flex flex-col gap-2 items-center">
+    <div class="flex flex-row gap-2">
+      {% set action = ActionTag::GatherResourceGold %}
+      {% include "action.html" %}
+      {% set action = ActionTag::GatherResourceCards %}
+      {% include "action.html" %}
+    </div>
+    <div class="flex flex-row gap-2 items-center">
+      {% set action = ActionTag::Build %}
+      {% include "action.html" %}
+      Builds left: {{ context.game.remaining_builds }}
+    </div>
+    <div class="flex flex-row flex-wrap gap-2">
+      {% for action in abilities %}
+        {% include "action.html" %}
+      {% endfor %}
+    </div>
+    <div>
+      {% set action = ActionTag::EndTurn %}
+      <button 
+        class="btn {{ action|class }}"
+        name="action"
+        value="{{ action|debug }}"
+        {% if context.disabled(action) %}
+        disabled
+        {% endif %}
+      >
+        {{ context.label(action) }}
+      </button>
+    <div>
+  </div>
+{% when MenuView::Draft with { actions, roles, discard } %}
+  <h2 class="header">
+    Draft
+  </h2>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "radio" %} 
+    {% set enabled = true %} 
+    {% for role in roles %} 
+      {% include "role-card.html" %}
+    {% endfor %}
+  </div>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% for action in actions %}
+      {% include "action.html" %}
+    {% endfor %}
+  </div>
+{% when MenuView::RevealWarrant with { player, gold, actions, district } %}
+{% include "menus/reveal-warrant.html" %}
+
+{% when MenuView::RevealBlackmail with { player, gold, actions } %}
+  <h2 class="header">
+    Blackmail
+  </h2>
+
+  {{ player }} has {{ gold }} gold.
+
+  <div class="flex flex-row flex-wrap gap-2">
+    {% for action in actions %}
+      {% include "action.html" %}
+    {% endfor %}
+  </div>
+<div id="error"></div>
+
+{% when MenuView::Spy with { player, hand } %}
+  <h2 class="header">
+    {{ player }}'s Hand
+  </h2>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "" %}
+    {% set enabled = false %} 
+    {% set draggable = true %}
+    {% for district in hand %} 
+      {% include "district/square-cropped.html" %} 
+    {% endfor %}
+  </div>
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="SpyAcknowledge"
+    >
+      Acknowledge
+    </button>
+  </div>
+
+{% when MenuView::Emperor with { players } %}
+<h2 class="header">
+  Emperor's heir
+</h2>
+<div class="italic text-sm">You were killed, but as the emperor's heir you get to pick the next crowned player.</div>
+<div class="flex flex-row gap-2">
+  {% for name in players %}
+    <label class="flex flex-row gap-1 items-center cursor-pointer">
+      <input required class="radio border-3" type="radio" name="player" value={{ name }} />
+      {{ name }}
+    </label>
+  {% endfor %}
+</div>
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    name="action"
+    value="EmperorHeirGiveCrown"
+  >
+    Give Crown 
+  </button>
+</div>
+
+{% when MenuView::SeerDistribute with { players, hand } %}
+  <div class="hidden" _="init add .hidden to #hand-panel enableSeer()"></div>
+  <h2 class="header">
+    Seer 
+  </h2>
+  <div class="italic text-sm">Give back a card to each player by dragging their name to a card</div>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% for player in players %}
+      <div data-draggable class="draggable bg-secondary w-24 rounded-lg text-center">
+        {{ player }}
+        <input data-seer-player class="hidden" type="checkbox" name="{{ player }}" />
+      </div>
+    {% endfor %}
+  </div>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "" %}
+    {% set enabled = false %} 
+    {% set draggable = false %}
+    {% for district in hand %} 
+      {% include "district/square-cropped.html" %} 
+    {% endfor %}
+  </div>
+
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      id="confirm"
+      class="btn btn-secondary"
+      name="action"
+      value="SeerDistribute"
+      disabled
+    >
+      Confirm
+    </button>
+  </div>
+
+{% when MenuView::Followup with { role, action, revealed} %}
+  <h2 class="header">
+    {{ role }}'s Turn
+  </h2>
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "radio" %}
+    {% set enabled = true %} 
+    {% set draggable = false %}
+    {% for district in revealed %} 
+      {% include "district/square-cropped.html" %} 
+    {% endfor %}
+  </div>
+
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="{{ action|debug }}"
+    >
+      Pick
+    </button>
+  </div>
+
+{% when MenuView::Theater with { roles, players } %}
+  <h2 class="header">
+    Theater
+  </h2>
+
+  <div>
+    {% for player in players %}
+      <label class="block cursor-pointer">
+        <input type="radio" name="player" value={{ player }} />
+        {{ player }}
+      </label>
+    {% endfor %}
+  </div>
+
+  <div class="flex flex-row flex-wrap gap-2">
+    {% set input_type = "radio" %}
+    {% set enabled = true %} 
+    {% set draggable = false %}
+    {% for role in roles %} 
+      {% include "role-card.html" %} 
+    {% endfor %}
+  </div>
+
+  <div class="flex flex-row flex-wrap gap-2">
+    <button 
+      class="btn btn-secondary"
+      hx-post="/game/action"
+      name="action"
+      value="Theater"
+    >
+      Swap
+    </button>
+    <button 
+      class="btn btn-error"
+      hx-post="/game/action"
+      name="action"
+      value="TheaterPass"
+    >
+      Pass
+    </button>
+  </div>
+
+{% when MenuView::Wizard with { player, hand, build } %}
+  {% include "menus/wizard-pick.html" %}
+
+{% when MenuView::Bewitch with { roles } %}
+<h2 class="header">
+  Witch
+</h2>
+
+<div class="flex flex-row flex-wrap gap-2 items-center" _="init add @required to <input[name=role]/> in me">
+  {% set input_type = "radio" %} 
+  {% set enabled = true %} 
+  {% for role in roles %} 
+    {% include "game/role-card.html" %}
+  {% endfor %}
+</div>
+
+<div class="m-2 flex flex-row flex-wrap gap-2 items-center">
+  {% set action = ActionTag::Bewitch %}
+  {% include "game/action.html" %}
+</div>
+
+<div id="error"></div>
+
+{% endmatch %}

@@ -1,0 +1,28 @@
+<div
+  class="hidden"
+  _="
+    init
+      remove @disabled from <#hand input[name=district]/>
+      add @type=checkbox to <#hand input[name=district]/>
+  "
+>
+</div>
+
+<h2 class="header">
+  Magic: Discard, Draw
+</h2>
+
+<div class="flex flex-row flex-wrap gap-2">
+  <button 
+    class="btn btn-secondary"
+    hx-post="/game/action"
+    hx-target="#menu"
+    hx-swap="morph:innerHTML"
+    name="action"
+    value="Magic"
+  >
+    Discard
+  </button>
+  {% include "button/cancel.html" %}
+</div>
+
