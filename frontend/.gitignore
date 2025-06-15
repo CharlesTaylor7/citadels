@@ -1,0 +1,8 @@
+node_modules
+.yarn
+.output
+.vinxi
+sqlite.db
+/stats/
+.aider*
+/types/
