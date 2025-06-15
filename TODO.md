@@ -2,9 +2,13 @@
 - [ ] auth routes
 
 
+## Bugs
+- [ ] Patrician after king doesn't work
+- [ ] End Turn at end of round fails with indexing bug
 
-## Bugs / Issues
-- [ ] Abbot take from richest doesn't work
+## Issues
+- [ ]
+
 - [ ] Bewitch action wipes out the whole screen and forces a page reload.
 - [ ] Arrows overlap text in role logs.
 - [ ] No logs for draft phase
