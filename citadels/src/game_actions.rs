@@ -1032,9 +1032,9 @@ None =>
                 Some(target) => target,
                 None => return Err("Can not blackmail someone not in the game".into())
             };
-            if !flower_target.revealed {
+            if flower_target.revealed {
 
-                return Err("Cannot blackmail anyone who hasn't gone yet".into());
+                return Err("Can only blackmail a role that hasn't taken their turn".into());
             }
 
 if flower_target
