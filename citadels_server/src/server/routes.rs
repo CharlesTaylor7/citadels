@@ -15,15 +15,13 @@ use axum_extra::extract::{cookie::Cookie, PrivateCookieJar};
 use citadels::actions::{ActionSubmission, ActionTag};
 use citadels::districts::DistrictName;
 use citadels::game::Game;
-use citadels::lobby::{ConfigOption, Lobby};
+use citadels::lobby::ConfigOption;
 use citadels::random::seed_from_entropy;
 use citadels::roles::RoleName;
 use citadels::types::{Marker, PlayerName};
 use http::StatusCode;
-use rand_core::SeedableRng;
 use serde::Deserialize;
-use sqlx::Pool;
-use sqlx::Postgres;
+use sqlx::{Pool, Postgres};
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
@@ -207,7 +205,7 @@ pub async fn register(
 
 #[debug_handler]
 pub async fn start(app: State<AppState>) -> Result<Response> {
-    let mut lobby = app.lobby.lock().await;
+    let lobby = app.lobby.lock().await;
     if lobby.players.len() < 2 {
         return Err(form_feedback(
             "Need at least 2 players to start a game".into(),
@@ -231,8 +229,18 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
         return Err(form_feedback("Can not overwrite a game in progress".into()));
     }
     let seed = seed_from_entropy();
-    match Game::start(&app.db, lobby.clone(), seed).await {
+    match citadels::game::Game::start(lobby.clone(), seed) {
         Ok(game) => {
+            let mut game_start_action = serde_json::to_value(lobby.clone()).unwrap();
+            let json = game_start_action.as_object_mut().unwrap();
+            json.insert("seed".to_string(), serde_json::to_value(seed).unwrap());
+            json.insert(
+                "action".to_string(),
+                serde_json::Value::String("Start".to_string()),
+            );
+
+            log_action(&app.db, game_start_action, None).await;
+
             let row = sqlx::query!(
                 "insert into games (state) values ($1) returning id",
                 serde_json::to_value(&game).unwrap()
@@ -257,14 +265,17 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
     return Ok((StatusCode::OK).into_response());
 }
 
-pub async fn active_game(db: &Pool<Postgres>) -> Option<Game> {
+pub async fn active_game(db: &Pool<Postgres>) -> Option<GameRow> {
     let row = sqlx::query!(
-        "select state from rooms join games on rooms.game_id = games.id order by rooms.id limit 1"
+        "select games.id, games.state from rooms join games on rooms.game_id = games.id order by rooms.id limit 1"
     )
     .fetch_optional(db)
     .await
     .unwrap();
-    row.map(|g| serde_json::from_value(g.state).unwrap())
+    row.map(|g| GameRow {
+        id: g.id,
+        state: serde_json::from_value(g.state).unwrap(),
+    })
 }
 
 pub async fn game(
@@ -276,7 +287,7 @@ pub async fn game(
     let game = active_game(&app.db).await;
     let game = game.as_ref();
     if let Some(game) = game.as_ref() {
-        GameTemplate::render_with(game, id)
+        GameTemplate::render_with(&game.state, id)
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
@@ -290,7 +301,7 @@ pub async fn get_game_actions(
     let mut game = active_game(&app.db).await;
     let game = game.as_mut().ok_or("game hasn't started")?;
 
-    MenuTemplate::from(game, cookie.as_ref().map(|c| c.value())).to_html()
+    MenuTemplate::from(&game.state, cookie.as_ref().map(|c| c.value())).to_html()
 }
 
 pub async fn get_game_city(
@@ -303,11 +314,12 @@ pub async fn get_game_city(
     let game = active_game(&app.db).await;
     if let Some(game) = game.as_ref() {
         let p = game
+            .state
             .players
             .iter()
             .find(|p| p.name == path.0)
             .ok_or("no player with that name")?;
-        CityRootTemplate::from(game, p.index, id).to_html()
+        CityRootTemplate::from(&game.state, p.index, id).to_html()
     } else {
         Err(ErrorResponse::from(Redirect::to("/lobby")))
     }
@@ -358,14 +370,30 @@ async fn submit_game_action(
 
     match action.0 {
         ActionSubmission::Complete(action) => {
-            match game.perform(&app.db, action.clone(), player_id).await {
+            let p = game
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == player_id)
+                .unwrap();
+            let action_json = serde_json::to_value(&action).unwrap();
+            log_action(&app.db, action_json, Some(&p.name)).await;
+
+            match game.state.perform(action, player_id) {
                 Ok(()) => {
                     //
-                    let g = &game;
+                    sqlx::query!(
+                        "update games set state = $1 where id = $2",
+                        serde_json::to_value(&game.state).unwrap(),
+                        game.id
+                    )
+                    .execute(&app.db)
+                    .await
+                    .unwrap();
                     app.connections
                         .lock()
                         .await
-                        .broadcast_each(move |id| GameTemplate::render_with(g, Some(id)));
+                        .broadcast_each(move |id| GameTemplate::render_with(&game.state, Some(id)));
 
                     Ok((StatusCode::OK, [("HX-Reswap", "none")]).into_response())
                 }
@@ -376,13 +404,14 @@ async fn submit_game_action(
             ActionTag::Assassinate => {
                 let rendered = SelectRoleMenu {
                     roles: game
+                        .state
                         .characters
                         .0
                         .iter()
                         .filter(|c| !c.revealed)
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(&game, Some(cookie.value())),
+                    context: GameContext::from_game(&game.state, Some(cookie.value())),
                     header: "Assassin".into(),
                     action: ActionTag::Assassinate,
                 }
@@ -392,6 +421,7 @@ async fn submit_game_action(
             ActionTag::Steal => {
                 let rendered = SelectRoleMenu {
                     roles: game
+                        .state
                         .characters
                         .0
                         .iter()
@@ -403,7 +433,7 @@ async fn submit_game_action(
                         })
                         .map(|c| RoleTemplate::from(c.role, 150.0))
                         .collect(),
-                    context: GameContext::from_game(game, Some(cookie.value())),
+                    context: GameContext::from_game(&game.state, Some(cookie.value())),
                     header: "Thief".into(),
                     action: ActionTag::Steal,
                 }
@@ -415,12 +445,12 @@ async fn submit_game_action(
                 Ok(rendered.into_response())
             }
             ActionTag::Build => {
-                let rendered = BuildMenu::from_game(game).to_html()?;
+                let rendered = BuildMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::WarlordDestroy => {
-                let rendered = WarlordMenu::from_game(game).to_html()?;
+                let rendered = WarlordMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
@@ -430,12 +460,12 @@ async fn submit_game_action(
             }
 
             ActionTag::SendWarrants => {
-                let rendered = SendWarrantsMenu::from_game(game).to_html()?;
+                let rendered = SendWarrantsMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::Blackmail => {
-                let rendered = BlackmailMenu::from_game(game).to_html()?;
+                let rendered = BlackmailMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
@@ -450,32 +480,32 @@ async fn submit_game_action(
             }
 
             ActionTag::ResourcesFromReligion => {
-                let rendered = AbbotCollectResourcesMenu::from(game).to_html()?;
+                let rendered = AbbotCollectResourcesMenu::from(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::TakeFromRich => {
-                let rendered = AbbotTakeFromRichMenu::from(game).to_html()?;
+                let rendered = AbbotTakeFromRichMenu::from(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::Spy => {
-                let rendered = SpyMenu::from(game).to_html()?;
+                let rendered = SpyMenu::from(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::Armory => {
-                let rendered = ArmoryMenu::from_game(game).to_html()?;
+                let rendered = ArmoryMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::MarshalSeize => {
-                let rendered = MarshalMenu::from_game(game).to_html()?;
+                let rendered = MarshalMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::DiplomatTrade => {
-                let rendered = DiplomatMenu::from_game(game).to_html()?;
+                let rendered = DiplomatMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
@@ -485,12 +515,12 @@ async fn submit_game_action(
             }
 
             ActionTag::EmperorGiveCrown => {
-                let rendered = EmperorMenu::from_game(game).to_html()?;
+                let rendered = EmperorMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
             ActionTag::WizardPeek => {
-                let rendered = WizardMenu::from_game(game).to_html()?;
+                let rendered = WizardMenu::from_game(&game.state).to_html()?;
                 Ok(rendered.into_response())
             }
 
@@ -508,7 +538,7 @@ async fn get_game_menu(
     let mut game = active_game(&app.db).await;
     let game = game.as_mut().ok_or("game hasn't started")?;
 
-    let active_player = game.active_player()?;
+    let active_player = game.state.active_player()?;
 
     if cookie.value() != active_player.id {
         return Err((StatusCode::BAD_REQUEST, "not your turn!").into());
@@ -518,6 +548,7 @@ async fn get_game_menu(
         "cardinal" => {
             let rendered = CardinalMenu {
                 players: game
+                    .state
                     .players
                     .iter()
                     .filter(|p| active_player.id != p.id)
@@ -535,7 +566,7 @@ async fn get_game_menu(
 
         "necropolis" => {
             let rendered = NecropolisMenu {
-                city: CityTemplate::from(game, active_player.index, None),
+                city: CityTemplate::from(&game.state, active_player.index, None),
             }
             .to_html()?;
             Ok(rendered.into_response())
@@ -559,6 +590,7 @@ async fn get_game_menu(
         "magic-swap-player" => {
             let rendered = MagicSwapPlayerMenu {
                 players: game
+                    .state
                     .players
                     .iter()
                     .filter(|p| active_player.id != p.id)
@@ -570,4 +602,24 @@ async fn get_game_menu(
         }
         _ => Ok(StatusCode::NOT_FOUND.into_response()),
     }
+}
+
+async fn log_action(
+    db: &Pool<Postgres>,
+    action: serde_json::Value,
+    player_name: Option<&PlayerName>,
+) -> () {
+    sqlx::query!(
+        "insert into logs (action, player_name) values($1,$2)",
+        action,
+        player_name.as_ref().map(|p| p.0.as_ref())
+    )
+    .execute(db)
+    .await
+    .unwrap();
+}
+
+pub struct GameRow {
+    id: i32,
+    state: Game,
 }
