@@ -3,7 +3,7 @@ mod deserializer;
 use crate::game::Player;
 use crate::types::{CardSuit, PlayerName};
 use crate::{districts::DistrictName, roles::RoleName};
-use macros::tag::Tag;
+pub use macros::tag::Tag;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::borrow::Cow;

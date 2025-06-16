@@ -527,12 +527,9 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         }
 
         Action::TakeCrown => {
-            // King & patrician always get the crown, even when bewitched.
-            game.crowned = game
-                .characters
-                .get(RoleName::King).or(game.characters.get(RoleName::Patrician))
-                .and_then(|game_role| game_role.player)
-                .ok_or("No Royalty to take crown!")?;
+            // King / patrician always get the crown, even when bewitched.
+            let player = game.active_role().ok().and_then(|role| role.player).ok_or("no royalty to take crown")?;
+            game.crowned = player;
 
             ActionOutput::new(format!(
                 "{} takes the crown.",

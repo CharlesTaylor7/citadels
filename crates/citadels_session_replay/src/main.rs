@@ -1,3 +1,5 @@
+use citadels::actions::{ActionTag, Tag};
+use citadels::roles::RoleName;
 use citadels::{
     game::Game,
     lobby::{GameConfig, Player},
@@ -39,21 +41,29 @@ async fn replay(db: &Pool<Postgres>) {
     )
     .unwrap();
 
-    println!("{:#?}", game);
     for row in actions.iter().skip(1) {
         let action: citadels::actions::Action =
             serde_json::from_value(row.action.as_ref().unwrap().clone()).unwrap();
 
-        println!("{:#?}", &action);
         let player_name: &str = row.player_name.as_ref().unwrap();
+
+        println!("{}: {:#?}", player_name, &action);
         let p = game
             .players
             .iter()
             .find(|p| Borrow::<str>::borrow(&p.name.0) == player_name)
             .unwrap();
         let id = p.id.clone();
+
+        let tag = action.tag();
+        if tag == ActionTag::TakeCrown {
+            println!("{:#?}", game.characters.get(RoleName::Patrician));
+        }
         game.perform(action, &id);
-        println!("{:#?}", game);
+
+        if tag == ActionTag::TakeCrown {
+            println!("{:#?}", game.characters.get(RoleName::Patrician));
+        }
     }
 }
 
