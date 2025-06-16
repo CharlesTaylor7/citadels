@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update rooms set game_id = $1 where rooms.id = 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5e3ecc6ee2987e52a3c17e30ddbcff5ce41a35c8108075e2a088b2598630ee66"
+}

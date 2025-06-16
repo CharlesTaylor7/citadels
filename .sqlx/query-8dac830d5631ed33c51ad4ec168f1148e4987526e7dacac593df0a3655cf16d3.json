@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update games set state = $1 where id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Jsonb",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8dac830d5631ed33c51ad4ec168f1148e4987526e7dacac593df0a3655cf16d3"
+}

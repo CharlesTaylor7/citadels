@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select 1 as exists from users where username = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "exists",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "8940701854fb3ddc825a0a848eee598a680491499e7be16a100306a96aefbb5a"
+}

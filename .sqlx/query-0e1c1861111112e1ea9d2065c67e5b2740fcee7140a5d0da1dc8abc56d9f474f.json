@@ -1,15 +1,16 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into logs (action, player_name) values($1,$2)",
+  "query": "insert into logs (game_id, action, player_name) values($1,$2, $3)",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
+        "Int4",
         "Jsonb",
         "Text"
       ]
     },
     "nullable": []
   },
-  "hash": "29a9b8ba08cce5cc1a449424e513f006a47759a096d97099435ba523fa079857"
+  "hash": "0e1c1861111112e1ea9d2065c67e5b2740fcee7140a5d0da1dc8abc56d9f474f"
 }

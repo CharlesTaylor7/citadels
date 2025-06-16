@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select games.id, games.state from rooms join games on rooms.game_id = games.id order by rooms.id limit 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "state",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "f73d55d7a7303917055afd84785afeb18cbf19f0b4dcf57b487b8d1183b2a853"
+}

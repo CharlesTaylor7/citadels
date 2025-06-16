@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select state from games where id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "state",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "507420744e2cd74881bf9d9a3045f75a0b8eec5f74fb171eec73dd7905abb943"
+}
