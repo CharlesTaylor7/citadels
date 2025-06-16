@@ -231,16 +231,6 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
     let seed = seed_from_entropy();
     match citadels::game::Game::start(lobby.clone(), seed) {
         Ok(game) => {
-            let mut game_start_action = serde_json::to_value(lobby.clone()).unwrap();
-            let json = game_start_action.as_object_mut().unwrap();
-            json.insert("seed".to_string(), serde_json::to_value(seed).unwrap());
-            json.insert(
-                "action".to_string(),
-                serde_json::Value::String("Start".to_string()),
-            );
-
-            log_action(&app.db, game_start_action, None).await;
-
             let row = sqlx::query!(
                 "insert into games (state) values ($1) returning id",
                 serde_json::to_value(&game).unwrap()
@@ -252,6 +242,16 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
                 .execute(&app.db)
                 .await
                 .unwrap();
+            let mut game_start_action = serde_json::to_value(lobby.clone()).unwrap();
+            let json = game_start_action.as_object_mut().unwrap();
+            json.insert("seed".to_string(), serde_json::to_value(seed).unwrap());
+            json.insert(
+                "action".to_string(),
+                serde_json::Value::String("Start".to_string()),
+            );
+
+            log_action(&app.db, row.id, game_start_action, None).await;
+
             app.connections
                 .lock()
                 .await
@@ -377,7 +377,7 @@ async fn submit_game_action(
                 .find(|p| p.id == player_id)
                 .unwrap();
             let action_json = serde_json::to_value(&action).unwrap();
-            log_action(&app.db, action_json, Some(&p.name)).await;
+            log_action(&app.db, game.id, action_json, Some(&p.name)).await;
 
             match game.state.perform(action, player_id) {
                 Ok(()) => {
@@ -606,11 +606,13 @@ async fn get_game_menu(
 
 async fn log_action(
     db: &Pool<Postgres>,
+    game_id: i32,
     action: serde_json::Value,
     player_name: Option<&PlayerName>,
 ) -> () {
     sqlx::query!(
-        "insert into logs (action, player_name) values($1,$2)",
+        "insert into logs (game_id, action, player_name) values($1,$2, $3)",
+        game_id,
         action,
         player_name.as_ref().map(|p| p.0.as_ref())
     )
