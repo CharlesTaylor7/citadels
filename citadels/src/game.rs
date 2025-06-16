@@ -442,7 +442,7 @@ impl Characters {
     }
 
     pub fn next(&self, index: u8) -> Option<u8> {
-        if index as usize >= self.0.len() {
+        if (index + 1) as usize >= self.0.len() {
             return None;
         }
         return Some(index + 1);
