@@ -1,12 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-  "citadels",
-  "citadels_server",
-  "citadels_api",
-  "citadels_openapi_spec_gen",
-  "macros",
-  "macros-impl",
+  "crates/citadels",
+  "crates/citadels_server",
+  "crates/citadels_api",
+  "crates/citadels_openapi_spec_gen",
+  "crates/macros",
+  "crates/macros-impl",
 ]
 
 [profile.dev]
