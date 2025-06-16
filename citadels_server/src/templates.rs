@@ -28,7 +28,7 @@ pub struct DistrictTemplate<'a> {
     pub beautified: bool,
     pub asset: ImageAssetTemplate,
     pub pos: Position,
-    pub artifacts: Cow<'a, [&'static str]>,
+    pub artifacts: Cow<'a, [String]>,
 }
 
 #[derive(Clone, Default)]

@@ -3,11 +3,12 @@ use crate::districts::DistrictName;
 use crate::game_actions::perform_action;
 use crate::lobby::{self, Lobby};
 use crate::museum::Museum;
-use crate::random::Prng;
+use crate::random::{Prng, Seed};
 use crate::roles::RoleName;
 use crate::types::{CardSuit, Marker, PlayerId, PlayerName};
 use macros::tag::Tag;
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 use std::borrow::{Borrow, BorrowMut, Cow};
 use std::fmt::Debug;
@@ -22,10 +23,10 @@ pub enum ForcedToGatherReason {
 
 pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PlayerIndex(pub usize);
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Player {
     pub index: PlayerIndex,
     pub id: PlayerId,
@@ -81,7 +82,7 @@ impl Player {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CityDistrict {
     pub name: DistrictName,
     pub beautified: bool,
@@ -102,6 +103,7 @@ impl CityDistrict {
         }
     }
 }
+#[derive(Serialize, Deserialize)]
 pub struct Deck<T> {
     deck: Vec<T>,
     discard: Vec<T>,
@@ -147,7 +149,7 @@ impl<T> Deck<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Turn {
     GameOver,
     Draft(Draft),
@@ -180,13 +182,13 @@ impl Turn {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Call {
     pub index: u8,
     pub end_of_round: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Draft {
     pub player_count: usize,
     pub player: PlayerIndex,
@@ -250,7 +252,7 @@ pub struct Notification {
     pub message: Cow<'static, str>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GameRole {
     pub role: RoleName,
     pub markers: Vec<Marker>,
@@ -338,7 +340,7 @@ impl ActionOutput {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Followup {
     Bewitch,
     GatherCardsPick {
@@ -391,7 +393,7 @@ impl Followup {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Game {
     pub rng: Prng,
     // global
@@ -417,7 +419,7 @@ pub struct Game {
     pub tax_collector: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Characters(pub Vec<GameRole>);
 
 impl Characters {
@@ -598,10 +600,10 @@ impl Game {
         Ok(self.characters.index_mut(call.index))
     }
 
-    pub async fn start(db: Pool<Postgres>, lobby: Lobby, mut rng: Prng) -> Result<Game> {
+    pub async fn start(db: &Pool<Postgres>, lobby: Lobby, seed: Seed) -> Result<Game> {
         let mut action = serde_json::to_value(lobby.clone()).unwrap();
         let json = action.as_object_mut().unwrap();
-        json.insert("seed".to_string(), serde_json::to_value(rng.seed).unwrap());
+        json.insert("seed".to_string(), serde_json::to_value(seed).unwrap());
         json.insert(
             "action".to_string(),
             serde_json::Value::String("Start".to_string()),
@@ -614,6 +616,7 @@ impl Game {
             config,
         } = lobby;
 
+        let mut rng = Prng::from_seed(seed);
         // randomize the seating order
         players.shuffle(&mut rng);
 
@@ -886,7 +889,7 @@ impl Game {
         }
     }
 
-    pub async fn perform(&mut self, db: Pool<Postgres>, action: Action, id: &str) -> Result<()> {
+    pub async fn perform(&mut self, db: &Pool<Postgres>, action: Action, id: &str) -> Result<()> {
         let p = self.players.iter().find(|p| p.id == id).unwrap();
         let action_json = serde_json::to_value(action.clone()).unwrap();
         log_action(db, action_json, Some(&p.name)).await;
@@ -1306,7 +1309,7 @@ impl Game {
 }
 
 async fn log_action(
-    db: Pool<Postgres>,
+    db: &Pool<Postgres>,
     action: serde_json::Value,
     player_name: Option<&PlayerName>,
 ) -> () {
@@ -1315,7 +1318,7 @@ async fn log_action(
         action,
         player_name.as_ref().map(|p| p.0.as_ref())
     )
-    .execute(&db)
+    .execute(db)
     .await
     .unwrap();
 }

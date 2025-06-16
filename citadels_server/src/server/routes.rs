@@ -16,11 +16,14 @@ use citadels::actions::{ActionSubmission, ActionTag};
 use citadels::districts::DistrictName;
 use citadels::game::Game;
 use citadels::lobby::{ConfigOption, Lobby};
+use citadels::random::seed_from_entropy;
 use citadels::roles::RoleName;
 use citadels::types::{Marker, PlayerName};
 use http::StatusCode;
 use rand_core::SeedableRng;
 use serde::Deserialize;
+use sqlx::Pool;
+use sqlx::Postgres;
 use std::borrow::{Borrow, Cow};
 use std::collections::{HashMap, HashSet};
 use time::Duration;
@@ -72,7 +75,14 @@ pub async fn get_lobby(app: State<AppState>, mut cookies: PrivateCookieJar) -> i
         cookies = cookies.add(cookie);
     }
 
-    if app.game.lock().await.is_some() {
+    let active_game =
+        sqlx::query!("select 1 as exists from rooms join games on rooms.game_id = games.id")
+            .fetch_optional(&app.db)
+            .await
+            .unwrap()
+            .is_some();
+
+    if active_game {
         return (cookies, Redirect::to("/game")).into_response();
     }
 
@@ -210,31 +220,51 @@ pub async fn start(app: State<AppState>) -> Result<Response> {
         ));
     }
 
-    let mut game = app.game.lock().await;
-    if game.is_some() {
+    let active_game =
+        sqlx::query!("select 1 as exists from rooms join games on rooms.game_id = games.id")
+            .fetch_optional(&app.db)
+            .await
+            .unwrap()
+            .is_some();
+
+    if active_game {
         return Err(form_feedback("Can not overwrite a game in progress".into()));
     }
-    let clone = lobby.clone();
-    let db = app.db.clone();
-    match Game::start(db, clone, SeedableRng::from_entropy()).await {
-        Ok(ok) => {
-            // Start the game, and remove all players from the lobby
-            *game = Some(ok);
-            *lobby = Lobby::default();
+    let seed = seed_from_entropy();
+    match Game::start(&app.db, lobby.clone(), seed).await {
+        Ok(game) => {
+            let row = sqlx::query!(
+                "insert into games (state) values ($1) returning id",
+                serde_json::to_value(&game).unwrap()
+            )
+            .fetch_one(&app.db)
+            .await
+            .unwrap();
+            sqlx::query!("update rooms set game_id = $1 where rooms.id = 1", row.id)
+                .execute(&app.db)
+                .await
+                .unwrap();
+            app.connections
+                .lock()
+                .await
+                .broadcast_each(move |id| GameTemplate::render_with(&game, Some(id)));
         }
         Err(err) => {
             return Err(form_feedback(err));
         }
     }
 
-    if let Some(game) = game.as_ref() {
-        app.connections
-            .lock()
-            .await
-            .broadcast_each(move |id| GameTemplate::render_with(game, Some(id)));
-        return Ok((StatusCode::OK).into_response());
-    }
-    unreachable!()
+    return Ok((StatusCode::OK).into_response());
+}
+
+pub async fn active_game(db: &Pool<Postgres>) -> Option<Game> {
+    let row = sqlx::query!(
+        "select state from rooms join games on rooms.game_id = games.id order by rooms.id limit 1"
+    )
+    .fetch_optional(db)
+    .await
+    .unwrap();
+    row.map(|g| serde_json::from_value(g.state).unwrap())
 }
 
 pub async fn game(
@@ -243,7 +273,7 @@ pub async fn game(
 ) -> Result<Html<String>, ErrorResponse> {
     let cookie = cookies.get("player_id");
     let id = cookie.as_ref().map(|c| c.value());
-    let game = app.game.lock().await;
+    let game = active_game(&app.db).await;
     let game = game.as_ref();
     if let Some(game) = game.as_ref() {
         GameTemplate::render_with(game, id)
@@ -257,7 +287,7 @@ pub async fn get_game_actions(
     cookies: PrivateCookieJar,
 ) -> Result<Html<String>, ErrorResponse> {
     let cookie = cookies.get("player_id");
-    let mut game = app.game.lock().await;
+    let mut game = active_game(&app.db).await;
     let game = game.as_mut().ok_or("game hasn't started")?;
 
     MenuTemplate::from(game, cookie.as_ref().map(|c| c.value())).to_html()
@@ -270,7 +300,7 @@ pub async fn get_game_city(
 ) -> Result<Html<String>, ErrorResponse> {
     let cookie = cookies.get("player_id");
     let id = cookie.as_ref().map(|c| c.value());
-    let game = app.game.lock().await;
+    let game = active_game(&app.db).await;
     if let Some(game) = game.as_ref() {
         let p = game
             .players
@@ -321,17 +351,14 @@ async fn submit_game_action(
     action: axum::Json<ActionSubmission>,
 ) -> Result<Response> {
     let cookie = cookies.get("player_id").ok_or("missing cookie")?;
-    let mut game = app.game.lock().await;
+    let mut game = active_game(&app.db).await;
     let game = game.as_mut().ok_or("game hasn't started")?;
     log::info!("{:#?}", action.0);
     let player_id = cookie.value();
 
     match action.0 {
         ActionSubmission::Complete(action) => {
-            match game
-                .perform(app.db.clone(), action.clone(), player_id)
-                .await
-            {
+            match game.perform(&app.db, action.clone(), player_id).await {
                 Ok(()) => {
                     //
                     let g = &game;
@@ -478,7 +505,7 @@ async fn get_game_menu(
     path: Path<String>,
 ) -> Result<Response> {
     let cookie = cookies.get("player_id").ok_or("missing cookie")?;
-    let mut game = app.game.lock().await;
+    let mut game = active_game(&app.db).await;
     let game = game.as_mut().ok_or("game hasn't started")?;
 
     let active_player = game.active_player()?;

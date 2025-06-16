@@ -5,6 +5,7 @@ edition = "2021"
 [dependencies]
 macros = { path = "../macros" }
 rand = { workspace = true }
+getrandom = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
 rand_xoshiro = { workspace = true }

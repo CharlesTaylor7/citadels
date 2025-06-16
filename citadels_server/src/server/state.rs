@@ -11,7 +11,6 @@ use tokio::sync::Mutex;
 pub struct AppState {
     cookie_signing_key: cookie::Key,
     pub lobby: Arc<Mutex<Lobby>>,
-    pub game: Arc<Mutex<Option<Game>>>,
     pub connections: Arc<Mutex<ws::Connections>>,
     pub db: Pool<Postgres>,
 }
@@ -28,7 +27,6 @@ impl Default for AppState {
             cookie_signing_key: cookie::Key::from(key.as_bytes()),
             connections: new_arc_mutex(ws::Connections::default()),
             lobby: new_arc_mutex(Lobby::default()),
-            game: new_arc_mutex(None),
             db: PgPoolOptions::new()
                 .max_connections(50)
                 .connect_lazy(&database_url)

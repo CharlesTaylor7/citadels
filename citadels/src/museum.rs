@@ -1,10 +1,11 @@
 use crate::districts::DistrictName;
 use rand::seq::SliceRandom;
+use serde::{Deserialize, Serialize};
 use std::{borrow::Borrow, fmt::Debug};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Museum {
-    artifacts: Vec<&'static str>,
+    artifacts: Vec<String>,
     cards: Vec<DistrictName>,
 }
 
@@ -26,7 +27,7 @@ impl Museum {
         self.cards.borrow()
     }
 
-    pub fn artifacts(&self) -> &[&'static str] {
+    pub fn artifacts(&self) -> &[String] {
         self.artifacts[0..self.cards.len()].borrow()
     }
 
@@ -35,7 +36,8 @@ impl Museum {
         if self.cards.len() > self.artifacts.len() {
             let mut artifacts = Museum::ARTIFACTS;
             artifacts.shuffle(&mut rand::thread_rng());
-            self.artifacts.extend(artifacts);
+            self.artifacts
+                .extend(artifacts.iter().map(|a| a.to_string()));
         }
     }
 
