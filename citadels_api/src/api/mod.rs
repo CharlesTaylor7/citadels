@@ -9,7 +9,7 @@ pub mod lobby;
 pub mod tags;
 pub mod utils;
 
-pub const PORT: u32 = 8080;
+pub const PORT: u32 = 8000;
 
 pub type Api = (AuthApi, LobbyApi, GameApi);
 

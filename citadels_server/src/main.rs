@@ -6,7 +6,7 @@ async fn main() {
     dotenvy::dotenv().expect(".env not found");
     citadels::logger::init();
 
-    let port = "0.0.0.0:8000";
+    let port = "0.0.0.0:8080";
     let listener = tokio::net::TcpListener::bind(port).await.unwrap();
 
     log::info!("Listening on port: {}", port);
