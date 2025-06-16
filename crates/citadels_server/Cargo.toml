@@ -26,8 +26,8 @@ dotenvy = { workspace = true, optional = true }
 axum-core = { workspace = true }
 serde_with = { workspace = true }
 tracing = { workspace = true }
-anyhow = { version = "1.0.83", default-features = true }
-uuid = { version = "1.8.0", features = ["v4"] }
+anyhow = { workspace = true }
+uuid = { workspace = true }
 sqlx = { workspace = true }
 sqlx-postgres = { workspace = true }
 
