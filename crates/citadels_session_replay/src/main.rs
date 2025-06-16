@@ -20,15 +20,17 @@ async fn main() {
         .await
         .unwrap();
 
-    replay(&db).await;
+    replay(&db, 1).await;
 }
 
-async fn replay(db: &Pool<Postgres>) {
-    let actions =
-        sqlx::query!("select action, player_name from logs where game_id = 1 order by created_at")
-            .fetch_all(db)
-            .await
-            .unwrap();
+async fn replay(db: &Pool<Postgres>, game_id: i32) {
+    let actions = sqlx::query!(
+        "select action, player_name from logs where game_id = $1 order by created_at",
+        game_id
+    )
+    .fetch_all(db)
+    .await
+    .unwrap();
 
     let start: GameStart =
         serde_json::from_value(actions[0].action.as_ref().unwrap().clone()).unwrap();
@@ -59,12 +61,20 @@ async fn replay(db: &Pool<Postgres>) {
         if tag == ActionTag::TakeCrown {
             println!("{:#?}", game.characters.get(RoleName::Patrician));
         }
-        game.perform(action, &id);
+        game.perform(action, &id).unwrap();
 
         if tag == ActionTag::TakeCrown {
             println!("{:#?}", game.characters.get(RoleName::Patrician));
         }
     }
+    //
+    // sqlx::query!(
+    //     "update games set state = $1 where id = 1",
+    //     serde_json::to_value(game).unwrap()
+    // )
+    // .execute(db)
+    // .await
+    // .unwrap();
 }
 
 #[derive(Deserialize)]
