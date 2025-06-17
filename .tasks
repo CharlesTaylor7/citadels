@@ -1,6 +1,3 @@
-session replay
-Fix end of round bug
-Fix patrician
 Show roles in order in draft and in sidebar
 embed axum inside poem server
 UI: Notifications

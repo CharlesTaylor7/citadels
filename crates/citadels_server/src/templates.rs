@@ -5,11 +5,11 @@ pub mod lobby;
 use std::borrow::Cow;
 
 use askama::Template;
-use axum::response::Html;
 use citadels::districts::DistrictName;
 use citadels::game::{CityDistrict, Game};
 use citadels::roles::{Rank, RoleName};
 use citadels::types::CardSuit;
+use poem::web::Html;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum GamePhase {
@@ -258,15 +258,12 @@ impl RoleTemplate {
 }
 
 pub trait MyTemplate {
-    fn to_html(&self) -> axum::response::Result<Html<String>>;
+    fn to_html(&self) -> Html<String>;
 }
 
 impl<T: Template> MyTemplate for T {
-    fn to_html(&self) -> axum::response::Result<Html<String>> {
-        match self.render() {
-            Ok(html) => Ok(Html(html)),
-            Err(err) => Err(format!("askama: {}", err).into()),
-        }
+    fn to_html(&self) -> Html<String> {
+        Html(self.render().unwrap())
     }
 }
 

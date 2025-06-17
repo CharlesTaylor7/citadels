@@ -1,7 +1,5 @@
 use crate::server::ws;
-use axum::extract::FromRef;
-use axum_extra::extract::cookie;
-use citadels::{game::Game, lobby::Lobby};
+use citadels::lobby::Lobby;
 use sqlx::{Pool, Postgres};
 use sqlx_postgres::PgPoolOptions;
 use std::sync::Arc;
@@ -34,8 +32,9 @@ impl Default for AppState {
         }
     }
 }
-impl FromRef<AppState> for cookie::Key {
-    fn from_ref(state: &AppState) -> Self {
-        state.cookie_signing_key.clone()
-    }
-}
+//
+// impl FromRef<AppState> for cookie::Key {
+//     fn from_ref(state: &AppState) -> Self {
+//         state.cookie_signing_key.clone()
+//     }
+// }

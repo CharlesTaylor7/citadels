@@ -6,11 +6,11 @@ use crate::templates::MyTemplate;
 use crate::templates::{filters, DAISY_THEMES};
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use askama::Template;
-use axum::response::Html;
 use citadels::actions::ActionTag;
 use citadels::game::{Game, GameRole, Player, PlayerIndex, Turn};
 use citadels::roles::RoleName;
 use citadels::types::Marker;
+use poem::web::Html;
 use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]
@@ -123,10 +123,7 @@ pub struct GameTemplate<'a> {
 }
 
 impl<'a> GameTemplate<'a> {
-    pub fn render_with(
-        game: &'a Game,
-        my_id: Option<&'a str>,
-    ) -> axum::response::Result<Html<String>> {
+    pub fn render_with(game: &'a Game, my_id: Option<&'a str>) -> Html<String> {
         let myself = get_myself(game, my_id);
         let player_template = PlayerTemplate::from(myself);
         let players: Vec<_> = game

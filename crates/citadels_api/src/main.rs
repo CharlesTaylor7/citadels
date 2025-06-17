@@ -27,7 +27,7 @@ async fn main() {
         .at("/sse", post(sse_handler))
         .nest("/api", api_service)
         .nest("/docs", ui)
-        .nest("/static", StaticFilesEndpoint::new("../public"))
+        .nest("/static", StaticFilesEndpoint::new("../../public"))
         .with(PlayerSessions)
         .with(AddData::new(Notifications::default()))
         .with(AddData::new(pool))
