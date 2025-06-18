@@ -1,6 +1,7 @@
 use citadels_api::api;
 use citadels_api::middleware::sessions::PlayerSessions;
 use citadels_api::notifications::{Notifications, sse_handler};
+use citadels_server::server::routes::htmx_endpoint;
 use poem::endpoint::{EndpointExt, StaticFilesEndpoint};
 use poem::listener::TcpListener;
 use poem::middleware::{AddData, Tracing};
@@ -24,10 +25,11 @@ async fn main() {
     let api_service = api::service();
     let ui = api_service.swagger_ui();
     let app = Route::new()
+        .nest("/", htmx_endpoint())
         .at("/sse", post(sse_handler))
         .nest("/api", api_service)
         .nest("/docs", ui)
-        .nest("/static", StaticFilesEndpoint::new("../../public"))
+        .nest("/static", StaticFilesEndpoint::new("/public"))
         .with(PlayerSessions)
         .with(AddData::new(Notifications::default()))
         .with(AddData::new(pool))

@@ -4,10 +4,10 @@ FROM rust:1.87-slim-bookworm AS builder
 WORKDIR /app
 
 COPY . .
-RUN cargo build --release --bin citadels_server
+RUN cargo build --release --bin citadels_api
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
-COPY --from=builder /app/target/release/citadels_server /usr/local/bin
+COPY --from=builder /app/target/release/citadels_api /usr/local/bin
 COPY public/ public/
-ENTRYPOINT ["/usr/local/bin/citadels_server"]
+ENTRYPOINT ["/usr/local/bin/citadels_api"]

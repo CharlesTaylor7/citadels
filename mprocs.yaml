@@ -1,7 +1,4 @@
 procs:
-  Html Server:
-    shell: GIT_SHA=main RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features=dotenv --bin=citadels_server
-
   Poem Server:
     shell: RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features=dotenv --bin=citadels_api
 

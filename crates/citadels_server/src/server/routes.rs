@@ -65,7 +65,7 @@ pub struct GameRow {
     state: GameState,
 }
 
-pub fn get_router() -> impl Endpoint {
+pub fn htmx_endpoint() -> impl Endpoint {
     let context = AppState::default();
 
     Route::new()
@@ -301,8 +301,11 @@ async fn active_game(db: &Pool<Postgres>) -> Option<GameRow> {
 #[handler]
 async fn get_game(app: Data<&AppState>, session: &Session) -> Response {
     let player_id: Option<String> = session.get("player_id");
-    let game = active_game(&app.db).await.unwrap();
-    GameTemplate::render_with(&game.state, player_id).into_response()
+    let game = active_game(&app.db).await;
+    match game {
+        Some(game) => GameTemplate::render_with(&game.state, player_id).into_response(),
+        None => Redirect::temporary("/lobby").into_response(),
+    }
 }
 
 #[handler]
