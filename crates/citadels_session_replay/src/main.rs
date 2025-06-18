@@ -25,15 +25,14 @@ async fn main() {
 
 async fn replay(db: &Pool<Postgres>, game_id: i32) {
     let actions = sqlx::query!(
-        "select action, player_name from logs where game_id = $1 order by created_at",
+        "select action, player_name from action_logs where game_id = $1 order by id",
         game_id
     )
     .fetch_all(db)
     .await
     .unwrap();
 
-    let start: GameStart =
-        serde_json::from_value(actions[0].action.as_ref().unwrap().clone()).unwrap();
+    let start: GameStart = serde_json::from_value(actions[0].action.clone()).unwrap();
     let mut game = GameState::start(
         citadels::lobby::Lobby {
             players: start.players,
@@ -44,8 +43,7 @@ async fn replay(db: &Pool<Postgres>, game_id: i32) {
     .unwrap();
 
     for row in actions.iter().skip(1) {
-        let action: citadels::actions::Action =
-            serde_json::from_value(row.action.as_ref().unwrap().clone()).unwrap();
+        let action: citadels::actions::Action = serde_json::from_value(row.action.clone()).unwrap();
 
         let player_name: &str = row.player_name.as_ref().unwrap();
 

@@ -1,6 +1,9 @@
-- Update axum server to be poem server, by just doing grep/ast-grep
+- cleanup db schema 
+  - make user ids into uuids 
+  - guest users
+  - not null constraints
+  - [x] pk for logs
 - Replace transient lobby with db calls
-- make user ids into uuids in db
 - embed old server into new server
 - allow implicit guest user signup
 - automatically clear old guest users after a week?

@@ -50,7 +50,7 @@ async fn log_action(
     player_name: Option<&PlayerName>,
 ) -> () {
     sqlx::query!(
-        "insert into logs (game_id, action, player_name) values($1,$2, $3)",
+        "insert into action_logs (game_id, action, player_name) values($1, $2, $3)",
         game_id,
         action,
         player_name.as_ref().map(|p| p.0.as_ref())
