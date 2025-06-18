@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into room_members(room_id, user_id) values($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "33ca075ce810d0c9e26f56af37e6c989d559c54173bb21068b7aa4c9ae655c9a"
+}

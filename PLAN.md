@@ -1,10 +1,6 @@
-- cleanup db schema 
-  - make user ids into uuids 
-  - guest users
-  - not null constraints
-  - [x] pk for logs
+- [x] embed old server into new server
+- [ ] Restore sessions table. Session ids should be kept private, user ids are used for api calls, etc. 
 - Replace transient lobby with db calls
-- embed old server into new server
 - allow implicit guest user signup
 - automatically clear old guest users after a week?
 - fix the role numbering

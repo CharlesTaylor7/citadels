@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update room_members set owner = false where user_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5adc85b6b3d81b85e9f29a1668cbbb407e1cf191b829b987de5f92e3922b9968"
+}

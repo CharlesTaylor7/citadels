@@ -490,8 +490,8 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "uuid"
           },
           "username": {
             "type": "string"
@@ -545,8 +545,8 @@
         ],
         "properties": {
           "userId": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -555,18 +555,17 @@
         "title": "User",
         "required": [
           "id",
-          "email",
           "username"
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "email": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "username": {
+            "type": "string"
+          },
+          "email": {
             "type": "string"
           }
         }

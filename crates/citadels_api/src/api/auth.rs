@@ -3,12 +3,20 @@ use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use poem::{session::Session, web::Data};
+use color_eyre::{Report, eyre::anyhow};
+
+use poem::{
+    error::{Forbidden, ResponseError},
+    http::StatusCode,
+    session::Session,
+    web::Data,
+};
 use poem_openapi::{
     Object, OpenApi,
     param::Query,
     payload::{Json, PlainText},
 };
+use sqlx::types::Uuid;
 
 pub struct AuthApi;
 
@@ -58,14 +66,23 @@ impl AuthApi {
         .fetch_one(db.0)
         .await
         .unwrap();
-        let parsed_hash = PasswordHash::new(&user.hashed_password).unwrap();
-        Argon2::default()
-            .verify_password(body.password.as_bytes(), &parsed_hash)
-            .unwrap();
+        match user.hashed_password {
+            None => Err(poem::error::Error::from_string(
+                "can't login as guest user",
+                StatusCode::FORBIDDEN,
+            )),
 
-        session.set("user_id", user.id);
+            Some(hashed) => {
+                let parsed_hash = PasswordHash::new(&hashed).unwrap();
+                Argon2::default()
+                    .verify_password(body.password.as_bytes(), &parsed_hash)
+                    .unwrap();
 
-        Ok(PlainText("Success".to_string()))
+                session.set("user_id", user.id);
+
+                Ok(PlainText("Success".to_string()))
+            }
+        }
     }
 
     #[oai(path = "/logout", method = "post")]
@@ -76,7 +93,7 @@ impl AuthApi {
 
     #[oai(path = "/me", method = "get")]
     async fn me(&self, session: &Session, db: Data<&DB>) -> poem::Result<Json<User>> {
-        let user_id: i32 = session.get("user_id").unwrap();
+        let user_id: Uuid = session.get("user_id").unwrap();
         let user = sqlx::query_as!(
             User,
             "select id, username, email from users where id = $1",
@@ -123,9 +140,9 @@ pub struct UserLogin {
 
 #[derive(Object)]
 pub struct User {
-    id: i32,
-    email: String,
+    id: Uuid,
     username: String,
+    email: Option<String>,
 }
 
 #[derive(Object)]

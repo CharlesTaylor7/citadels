@@ -6,7 +6,7 @@
       {
         "ordinal": 0,
         "name": "id",
-        "type_info": "Int4"
+        "type_info": "Uuid"
       },
       {
         "ordinal": 1,
@@ -26,13 +26,13 @@
     ],
     "parameters": {
       "Left": [
-        "Int4"
+        "Uuid"
       ]
     },
     "nullable": [
       false,
       false,
-      false
+      true
     ]
   },
   "hash": "1d32623ef89fa28eeeab55864f2e7e8b524e4feb9848320e25176d2ea6f45b01"

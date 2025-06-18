@@ -10,6 +10,7 @@ use poem_openapi::{
     payload::{Json, PlainText},
 };
 use serde::Deserialize;
+use sqlx::types::Uuid;
 
 pub struct LobbyApi;
 
@@ -37,14 +38,14 @@ impl LobbyApi {
                 rooms.name, 
                 JSON_AGG(
                     JSON_BUILD_OBJECT(
-                        'id', room_members.player_id,
+                        'id', room_members.user_id,
                         'username', users.username,
                         'owner', room_members.owner
                     )
                 ) as players 
                 FROM rooms 
                 LEFT JOIN room_members ON room_members.room_id = rooms.id 
-                LEFT JOIN users ON room_members.player_id = users.id 
+                LEFT JOIN users ON room_members.user_id = users.id 
                 GROUP by rooms.id"#
         )
         .fetch_all(db.0)
@@ -73,9 +74,9 @@ impl LobbyApi {
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: i32 = session.get("user_id").unwrap();
+        let user_id: Uuid = session.get("user_id").unwrap();
         sqlx::query!(
-            "update room_members set owner = true where player_id = $1",
+            "update room_members set owner = true where user_id = $1",
             user_id
         )
         .execute(db.0)
@@ -90,15 +91,14 @@ impl LobbyApi {
         &self,
         id: Path<i32>,
         target: Json<TransferTo>,
-
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: i32 = session.get("user_id").unwrap();
+        let user_id: Uuid = session.get("user_id").unwrap();
         let mut tx = db.0.begin().await.unwrap();
 
         sqlx::query!(
-            "update room_members set owner = false where player_id = $1",
+            "update room_members set owner = false where user_id = $1",
             user_id
         )
         .execute(&mut *tx)
@@ -106,7 +106,7 @@ impl LobbyApi {
         .unwrap();
 
         sqlx::query!(
-            "update room_members set owner = true where player_id = $1",
+            "update room_members set owner = true where user_id = $1",
             target.userId
         )
         .execute(&mut *tx)
@@ -125,9 +125,9 @@ impl LobbyApi {
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: i32 = session.get("user_id").unwrap();
+        let user_id: Uuid = session.get("user_id").unwrap();
         sqlx::query!(
-            "insert into room_members(room_id, player_id) values($1, $2)",
+            "insert into room_members(room_id, user_id) values($1, $2)",
             id.0,
             user_id
         )
@@ -144,8 +144,8 @@ impl LobbyApi {
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: i32 = session.get("user_id").unwrap();
-        sqlx::query!("delete from room_members where player_id = $1", user_id)
+        let user_id: Uuid = session.get("user_id").unwrap();
+        sqlx::query!("delete from room_members where user_id = $1", user_id)
             .execute(db.0)
             .await;
 
@@ -160,7 +160,7 @@ impl LobbyApi {
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: i32 = session.get("user_id").unwrap();
+        let user_id: Uuid = session.get("user_id").unwrap();
         sqlx::query!("update rooms set name = $1 where id = $2", body.title, id.0)
             .execute(db.0)
             .await;
@@ -177,7 +177,7 @@ pub struct RoomTitle {
 #[allow(non_snake_case)]
 #[derive(Object)]
 pub struct TransferTo {
-    userId: i32,
+    userId: Uuid,
 }
 
 #[derive(Object)]
@@ -189,7 +189,7 @@ pub struct Room {
 
 #[derive(Object, Deserialize)]
 pub struct Player {
-    id: i32,
+    id: Uuid,
     username: String,
     owner: bool,
 }

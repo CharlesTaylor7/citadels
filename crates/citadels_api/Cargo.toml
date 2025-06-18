@@ -12,12 +12,12 @@ poem = { workspace = true }
 poem-openapi = { workspace = true }
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
-arcstr = { version = "1.2.0", features = ["serde"], default-features = false }
+arcstr = { workspace = true }
 serde = { workspace = true }
-color-eyre = { workspace = true }
-dotenvy = { workspace = true }
-sqlx-postgres = { workspace = true }
-sqlx = { workspace = true }
-thiserror = { workspace = true }
-argon2 = { workspace = true }
 serde_json = { workspace = true }
+dotenvy = { workspace = true }
+sqlx = { workspace = true }
+sqlx-postgres = { workspace = true }
+thiserror = { workspace = true }
+color-eyre = { workspace = true }
+argon2 = { workspace = true }
