@@ -6,7 +6,7 @@ procs:
     shell: cargo doc --offline --lib --open
     autostart: false
 
-  Tailwind (for axum server):
+  Tailwind (v3):
     shell: npx tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
 
   React Dev Server:
