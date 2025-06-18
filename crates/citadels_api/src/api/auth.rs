@@ -3,14 +3,7 @@ use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use color_eyre::{Report, eyre::anyhow};
-
-use poem::{
-    error::{Forbidden, ResponseError},
-    http::StatusCode,
-    session::Session,
-    web::Data,
-};
+use poem::{Error, http::StatusCode, session::Session, web::Data};
 use poem_openapi::{
     Object, OpenApi,
     param::Query,
@@ -67,7 +60,7 @@ impl AuthApi {
         .await
         .unwrap();
         match user.hashed_password {
-            None => Err(poem::error::Error::from_string(
+            None => Err(Error::from_string(
                 "can't login as guest user",
                 StatusCode::FORBIDDEN,
             )),
