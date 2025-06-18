@@ -2,7 +2,7 @@ use crate::templates::{filters, DistrictTemplate, RoleTemplate};
 use askama::Template;
 use citadels::actions::ActionTag;
 use citadels::districts::DistrictName;
-use citadels::game::{self, Followup, Game, Player};
+use citadels::game::{self, Followup, GameState, Player};
 use citadels::roles::RoleName;
 use citadels::types::CardSuit;
 use citadels::types::Marker;
@@ -33,7 +33,7 @@ pub struct BuildMenu {
 }
 
 impl BuildMenu {
-    pub fn from_game(game: &Game) -> Self {
+    pub fn from_game(game: &GameState) -> Self {
         Self {
             wizard: if let Some(Followup::WizardPick { .. }) = game.followup {
                 true
@@ -93,7 +93,7 @@ pub struct AbbotCollectResourcesMenu {
 }
 
 impl AbbotCollectResourcesMenu {
-    pub fn from(game: &Game) -> Self {
+    pub fn from(game: &GameState) -> Self {
         Self {
             resources: game
                 .active_player()
@@ -110,7 +110,7 @@ pub struct AbbotTakeFromRichMenu<'a> {
 }
 
 impl<'a> AbbotTakeFromRichMenu<'a> {
-    pub fn from(game: &'a Game) -> Self {
+    pub fn from(game: &'a GameState) -> Self {
         Self {
             players: game.abbot_take_from_rich_targets(),
         }
@@ -125,7 +125,7 @@ pub struct SpyMenu<'a> {
 }
 
 impl<'a> SpyMenu<'a> {
-    pub fn from(game: &'a Game) -> Self {
+    pub fn from(game: &'a GameState) -> Self {
         let active = game.active_player_index().unwrap();
         Self {
             players: game.players.iter().filter(|p| p.index != active).collect(),
@@ -141,7 +141,7 @@ pub struct SendWarrantsMenu {
 }
 
 impl SendWarrantsMenu {
-    pub fn from_game(game: &game::Game) -> Self {
+    pub fn from_game(game: &game::GameState) -> Self {
         Self {
             roles: game
                 .characters
@@ -159,7 +159,7 @@ pub struct BlackmailMenu {
     roles: Vec<RoleTemplate>,
 }
 impl BlackmailMenu {
-    pub fn from_game(game: &game::Game) -> Self {
+    pub fn from_game(game: &game::GameState) -> Self {
         Self {
             roles: game
                 .characters
@@ -183,7 +183,7 @@ pub struct WarlordMenu<'a> {
 }
 
 impl<'a> WarlordMenu<'a> {
-    pub fn from_game(game: &'a game::Game) -> Self {
+    pub fn from_game(game: &'a game::GameState) -> Self {
         Self {
             cities: game
                 .players
@@ -205,7 +205,7 @@ pub struct ArmoryMenu<'a> {
 }
 
 impl<'a> ArmoryMenu<'a> {
-    pub fn from_game(game: &'a game::Game) -> Self {
+    pub fn from_game(game: &'a game::GameState) -> Self {
         Self {
             cities: game
                 .players
@@ -224,7 +224,7 @@ pub struct MarshalMenu<'a> {
 }
 
 impl<'a> MarshalMenu<'a> {
-    pub fn from_game(game: &'a game::Game) -> Self {
+    pub fn from_game(game: &'a game::GameState) -> Self {
         Self {
             cities: game
                 .players
@@ -247,7 +247,7 @@ pub struct DiplomatMenu<'a> {
 }
 
 impl<'a> DiplomatMenu<'a> {
-    pub fn from_game(game: &'a game::Game) -> Self {
+    pub fn from_game(game: &'a game::GameState) -> Self {
         Self {
             cities: game
                 .players
@@ -289,7 +289,7 @@ pub struct EmperorMenu<'a> {
 }
 
 impl<'a> EmperorMenu<'a> {
-    pub fn from_game(game: &'a game::Game) -> Self {
+    pub fn from_game(game: &'a game::GameState) -> Self {
         Self {
             players: game
                 .players
@@ -311,7 +311,7 @@ pub struct WizardMenu<'a> {
 }
 
 impl<'a> WizardMenu<'a> {
-    pub fn from_game(game: &'a game::Game) -> Self {
+    pub fn from_game(game: &'a game::GameState) -> Self {
         Self {
             players: game
                 .players

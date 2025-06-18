@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select action, player_name from logs where game_id = 1",
+  "query": "select action, player_name from logs where game_id = $1 order by created_at",
   "describe": {
     "columns": [
       {
@@ -15,12 +15,14 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Int4"
+      ]
     },
     "nullable": [
       true,
       true
     ]
   },
-  "hash": "60985048e57b1a5c255982e881db6426911f7f316a48716d27580a56168f564f"
+  "hash": "c58a22284481583361ac18acb413d98601b0febc88cbe642cbbf49f63214b7ac"
 }

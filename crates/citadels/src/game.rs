@@ -393,7 +393,7 @@ impl Followup {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Game {
+pub struct GameState {
     pub rng: Prng,
     // global
     pub round: usize,
@@ -492,7 +492,7 @@ impl Characters {
     }
 }
 
-impl Game {
+impl GameState {
     pub fn complete_city_size(&self) -> usize {
         if self.players.len() <= 3 {
             8
@@ -599,7 +599,7 @@ impl Game {
         Ok(self.characters.index_mut(call.index))
     }
 
-    pub fn start(lobby: Lobby, seed: Seed) -> Result<Game> {
+    pub fn start(lobby: Lobby, seed: Seed) -> Result<GameState> {
         let Lobby {
             mut players,
             config,
@@ -640,7 +640,7 @@ impl Game {
 
         let characters = Characters::new(&config.select_roles(&mut rng, players.len())?);
         let crowned = PlayerIndex(0);
-        let mut game = Game {
+        let mut game = GameState {
             rng,
             players,
             crowned,
@@ -744,7 +744,7 @@ impl Game {
             .count()
     }
 
-    pub fn allowed_for(&self, id: Option<&str>) -> Vec<ActionTag> {
+    pub fn allowed_for(&self, id: Option<PlayerId>) -> Vec<ActionTag> {
         let id = if let Some(id) = id { id } else { return vec![] };
         if let Ok(p) = self.responding_player() {
             if p.id == id {
@@ -879,7 +879,10 @@ impl Game {
     }
 
     pub fn perform(&mut self, action: Action, id: &str) -> Result<()> {
-        if !self.allowed_for(Some(id)).contains(&action.tag()) {
+        if !self
+            .allowed_for(Some(id.to_string()))
+            .contains(&action.tag())
+        {
             return Err("not allowed".into());
         }
 
@@ -1218,7 +1221,7 @@ impl Game {
                     .0
                     .iter()
                     .enumerate()
-                    .find(|(i, game_role)| game_role.role == RoleName::Emperor)
+                    .find(|(_i, game_role)| game_role.role == RoleName::Emperor)
                 {
                     self.active_turn = Turn::Call(Call {
                         index: i as u8,

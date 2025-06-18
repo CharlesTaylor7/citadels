@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select games.id, games.state from rooms join games on rooms.game_id = games.id order by rooms.id limit 1",
+  "query": "select games.id, games.state from games where active = true order by id desc\n-- from rooms join games on rooms.game_id = games.id\n-- where rooms.id = 1\n-- order by rooms.id \n",
   "describe": {
     "columns": [
       {
@@ -22,5 +22,5 @@
       false
     ]
   },
-  "hash": "f73d55d7a7303917055afd84785afeb18cbf19f0b4dcf57b487b8d1183b2a853"
+  "hash": "6a30e36d02ff6ec19f5debf25a2f2f78c0d2015a1e99dd6056fdcabc6c8bc40f"
 }

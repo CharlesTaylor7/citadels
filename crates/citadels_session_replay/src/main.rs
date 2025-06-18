@@ -1,7 +1,7 @@
 use citadels::actions::{ActionTag, Tag};
 use citadels::roles::RoleName;
 use citadels::{
-    game::Game,
+    game::GameState,
     lobby::{GameConfig, Player},
     random::Seed,
 };
@@ -34,7 +34,7 @@ async fn replay(db: &Pool<Postgres>, game_id: i32) {
 
     let start: GameStart =
         serde_json::from_value(actions[0].action.as_ref().unwrap().clone()).unwrap();
-    let mut game = Game::start(
+    let mut game = GameState::start(
         citadels::lobby::Lobby {
             players: start.players,
             config: start.config,

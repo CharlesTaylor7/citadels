@@ -1,9 +1,9 @@
 procs:
-  Axum Server:
-    shell: GIT_SHA=main RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features="dev,dotenv" --bin=citadels_server
+  Html Server:
+    shell: GIT_SHA=main RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features=dotenv --bin=citadels_server
 
   Poem Server:
-    shell: RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features="dev,dotenv" --bin=citadels_api
+    shell: RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features=dotenv --bin=citadels_api
 
   Docs:
     shell: cargo doc --offline --lib --open

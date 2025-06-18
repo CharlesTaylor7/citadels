@@ -2,7 +2,7 @@ use crate::actions::{
     Action, BuildMethod, CityDistrictTarget, MagicianAction, Resource, WizardMethod,
 };
 use crate::districts::DistrictName;
-use crate::game::{ActionOutput, ActionResult, CityDistrict, Followup, Game, PlayerIndex, Result};
+use crate::game::{ActionOutput, ActionResult, CityDistrict, Followup, GameState, PlayerIndex, Result};
 use crate::roles::{Rank, RoleName};
 use crate::types::{CardSuit, Marker};
 
@@ -12,7 +12,7 @@ use std::borrow::{Borrow, BorrowMut};
 use std::collections::HashMap;
 use std::mem;
 
-pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
+pub fn perform_action(game: &mut GameState, action: &Action) -> ActionResult {
     Ok(match action {
         Action::RevealWarrant => match game.followup {
             Some(Followup::Warrant {
@@ -140,7 +140,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
         Action::DraftPick { role } => {
             let draft = game.active_turn.draft_mut()?;
 
-            Game::remove_first(&mut draft.remaining, *role);
+            GameState::remove_first(&mut draft.remaining, *role);
             let c = game.characters.get_mut(*role).unwrap();
             c.player = Some(draft.player);
             let player = game.players[draft.player.0].borrow_mut();
@@ -239,7 +239,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                 return Err("action is not allowed".into());
             };
 
-            Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
+            GameState::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
             revealed.shuffle(&mut game.rng);
 
             for remaining in revealed {
@@ -336,7 +336,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     }
 
                     let active = game.active_player_mut()?;
-                    Game::remove_first(&mut active.hand, district.name)
+                    GameState::remove_first(&mut active.hand, district.name)
                         .ok_or("card not in hand")?;
                     active.gold -= cost;
                 }
@@ -387,7 +387,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         Err("Can't discard cards not in your hand")?;
                     }
 
-                    Game::remove_first(&mut new_hand, district.name).ok_or("card not in hand")?;
+                    GameState::remove_first(&mut new_hand, district.name).ok_or("card not in hand")?;
 
                     let active = game.active_player_mut().unwrap();
                     active.gold -= cost;
@@ -426,7 +426,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                     if discard_set.len() > 0 {
                         Err("Can't discard cards not in your hand")?;
                     }
-                    Game::remove_first(&mut new_hand, district.name).ok_or("card not in hand")?;
+                    GameState::remove_first(&mut new_hand, district.name).ok_or("card not in hand")?;
 
                     let active = game.active_player_mut().unwrap();
                     active.gold -= cost;
@@ -451,7 +451,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         .ok_or("You don't own a framework!")?;
 
                     let active = game.active_player_mut().unwrap();
-                    Game::remove_first(&mut active.hand, district.name)
+                    GameState::remove_first(&mut active.hand, district.name)
                         .ok_or("card not in hand")?;
                     active.city.swap_remove(city_index);
                 }
@@ -474,7 +474,7 @@ pub fn perform_action(game: &mut Game, action: &Action) -> ActionResult {
                         .ok_or("Cannot sacrifice a district you don't own!")?;
 
                     let active = game.active_player_mut().unwrap();
-                    Game::remove_first(&mut active.hand, district.name)
+                    GameState::remove_first(&mut active.hand, district.name)
                         .ok_or("card not in hand")?;
 
                     let district = active.city.swap_remove(city_index);
@@ -846,7 +846,7 @@ None =>
             let mut removed = Vec::new();
             for (_, district) in pairs.iter() {
                 let active_hand = &mut game.active_player_mut()?.hand;
-                if let Some(district) = Game::remove_first(active_hand, *district) {
+                if let Some(district) = GameState::remove_first(active_hand, *district) {
                     removed.push(district);
                 } else {
                     return Err("cannot assign district not in hand!".into());
@@ -1144,7 +1144,7 @@ if flower_target
                     return Err("action is not allowed".into());
                 };
 
-            Game::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
+            GameState::remove_first(&mut revealed, *district).ok_or("invalid choice")?;
             for remaining in revealed {
                 game.deck.discard_to_bottom(*remaining);
             }
@@ -1170,7 +1170,7 @@ if flower_target
                 return Err("Cannot swap with game".into());
             }
 
-            Game::remove_first(&mut game.active_player_mut()?.roles, *role)
+            GameState::remove_first(&mut game.active_player_mut()?.roles, *role)
                 .ok_or("You cannot give away a role you don't have")?;
             let target = game
                 .players
@@ -1449,7 +1449,7 @@ if flower_target
         }
         Action::WizardPick(WizardMethod::Pick { district }) => match game.followup {
             Some(Followup::WizardPick { player: target }) => {
-                Game::remove_first(&mut game.players[target.0].hand, *district)
+                GameState::remove_first(&mut game.players[target.0].hand, *district)
                     .ok_or("district not in target player's hand")?;
                 game.active_player_mut().unwrap().hand.push(*district);
                 ActionOutput::new(format!(
@@ -1576,7 +1576,7 @@ if flower_target
                         game.discard_district(district.name);
                     }
                 }
-                Game::remove_first(&mut game.players[target.0].hand, district.name).unwrap();
+                GameState::remove_first(&mut game.players[target.0].hand, district.name).unwrap();
 
                 if game.characters.has_tax_collector() {
                     let player = game.active_player_mut()?;

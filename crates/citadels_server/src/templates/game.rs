@@ -6,11 +6,11 @@ use crate::templates::MyTemplate;
 use crate::templates::{filters, DAISY_THEMES};
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use askama::Template;
-use axum::response::Html;
 use citadels::actions::ActionTag;
-use citadels::game::{Game, GameRole, Player, PlayerIndex, Turn};
+use citadels::game::{GameRole, GameState, Player, PlayerIndex, Turn};
 use citadels::roles::RoleName;
 use citadels::types::Marker;
+use poem::web::Html;
 use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]
@@ -20,7 +20,7 @@ pub struct CityRootTemplate<'a> {
 }
 
 impl<'a> CityRootTemplate<'a> {
-    pub fn from(game: &'a Game, target: PlayerIndex, my_id: Option<&'a str>) -> Self {
+    pub fn from(game: &'a GameState, target: PlayerIndex, my_id: Option<String>) -> Self {
         Self {
             city: CityTemplate::from(game, target, my_id),
         }
@@ -28,7 +28,7 @@ impl<'a> CityRootTemplate<'a> {
 }
 
 impl<'a> CityTemplate<'a> {
-    pub fn from(game: &'a Game, target: PlayerIndex, my_id: Option<&'a str>) -> Self {
+    pub fn from(game: &'a GameState, target: PlayerIndex, my_id: Option<String>) -> Self {
         let myself = get_myself(game, my_id);
 
         let header: Cow<'a, str> = if myself.is_some_and(|p| p.index == target) {
@@ -80,12 +80,12 @@ impl<'a> CityTemplate<'a> {
     }
 }
 pub struct GameContext<'a> {
-    game: &'a Game,
+    game: &'a GameState,
     allowed: Vec<ActionTag>,
 }
 
 impl<'a> GameContext<'a> {
-    pub fn from_game(game: &'a Game, id: Option<&'a str>) -> Self {
+    pub fn from_game(game: &'a GameState, id: Option<String>) -> Self {
         Self {
             game,
             allowed: game.allowed_for(id),
@@ -123,18 +123,15 @@ pub struct GameTemplate<'a> {
 }
 
 impl<'a> GameTemplate<'a> {
-    pub fn render_with(
-        game: &'a Game,
-        my_id: Option<&'a str>,
-    ) -> axum::response::Result<Html<String>> {
-        let myself = get_myself(game, my_id);
+    pub fn render_with(game: &'a GameState, my_id: Option<String>) -> Html<String> {
+        let myself = get_myself(game, my_id.clone());
         let player_template = PlayerTemplate::from(myself);
         let players: Vec<_> = game
             .players
             .iter()
             .map(|p| PlayerInfoTemplate::from(p, game))
             .collect();
-        let MenuTemplate { menu, context } = MenuTemplate::from(game, my_id);
+        let MenuTemplate { menu, context } = MenuTemplate::from(game, my_id.clone());
         let mut scores = game
             .players
             .iter()
@@ -155,7 +152,7 @@ impl<'a> GameTemplate<'a> {
                     .map(|p| p.index)
                     .or(game.active_player_index().ok())
                     .unwrap_or(PlayerIndex(0)),
-                my_id,
+                my_id.clone(),
             ),
             misc: MiscTemplate {
                 round: game.round,
@@ -176,7 +173,7 @@ impl<'a> GameTemplate<'a> {
     }
 }
 
-pub fn get_myself<'a>(game: &'a Game, myself: Option<&'a str>) -> Option<&'a Player> {
+pub fn get_myself<'a>(game: &'a GameState, myself: Option<String>) -> Option<&'a Player> {
     if let Some(id) = myself {
         game.players.iter().find(|p| p.id == id)
     } else {
@@ -259,7 +256,7 @@ pub struct PlayerInfoTemplate<'a> {
 }
 
 impl<'a> PlayerInfoTemplate<'a> {
-    pub fn from(player: &'a Player, game: &'a Game) -> Self {
+    pub fn from(player: &'a Player, game: &'a GameState) -> Self {
         let count = player.roles.len();
         let mut roles = Vec::with_capacity(count);
         for role in player.roles.iter() {

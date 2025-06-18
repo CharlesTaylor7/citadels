@@ -1,4 +1,5 @@
 use citadels_server::server::routes::get_router;
+use poem::{listener::TcpListener, Server};
 
 #[tokio::main]
 async fn main() {
@@ -7,8 +8,8 @@ async fn main() {
     citadels::logger::init();
 
     let port = "0.0.0.0:8080";
-    let listener = tokio::net::TcpListener::bind(port).await.unwrap();
+    let listener = TcpListener::bind(port);
 
     log::info!("Listening on port: {}", port);
-    axum::serve(listener, get_router()).await.unwrap();
+    let _ = Server::new(listener).run(get_router()).await;
 }

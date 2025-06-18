@@ -4,8 +4,9 @@ use crate::templates::game::menus::{BuildMenu, EmperorMenu};
 use crate::templates::{DistrictTemplate, RoleTemplate};
 use askama::Template;
 use citadels::actions::ActionTag;
-use citadels::game::{Call, Draft, Followup, ForcedToGatherReason, Game, Player, Turn};
+use citadels::game::{Call, Draft, Followup, ForcedToGatherReason, GameState, Player, Turn};
 use citadels::roles::{Rank, RoleName};
+use citadels::types::PlayerId;
 use std::borrow::{Borrow, Cow};
 
 #[derive(Template)]
@@ -15,8 +16,8 @@ pub struct MenuTemplate<'a> {
     pub context: GameContext<'a>,
 }
 impl<'a> MenuTemplate<'a> {
-    pub fn from(game: &'a Game, my_id: Option<&'a str>) -> Self {
-        let myself = get_myself(game, my_id);
+    pub fn from(game: &'a GameState, my_id: Option<PlayerId>) -> Self {
+        let myself = get_myself(game, my_id.clone());
         Self {
             context: GameContext {
                 game,
@@ -92,7 +93,7 @@ pub enum MenuView<'a> {
 }
 
 impl<'a> MenuView<'a> {
-    pub fn from(game: &'a Game, myself: Option<&'a Player>) -> Self {
+    pub fn from(game: &'a GameState, myself: Option<&'a Player>) -> Self {
         let my_turn =
             myself.is_some_and(|p1| game.active_player_index().is_ok_and(|p2| p1.index == p2));
 
