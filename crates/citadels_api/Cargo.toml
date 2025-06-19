@@ -15,9 +15,12 @@ tokio-stream = { workspace = true }
 arcstr = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-dotenvy = { workspace = true }
+dotenvy = { workspace = true, optional = true }
 sqlx = { workspace = true }
 sqlx-postgres = { workspace = true }
 thiserror = { workspace = true }
 color-eyre = { workspace = true }
 argon2 = { workspace = true }
+
+[features]
+dotenv = ["dep:dotenvy"]

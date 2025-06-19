@@ -12,6 +12,7 @@ use sqlx_postgres::PgPoolOptions;
 
 #[tokio::main]
 async fn main() {
+    #[cfg(feature = "dotenv")]
     dotenvy::dotenv().expect(".env not found");
     color_eyre::install().expect("color-eyre could not be installed");
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
@@ -40,7 +41,7 @@ async fn main() {
         ))
         .with(Tracing);
 
-    let _ = Server::new(TcpListener::bind(format!("127.0.0.1:{}", api::PORT)))
+    let _ = Server::new(TcpListener::bind(format!("0.0.0.0:{}", api::PORT)))
         .run(app)
         .await;
 }
