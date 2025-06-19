@@ -1,5 +1,5 @@
 - [x] embed old server into new server
-- [ ] Restore sessions table. Session ids should be kept private, user ids are used for api calls, etc. 
+- [x] Restore sessions table. Session ids should be kept private, user ids are used for api calls, etc. 
 - Replace transient lobby with db calls
 - allow implicit guest user signup
 - automatically clear old guest users after a week?

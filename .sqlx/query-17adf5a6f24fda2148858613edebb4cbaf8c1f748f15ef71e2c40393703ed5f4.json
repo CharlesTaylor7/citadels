@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "delete from room_members rm using sessions s where s.user_id = rm.user_id and s.id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "17adf5a6f24fda2148858613edebb4cbaf8c1f748f15ef71e2c40393703ed5f4"
+}

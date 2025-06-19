@@ -8,7 +8,6 @@ use citadels::{
 use serde::Deserialize;
 use sqlx::{Pool, Postgres};
 use sqlx_postgres::PgPoolOptions;
-use std::borrow::Borrow;
 
 #[tokio::main]
 async fn main() {
@@ -25,7 +24,7 @@ async fn main() {
 
 async fn replay(db: &Pool<Postgres>, game_id: i32) {
     let actions = sqlx::query!(
-        "select action, player_name from action_logs where game_id = $1 order by id",
+        "select action, player_index from action_logs where game_id = $1 order by id",
         game_id
     )
     .fetch_all(db)
@@ -44,15 +43,9 @@ async fn replay(db: &Pool<Postgres>, game_id: i32) {
 
     for row in actions.iter().skip(1) {
         let action: citadels::actions::Action = serde_json::from_value(row.action.clone()).unwrap();
+        let p = &game.players[row.player_index.unwrap() as usize];
 
-        let player_name: &str = row.player_name.as_ref().unwrap();
-
-        println!("{}: {:#?}", player_name, &action);
-        let p = game
-            .players
-            .iter()
-            .find(|p| Borrow::<str>::borrow(&p.name.0) == player_name)
-            .unwrap();
+        println!("{}: {:#?}", p.name, &action);
         let id = p.id.clone();
 
         let tag = action.tag();

@@ -1,12 +1,12 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select id, username, email from users where id = $1",
+  "query": "select u.id, u.username, u.email from users u join sessions s on s.user_id = u.id where s.id = $1",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
         "name": "id",
-        "type_info": "Uuid"
+        "type_info": "Int4"
       },
       {
         "ordinal": 1,
@@ -35,5 +35,5 @@
       true
     ]
   },
-  "hash": "1d32623ef89fa28eeeab55864f2e7e8b524e4feb9848320e25176d2ea6f45b01"
+  "hash": "6483c375edd1d9c9d2b83f938cfc79bb531045e2c54c5b05e96234868bf93c59"
 }

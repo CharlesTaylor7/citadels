@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update room_members rm set owner = true from sessions s where rm.user_id = s.user_id and s.id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5b58b420c002cbacc195cce601c2029f746dbd6e0fe752e8b88247479111ce45"
+}

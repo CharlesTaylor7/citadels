@@ -5,6 +5,7 @@ use crate::templates::game::*;
 use crate::templates::lobby::*;
 use crate::templates::*;
 use askama::Template;
+use citadels::game::PlayerIndex;
 use citadels::types::PlayerId;
 use cookie::SameSite;
 use poem::endpoint::StaticFilesEndpoint;
@@ -47,13 +48,13 @@ async fn log_action(
     db: &Pool<Postgres>,
     game_id: i32,
     action: serde_json::Value,
-    player_name: Option<&PlayerName>,
+    player_index: Option<PlayerIndex>,
 ) -> () {
     sqlx::query!(
-        "insert into action_logs (game_id, action, player_name) values($1, $2, $3)",
+        "insert into action_logs (game_id, action, player_index) values($1, $2, $3)",
         game_id,
         action,
-        player_name.as_ref().map(|p| p.0.as_ref())
+        player_index.map(|o| o.0 as i32)
     )
     .execute(db)
     .await
@@ -368,7 +369,7 @@ async fn submit_game_action(
                 .find(|p| p.id == player_id)
                 .unwrap();
             let action_json = serde_json::to_value(&action).unwrap();
-            log_action(&app.db, game.id, action_json, Some(&p.name)).await;
+            log_action(&app.db, game.id, action_json, Some(p.index)).await;
 
             match game.state.perform(action, &player_id) {
                 Ok(()) => {

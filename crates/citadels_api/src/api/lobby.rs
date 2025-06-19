@@ -74,10 +74,10 @@ impl LobbyApi {
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: Uuid = session.get("user_id").unwrap();
+        let session_id: Uuid = session.get("session_id").unwrap();
         sqlx::query!(
-            "update room_members set owner = true where user_id = $1",
-            user_id
+            "update room_members rm set owner = true from sessions s where rm.user_id = s.user_id and s.id = $1",
+            session_id
         )
         .execute(db.0)
         .await
@@ -94,12 +94,12 @@ impl LobbyApi {
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: Uuid = session.get("user_id").unwrap();
+        let session_id: Uuid = session.get("session_id").unwrap();
         let mut tx = db.0.begin().await.unwrap();
 
         sqlx::query!(
-            "update room_members set owner = false where user_id = $1",
-            user_id
+            "update room_members rm set owner = false from sessions s where rm.user_id = s.user_id and s.id = $1",
+            session_id
         )
         .execute(&mut *tx)
         .await
@@ -125,11 +125,11 @@ impl LobbyApi {
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: Uuid = session.get("user_id").unwrap();
+        let session_id: Uuid = session.get("session_id").unwrap();
         sqlx::query!(
-            "insert into room_members(room_id, user_id) values($1, $2)",
+            "insert into room_members(room_id, user_id) select $1, u.id from sessions s join users u on u.id = s.user_id where s.id = $2",
             id.0,
-            user_id
+            session_id
         )
         .execute(db.0)
         .await
@@ -144,8 +144,8 @@ impl LobbyApi {
         session: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
-        let user_id: Uuid = session.get("user_id").unwrap();
-        sqlx::query!("delete from room_members where user_id = $1", user_id)
+        let session_id: Uuid = session.get("session_id").unwrap();
+        sqlx::query!("delete from room_members rm using sessions s where s.user_id = rm.user_id and s.id = $1", session_id)
             .execute(db.0)
             .await;
 
@@ -177,7 +177,7 @@ pub struct RoomTitle {
 #[allow(non_snake_case)]
 #[derive(Object)]
 pub struct TransferTo {
-    userId: Uuid,
+    userId: i32,
 }
 
 #[derive(Object)]

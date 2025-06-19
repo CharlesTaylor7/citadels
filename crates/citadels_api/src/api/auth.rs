@@ -20,7 +20,7 @@ impl AuthApi {
     async fn signup(
         &self,
         body: Json<UserSignup>,
-        session: &Session,
+        cookies: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
         let salt = SaltString::generate(&mut OsRng);
@@ -40,8 +40,16 @@ impl AuthApi {
         .await
         .unwrap()
         .id;
-        session.set("user_id", user_id);
 
+        let session_id = sqlx::query!(
+            "insert into sessions (user_id) values ($1) returning id",
+            user_id
+        )
+        .fetch_one(db.0)
+        .await
+        .unwrap()
+        .id;
+        cookies.set("session_id", session_id);
         Ok(PlainText("Success".to_string()))
     }
 
@@ -49,7 +57,7 @@ impl AuthApi {
     async fn login(
         &self,
         body: Json<UserLogin>,
-        session: &Session,
+        cookies: &Session,
         db: Data<&DB>,
     ) -> poem::Result<PlainText<String>> {
         let user = sqlx::query!(
@@ -71,7 +79,16 @@ impl AuthApi {
                     .verify_password(body.password.as_bytes(), &parsed_hash)
                     .unwrap();
 
-                session.set("user_id", user.id);
+                let session_id = sqlx::query!(
+                    "insert into sessions (user_id) values ($1) returning id",
+                    user.id
+                )
+                .fetch_one(db.0)
+                .await
+                .unwrap()
+                .id;
+
+                cookies.set("session_id", session_id);
 
                 Ok(PlainText("Success".to_string()))
             }
@@ -79,18 +96,18 @@ impl AuthApi {
     }
 
     #[oai(path = "/logout", method = "post")]
-    async fn logout(&self, session: &Session) -> poem::Result<PlainText<String>> {
-        session.remove("user_id");
+    async fn logout(&self, cookies: &Session) -> poem::Result<PlainText<String>> {
+        cookies.clear();
         Ok(PlainText("Logged out".to_string()))
     }
 
     #[oai(path = "/me", method = "get")]
-    async fn me(&self, session: &Session, db: Data<&DB>) -> poem::Result<Json<User>> {
-        let user_id: Uuid = session.get("user_id").unwrap();
+    async fn me(&self, cookies: &Session, db: Data<&DB>) -> poem::Result<Json<User>> {
+        let session_id: Uuid = cookies.get("session_id").unwrap();
         let user = sqlx::query_as!(
             User,
-            "select id, username, email from users where id = $1",
-            user_id
+            "select u.id, u.username, u.email from users u join sessions s on s.user_id = u.id where s.id = $1",
+            session_id
         )
         .fetch_one(db.0)
         .await
@@ -133,7 +150,7 @@ pub struct UserLogin {
 
 #[derive(Object)]
 pub struct User {
-    id: Uuid,
+    id: i32,
     username: String,
     email: Option<String>,
 }
