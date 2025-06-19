@@ -10,8 +10,8 @@ export default defineConfig({
     TanStackRouterVite({
       target: "react",
       autoCodeSplitting: true,
-      routesDirectory: "./src/client/routes",
-      generatedRouteTree: "./src/client/route-tree.ts",
+      routesDirectory: "./src/routes",
+      generatedRouteTree: "./src/route-tree.ts",
       enableRouteTreeFormatting: false,
       enableRouteGeneration: true,
     }),
@@ -20,6 +20,10 @@ export default defineConfig({
     tsconfigPaths(),
     visualizer({ filename: "stats/rollup.html" }),
   ],
+  build: {
+    outDir: "../public/spa/",
+    emptyOutDir: true,
+  },
   server: {
     open: true,
     port: 3000,

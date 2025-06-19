@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 import { api } from "@/api";
 
-export const Route = createFileRoute("/lobby")({
+export const Route = createFileRoute("/v2/lobby")({
   component: LobbyComponent,
 });
 

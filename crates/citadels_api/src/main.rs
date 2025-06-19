@@ -1,13 +1,13 @@
 use citadels_api::api;
-use citadels_api::middleware::sessions::PlayerSessions;
 use citadels_api::notifications::{Notifications, sse_handler};
-use citadels_server::server::routes::htmx_endpoint;
+use citadels_server::server::routes::htmx_routes;
+use citadels_server::server::state::AppState;
 use poem::endpoint::{EndpointExt, StaticFilesEndpoint};
 use poem::listener::TcpListener;
 use poem::middleware::{AddData, Tracing};
 use poem::session::{CookieConfig, CookieSession};
 use poem::web::cookie::SameSite;
-use poem::{Route, Server, post};
+use poem::{Server, post};
 use sqlx_postgres::PgPoolOptions;
 
 #[tokio::main]
@@ -17,6 +17,7 @@ async fn main() {
     color_eyre::install().expect("color-eyre could not be installed");
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
+    let context = AppState::default();
     let pool = PgPoolOptions::new()
         .max_connections(50)
         .connect(&database_url)
@@ -25,13 +26,22 @@ async fn main() {
 
     let api_service = api::service();
     let ui = api_service.swagger_ui();
-    let app = Route::new()
-        .nest("/", htmx_endpoint())
+
+    let app = htmx_routes()
         .at("/sse", post(sse_handler))
         .nest("/api", api_service)
         .nest("/docs", ui)
-        .nest("/static", StaticFilesEndpoint::new("/public"))
-        .with(PlayerSessions)
+        // // static assets
+        .nest("/public", StaticFilesEndpoint::new("public"))
+        // spa
+        .at(
+            "/*path",
+            StaticFilesEndpoint::new("public/spa")
+                .no_cache_index()
+                .index_file("index.html")
+                .fallback_to_index(),
+        )
+        .with(AddData::new(context))
         .with(AddData::new(Notifications::default()))
         .with(AddData::new(pool))
         .with(CookieSession::new(

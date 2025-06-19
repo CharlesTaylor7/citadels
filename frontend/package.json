@@ -11,8 +11,8 @@
     "lint": "eslint src/",
     "ci": "yarn lint && yarn typecheck",
     "dev": "vite dev",
-    "build": "vite build",
     "prebuild": "yarn gen-schema",
+    "build": "vite build",
     "gen-schema": "openapi-typescript ../public/openapi.json -o src/schema.d.ts"
   },
   "dependencies": {

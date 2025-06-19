@@ -7,6 +7,7 @@ edition = "2024"
 citadels = { path = "../citadels" }
 citadels_server = { path = "../citadels_server" }
 cookie = { workspace = true }
+hyper = { workspace = true }
 futures-util = { workspace = true }
 poem = { workspace = true }
 poem-openapi = { workspace = true }

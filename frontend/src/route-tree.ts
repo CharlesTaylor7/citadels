@@ -10,176 +10,123 @@
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as SignupImport } from "./routes/signup";
-import { Route as LoginImport } from "./routes/login";
-import { Route as LobbyImport } from "./routes/lobby";
-import { Route as GameImport } from "./routes/game";
-import { Route as DeploymentImport } from "./routes/deployment";
-import { Route as IndexImport } from "./routes/index";
+import { Route as rootRoute } from './routes/__root'
+import { Route as SignupImport } from './routes/signup'
+import { Route as LoginImport } from './routes/login'
+import { Route as DeploymentImport } from './routes/deployment'
+import { Route as IndexImport } from './routes/index'
+import { Route as V2LobbyImport } from './routes/v2/lobby'
+import { Route as V2GameImport } from './routes/v2/game'
 
 // Create/Update Routes
 
 const SignupRoute = SignupImport.update({
-  id: "/signup",
-  path: "/signup",
-  getParentRoute: () => rootRoute,
-} as any);
+          id: '/signup',path: '/signup',getParentRoute: () => rootRoute
+        }as any)
 
 const LoginRoute = LoginImport.update({
-  id: "/login",
-  path: "/login",
-  getParentRoute: () => rootRoute,
-} as any);
-
-const LobbyRoute = LobbyImport.update({
-  id: "/lobby",
-  path: "/lobby",
-  getParentRoute: () => rootRoute,
-} as any);
-
-const GameRoute = GameImport.update({
-  id: "/game",
-  path: "/game",
-  getParentRoute: () => rootRoute,
-} as any);
+          id: '/login',path: '/login',getParentRoute: () => rootRoute
+        }as any)
 
 const DeploymentRoute = DeploymentImport.update({
-  id: "/deployment",
-  path: "/deployment",
-  getParentRoute: () => rootRoute,
-} as any);
+          id: '/deployment',path: '/deployment',getParentRoute: () => rootRoute
+        }as any)
 
 const IndexRoute = IndexImport.update({
-  id: "/",
-  path: "/",
-  getParentRoute: () => rootRoute,
-} as any);
+          id: '/',path: '/',getParentRoute: () => rootRoute
+        }as any)
+
+const V2LobbyRoute = V2LobbyImport.update({
+          id: '/v2/lobby',path: '/v2/lobby',getParentRoute: () => rootRoute
+        }as any)
+
+const V2GameRoute = V2GameImport.update({
+          id: '/v2/game',path: '/v2/game',getParentRoute: () => rootRoute
+        }as any)
 
 // Populate the FileRoutesByPath interface
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/deployment": {
-      id: "/deployment";
-      path: "/deployment";
-      fullPath: "/deployment";
-      preLoaderRoute: typeof DeploymentImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/game": {
-      id: "/game";
-      path: "/game";
-      fullPath: "/game";
-      preLoaderRoute: typeof GameImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/lobby": {
-      id: "/lobby";
-      path: "/lobby";
-      fullPath: "/lobby";
-      preLoaderRoute: typeof LobbyImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/login": {
-      id: "/login";
-      path: "/login";
-      fullPath: "/login";
-      preLoaderRoute: typeof LoginImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/signup": {
-      id: "/signup";
-      path: "/signup";
-      fullPath: "/signup";
-      preLoaderRoute: typeof SignupImport;
-      parentRoute: typeof rootRoute;
-    };
+    '/': {
+          id: '/'
+          path: '/'
+          fullPath: '/'
+          preLoaderRoute: typeof IndexImport
+          parentRoute: typeof rootRoute
+        }
+'/deployment': {
+          id: '/deployment'
+          path: '/deployment'
+          fullPath: '/deployment'
+          preLoaderRoute: typeof DeploymentImport
+          parentRoute: typeof rootRoute
+        }
+'/login': {
+          id: '/login'
+          path: '/login'
+          fullPath: '/login'
+          preLoaderRoute: typeof LoginImport
+          parentRoute: typeof rootRoute
+        }
+'/signup': {
+          id: '/signup'
+          path: '/signup'
+          fullPath: '/signup'
+          preLoaderRoute: typeof SignupImport
+          parentRoute: typeof rootRoute
+        }
+'/v2/game': {
+          id: '/v2/game'
+          path: '/v2/game'
+          fullPath: '/v2/game'
+          preLoaderRoute: typeof V2GameImport
+          parentRoute: typeof rootRoute
+        }
+'/v2/lobby': {
+          id: '/v2/lobby'
+          path: '/v2/lobby'
+          fullPath: '/v2/lobby'
+          preLoaderRoute: typeof V2LobbyImport
+          parentRoute: typeof rootRoute
+        }
   }
 }
 
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/deployment": typeof DeploymentRoute;
-  "/game": typeof GameRoute;
-  "/lobby": typeof LobbyRoute;
-  "/login": typeof LoginRoute;
-  "/signup": typeof SignupRoute;
+  '/': typeof IndexRoute,'/deployment': typeof DeploymentRoute,'/login': typeof LoginRoute,'/signup': typeof SignupRoute,'/v2/game': typeof V2GameRoute,'/v2/lobby': typeof V2LobbyRoute
 }
 
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/deployment": typeof DeploymentRoute;
-  "/game": typeof GameRoute;
-  "/lobby": typeof LobbyRoute;
-  "/login": typeof LoginRoute;
-  "/signup": typeof SignupRoute;
+  '/': typeof IndexRoute,'/deployment': typeof DeploymentRoute,'/login': typeof LoginRoute,'/signup': typeof SignupRoute,'/v2/game': typeof V2GameRoute,'/v2/lobby': typeof V2LobbyRoute
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute;
-  "/": typeof IndexRoute;
-  "/deployment": typeof DeploymentRoute;
-  "/game": typeof GameRoute;
-  "/lobby": typeof LobbyRoute;
-  "/login": typeof LoginRoute;
-  "/signup": typeof SignupRoute;
+  '__root__': typeof rootRoute,
+  '/': typeof IndexRoute,'/deployment': typeof DeploymentRoute,'/login': typeof LoginRoute,'/signup': typeof SignupRoute,'/v2/game': typeof V2GameRoute,'/v2/lobby': typeof V2LobbyRoute
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths:
-    | "/"
-    | "/card"
-    | "/deployment"
-    | "/game"
-    | "/lobby"
-    | "/login"
-    | "/signup";
-  fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/card" | "/deployment" | "/game" | "/lobby" | "/login" | "/signup";
-  id:
-    | "__root__"
-    | "/"
-    | "/card"
-    | "/deployment"
-    | "/game"
-    | "/lobby"
-    | "/login"
-    | "/signup";
-  fileRoutesById: FileRoutesById;
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/'|'/deployment'|'/login'|'/signup'|'/v2/game'|'/v2/lobby'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/'|'/deployment'|'/login'|'/signup'|'/v2/game'|'/v2/lobby'
+  id: '__root__'|'/'|'/deployment'|'/login'|'/signup'|'/v2/game'|'/v2/lobby'
+  fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  DeploymentRoute: typeof DeploymentRoute;
-  GameRoute: typeof GameRoute;
-  LobbyRoute: typeof LobbyRoute;
-  LoginRoute: typeof LoginRoute;
-  SignupRoute: typeof SignupRoute;
+  IndexRoute: typeof IndexRoute,DeploymentRoute: typeof DeploymentRoute,LoginRoute: typeof LoginRoute,SignupRoute: typeof SignupRoute,V2GameRoute: typeof V2GameRoute,V2LobbyRoute: typeof V2LobbyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  DeploymentRoute: DeploymentRoute,
-  GameRoute: GameRoute,
-  LobbyRoute: LobbyRoute,
-  LoginRoute: LoginRoute,
-  SignupRoute: SignupRoute,
-};
+  IndexRoute: IndexRoute,DeploymentRoute: DeploymentRoute,LoginRoute: LoginRoute,SignupRoute: SignupRoute,V2GameRoute: V2GameRoute,V2LobbyRoute: V2LobbyRoute
+}
 
-export const routeTree = rootRoute
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+export const routeTree = rootRoute._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
+
 
 /* ROUTE_MANIFEST_START
 {
@@ -189,10 +136,10 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/deployment",
-        "/game",
-        "/lobby",
         "/login",
-        "/signup"
+        "/signup",
+        "/v2/game",
+        "/v2/lobby"
       ]
     },
     "/": {
@@ -201,19 +148,18 @@ export const routeTree = rootRoute
     "/deployment": {
       "filePath": "deployment.tsx"
     },
-    "/game": {
-      "filePath": "game.tsx"
-    },
-    "/lobby": {
-      "filePath": "lobby.tsx"
-    },
     "/login": {
       "filePath": "login.tsx"
     },
     "/signup": {
       "filePath": "signup.tsx"
+    },
+    "/v2/game": {
+      "filePath": "v2/game.tsx"
+    },
+    "/v2/lobby": {
+      "filePath": "v2/lobby.tsx"
     }
   }
 }
 ROUTE_MANIFEST_END */
-

@@ -66,11 +66,8 @@ pub struct GameRow {
     state: GameState,
 }
 
-pub fn htmx_endpoint() -> impl Endpoint {
-    let context = AppState::default();
-
+pub fn htmx_routes() -> Route {
     Route::new()
-        .at("/", get(index))
         .at("/ws", get(get_ws))
         .at("/lobby", get(get_lobby))
         .at(
@@ -88,19 +85,6 @@ pub fn htmx_endpoint() -> impl Endpoint {
         .at("/game/city/:player_name", get(get_game_city))
         .at("/game/action", post(submit_game_action))
         .at("/game/menu/:menu", get(get_game_menu))
-        .nest("/public", StaticFilesEndpoint::new("public"))
-        .with(AddData::new(context))
-        .with(CookieSession::new(
-            CookieConfig::default()
-                .secure(true)
-                .same_site(SameSite::Lax),
-        ))
-        .with(Tracing)
-}
-
-#[handler]
-async fn index() -> Response {
-    Redirect::temporary("/lobby").into_response()
 }
 
 #[handler]
