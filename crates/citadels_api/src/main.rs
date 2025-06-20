@@ -34,13 +34,13 @@ async fn main() {
         // // static assets
         .nest("/public", StaticFilesEndpoint::new("public"))
         // spa
-        .at(
-            "/*path",
-            StaticFilesEndpoint::new("public/spa")
-                .no_cache_index()
-                .index_file("index.html")
-                .fallback_to_index(),
-        )
+        // .at(
+        //     "/*path",
+        //     StaticFilesEndpoint::new("public/spa")
+        //         .no_cache_index()
+        //         .index_file("index.html")
+        //         .fallback_to_index(),
+        // )
         .with(AddData::new(context))
         .with(AddData::new(Notifications::default()))
         .with(AddData::new(pool))

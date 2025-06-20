@@ -68,6 +68,7 @@ pub struct GameRow {
 
 pub fn htmx_routes() -> Route {
     Route::new()
+        .at("/", get(get_index))
         .at("/ws", get(get_ws))
         .at("/lobby", get(get_lobby))
         .at(
@@ -85,6 +86,11 @@ pub fn htmx_routes() -> Route {
         .at("/game/city/:player_name", get(get_game_city))
         .at("/game/action", post(submit_game_action))
         .at("/game/menu/:menu", get(get_game_menu))
+}
+
+#[handler]
+async fn get_index() -> impl IntoResponse {
+    Redirect::temporary("/lobby")
 }
 
 #[handler]
