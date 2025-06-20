@@ -4,38 +4,43 @@ use poem::web::{
     Html,
 };
 use std::collections::hash_map::HashMap;
+use std::sync::Arc;
 use tokio;
 use tokio::sync::mpsc;
+use tokio::sync::Mutex;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
 type WebSocketSink = mpsc::UnboundedSender<Result<Message, <WebSocketStream as TryStream>::Error>>;
 
-#[derive(Default)]
-pub struct Connections(HashMap<String, WebSocketSink>);
+/// Handles web socket connections for sending html over the wire
+#[derive(Default, Clone)]
+pub struct WsHtmxHandles(Arc<Mutex<HashMap<String, WebSocketSink>>>);
 
-impl Connections {
-    pub fn broadcast(&mut self, html: Html<String>) {
-        self.0.values_mut().for_each(|ws| {
+impl WsHtmxHandles {
+    pub async fn broadcast(&self, html: Html<String>) {
+        self.0.lock().await.values_mut().for_each(|ws| {
             let _ = ws.send(Ok(Message::Text(html.0.clone())));
         });
     }
 
-    pub fn broadcast_each<'a, F>(&'a mut self, to_html: F)
+    pub async fn broadcast_each<F>(&self, to_html: F)
     where
-        F: Fn(&'a str) -> Html<String>,
+        F: Fn(&str) -> Html<String>,
     {
-        for (key, ws) in self.0.iter_mut() {
-            let _ = ws.send(Ok(Message::Text(to_html(key).0)));
+        let mut handle = self.0.lock().await;
+        for (key, ws) in handle.iter_mut() {
+            let html = to_html(key).0;
+            let _ = ws.send(Ok(Message::Text(html)));
         }
     }
 }
 
-pub async fn handle_socket(conn: &mut Connections, player_id: String, ws: WebSocketStream) {
+pub async fn handle_socket(conn: WsHtmxHandles, player_id: String, ws: WebSocketStream) {
     let (ws_sender, mut ws_recv) = ws.split();
     let (chan_sender, chan_recv) = mpsc::unbounded_channel();
     // why was forward used here?
     // why does forward impose a result type on all my sent messages
-    conn.0.insert(player_id, chan_sender);
+    conn.0.lock().await.insert(player_id, chan_sender);
     log::info!("WS - connected");
 
     tokio::spawn(UnboundedReceiverStream::new(chan_recv).forward(ws_sender));

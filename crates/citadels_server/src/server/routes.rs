@@ -1,4 +1,4 @@
-use crate::server::state::AppState;
+use crate::server::ws::WsHtmxHandles;
 use crate::templates::game::menu::*;
 use crate::templates::game::menus::*;
 use crate::templates::game::*;
@@ -6,21 +6,19 @@ use crate::templates::lobby::*;
 use crate::templates::*;
 use askama::Template;
 use citadels::game::PlayerIndex;
+use citadels::lobby::Lobby;
 use citadels::types::PlayerId;
-use cookie::SameSite;
-use poem::endpoint::StaticFilesEndpoint;
 use poem::web::websocket::WebSocket;
-use poem::Endpoint;
 use poem::{
     get, handler,
     http::StatusCode,
-    middleware::AddData,
-    middleware::Tracing,
     post,
-    session::{CookieConfig, CookieSession, Session},
+    session::Session,
     web::{Data, Html, Json, Path, Redirect},
-    EndpointExt, IntoResponse, Response, Route,
+    IntoResponse, Response, Route,
 };
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use citadels::actions::{ActionSubmission, ActionTag};
 use citadels::districts::DistrictName;
@@ -88,13 +86,16 @@ pub fn htmx_routes() -> Route {
         .at("/game/menu/:menu", get(get_game_menu))
 }
 
+pub type InMemoryLobby = Arc<Mutex<Lobby>>;
+type DB = Pool<Postgres>;
+
 #[handler]
 async fn get_index() -> impl IntoResponse {
     Redirect::temporary("/lobby")
 }
 
 #[handler]
-async fn get_lobby(app: Data<&AppState>, session: &Session) -> Response {
+async fn get_lobby(lobby: Data<&InMemoryLobby>, db: Data<&DB>, session: &Session) -> Response {
     let player_id: Option<String> = session.get("player_id");
 
     if player_id.is_none() {
@@ -103,13 +104,13 @@ async fn get_lobby(app: Data<&AppState>, session: &Session) -> Response {
         session.set("player_id", id);
     }
 
-    let active_game = active_game(&app.db).await;
+    let active_game = active_game(&db).await;
 
     if active_game.is_some() {
         return Redirect::temporary("/game").into_response();
     }
 
-    let lobby = app.lobby.lock().await;
+    let lobby = lobby.lock().await;
 
     Html(
         LobbyTemplate {
@@ -123,20 +124,19 @@ async fn get_lobby(app: Data<&AppState>, session: &Session) -> Response {
 }
 
 #[handler]
-async fn get_district_config(app: Data<&AppState>) -> Response {
-    let lobby = app.lobby.lock().await;
+async fn get_district_config(lobby: Data<&InMemoryLobby>) -> Response {
+    let lobby = lobby.lock().await;
     DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
         .to_html()
         .into_response()
 }
 
 #[handler]
-
 async fn post_district_config(
-    app: Data<&AppState>,
+    lobby: Data<&InMemoryLobby>,
     form: Json<HashMap<DistrictName, ConfigOption>>,
 ) -> Response {
-    let mut lobby = app.lobby.lock().await;
+    let mut lobby = lobby.lock().await;
     lobby.config.districts = form.0;
     DistrictConfigTemplate::from_config(lobby.config.districts.borrow())
         .to_html()
@@ -144,16 +144,19 @@ async fn post_district_config(
 }
 
 #[handler]
-async fn get_role_config(app: Data<&AppState>) -> Response {
-    let lobby = app.lobby.lock().await;
+async fn get_role_config(lobby: Data<&InMemoryLobby>) -> Response {
+    let lobby = lobby.lock().await;
     RoleConfigTemplate::from_config(lobby.config.roles.borrow(), &HashSet::new())
         .to_html()
         .into_response()
 }
 
 #[handler]
-async fn post_role_config(app: Data<&AppState>, form: Json<HashMap<RoleName, String>>) -> Response {
-    let mut lobby = app.lobby.lock().await;
+async fn post_role_config(
+    lobby: Data<&InMemoryLobby>,
+    form: Json<HashMap<RoleName, String>>,
+) -> Response {
+    let mut lobby = lobby.lock().await;
     log::info!("{:?}", form);
 
     let roles = form.0.into_keys().collect::<HashSet<_>>();
@@ -170,8 +173,11 @@ async fn post_role_config(app: Data<&AppState>, form: Json<HashMap<RoleName, Str
 }
 
 #[handler]
-async fn post_anarchy(app: Data<&AppState>, checked: Json<HashMap<String, String>>) -> Response {
-    let mut lobby = app.lobby.lock().await;
+async fn post_anarchy(
+    lobby: Data<&InMemoryLobby>,
+    checked: Json<HashMap<String, String>>,
+) -> Response {
+    let mut lobby = lobby.lock().await;
     lobby.config.role_anarchy = checked.get("role_anarchy").is_some();
     log::info!("Set role_anarchy: {}", lobby.config.role_anarchy);
     StatusCode::OK.into_response()
@@ -183,7 +189,12 @@ pub struct Register {
 }
 
 #[handler]
-async fn register(app: Data<&AppState>, session: &Session, form: Json<Register>) -> Response {
+async fn register(
+    connections: Data<&WsHtmxHandles>,
+    lobby: Data<&InMemoryLobby>,
+    session: &Session,
+    form: Json<Register>,
+) -> Response {
     let username = form.username.trim();
     if username.len() == 0 {
         return form_feedback("username cannot be empty".into());
@@ -199,7 +210,7 @@ async fn register(app: Data<&AppState>, session: &Session, form: Json<Register>)
     }
 
     let player_id: String = session.get("player_id").unwrap();
-    let mut lobby = app.lobby.lock().await;
+    let mut lobby = lobby.lock().await;
     if let Err(err) = lobby.register(&player_id, username) {
         return form_feedback(err);
     }
@@ -211,14 +222,18 @@ async fn register(app: Data<&AppState>, session: &Session, form: Json<Register>)
         .render()
         .unwrap(),
     );
-    app.connections.lock().await.broadcast(html);
+    connections.broadcast(html).await;
 
     StatusCode::OK.into_response()
 }
 
 #[handler]
-async fn start_game(app: Data<&AppState>) -> Response {
-    let lobby = app.lobby.lock().await;
+async fn start_game(
+    db: Data<&DB>,
+    lobby: Data<&InMemoryLobby>,
+    connections: Data<&WsHtmxHandles>,
+) -> Response {
+    let lobby = lobby.lock().await;
     if lobby.players.len() < 2 {
         return form_feedback("Need at least 2 players to start a game".into());
     }
@@ -229,7 +244,7 @@ async fn start_game(app: Data<&AppState>) -> Response {
 
     let active_game =
         sqlx::query!("select 1 as exists from rooms join games on rooms.game_id = games.id")
-            .fetch_optional(&app.db)
+            .fetch_optional(db.0)
             .await
             .unwrap()
             .is_some();
@@ -244,11 +259,11 @@ async fn start_game(app: Data<&AppState>) -> Response {
                 "insert into games (state) values ($1) returning id",
                 serde_json::to_value(&game).unwrap()
             )
-            .fetch_one(&app.db)
+            .fetch_one(db.0)
             .await
             .unwrap();
             sqlx::query!("update rooms set game_id = $1 where rooms.id = 1", row.id)
-                .execute(&app.db)
+                .execute(db.0)
                 .await
                 .unwrap();
             let mut game_start_action = serde_json::to_value(lobby.clone()).unwrap();
@@ -259,12 +274,11 @@ async fn start_game(app: Data<&AppState>) -> Response {
                 serde_json::Value::String("Start".to_string()),
             );
 
-            log_action(&app.db, row.id, game_start_action, None).await;
+            log_action(db.0, row.id, game_start_action, None).await;
 
-            app.connections
-                .lock()
-                .await
-                .broadcast_each(move |id| GameTemplate::render_with(&game, Some(id.to_string())));
+            connections
+                .broadcast_each(move |id| GameTemplate::render_with(&game, Some(id.to_string())))
+                .await;
 
             StatusCode::OK.into_response()
         }
@@ -290,9 +304,9 @@ async fn active_game(db: &Pool<Postgres>) -> Option<GameRow> {
 }
 
 #[handler]
-async fn get_game(app: Data<&AppState>, session: &Session) -> Response {
+async fn get_game(db: Data<&DB>, session: &Session) -> Response {
     let player_id: Option<String> = session.get("player_id");
-    let game = active_game(&app.db).await;
+    let game = active_game(&db).await;
     match game {
         Some(game) => GameTemplate::render_with(&game.state, player_id).into_response(),
         None => Redirect::temporary("/lobby").into_response(),
@@ -300,9 +314,9 @@ async fn get_game(app: Data<&AppState>, session: &Session) -> Response {
 }
 
 #[handler]
-async fn get_game_actions(app: Data<&AppState>, session: &Session) -> Response {
+async fn get_game_actions(db: Data<&DB>, session: &Session) -> Response {
     let player_id: Option<PlayerId> = session.get("player_id");
-    let game = active_game(&app.db).await.unwrap();
+    let game = active_game(&db).await.unwrap();
 
     MenuTemplate::from(&game.state, player_id)
         .to_html()
@@ -310,13 +324,9 @@ async fn get_game_actions(app: Data<&AppState>, session: &Session) -> Response {
 }
 
 #[handler]
-async fn get_game_city(
-    app: Data<&AppState>,
-    session: &Session,
-    path: Path<PlayerName>,
-) -> Response {
+async fn get_game_city(db: Data<&DB>, session: &Session, path: Path<PlayerName>) -> Response {
     let player_id: Option<String> = session.get("player_id");
-    let game: GameRow = active_game(&app.db).await.unwrap();
+    let game: GameRow = active_game(&db).await.unwrap();
     let p = game
         .state
         .players
@@ -329,25 +339,25 @@ async fn get_game_city(
 }
 
 #[handler]
-async fn get_ws(state: Data<&AppState>, session: &Session, ws: WebSocket) -> Response {
+async fn get_ws(
+    connections: Data<&WsHtmxHandles>,
+    session: &Session,
+    ws: WebSocket,
+) -> impl IntoResponse {
     let player_id = session.get("player_id").expect("player_id");
-
-    let conn = state.connections.clone();
-    ws.on_upgrade(|socket| async move {
-        let conn = &mut conn.lock().await;
-        crate::server::ws::handle_socket(conn, player_id, socket).await;
-    })
-    .into_response()
+    let connections = connections.clone();
+    ws.on_upgrade(move |socket| crate::server::ws::handle_socket(connections, player_id, socket))
 }
 
 #[handler]
 async fn submit_game_action(
-    app: Data<&AppState>,
+    connections: Data<&WsHtmxHandles>,
+    db: Data<&Pool<Postgres>>,
     session: &Session,
     action: Json<ActionSubmission>,
 ) -> Response {
     let player_id: String = session.get("player_id").unwrap();
-    let mut game = active_game(&app.db).await.unwrap();
+    let mut game = active_game(&db).await.unwrap();
     log::info!("{:#?}", action.0);
 
     match action.0 {
@@ -359,7 +369,7 @@ async fn submit_game_action(
                 .find(|p| p.id == player_id)
                 .unwrap();
             let action_json = serde_json::to_value(&action).unwrap();
-            log_action(&app.db, game.id, action_json, Some(p.index)).await;
+            log_action(&db, game.id, action_json, Some(p.index)).await;
 
             match game.state.perform(action, &player_id) {
                 Ok(()) => {
@@ -369,12 +379,14 @@ async fn submit_game_action(
                         serde_json::to_value(&game.state).unwrap(),
                         game.id
                     )
-                    .execute(&app.db)
+                    .execute(db.0)
                     .await
                     .unwrap();
-                    app.connections.lock().await.broadcast_each(move |id| {
-                        GameTemplate::render_with(&game.state, Some(id.to_string()))
-                    });
+                    connections
+                        .broadcast_each(move |id| {
+                            GameTemplate::render_with(&game.state, Some(id.to_string()))
+                        })
+                        .await;
 
                     Response::default()
                         .with_header("HX-Reswap", "none")
@@ -473,9 +485,9 @@ async fn submit_game_action(
 }
 
 #[handler]
-async fn get_game_menu(app: Data<&AppState>, session: &Session, path: Path<String>) -> Response {
+async fn get_game_menu(db: Data<&DB>, session: &Session, path: Path<String>) -> Response {
     let player_id: String = session.get("player_id").unwrap();
-    let mut game = active_game(&app.db).await.unwrap();
+    let mut game = active_game(&db).await.unwrap();
 
     let active_player = game.state.active_player().unwrap();
 
