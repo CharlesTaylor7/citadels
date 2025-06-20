@@ -1,21 +1,10 @@
 procs:
-  Poem Server:
+  Rust Server:
     shell: RUST_BACKTRACE=1 watchexec -e rs,toml,html -rqc -- cargo run --features=dotenv --bin=citadels_api
-
-  Docs:
-    shell: cargo doc --offline --lib --open
-    autostart: false
 
   Tailwind (v3):
     shell: npx tailwindcss --input tailwind.source.css --output public/styles/index.css --watch
 
-  React Dev Server:
-    cwd: frontend
-    shell: yarn dev
-
-  Angular build:
-    cwd: frontend/angular
-    shell: yarn build
-    autostart: false
-
-
+  Lit:
+    cwd: lit
+    shell: npx vite

@@ -1,10 +1,11 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   plugins: [require("daisyui")],
   content: [
     "crates/citadels_server/templates/**/*",
     "crates/citadels_server/src/templates.rs",
     "crates/citadels_server/src/templates/filters.rs",
+    "lit/**/*.ts",
   ],
   daisyui: {
     themes: true,
