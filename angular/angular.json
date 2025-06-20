@@ -22,7 +22,7 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputHashing": "none",
-            "outputPath": "dist/citadels",
+            "outputPath": "../public/angular",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
@@ -33,7 +33,7 @@
               }
             ],
             "styles": [
-              "../src/styles.css"
+              "../react/src/styles.css"
             ],
            "allowedCommonJsDependencies": [
                 "interactjs"

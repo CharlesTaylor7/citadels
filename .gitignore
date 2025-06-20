@@ -2,4 +2,6 @@ target
 node_modules
 .aider*
 .env*
-public/spa
+public/lit
+public/react
+public/angular

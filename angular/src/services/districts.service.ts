@@ -1,4 +1,4 @@
-import districts from '../../../../public/districts.json';
+import districts from '../../../public/districts.json';
 import { Injectable } from '@angular/core';
 
 @Injectable({

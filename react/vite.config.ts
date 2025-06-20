@@ -21,7 +21,7 @@ export default defineConfig({
     visualizer({ filename: "stats/rollup.html" }),
   ],
   build: {
-    outDir: "../public/spa/",
+    outDir: "../public/react/",
     emptyOutDir: true,
   },
   server: {
