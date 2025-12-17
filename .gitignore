@@ -5,3 +5,4 @@ node_modules
 public/lit
 public/react
 public/angular
+.sqlx
