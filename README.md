@@ -30,14 +30,19 @@ Backend
 
 ## Releases
 How to release:
-- Update changelog
-- Run: `deploy.nu`
-- git commit changes
-- Git tag the release 
+- `./scripts/deploy-local.nu`
+Or use GH image created on merge to main with:
+- `./scripts/deploy.nu`.
 
 ## Secret management
-
 In prod use `fly secrets set`.
 In dev, use the .env file.
 
 Non secret env vars can go in fly.toml
+
+## Development
+Get mprocs, npm, and rust toolchain installed
+
+1. Copy sample.env to .env
+2. npm i
+3. mprocs
